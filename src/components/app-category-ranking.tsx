@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useState } from "react";
 
 type CategoryKey = "mcp" | "platform" | "tool";
 
@@ -208,7 +209,7 @@ function metaBadgeClass(meta: string) {
   }
 
   if (normalized === "production ready") {
-    return "bg-emerald-100 text-emerald-800";
+    return "bg-[#c20019]/10 text-[#c20019]";
   }
 
   if (normalized === "in rollout") {
@@ -224,33 +225,69 @@ function metaBadgeClass(meta: string) {
 
 export function AppCategoryRanking() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("tool");
-
-  const activeApps = useMemo(
-    () => rankingData[selectedCategory],
-    [selectedCategory],
-  );
-  const columns = useMemo(() => splitColumns(activeApps), [activeApps]);
-  const sectionTitle = categoryTabs.find(
-    (tab) => tab.key === selectedCategory,
-  )?.label;
+  const sliderRef = useRef<HTMLDivElement | null>(null);
   const sectionDescription: Record<CategoryKey, string> = {
     mcp: "Model Context Protocol services",
     platform: "Core platform systems",
     tool: "Operational tools and utilities",
   };
 
+  const currentIndex = categoryTabs.findIndex(
+    (tab) => tab.key === selectedCategory,
+  );
+  const canScrollPrev = currentIndex > 0;
+  const canScrollNext = currentIndex < categoryTabs.length - 1;
+
+  function scrollToCategory(nextCategory: CategoryKey) {
+    const slider = sliderRef.current;
+    const nextIndex = categoryTabs.findIndex((tab) => tab.key === nextCategory);
+
+    setSelectedCategory(nextCategory);
+
+    if (!slider || nextIndex < 0) {
+      return;
+    }
+
+    slider.scrollTo({
+      left: slider.clientWidth * nextIndex,
+      behavior: "smooth",
+    });
+  }
+
+  function handleArrow(direction: "previous" | "next") {
+    const nextIndex =
+      direction === "next"
+        ? Math.min(currentIndex + 1, categoryTabs.length - 1)
+        : Math.max(currentIndex - 1, 0);
+
+    scrollToCategory(categoryTabs[nextIndex].key);
+  }
+
+  function handleSliderScroll() {
+    const slider = sliderRef.current;
+
+    if (!slider) {
+      return;
+    }
+
+    const nextIndex = Math.round(slider.scrollLeft / slider.clientWidth);
+    const nextCategory = categoryTabs[nextIndex]?.key;
+
+    if (nextCategory && nextCategory !== selectedCategory) {
+      setSelectedCategory(nextCategory);
+    }
+  }
+
   return (
     <section
-      className="mt-8 rounded-3xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6"
+      className="mt-8 rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white p-4 sm:p-6"
       aria-label="App categories"
     >
       <header className="ranking-header">
         <div className="ranking-title-group flex flex-col gap-1">
-          <span className="text-xl font-semibold text-slate-900">
-            {sectionTitle}
-          </span>
+          <h2 className="text-xl font-semibold text-slate-900">Top charts</h2>
           <p className="text-xs text-slate-500">
-            {sectionDescription[selectedCategory]}
+            Browse ranked Adapter apps by category.
           </p>
         </div>
       </header>
@@ -271,10 +308,10 @@ export function AppCategoryRanking() {
                   type="button"
                   role="tab"
                   aria-label={tab.label}
-                  onClick={() => setSelectedCategory(tab.key)}
+                  onClick={() => scrollToCategory(tab.key)}
                   className={`tab-button rounded-full border px-4 py-1.5 text-sm font-medium shadow-sm transition ${
                     isActive
-                      ? "border-emerald-200 bg-emerald-100 text-emerald-900"
+                      ? "border-[#c20019]/30 bg-[#c20019]/10 text-[#c20019]"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -286,66 +323,117 @@ export function AppCategoryRanking() {
         </div>
 
         <div className="apps-content mt-5">
-          <div className="apps-inner">
-            <div className="apps-grid-wrapper">
-              <div
-                className="apps-grid grid gap-4 lg:grid-cols-3 lg:gap-5"
-                role="list"
-                aria-label="Apps grouped by category"
-              >
-                {columns.map((group, groupIndex) => (
+          <div className="apps-inner group/ranking-slider relative rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
+            <div
+              ref={sliderRef}
+              onScroll={handleSliderScroll}
+              className="slider-track flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              aria-live="polite"
+            >
+              {categoryTabs.map((tab) => {
+                const groupedApps = splitColumns(rankingData[tab.key]);
+
+                return (
                   <div
-                    key={groupIndex}
-                    role="listitem"
-                    className="app-column space-y-3"
+                    key={tab.key}
+                    className="slide-panel min-w-full snap-start"
+                    role="group"
+                    aria-label={`${tab.label} rankings`}
                   >
-                    {group.map((app) => (
-                      <article
-                        key={app.id}
-                        className="app-card flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-emerald-200 hover:shadow-sm"
-                      >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-slate-900">
+                          {tab.label}
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          {sectionDescription[tab.key]}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className="apps-grid grid gap-x-5 gap-y-3 lg:grid-cols-3"
+                      role="list"
+                      aria-label={`${tab.label} apps`}
+                    >
+                      {groupedApps.map((group, groupIndex) => (
                         <div
-                          className="rank-badge inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500"
-                          aria-label={`Rank ${app.rank}`}
+                          key={`${tab.key}-${groupIndex}`}
+                          role="listitem"
+                          className="app-column space-y-2"
                         >
-                          {app.rank}
-                        </div>
-
-                        <div className="app-info flex min-w-0 items-center gap-3">
-                          <div
-                            className={`app-icon flex size-12 shrink-0 items-center justify-center rounded-xl text-xs font-semibold tracking-wide text-white shadow-sm ${app.iconClassName}`}
-                          >
-                            {app.iconText}
-                          </div>
-
-                          <div className="app-text min-w-0">
-                            <div className="app-name-row">
-                              <h3 className="line-clamp-1 text-sm font-medium text-slate-900">
-                                {app.name}
-                              </h3>
-                            </div>
-                            <div className="app-category-row">
-                              <p className="line-clamp-1 text-xs text-slate-500">
-                                {app.category}
-                              </p>
-                            </div>
-                            <div className="app-meta-row mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                              <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${metaBadgeClass(
-                                  app.meta,
-                                )}`}
+                          {group.map((app) => (
+                            <article
+                              key={app.id}
+                              className="app-card flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-slate-50"
+                            >
+                              <div
+                                className="rank-badge inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500"
+                                aria-label={`Rank ${app.rank}`}
                               >
-                                {app.meta}
-                              </span>
-                            </div>
-                          </div>
+                                {app.rank}
+                              </div>
+
+                              <div className="app-info flex min-w-0 items-center gap-3">
+                                <div
+                                  className={`app-icon flex size-14 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold tracking-wide text-white shadow-sm ${app.iconClassName}`}
+                                >
+                                  {app.iconText}
+                                </div>
+
+                                <div className="app-text min-w-0">
+                                  <div className="app-name-row">
+                                    <h3 className="line-clamp-1 text-sm font-medium text-slate-900 sm:text-base">
+                                      {app.name}
+                                    </h3>
+                                  </div>
+                                  <div className="app-category-row">
+                                    <p className="line-clamp-1 text-sm text-slate-500">
+                                      {app.category}
+                                    </p>
+                                  </div>
+                                  <div className="app-meta-row mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                                    <span
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${metaBadgeClass(
+                                        app.meta,
+                                      )}`}
+                                    >
+                                      {app.meta}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          ))}
                         </div>
-                      </article>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+
+            {canScrollPrev ? (
+              <button
+                type="button"
+                onClick={() => handleArrow("previous")}
+                className="absolute top-1/2 left-0 z-10 hidden size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
+                aria-label="Previous category"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            ) : null}
+
+            {canScrollNext ? (
+              <button
+                type="button"
+                onClick={() => handleArrow("next")}
+                className="absolute top-1/2 right-0 z-10 hidden size-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
+                aria-label="Next category"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { Search } from "lucide-react";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
 import { AppCategoryRanking } from "@/components/app-category-ranking";
+import { TopbarSearch } from "@/components/topbar-search";
+import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
 
 type StoreApp = {
   id: string;
@@ -173,7 +174,7 @@ const appSections: AppSection[] = [
 function statusBadgeClass(status: string) {
   const s = status.toLowerCase();
   if (s === "new") return "bg-red-100 text-red-700";
-  if (s === "production ready") return "bg-emerald-100 text-emerald-800";
+  if (s === "production ready") return "bg-[#c20019]/10 text-[#c20019]";
   if (s === "in rollout") return "bg-amber-100 text-amber-800";
   if (s === "beta") return "bg-sky-100 text-sky-800";
   return "bg-slate-100 text-slate-700";
@@ -187,7 +188,7 @@ function AppTile({ app }: { app: StoreApp }) {
     .join("");
 
   return (
-    <article className="group w-36 shrink-0 rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-emerald-200 hover:shadow-sm">
+    <article className="group w-36 shrink-0 rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-[#c20019]/40 hover:shadow-sm">
       <div
         className={`flex h-16 w-16 items-center justify-center rounded-xl text-base font-bold text-white shadow-sm ${app.iconBg}`}
       >
@@ -222,20 +223,10 @@ export default function StoreAppsPage() {
             unoptimized
             priority
           />
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
-            <input
-              type="search"
-              placeholder="Search for apps & games"
-              className="h-11 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-500 focus:bg-white"
-            />
+          <div className="ml-auto flex items-center gap-2">
+            <TopbarSearch />
+            <ProfileAvatarMenu />
           </div>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center rounded-full border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Sign in
-          </button>
         </div>
       </header>
 
@@ -248,7 +239,7 @@ export default function StoreAppsPage() {
                 type="button"
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                   index === 1
-                    ? "bg-emerald-100 text-emerald-800"
+                    ? "bg-[#c20019]/10 text-[#c20019]"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -263,7 +254,7 @@ export default function StoreAppsPage() {
                 type="button"
                 className={`rounded-full border px-3 py-1 text-xs transition ${
                   index === 0
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    ? "border-[#c20019]/30 bg-[#c20019]/10 text-[#c20019]"
                     : "border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -280,7 +271,7 @@ export default function StoreAppsPage() {
           {appSections.map((section) => (
             <div
               key={section.id}
-              className="rounded-3xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white px-4 py-5 sm:px-6"
+              className="rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white px-4 py-5 sm:px-6"
             >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-slate-900">
@@ -288,7 +279,7 @@ export default function StoreAppsPage() {
                 </h2>
                 <button
                   type="button"
-                  className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                  className="text-xs font-medium text-[#c20019] hover:text-[#c20019]"
                 >
                   See more
                 </button>
@@ -305,6 +296,94 @@ export default function StoreAppsPage() {
           ))}
         </section>
       </main>
+
+      <footer className="border-t border-slate-200 bg-slate-50">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 md:px-6">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            <div className="col-span-2 sm:col-span-1">
+              <Image
+                src="/images/logo/logo-black-110x30.png"
+                alt="Adapter Digital Group"
+                width={110}
+                height={30}
+                className="h-6 w-auto"
+                unoptimized
+              />
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                The app marketplace for Adapter&apos;s ecosystem — MCPs,
+                Platforms &amp; Tools built for modern marketing teams.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                Marketplace
+              </h4>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                {["MCP", "Platform", "Tool", "New Releases", "Top Charts"].map(
+                  (item) => (
+                    <li key={item}>
+                      <a href="#" className="transition hover:text-slate-900">
+                        {item}
+                      </a>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                Developers
+              </h4>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                {[
+                  "Submit an App",
+                  "Developer Docs",
+                  "API Reference",
+                  "Changelog",
+                ].map((item) => (
+                  <li key={item}>
+                    <a href="#" className="transition hover:text-slate-900">
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                Company
+              </h4>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                {["About", "Blog", "Careers", "Privacy Policy", "Terms"].map(
+                  (item) => (
+                    <li key={item}>
+                      <a href="#" className="transition hover:text-slate-900">
+                        {item}
+                      </a>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
+            <p className="text-xs text-slate-400">
+              &copy; {new Date().getFullYear()} Adapter Digital Group. All
+              rights reserved.
+            </p>
+            <div className="flex items-center gap-1">
+              <span className="inline-block size-2 rounded-full bg-[#c20019]" />
+              <span className="text-xs font-medium text-slate-500">
+                Adapter App Store
+              </span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
