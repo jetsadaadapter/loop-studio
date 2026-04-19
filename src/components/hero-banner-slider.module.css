@@ -1,0 +1,23 @@
+.heroCardCanva {
+  background-color: #1c1294;
+}
+
+.heroCardStorytel {
+  background-color: #35341b;
+}
+
+.heroCardTiktok {
+  background-color: #b69079;
+}
+
+.heroOverlayCanva {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #1c1294 82%);
+}
+
+.heroOverlayStorytel {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #35341b 82%);
+}
+
+.heroOverlayTiktok {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #b69079 82%);
+}

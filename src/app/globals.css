@@ -7,9 +7,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans:
+    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
+    sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading:
+    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
+    sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -81,6 +85,26 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Typography tokens */
+  --typo-display-size: clamp(2rem, 4.2vw, 3.5rem);
+  --typo-display-line-height: 1.08;
+  --typo-display-weight: 600;
+  --typo-display-letter-spacing: -0.025em;
+
+  --typo-title-size: clamp(1.25rem, 2.1vw, 2rem);
+  --typo-title-line-height: 1.2;
+  --typo-title-weight: 600;
+  --typo-title-letter-spacing: -0.015em;
+
+  --typo-body-size: 1rem;
+  --typo-body-line-height: 1.65;
+  --typo-body-weight: 400;
+
+  --typo-caption-size: 0.8125rem;
+  --typo-caption-line-height: 1.4;
+  --typo-caption-weight: 500;
+  --typo-caption-letter-spacing: 0.01em;
 }
 
 .dark {
@@ -126,5 +150,55 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .typo-display {
+    font-family: var(--font-heading);
+    font-size: var(--typo-display-size);
+    line-height: var(--typo-display-line-height);
+    font-weight: var(--typo-display-weight);
+    letter-spacing: var(--typo-display-letter-spacing);
+    overflow-wrap: break-word;
+  }
+
+  .typo-title {
+    font-family: var(--font-heading);
+    font-size: var(--typo-title-size);
+    line-height: var(--typo-title-line-height);
+    font-weight: var(--typo-title-weight);
+    letter-spacing: var(--typo-title-letter-spacing);
+    overflow-wrap: break-word;
+  }
+
+  .typo-body {
+    font-size: var(--typo-body-size);
+    line-height: var(--typo-body-line-height);
+    font-weight: var(--typo-body-weight);
+    overflow-wrap: anywhere;
+  }
+
+  @supports (text-wrap: balance) {
+    .typo-display,
+    .typo-title {
+      overflow-wrap: normal;
+      text-wrap: balance;
+    }
+  }
+
+  @supports (text-wrap: pretty) {
+    .typo-body {
+      overflow-wrap: normal;
+      text-wrap: pretty;
+    }
+  }
+
+  .typo-caption {
+    font-size: var(--typo-caption-size);
+    line-height: var(--typo-caption-line-height);
+    font-weight: var(--typo-caption-weight);
+    letter-spacing: var(--typo-caption-letter-spacing);
+    text-transform: uppercase;
   }
 }

@@ -6,6 +6,7 @@ This document serves as the primary source of truth for the development of the I
 
 - **Framework:** Next.js (App Router)
 - **Styling:** Tailwind CSS
+- **Typography:** Local `Sukhumvit Set` font family (default sans + heading)
 - **UI Components:** Shadcn UI (Radix UI underneath)
 - **Authentication:** NextAuth.js (Gmail/Google Provider via Centralized MCP)
 - **Validation:** Zod (Strict Schema Validation)
@@ -83,6 +84,13 @@ export type AppResource = z.infer<typeof AppResourceSchema>;
 ---
 
 ## 🎨 4. UI & Design Principles (Play Store Style)
+
+### Font Baseline (Required for new projects)
+
+1. Use `Sukhumvit Set` as the required project font family (default sans + heading) and keep all font files in `src/app/fonts/sukhumvit-set`.
+2. Register fonts using `next/font/local` in `src/app/layout.tsx` with all provided weights.
+3. Set `--font-sans` and `--font-heading` to the local Sukhumvit variable in `src/app/globals.css`.
+4. Keep a monospaced fallback (for code/logs) as a separate font variable.
 
 - **Visual Hierarchy:** Use Shadcn/Embla `Carousel` for featured apps and horizontal `Grid` for app categories.
 - **Micro-interactions:** Use Framer Motion or Tailwind transitions for smooth hover states.
