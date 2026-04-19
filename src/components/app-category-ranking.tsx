@@ -209,7 +209,7 @@ function metaBadgeClass(meta: string) {
   }
 
   if (normalized === "production ready") {
-    return "bg-[#c20019]/10 text-[#c20019]";
+    return "bg-emerald-100 text-emerald-700";
   }
 
   if (normalized === "in rollout") {

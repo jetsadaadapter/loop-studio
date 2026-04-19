@@ -174,7 +174,7 @@ const appSections: AppSection[] = [
 function statusBadgeClass(status: string) {
   const s = status.toLowerCase();
   if (s === "new") return "bg-red-100 text-red-700";
-  if (s === "production ready") return "bg-[#c20019]/10 text-[#c20019]";
+  if (s === "production ready") return "bg-emerald-100 text-emerald-700";
   if (s === "in rollout") return "bg-amber-100 text-amber-800";
   if (s === "beta") return "bg-sky-100 text-sky-800";
   return "bg-slate-100 text-slate-700";
@@ -213,7 +213,7 @@ export default function StoreAppsPage() {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 md:px-6">
+        <div className="flex h-16 w-full items-center gap-3 px-4 md:px-6">
           <Image
             src="/images/logo/logo-black-110x30.png"
             alt="Adapter Digital Group"

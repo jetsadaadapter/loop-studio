@@ -21,7 +21,7 @@ function MenuSection({ items }: { items: MenuItem[] }) {
         <button
           key={item.label}
           type="button"
-          className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+          className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-xs text-slate-700 transition hover:bg-slate-100"
         >
           <item.icon className="size-5 text-slate-500" />
           <span>{item.label}</span>
