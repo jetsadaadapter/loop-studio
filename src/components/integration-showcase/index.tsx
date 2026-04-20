@@ -9,7 +9,7 @@ import {
   Sparkles,
   Workflow,
 } from "lucide-react";
-import styles from "./integration-showcase.module.css";
+import styles from "./styles.module.css";
 
 type IntegrationResource = {
   name: string;

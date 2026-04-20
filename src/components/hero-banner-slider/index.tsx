@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
-import styles from "./hero-banner-slider.module.css";
+import styles from "./styles.module.css";
 
 type HeroTheme = "canva" | "storytel" | "tiktok";
 
