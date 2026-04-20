@@ -22,11 +22,13 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 text-sm", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Continue with your Google account</CardDescription>
+          <CardTitle className="text-lg">Welcome back</CardTitle>
+          <CardDescription className="text-xs">
+            Continue with your Google account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form>
@@ -34,7 +36,7 @@ export function LoginForm({
               <Field>
                 <ZeroTrustGoogleButton />
               </Field>
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+              <FieldSeparator className="text-xs *:data-[slot=field-separator-content]:bg-card">
                 Or continue with
               </FieldSeparator>
               <Field>
@@ -42,6 +44,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
+                  className="text-sm"
                   placeholder="m@example.com"
                   required
                 />
@@ -51,16 +54,26 @@ export function LoginForm({
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <a
                     href="#"
-                    className="ml-auto text-sm underline-offset-4 hover:underline"
+                    className="ml-auto text-xs underline-offset-4 hover:underline"
                   >
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  className="text-sm"
+                  required
+                />
               </Field>
               <Field>
-                <Button type="submit">Continue</Button>
-                <FieldDescription className="text-center">
+                <Button
+                  type="submit"
+                  className="bg-brand text-white hover:bg-brand/90"
+                >
+                  Continue
+                </Button>
+                <FieldDescription className="text-center text-xs">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>
               </Field>
@@ -68,7 +81,7 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
+      <FieldDescription className="px-6 text-center text-xs">
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>

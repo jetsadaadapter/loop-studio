@@ -53,7 +53,7 @@ export function TopbarSearch() {
           }
         }}
         placeholder="Search for apps"
-        className="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm outline-none transition focus:border-[#c20019] focus:bg-white"
+        className="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm outline-none transition focus:border-brand focus:bg-white"
       />
       {query && (
         <button

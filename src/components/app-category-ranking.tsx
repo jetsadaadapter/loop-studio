@@ -311,7 +311,7 @@ export function AppCategoryRanking() {
                   onClick={() => scrollToCategory(tab.key)}
                   className={`tab-button rounded-full border px-4 py-1.5 text-sm font-medium shadow-sm transition ${
                     isActive
-                      ? "border-[#c20019]/30 bg-[#c20019]/10 text-[#c20019]"
+                      ? "border-brand/30 bg-brand/10 text-brand"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -417,7 +417,7 @@ export function AppCategoryRanking() {
               <button
                 type="button"
                 onClick={() => handleArrow("previous")}
-                className="absolute top-1/2 left-0 z-10 hidden size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
+                className="absolute top-1/2 left-0 z-10 hidden size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-brand/30 hover:text-brand group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
                 aria-label="Previous category"
               >
                 <ChevronLeft className="size-5" />
@@ -428,7 +428,7 @@ export function AppCategoryRanking() {
               <button
                 type="button"
                 onClick={() => handleArrow("next")}
-                className="absolute top-1/2 right-0 z-10 hidden size-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
+                className="absolute top-1/2 right-0 z-10 hidden size-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-brand/30 hover:text-brand group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
                 aria-label="Next category"
               >
                 <ChevronRight className="size-5" />
