@@ -141,7 +141,8 @@ export default function CallbackPage() {
                 <span className="font-medium">code:</span> {preview.code ?? "-"}
               </p>
               <p>
-                <span className="font-medium">state:</span> {preview.state ?? "-"}
+                <span className="font-medium">state:</span>{" "}
+                {preview.state ?? "-"}
               </p>
               <p>
                 <span className="font-medium">token type:</span>{" "}
@@ -158,7 +159,8 @@ export default function CallbackPage() {
                 {preview.hasToken ? "yes" : "no"}
               </p>
               <p className="break-all">
-                <span className="font-medium">return to:</span> {preview.returnTo}
+                <span className="font-medium">return to:</span>{" "}
+                {preview.returnTo}
               </p>
             </div>
             <button
