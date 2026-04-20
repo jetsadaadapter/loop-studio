@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useMemo, useState } from "react";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
 import { AppCategoryRanking } from "@/components/app-category-ranking";
 import { TopbarSearch } from "@/components/topbar-search";
@@ -19,8 +22,31 @@ type AppSection = {
   apps: StoreApp[];
 };
 
-const mainTabs = ["Games", "Apps", "Books", "Kids"];
-const deviceTabs = ["Phone", "Tablet", "TV", "Chromebook", "Watch", "Car"];
+type MainTabKey = "mcp" | "platform" | "tool" | "marketplace-updates" | "admin";
+type StatusFilterKey =
+  | "all"
+  | "production ready"
+  | "in rollout"
+  | "beta"
+  | "planned"
+  | "new";
+
+const mainTabs: Array<{ key: MainTabKey; label: string }> = [
+  { key: "mcp", label: "MCP" },
+  { key: "platform", label: "Platform" },
+  { key: "tool", label: "Tool" },
+  { key: "marketplace-updates", label: "Marketplace Updates" },
+  { key: "admin", label: "Admin" },
+];
+
+const statusFilters: Array<{ key: StatusFilterKey; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "production ready", label: "Production ready" },
+  { key: "in rollout", label: "In rollout" },
+  { key: "beta", label: "Beta" },
+  { key: "planned", label: "Planned" },
+  { key: "new", label: "New" },
+];
 
 const appSections: AppSection[] = [
   {
@@ -210,6 +236,77 @@ function AppTile({ app }: { app: StoreApp }) {
 }
 
 export default function StoreAppsPage() {
+  const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
+  const [selectedStatus, setSelectedStatus] =
+    useState<StatusFilterKey>("production ready");
+
+  const baseSections = useMemo(() => {
+    if (selectedMainTab === "marketplace-updates") {
+      return appSections;
+    }
+
+    if (selectedMainTab === "admin") {
+      return appSections.filter((section) => section.id === "platform");
+    }
+
+    return appSections.filter((section) => section.id === selectedMainTab);
+  }, [selectedMainTab]);
+
+  const statusCounts = useMemo(() => {
+    const allApps = baseSections.flatMap((section) => section.apps);
+
+    return statusFilters.reduce<Record<StatusFilterKey, number>>(
+      (accumulator, filter) => {
+        if (filter.key === "all") {
+          accumulator[filter.key] = allApps.length;
+          return accumulator;
+        }
+
+        accumulator[filter.key] = allApps.filter(
+          (app) => app.rating.toLowerCase() === filter.key,
+        ).length;
+        return accumulator;
+      },
+      {
+        all: 0,
+        "production ready": 0,
+        "in rollout": 0,
+        beta: 0,
+        planned: 0,
+        new: 0,
+      },
+    );
+  }, [baseSections]);
+
+  const visibleStatusFilters = useMemo(
+    () =>
+      statusFilters.filter(
+        (filter) => filter.key === "all" || statusCounts[filter.key] > 0,
+      ),
+    [statusCounts],
+  );
+
+  const effectiveStatus: StatusFilterKey = visibleStatusFilters.some(
+    (filter) => filter.key === selectedStatus,
+  )
+    ? selectedStatus
+    : "all";
+
+  const filteredSections = useMemo(() => {
+    if (effectiveStatus === "all") {
+      return baseSections;
+    }
+
+    return baseSections
+      .map((section) => ({
+        ...section,
+        apps: section.apps.filter(
+          (app) => app.rating.toLowerCase() === effectiveStatus,
+        ),
+      }))
+      .filter((section) => section.apps.length > 0);
+  }, [baseSections, effectiveStatus]);
+
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -233,32 +330,37 @@ export default function StoreAppsPage() {
       <main className="mx-auto w-full max-w-7xl px-4 pb-10 pt-5 md:px-6">
         <section className="border-b border-slate-200 pb-3">
           <div className="flex flex-wrap items-center gap-2">
-            {mainTabs.map((tab, index) => (
+            {mainTabs.map((tab) => (
               <button
-                key={tab}
+                key={tab.key}
                 type="button"
+                onClick={() => {
+                  setSelectedMainTab(tab.key);
+                  setSelectedStatus("all");
+                }}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                  index === 1
+                  selectedMainTab === tab.key
                     ? "bg-[#c20019]/10 text-[#c20019]"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                {tab}
+                {tab.label}
               </button>
             ))}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {deviceTabs.map((device, index) => (
+            {visibleStatusFilters.map((filter) => (
               <button
-                key={device}
+                key={filter.key}
                 type="button"
+                onClick={() => setSelectedStatus(filter.key)}
                 className={`rounded-full border px-3 py-1 text-xs transition ${
-                  index === 0
+                  effectiveStatus === filter.key
                     ? "border-[#c20019]/30 bg-[#c20019]/10 text-[#c20019]"
                     : "border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                {device}
+                {filter.label} ({statusCounts[filter.key]})
               </button>
             ))}
           </div>
@@ -268,7 +370,7 @@ export default function StoreAppsPage() {
         <AppCategoryRanking />
 
         <section className="mt-8 space-y-6">
-          {appSections.map((section) => (
+          {filteredSections.map((section) => (
             <div
               key={section.id}
               className="rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white px-4 py-5 sm:px-6"
@@ -294,6 +396,17 @@ export default function StoreAppsPage() {
               </div>
             </div>
           ))}
+
+          {filteredSections.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center sm:px-6">
+              <p className="text-sm font-medium text-slate-700">
+                No apps match this filter.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Try switching status or category.
+              </p>
+            </div>
+          ) : null}
         </section>
       </main>
 

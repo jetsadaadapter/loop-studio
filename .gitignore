@@ -24,6 +24,23 @@
 .DS_Store
 *.pem
 
+# security — private keys & certificates
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*.p8
+*.jks
+
+# ai / ide tool configs (personal, not project-wide)
+.qodo/
+.cursor/
+.idea/
+
+# internal project docs (not for public repo)
+.github/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
