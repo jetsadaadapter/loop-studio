@@ -9,7 +9,7 @@ import { TopbarSearch } from "@/components/topbar-search";
 import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
 import { AppTile } from "@/components/app-tile";
 import {
-  appSections,
+  storeAppsResponse,
   mainTabs,
   statusFilters,
   footerLinks,
@@ -19,43 +19,79 @@ import {
 
 export default function StoreAppsPage() {
   const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
-  const [selectedStatus, setSelectedStatus] = useState<StatusFilterKey>("production ready");
+  const [selectedStatus, setSelectedStatus] =
+    useState<StatusFilterKey>("production ready");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { sections } = storeAppsResponse;
 
   const baseSections = useMemo(() => {
-    if (selectedMainTab === "marketplace-updates") return appSections;
-    if (selectedMainTab === "admin") return appSections.filter((s) => s.id === "platform");
-    return appSections.filter((s) => s.id === selectedMainTab);
-  }, [selectedMainTab]);
+    if (selectedMainTab === "marketplace-updates") return sections;
+    if (selectedMainTab === "admin")
+      return sections.filter((s) => s.id === "platform");
+    return sections.filter((s) => s.id === selectedMainTab);
+  }, [sections, selectedMainTab]);
+
+  const searchedSections = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    if (!normalizedQuery) return baseSections;
+
+    return baseSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((app) => {
+          const searchableText = `${app.name} ${app.category}`.toLowerCase();
+          return searchableText.includes(normalizedQuery);
+        }),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [baseSections, searchQuery]);
 
   const statusCounts = useMemo(() => {
-    const allApps = baseSections.flatMap((s) => s.apps);
+    const allApps = searchedSections.flatMap((s) => s.items);
     return statusFilters.reduce<Record<StatusFilterKey, number>>(
       (acc, filter) => {
         acc[filter.key] =
           filter.key === "all"
             ? allApps.length
-            : allApps.filter((app) => app.rating.toLowerCase() === filter.key).length;
+            : allApps.filter((app) => app.status.toLowerCase() === filter.key)
+                .length;
         return acc;
       },
-      { all: 0, "production ready": 0, "in rollout": 0, beta: 0, planned: 0, new: 0 },
+      {
+        all: 0,
+        "production ready": 0,
+        "in rollout": 0,
+        beta: 0,
+        planned: 0,
+        new: 0,
+      },
     );
-  }, [baseSections]);
+  }, [searchedSections]);
 
   const visibleStatusFilters = useMemo(
-    () => statusFilters.filter((f) => f.key === "all" || statusCounts[f.key] > 0),
+    () =>
+      statusFilters.filter((f) => f.key === "all" || statusCounts[f.key] > 0),
     [statusCounts],
   );
 
-  const effectiveStatus: StatusFilterKey = visibleStatusFilters.some((f) => f.key === selectedStatus)
+  const effectiveStatus: StatusFilterKey = visibleStatusFilters.some(
+    (f) => f.key === selectedStatus,
+  )
     ? selectedStatus
     : "all";
 
   const filteredSections = useMemo(() => {
-    if (effectiveStatus === "all") return baseSections;
-    return baseSections
-      .map((s) => ({ ...s, apps: s.apps.filter((app) => app.rating.toLowerCase() === effectiveStatus) }))
-      .filter((s) => s.apps.length > 0);
-  }, [baseSections, effectiveStatus]);
+    if (effectiveStatus === "all") return searchedSections;
+    return searchedSections
+      .map((s) => ({
+        ...s,
+        items: s.items.filter(
+          (app) => app.status.toLowerCase() === effectiveStatus,
+        ),
+      }))
+      .filter((s) => s.items.length > 0);
+  }, [searchedSections, effectiveStatus]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -71,7 +107,7 @@ export default function StoreAppsPage() {
             priority
           />
           <div className="ml-auto flex items-center gap-2">
-            <TopbarSearch />
+            <TopbarSearch value={searchQuery} onChange={setSearchQuery} />
             <ProfileAvatarMenu />
           </div>
         </div>
@@ -84,9 +120,14 @@ export default function StoreAppsPage() {
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => { setSelectedMainTab(tab.key); setSelectedStatus("all"); }}
+                onClick={() => {
+                  setSelectedMainTab(tab.key);
+                  setSelectedStatus("all");
+                }}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                  selectedMainTab === tab.key ? "bg-brand/10 text-brand" : "text-slate-600 hover:bg-slate-100"
+                  selectedMainTab === tab.key
+                    ? "bg-brand/10 text-brand"
+                    : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
                 {tab.label}
@@ -117,15 +158,23 @@ export default function StoreAppsPage() {
 
         <section className="mt-8 space-y-6">
           {filteredSections.map((section) => (
-            <div key={section.id} className="rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white px-4 py-5 sm:px-6">
+            <div
+              key={section.id}
+              className="rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white px-4 py-5 sm:px-6"
+            >
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold text-slate-900">{section.title}</h2>
-                <button type="button" className="text-xs font-medium text-brand hover:text-brand">
+                <h2 className="text-base font-semibold text-slate-900">
+                  {section.title}
+                </h2>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-brand hover:text-brand"
+                >
                   See more
                 </button>
               </div>
               <div className="-mx-1 flex snap-x gap-2 overflow-x-auto pb-1">
-                {section.apps.map((app) => (
+                {section.items.map((app) => (
                   <div key={app.id} className="snap-start">
                     <AppTile app={app} />
                   </div>
@@ -136,8 +185,12 @@ export default function StoreAppsPage() {
 
           {filteredSections.length === 0 && (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center sm:px-6">
-              <p className="text-sm font-medium text-slate-700">No apps match this filter.</p>
-              <p className="mt-1 text-xs text-slate-500">Try switching status or category.</p>
+              <p className="text-sm font-medium text-slate-700">
+                No apps match this filter.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Try switching status or category.
+              </p>
             </div>
           )}
         </section>
@@ -156,17 +209,22 @@ export default function StoreAppsPage() {
                 unoptimized
               />
               <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                The app marketplace for Adapter&apos;s ecosystem — MCPs, Platforms &amp; Tools built for modern marketing teams.
+                The app marketplace for Adapter&apos;s ecosystem — MCPs,
+                Platforms &amp; Tools built for modern marketing teams.
               </p>
             </div>
 
             {Object.entries(footerLinks).map(([heading, links]) => (
               <div key={heading}>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">{heading}</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                  {heading}
+                </h4>
                 <ul className="mt-3 space-y-2 text-xs text-slate-500">
                   {links.map((item) => (
                     <li key={item}>
-                      <a href="#" className="transition hover:text-slate-900">{item}</a>
+                      <a href="#" className="transition hover:text-slate-900">
+                        {item}
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -176,11 +234,14 @@ export default function StoreAppsPage() {
 
           <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
             <p className="text-xs text-slate-400">
-              &copy; {new Date().getFullYear()} Adapter Digital Group. All rights reserved.
+              &copy; {new Date().getFullYear()} Adapter Digital Group. All
+              rights reserved.
             </p>
             <div className="flex items-center gap-1">
               <span className="inline-block size-2 rounded-full bg-brand" />
-              <span className="text-xs font-medium text-slate-500">Adapter App Store</span>
+              <span className="text-xs font-medium text-slate-500">
+                Adapter App Store
+              </span>
             </div>
           </div>
         </div>

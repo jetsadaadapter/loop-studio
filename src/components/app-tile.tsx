@@ -20,9 +20,9 @@ export function AppTile({ app }: { app: StoreApp }) {
         </h3>
         <p className="line-clamp-1 text-xs text-slate-500">{app.category}</p>
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(app.rating)}`}
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(app.status)}`}
         >
-          {app.rating}
+          {app.status}
         </span>
       </div>
     </article>
