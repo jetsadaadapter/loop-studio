@@ -22,14 +22,29 @@ export type Paginated<T> = {
 export type StoreAppCategory = "MCP" | "Platform" | "Tool" | string;
 
 export type StoreAppApiItem = {
-    id: string;
-    slug: string;
+    appId: string;
     name: string;
     category: StoreAppCategory;
-    status: string;
-    badge?: string;
-    iconBg: string;
+    tags: AppTag[];
+    description: string;
+    imageId: string;
+    iconId: string;
+    instructions: string;
+    ctaLabel: string | null;
+    ctaLink: string | null;
+    linkType: AppLinkType;
+    isActive: boolean;
+    sortOrder: number;
+    badgeLabel: string | null;
+    createdAt: string;
+    updatedAt: string;
+    imageUrl: string;
     iconUrl?: string;
+};
+
+export type StoreAppsGroupItem = {
+    group: string;
+    items: StoreAppApiItem[];
 };
 
 export type GetAppsParams = {
@@ -38,7 +53,7 @@ export type GetAppsParams = {
     category?: StoreAppCategory;
 };
 
-export type GetAppsResponse = Paginated<StoreAppApiItem>;
+export type GetAppsResponse = Paginated<StoreAppsGroupItem>;
 
 // ─── Banners  GET /store/banners ─────────────────────────────────────────────
 

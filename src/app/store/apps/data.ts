@@ -1,3 +1,5 @@
+import type { GetAppsResponse, StoreAppApiItem } from "@/core/interfaces/store.interface";
+
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
 // ------------------------------------------------------------
@@ -23,6 +25,7 @@ export type StoreApp = {
     status: string;
     badge?: string;
     iconBg: string;
+    iconUrl?: string;
 };
 
 export type StoreSection = {
@@ -56,47 +59,71 @@ export const statusFilters: Array<{ key: StatusFilterKey; label: string }> = [
     { key: "new", label: "New" },
 ];
 
-// ------------------------------------------------------------
-// 4) Mock response payload (same shape as real API response)
-// ------------------------------------------------------------
-// page.tsx consumes this as: storeAppsResponse.sections[].items[]
+const ICON_BG_PRESETS = [
+    "bg-emerald-700",
+    "bg-blue-700",
+    "bg-indigo-700",
+    "bg-violet-700",
+    "bg-cyan-700",
+    "bg-amber-700",
+    "bg-rose-700",
+    "bg-teal-700",
+    "bg-slate-700",
+] as const;
+
+function toTitleCase(value: string): string {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+export function slugifyAppName(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function stableHash(seed: string): number {
+    let hash = 0;
+    for (let index = 0; index < seed.length; index += 1) {
+        hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+    }
+    return hash;
+}
+
+export function getStableIconBg(seed: string): string {
+    return ICON_BG_PRESETS[stableHash(seed) % ICON_BG_PRESETS.length];
+}
+
+export function getAppStatus(app: StoreAppApiItem): string {
+    if (app.badgeLabel?.toLowerCase() === "new") return "New";
+    return app.isActive ? "Production ready" : "Planned";
+}
+
+function mapApiApp(item: StoreAppApiItem): StoreApp {
+    return {
+        id: item.appId,
+        slug: slugifyAppName(item.name),
+        name: item.name,
+        category: item.category,
+        status: getAppStatus(item),
+        badge: item.badgeLabel ?? undefined,
+        iconBg: getStableIconBg(item.appId),
+        iconUrl: item.iconUrl,
+    };
+}
+
+export function mapAppsResponseToSections(response: GetAppsResponse): StoreSection[] {
+    return response.data.map((groupBlock) => ({
+        id: groupBlock.group.toLowerCase(),
+        title: toTitleCase(groupBlock.group),
+        items: [...groupBlock.items]
+            .sort((left, right) => left.sortOrder - right.sortOrder)
+            .map(mapApiApp),
+    }));
+}
+
 export const storeAppsResponse: StoreAppsResponse = {
-    sections: [
-        {
-            id: "mcp",
-            title: "MCP",
-            items: [
-                { id: "app_001", slug: "apify-mcp", name: "APIFY MCP", category: "Data Connector", status: "Production ready", iconBg: "bg-emerald-600" },
-                { id: "app_002", slug: "adapter-media-mcp", name: "Adapter Media MCP", category: "Media Integration", status: "Production ready", iconBg: "bg-blue-600" },
-                { id: "app_003", slug: "hype-mcp", name: "HYPE MCP", category: "Campaign Automation", status: "Planned", iconBg: "bg-slate-700" },
-                { id: "app_004", slug: "audit-mcp", name: "Audit Stream MCP", category: "Observability", status: "Beta", iconBg: "bg-orange-600" },
-                { id: "app_005", slug: "policy-mcp", name: "Policy Guard MCP", category: "Governance", status: "In rollout", iconBg: "bg-purple-700" },
-                { id: "app_006", slug: "workflow-mcp", name: "Workflow Bridge MCP", category: "Automation", status: "In rollout", iconBg: "bg-pink-600" },
-            ],
-        },
-        {
-            id: "platform",
-            title: "Platform",
-            items: [
-                { id: "app_007", slug: "adapter-campaign", name: "Adapter Campaign", category: "Campaign Platform", status: "Production ready", iconBg: "bg-emerald-700" },
-                { id: "app_008", slug: "adapter-workflow-hub", name: "Workflow Hub", category: "Orchestration", status: "Beta", iconBg: "bg-indigo-700" },
-                { id: "app_009", slug: "adapter-insight-center", name: "Insight Center", category: "Analytics", status: "Beta", iconBg: "bg-cyan-700" },
-                { id: "app_010", slug: "adapter-identity", name: "Identity Access", category: "Security", status: "In rollout", iconBg: "bg-red-700" },
-                { id: "app_011", slug: "adapter-admin-console", name: "Admin Console", category: "Operations", status: "In rollout", iconBg: "bg-teal-700" },
-                { id: "app_012", slug: "adapter-billing", name: "Billing Core", category: "Finance", status: "Planned", iconBg: "bg-lime-700" },
-            ],
-        },
-        {
-            id: "tool",
-            title: "Tool",
-            items: [
-                { id: "app_013", slug: "comment-loader", name: "Comment Loader", category: "Data Tool", status: "NEW", badge: "NEW", iconBg: "bg-emerald-700" },
-                { id: "app_014", slug: "post-comment-analyzer", name: "Post Comment Analyzer", category: "Insight Tool", status: "NEW", badge: "NEW", iconBg: "bg-red-700" },
-                { id: "app_015", slug: "keyword-clustering", name: "Keyword Clustering", category: "Analysis Tool", status: "Beta", iconBg: "bg-violet-700" },
-                { id: "app_016", slug: "reply-assistant", name: "Reply Assistant", category: "Engagement Tool", status: "Beta", iconBg: "bg-amber-700" },
-                { id: "app_017", slug: "sentiment-monitor", name: "Sentiment Monitor", category: "Monitoring Tool", status: "In rollout", iconBg: "bg-zinc-700" },
-                { id: "app_018", slug: "campaign-qa", name: "Campaign QA", category: "Quality Tool", status: "Planned", iconBg: "bg-indigo-700" },
-            ],
-        },
-    ],
+    sections: [],
 };

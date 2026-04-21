@@ -5,24 +5,24 @@ import { StoreFilterToolbar } from "@/components/store-filter-toolbar";
 import { StoreAppSections } from "@/components/store-app-sections";
 import { useStoreShell } from "@/app/store/store-shell";
 import {
-  storeAppsResponse,
   mainTabs,
   statusFilters,
+  type StoreSection,
   type MainTabKey,
   type StatusFilterKey,
 } from "./data";
 
 type StoreAppsClientProps = {
+  sections: StoreSection[];
   children?: ReactNode;
 };
 
-export function StoreAppsClient({ children }: StoreAppsClientProps) {
+export function StoreAppsClient({ sections, children }: StoreAppsClientProps) {
   const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
   const [selectedStatus, setSelectedStatus] =
     useState<StatusFilterKey>("production ready");
   const { searchQuery } = useStoreShell();
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const { sections } = storeAppsResponse;
 
   const baseSections = useMemo(() => {
     if (selectedMainTab === "marketplace-updates") return sections;

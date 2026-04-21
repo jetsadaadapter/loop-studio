@@ -4,9 +4,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
 import { statusBadgeClass } from "@/lib/utils";
 
-type CategoryKey = "mcp" | "platform" | "tool";
+export type CategoryKey = "mcp" | "platform" | "tool";
 
-type RankedApp = {
+export type RankedApp = {
   id: string;
   rank: number;
   name: string;
@@ -22,7 +22,7 @@ const categoryTabs: Array<{ key: CategoryKey; label: string }> = [
   { key: "tool", label: "Tool" },
 ];
 
-const rankingData: Record<CategoryKey, RankedApp[]> = {
+const FALLBACK_RANKING_DATA: Record<CategoryKey, RankedApp[]> = {
   mcp: [
     {
       id: "apify-mcp",
@@ -202,7 +202,13 @@ function splitColumns(apps: RankedApp[]) {
   ];
 }
 
-export function AppCategoryRanking() {
+type AppCategoryRankingProps = {
+  rankingData?: Record<CategoryKey, RankedApp[]>;
+};
+
+export function AppCategoryRanking({
+  rankingData = FALLBACK_RANKING_DATA,
+}: AppCategoryRankingProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("tool");
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const sectionDescription: Record<CategoryKey, string> = {

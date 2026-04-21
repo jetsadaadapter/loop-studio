@@ -9,33 +9,39 @@
  */
 
 import { StoreHeroBannerBlock } from "@/components/store-hero-banner-block";
-import { AppCategoryRanking } from "@/components/app-category-ranking";
+import { StoreCategoryRankingBlock } from "@/components/store-category-ranking-block";
 import { IntegrationShowcase } from "@/components/integration-showcase";
+import { StoreGuidedCtaBlock } from "@/components/store-guided-cta-block";
 
 // ─── Block registry ──────────────────────────────────────────────────────────
 
 export type StorePageBlock =
   | "hero-banner"
   | "category-ranking"
-  | "integration-showcase";
+  | "integration-showcase"
+  | "guided-cta";
 
 type BlockComponent = () => React.ReactNode;
 
 const blockRegistry: Record<StorePageBlock, BlockComponent> = {
   "hero-banner": StoreHeroBannerBlock,
-  "category-ranking": AppCategoryRanking,
+  "category-ranking": StoreCategoryRankingBlock,
   "integration-showcase": IntegrationShowcase,
+  "guided-cta": StoreGuidedCtaBlock,
 };
 
 // ─── Preset configs for named page layouts ───────────────────────────────────
 
 export const STORE_BLOCK_PRESETS = {
-  /** Full marketplace homepage — all three discovery blocks */
+  /** Marketplace discovery content shown above the main app sections */
   marketplace: [
     "hero-banner",
     "category-ranking",
     "integration-showcase",
   ] satisfies StorePageBlock[],
+
+  /** Marketplace footer CTA shown after the main app sections */
+  marketplaceFooter: ["guided-cta"] satisfies StorePageBlock[],
 
   /** Detail or sub-pages — no discovery chrome, content-only */
   minimal: [] satisfies StorePageBlock[],

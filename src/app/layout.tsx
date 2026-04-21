@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -40,7 +40,7 @@ const sukhumvitSet = localFont({
   ],
 });
 
-const geist = Geist({
+const inter = Inter({
   variable: "--font-geist",
   subsets: ["latin"],
 });
@@ -63,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}

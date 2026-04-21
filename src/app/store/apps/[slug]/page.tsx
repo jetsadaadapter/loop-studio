@@ -1,17 +1,14 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { storeAppsResponse } from "@/app/store/apps/data";
+import { getApps } from "@/core/services/store.service";
+import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
+import { getAppStatus, slugifyAppName } from "@/app/store/apps/data";
+import { AppIcon } from "@/components/app-icon";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
-
-// Pre-build all known slugs at build time
-export function generateStaticParams() {
-  return storeAppsResponse.sections
-    .flatMap((s) => s.items)
-    .map((app) => ({ slug: app.slug }));
-}
 
 const statusStyles: Record<string, string> = {
   "production ready": "bg-emerald-100 text-emerald-800",
@@ -21,24 +18,52 @@ const statusStyles: Record<string, string> = {
   new: "bg-violet-100 text-violet-800",
 };
 
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
+function formatDate(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(parsed);
+}
+
+async function fetchAppsForDetail(): Promise<StoreAppApiItem[]> {
+  const cookieStore = await cookies();
+  const ztToken = cookieStore.get("zt_token")?.value;
+  const response = await getApps(
+    { page: 1, limit: 100 },
+    {
+      next: { revalidate: 60 },
+      headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
+    },
+  );
+
+  return response.data.flatMap((groupBlock) => groupBlock.items);
 }
 
 export default async function AppDetailPage({ params }: Props) {
   const { slug } = await params;
 
-  const allApps = storeAppsResponse.sections.flatMap((s) => s.items);
-  const app = allApps.find((a) => a.slug === slug);
+  let allApps: StoreAppApiItem[] = [];
+  try {
+    allApps = await fetchAppsForDetail();
+  } catch (error) {
+    console.error("Failed to fetch app detail from /store/apps", error);
+  }
+
+  const app = allApps.find((item) => slugifyAppName(item.name) === slug);
 
   if (!app) notFound();
 
-  const statusKey = app.status.toLowerCase();
+  const appStatus = getAppStatus(app);
+  const statusKey = appStatus.toLowerCase();
   const badgeClass = statusStyles[statusKey] ?? "bg-slate-100 text-slate-600";
+  const detailSlug = slugifyAppName(app.name);
+  const primaryCtaLabel = app.ctaLabel ?? "View Guide";
+  const hasExternalCta = app.linkType === "external" && !!app.ctaLink;
+  const hasInternalCta = app.linkType === "internal" && !!app.ctaLink;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -67,13 +92,17 @@ export default async function AppDetailPage({ params }: Props) {
       <div className="mt-6 rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm">
         <div className="flex items-start gap-5">
           {/* App icon */}
-          <div
-            className={`flex size-20 shrink-0 items-center justify-center rounded-2xl text-white shadow-md ring-1 ring-black/5 ${app.iconBg}`}
-          >
-            <span className="text-2xl font-bold tracking-tight">
-              {getInitials(app.name)}
-            </span>
-          </div>
+          <AppIcon
+            name={app.name}
+            iconUrl={app.iconUrl}
+            containerClassName="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-white/10 text-white shadow-md ring-1 ring-black/5"
+            fallbackClassName="flex h-full w-full items-center justify-center bg-slate-700 text-white"
+            initialsClassName="text-2xl font-bold tracking-tight"
+            imageSizes="80px"
+            imageOuterClassName="absolute inset-0 p-1.5"
+            imageInnerClassName="relative size-full overflow-hidden rounded-lg"
+            imageClassName="object-cover"
+          />
 
           {/* App name + meta */}
           <div className="flex-1 min-w-0">
@@ -81,9 +110,9 @@ export default async function AppDetailPage({ params }: Props) {
               <h1 className="text-xl font-bold text-slate-900 truncate">
                 {app.name}
               </h1>
-              {app.badge && (
+              {app.badgeLabel && (
                 <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-800">
-                  {app.badge}
+                  {app.badgeLabel}
                 </span>
               )}
             </div>
@@ -91,37 +120,60 @@ export default async function AppDetailPage({ params }: Props) {
             <span
               className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${badgeClass}`}
             >
-              {app.status}
+              {appStatus}
             </span>
           </div>
         </div>
 
         {/* CTA row */}
         <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="inline-flex items-center rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand/90 transition-colors"
-          >
-            Install
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
-          >
-            View Docs
-          </button>
+          {hasExternalCta ? (
+            <a
+              href={app.ctaLink ?? "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand/90 transition-colors"
+            >
+              {primaryCtaLabel}
+            </a>
+          ) : hasInternalCta ? (
+            <Link
+              href={app.ctaLink ?? "/store/apps"}
+              className="inline-flex items-center rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand/90 transition-colors"
+            >
+              {primaryCtaLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex items-center rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand/90 transition-colors"
+            >
+              {primaryCtaLabel}
+            </button>
+          )}
+
+          {app.instructions ? (
+            <details className="group w-full rounded-2xl border border-slate-200 bg-white p-0">
+              <summary className="flex cursor-pointer list-none items-center rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+                View Instructions
+              </summary>
+              <div className="border-t border-slate-200 px-5 py-4">
+                <p className="text-sm text-slate-700">{app.instructions}</p>
+              </div>
+            </details>
+          ) : null}
         </div>
       </div>
 
       {/* Info grid */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
         {[
-          { label: "App ID", value: app.id },
-          { label: "Slug", value: app.slug },
+          { label: "App ID", value: app.appId },
+          { label: "Slug", value: detailSlug },
           { label: "Category", value: app.category },
-          { label: "Status", value: app.status },
-          { label: "Version", value: "1.0.0" },
-          { label: "Updated", value: "Apr 2026" },
+          { label: "Status", value: appStatus },
+          { label: "Link Type", value: app.linkType },
+          { label: "Updated", value: formatDate(app.updatedAt) },
         ].map(({ label, value }) => (
           <div
             key={label}
@@ -141,10 +193,15 @@ export default async function AppDetailPage({ params }: Props) {
       <div className="mt-6 rounded-3xl border border-slate-200 bg-white px-6 py-6">
         <h2 className="text-sm font-semibold text-slate-900">About</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          {app.name} is a {app.category.toLowerCase()} integration available on
-          the Adapter App Store. Connect it to your workspace to unlock
-          automation, data flows, and team collaboration features.
+          {app.description ||
+            `${app.name} is a ${app.category.toLowerCase()} integration available on the Adapter App Store.`}
         </p>
+
+        {app.instructions ? (
+          <p className="mt-4 text-xs text-slate-500">
+            Use the View Instructions control above to expand setup steps.
+          </p>
+        ) : null}
       </div>
     </div>
   );
