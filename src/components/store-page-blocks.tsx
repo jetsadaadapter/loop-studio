@@ -8,7 +8,7 @@
  *   <StorePageBlocks blocks={["hero-banner", "category-ranking"]} />
  */
 
-import { HeroBannerSlider } from "@/components/hero-banner-slider";
+import { StoreHeroBannerBlock } from "@/components/store-hero-banner-block";
 import { AppCategoryRanking } from "@/components/app-category-ranking";
 import { IntegrationShowcase } from "@/components/integration-showcase";
 
@@ -22,7 +22,7 @@ export type StorePageBlock =
 type BlockComponent = () => React.ReactNode;
 
 const blockRegistry: Record<StorePageBlock, BlockComponent> = {
-  "hero-banner": HeroBannerSlider,
+  "hero-banner": StoreHeroBannerBlock,
   "category-ranking": AppCategoryRanking,
   "integration-showcase": IntegrationShowcase,
 };

@@ -1,4 +1,28 @@
-export type HeroTheme = "campaign" | "workflow" | "loader";
+import type { StoreBannerItem } from "@/core/interfaces/store.interface";
+
+export type HeroMood = "cool" | "warm" | "neutral" | "premium";
+
+export type HeroTheme =
+    | "teal"
+    | "emerald"
+    | "sky"
+    | "indigo"
+    | "cyan"
+    | "amber"
+    | "orange"
+    | "rose"
+    | "stone"
+    | "violet"
+    | "fuchsia"
+    | "slate"
+    | "zinc";
+
+const HERO_THEME_PRESETS_BY_MOOD: Record<HeroMood, HeroTheme[]> = {
+    cool: ["teal", "cyan", "sky"],
+    warm: ["amber", "orange", "rose"],
+    neutral: ["slate", "stone", "zinc"],
+    premium: ["indigo", "violet", "fuchsia"],
+};
 
 /**
  * HeroSlide: Featured app story
@@ -24,13 +48,14 @@ export type HeroSlide = {
     // Hero-specific enrichment & curation
     heroId: string;                         // Unique hero story ID (e.g., "hero_001")
     heroSlug: string;                       // Hero story slug for URL (e.g., "adapter-campaign-spring-update")
-    theme: HeroTheme;                       // Visual theme: campaign, workflow, loader
+    theme: HeroTheme;                       // Visual preset used for hero card styling
     title: string;                          // Marketing headline for this featured story
     imageUrl: string;                       // Hero banner image URL
     toolTags: string[];                     // Feature highlights / capability tags
 
     // Navigation
-    actionType: "internal" | "linkout";
+    actionType: "instruction" | "internal" | "linkout";
+    ctaLabel: string;
     actionUrl: string;
 };
 
@@ -39,6 +64,117 @@ export type HeroBannerResponse = {
     sectionTitle: string;
     items: HeroSlide[];
 };
+
+function getStableHash(seed: string): number {
+    let hash = 0;
+
+    for (let index = 0; index < seed.length; index += 1) {
+        hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+    }
+
+    return hash;
+}
+
+function getMoodFromBanner(item: StoreBannerItem): HeroMood {
+    const category = item.app.category.toLowerCase();
+    const tags = item.app.tags.map((tag) => tag.name.toLowerCase());
+
+    if (
+        category.includes("platform") ||
+        tags.some((tag) => ["marketing", "email", "campaign"].includes(tag))
+    ) {
+        return "premium";
+    }
+
+    if (
+        category.includes("tool") ||
+        tags.some((tag) => ["scraping", "crawling", "automation", "data"].includes(tag))
+    ) {
+        return "warm";
+    }
+
+    if (
+        category.includes("security") ||
+        category.includes("operations") ||
+        category.includes("governance")
+    ) {
+        return "neutral";
+    }
+
+    return "cool";
+}
+
+function getStableThemePreset(seed: string, mood: HeroMood): HeroTheme {
+    const presets = HERO_THEME_PRESETS_BY_MOOD[mood];
+    const hash = getStableHash(seed);
+
+    return presets[hash % presets.length];
+}
+
+export function mapBannerTheme(item: StoreBannerItem): HeroTheme {
+    const mood = getMoodFromBanner(item);
+
+    return getStableThemePreset(
+        `${item.bannerId}:${item.appId}:${item.app.category}`,
+        mood,
+    );
+}
+
+function slugifyAppName(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function normalizeInternalPath(path: string): string {
+    if (path.startsWith("/store/")) return path;
+    if (path.startsWith("/apps/")) return `/store${path}`;
+    if (path.startsWith("/")) return path;
+    return `/store/apps/${path}`;
+}
+
+export function mapBannerToHeroSlide(item: StoreBannerItem): HeroSlide {
+    const derivedSlug = item.app.ctaLink?.startsWith("/apps/")
+        ? item.app.ctaLink.replace(/^\/apps\//, "")
+        : slugifyAppName(item.app.name);
+
+    const actionType =
+        item.app.linkType === "external"
+            ? "linkout"
+            : item.app.linkType === "instruction"
+                ? "instruction"
+                : "internal";
+
+    const actionUrl =
+        actionType === "linkout"
+            ? item.app.ctaLink ?? "https://store-api.adapterdigital.com"
+            : actionType === "instruction"
+                ? `/store/apps/${derivedSlug}`
+                : item.app.ctaLink
+                    ? normalizeInternalPath(item.app.ctaLink)
+                    : `/store/apps/${derivedSlug}`;
+
+    return {
+        appId: item.appId,
+        appSlug: derivedSlug,
+        appName: item.app.name,
+        appIconUrl: item.app.iconUrl,
+        category: item.app.category,
+        status: item.app.isActive ? "Active" : "Inactive",
+        badge: item.app.badgeLabel ?? undefined,
+        heroId: item.bannerId,
+        heroSlug: item.bannerId,
+        theme: mapBannerTheme(item),
+        title: item.title,
+        imageUrl: item.imageUrl,
+        toolTags: item.app.tags.map((tag) => tag.name),
+        actionType,
+        ctaLabel: item.app.ctaLabel,
+        actionUrl,
+    };
+}
 
 export const heroBannerMock: HeroBannerResponse = {
     sectionId: "featured-hero",
@@ -56,10 +192,11 @@ export const heroBannerMock: HeroBannerResponse = {
             // Hero enrichment
             heroId: "hero_001",
             heroSlug: "adapter-campaign-spring-update",
-            theme: "campaign",
+            theme: "indigo",
             title: "Run campaigns at scale with multi-channel orchestration",
             imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1296&h=728&fit=crop",
             toolTags: ["Multi-Channel", "Orchestration", "Analytics"],
+            ctaLabel: "Open app",
             actionType: "internal",
             actionUrl: "/store/apps/adapter-campaign",
         },
@@ -74,10 +211,11 @@ export const heroBannerMock: HeroBannerResponse = {
             // Hero enrichment
             heroId: "hero_002",
             heroSlug: "workflow-hub-automation-engine",
-            theme: "workflow",
+            theme: "sky",
             title: "Automate complex workflows with visual builder",
             imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1296&h=728&fit=crop",
             toolTags: ["Visual Builder", "Automation", "Integration"],
+            ctaLabel: "View detail",
             actionType: "internal",
             actionUrl: "/store/apps/adapter-workflow-hub",
         },
@@ -94,10 +232,11 @@ export const heroBannerMock: HeroBannerResponse = {
             // Hero enrichment
             heroId: "hero_003",
             heroSlug: "comment-loader-engagement-engine",
-            theme: "loader",
+            theme: "orange",
             title: "Load and analyze comments from any platform",
             imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1296&auto=format&fit=crop",
             toolTags: ["Data Import", "Comment Analysis", "Platform Support"],
+            ctaLabel: "View detail",
             actionType: "internal",
             actionUrl: "/store/apps/comment-loader",
         },

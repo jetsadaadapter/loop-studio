@@ -4,25 +4,47 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { getBanners } from "@/core/services/store.service";
 import {
   heroBannerMock,
+  mapBannerToHeroSlide,
   type HeroSlide,
   type HeroTheme,
 } from "@/app/store/apps/hero.data";
 import styles from "./styles.module.css";
 
-const heroSlides: HeroSlide[] = heroBannerMock.items;
+const FALLBACK_HERO_SLIDES: HeroSlide[] = heroBannerMock.items;
 
 const cardThemeClass: Record<HeroTheme, string> = {
-  campaign: styles.heroCardCampaign,
-  workflow: styles.heroCardWorkflow,
-  loader: styles.heroCardLoader,
+  teal: styles.heroCardTeal,
+  emerald: styles.heroCardEmerald,
+  sky: styles.heroCardSky,
+  indigo: styles.heroCardIndigo,
+  cyan: styles.heroCardCyan,
+  amber: styles.heroCardAmber,
+  orange: styles.heroCardOrange,
+  rose: styles.heroCardRose,
+  stone: styles.heroCardStone,
+  violet: styles.heroCardViolet,
+  fuchsia: styles.heroCardFuchsia,
+  slate: styles.heroCardSlate,
+  zinc: styles.heroCardZinc,
 };
 
 const overlayThemeClass: Record<HeroTheme, string> = {
-  campaign: styles.heroOverlayCampaign,
-  workflow: styles.heroOverlayWorkflow,
-  loader: styles.heroOverlayLoader,
+  teal: styles.heroOverlayTeal,
+  emerald: styles.heroOverlayEmerald,
+  sky: styles.heroOverlaySky,
+  indigo: styles.heroOverlayIndigo,
+  cyan: styles.heroOverlayCyan,
+  amber: styles.heroOverlayAmber,
+  orange: styles.heroOverlayOrange,
+  rose: styles.heroOverlayRose,
+  stone: styles.heroOverlayStone,
+  violet: styles.heroOverlayViolet,
+  fuchsia: styles.heroOverlayFuchsia,
+  slate: styles.heroOverlaySlate,
+  zinc: styles.heroOverlayZinc,
 };
 
 function getAppInitials(appName: string): string {
@@ -34,10 +56,51 @@ function getAppInitials(appName: string): string {
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 }
 
-export function HeroBannerSlider() {
+type HeroBannerSliderProps = {
+  initialSlides?: HeroSlide[];
+};
+
+export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => {
+    if (initialSlides && initialSlides.length > 0) return initialSlides;
+    return FALLBACK_HERO_SLIDES;
+  });
+  const [isLoading, setIsLoading] = useState(!initialSlides);
+  const [hasError, setHasError] = useState(false);
+
+  const fetchBanners = useCallback(async (showLoading = true) => {
+    if (showLoading) {
+      setIsLoading(true);
+      setHasError(false);
+    }
+
+    try {
+      const response = await getBanners();
+      const mapped = response.data.map(mapBannerToHeroSlide);
+
+      if (mapped.length > 0) {
+        setHeroSlides(mapped);
+      } else {
+        setHeroSlides(FALLBACK_HERO_SLIDES);
+      }
+    } catch {
+      setHasError(true);
+      setHeroSlides(FALLBACK_HERO_SLIDES);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!initialSlides || initialSlides.length === 0) {
+      queueMicrotask(() => {
+        void fetchBanners(false);
+      });
+    }
+  }, [initialSlides, fetchBanners]);
 
   const updateArrowState = useCallback(() => {
     const slider = sliderRef.current;
@@ -81,19 +144,38 @@ export function HeroBannerSlider() {
     slider.scrollBy({ left: Math.round(viewport * 0.78), behavior: "smooth" });
   };
 
-  const ctaLabelByActionType: Record<HeroSlide["actionType"], string> = {
-    internal: "View detail",
-    linkout: "Link",
-  };
-
   return (
     <section className="mt-6">
+      {hasError ? (
+        <div className="mb-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <span>Unable to refresh banners. Showing fallback content.</span>
+          <button
+            type="button"
+            onClick={() => void fetchBanners()}
+            className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium hover:bg-amber-100"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <div className="flex gap-4 overflow-hidden">
+          {[1, 2, 3].map((key) => (
+            <div
+              key={key}
+              className="h-74 w-[86vw] max-w-162 shrink-0 animate-pulse rounded-2xl border border-slate-200 bg-slate-100 sm:w-[78vw] md:w-[66vw] lg:w-[44%] xl:w-[43%]"
+            />
+          ))}
+        </div>
+      ) : null}
+
       <div className="group relative">
         <div
           ref={sliderRef}
           role="list"
           aria-label="Featured app stories"
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={`flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isLoading ? "hidden" : ""}`}
         >
           {heroSlides.map((slide) => (
             <article
@@ -154,8 +236,13 @@ export function HeroBannerSlider() {
                     {slide.appName}
                   </p>
                   <p className="truncate text-sm text-white/90">
-                    {slide.category} <span className="mx-1">•</span>
-                    {slide.toolTags.join(" • ")}
+                    {slide.category}
+                    {slide.toolTags.length > 0 ? (
+                      <>
+                        <span className="mx-1">•</span>
+                        {slide.toolTags.join(" • ")}
+                      </>
+                    ) : null}
                   </p>
                 </div>
 
@@ -170,7 +257,7 @@ export function HeroBannerSlider() {
                     }
                     className="inline-flex h-8 w-21.5 items-center justify-center rounded-sm bg-white/22 text-sm font-medium backdrop-blur-sm transition hover:bg-white/30"
                   >
-                    {ctaLabelByActionType[slide.actionType]}
+                    {slide.ctaLabel}
                   </Link>
                 </div>
               </div>

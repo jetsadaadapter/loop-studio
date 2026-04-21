@@ -25,7 +25,7 @@ const CLIENT_ID =
   process.env.NEXT_PUBLIC_ZT_CLIENT_ID ?? "5bef7ad454c6caff4909ee31e47d48dc";
 const CALLBACK_PATH = process.env.NEXT_PUBLIC_ZT_CALLBACK_PATH ?? "/callback";
 const SCRIPT_SRC = "/login-adapterstore/login-button.js";
-const IS_DEV = process.env.NODE_ENV !== "production";
+const IS_DEBUG_CALLBACK = process.env.NEXT_PUBLIC_ZT_DEBUG_CALLBACK === "true";
 
 type CallbackPreview = {
   returnTo: string;
@@ -94,7 +94,7 @@ export default function CallbackPage() {
           authBaseURL: AUTH_BASE_URL,
           clientId: CLIENT_ID,
           callbackPath: CALLBACK_PATH,
-          onBeforeRedirect: IS_DEV
+          onBeforeRedirect: IS_DEBUG_CALLBACK
             ? (payload) => {
                 const params = new URLSearchParams(window.location.search);
                 setPreview({
@@ -127,7 +127,7 @@ export default function CallbackPage() {
     <main className="flex min-h-svh items-center justify-center bg-muted p-6 text-center">
       <div className="max-w-md space-y-3 rounded-xl border bg-card p-6 text-left shadow-sm">
         <h1 className="text-lg font-semibold">
-          {IS_DEV ? "Callback details" : "Signing you in..."}
+          {IS_DEBUG_CALLBACK ? "Callback details" : "Signing you in..."}
         </h1>
         {error ? (
           <p className="text-sm text-destructive">{error}</p>

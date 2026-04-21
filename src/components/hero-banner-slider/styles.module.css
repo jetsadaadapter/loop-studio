@@ -1,23 +1,104 @@
-.heroCardCampaign {
+.heroCardTeal {
   background-color: #0f766e;
 }
 
-.heroCardWorkflow {
-  background-color: #4338ca;
-}
-
-.heroCardLoader {
+.heroCardEmerald {
   background-color: #065f46;
 }
 
-.heroOverlayCampaign {
+.heroCardSky {
+  background-color: #0369a1;
+}
+
+.heroCardIndigo {
+  background-color: #4338ca;
+}
+
+.heroCardCyan {
+  background-color: #0f766e;
+  background-image: linear-gradient(135deg, #0891b2 0%, #155e75 100%);
+}
+
+.heroCardAmber {
+  background-color: #b45309;
+}
+
+.heroCardOrange {
+  background-color: #c2410c;
+}
+
+.heroCardRose {
+  background-color: #be185d;
+}
+
+.heroCardStone {
+  background-color: #57534e;
+}
+
+.heroCardViolet {
+  background-color: #6d28d9;
+}
+
+.heroCardFuchsia {
+  background-color: #a21caf;
+}
+
+.heroCardSlate {
+  background-color: #334155;
+}
+
+.heroCardZinc {
+  background-color: #3f3f46;
+}
+
+.heroOverlayTeal {
   background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #0f766e 82%);
 }
 
-.heroOverlayWorkflow {
+.heroOverlayEmerald {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #065f46 82%);
+}
+
+.heroOverlaySky {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #0369a1 82%);
+}
+
+.heroOverlayIndigo {
   background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #4338ca 82%);
 }
 
-.heroOverlayLoader {
-  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #065f46 82%);
+.heroOverlayCyan {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #155e75 82%);
+}
+
+.heroOverlayAmber {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #b45309 82%);
+}
+
+.heroOverlayOrange {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #c2410c 82%);
+}
+
+.heroOverlayRose {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #be185d 82%);
+}
+
+.heroOverlayStone {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #57534e 82%);
+}
+
+.heroOverlayViolet {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #6d28d9 82%);
+}
+
+.heroOverlayFuchsia {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #a21caf 82%);
+}
+
+.heroOverlaySlate {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #334155 82%);
+}
+
+.heroOverlayZinc {
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 28%, #3f3f46 82%);
 }

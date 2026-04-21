@@ -28,6 +28,7 @@ const CLIENT_ID =
   process.env.NEXT_PUBLIC_ZT_CLIENT_ID ?? "5bef7ad454c6caff4909ee31e47d48dc";
 const CALLBACK_PATH = process.env.NEXT_PUBLIC_ZT_CALLBACK_PATH ?? "/callback";
 const SCRIPT_SRC = "/login-adapterstore/login-button.js";
+const DEFAULT_RETURN_TO = "/store/apps";
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -92,7 +93,10 @@ export function ZeroTrustGoogleButton() {
         });
 
         container.innerHTML = "";
-        zeroTrust.renderButton(container, { label: "Continue with Google" });
+        zeroTrust.renderButton(container, {
+          label: "Continue with Google",
+          returnTo: DEFAULT_RETURN_TO,
+        });
 
         const renderedButton = container.querySelector("button");
         if (renderedButton instanceof HTMLButtonElement) {

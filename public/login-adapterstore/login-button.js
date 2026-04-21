@@ -58,6 +58,34 @@
 
   var cfg = {};
 
+  function _setTokenCookie(token) {
+    var secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie =
+      KEY_TOKEN +
+      "=" +
+      encodeURIComponent(token) +
+      "; Path=/; SameSite=Lax" +
+      secure;
+  }
+
+  function _clearTokenCookie() {
+    document.cookie =
+      KEY_TOKEN +
+      "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+  }
+
+  function _getCookie(name) {
+    var prefix = name + "=";
+    var list = document.cookie ? document.cookie.split(";") : [];
+    for (var i = 0; i < list.length; i++) {
+      var cookie = list[i].trim();
+      if (cookie.indexOf(prefix) === 0) {
+        return decodeURIComponent(cookie.substring(prefix.length));
+      }
+    }
+    return null;
+  }
+
   // ── Public API ───────────────────────────────────────────────────────────────
 
   /**
@@ -122,6 +150,7 @@
   /** logout — remove stored token and optionally redirect. */
   function logout(redirectTo) {
     localStorage.removeItem(KEY_TOKEN);
+    _clearTokenCookie();
     if (redirectTo) window.location.href = redirectTo;
   }
 
@@ -130,7 +159,7 @@
    * Does not verify expiry client-side — use getUser() for server-verified info.
    */
   function getToken() {
-    return localStorage.getItem(KEY_TOKEN);
+    return _getCookie(KEY_TOKEN) || localStorage.getItem(KEY_TOKEN);
   }
 
   /**
@@ -148,6 +177,7 @@
       .then(function (res) {
         if (res.status === 401) {
           localStorage.removeItem(KEY_TOKEN);
+          _clearTokenCookie();
           return null;
         }
         if (!res.ok) return null;
@@ -291,6 +321,7 @@
       })
       .then(function (data) {
         localStorage.setItem(KEY_TOKEN, data.access_token);
+        _setTokenCookie(data.access_token);
         // Clean up the ?code=… from the URL before redirecting
         history.replaceState(null, "", window.location.pathname);
 
