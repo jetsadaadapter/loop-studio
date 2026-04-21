@@ -1,4 +1,5 @@
-import { statusBadgeClass, type StoreApp } from "@/app/store/apps/data";
+import { type StoreApp } from "@/app/store/apps/data";
+import { statusBadgeClass } from "@/lib/utils";
 
 export function AppTile({ app }: { app: StoreApp }) {
   const initials = app.name

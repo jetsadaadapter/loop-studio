@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
 import { AppCategoryRanking } from "@/components/app-category-ranking";
 import { IntegrationShowcase } from "@/components/integration-showcase";
@@ -22,6 +22,7 @@ export default function StoreAppsPage() {
   const [selectedStatus, setSelectedStatus] =
     useState<StatusFilterKey>("production ready");
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const { sections } = storeAppsResponse;
 
   const baseSections = useMemo(() => {
@@ -32,7 +33,7 @@ export default function StoreAppsPage() {
   }, [sections, selectedMainTab]);
 
   const searchedSections = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
 
     if (!normalizedQuery) return baseSections;
 
@@ -45,7 +46,7 @@ export default function StoreAppsPage() {
         }),
       }))
       .filter((section) => section.items.length > 0);
-  }, [baseSections, searchQuery]);
+  }, [baseSections, deferredSearchQuery]);
 
   const statusCounts = useMemo(() => {
     const allApps = searchedSections.flatMap((s) => s.items);

@@ -1,85 +1,38 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import {
+  heroBannerMock,
+  type HeroSlide,
+  type HeroTheme,
+} from "@/app/store/apps/hero.data";
 import styles from "./styles.module.css";
 
-type HeroTheme = "canva" | "storytel" | "tiktok";
-
-type HeroSlide = {
-  id: string;
-  theme: HeroTheme;
-  statusLabel?: string;
-  title: string;
-  imageUrl: string;
-  appIconUrl: string;
-  appName: string;
-  publisher: string;
-  contentRating: string;
-  installCta: string;
-  monetization: string;
-};
-
-const heroSlides: HeroSlide[] = [
-  {
-    id: "canva",
-    theme: "canva",
-    statusLabel: "Update available",
-    title: "Sweeten the moment with Disney's Winnie the Pooh",
-    imageUrl:
-      "https://play-lh.googleusercontent.com/P9vq5hCiH7K82-1RorfTgOP3NkWWm67JfP8ub3-cAeGm2MTdtIPN6cepMfL0FwDTg544la0WAc_hO85S3S9X=w1296-h728-rw",
-    appIconUrl:
-      "https://play-lh.googleusercontent.com/tUZNUbnNGw8I6uLg8Zy2ZWbmSFuT5kK0dYA8tdqNmldlozNS_jSjDw5j2nElRsoTzQ=s128-rw",
-    appName: "Canva: AI Photo & Video Editor",
-    publisher: "Canva",
-    contentRating: "Rated for 3+",
-    installCta: "Install",
-    monetization: "In-app purchases",
-  },
-  {
-    id: "storytel",
-    theme: "storytel",
-    statusLabel: "Update available",
-    title: "Discover Inspiring Stories for World Book Day",
-    imageUrl:
-      "https://play-lh.googleusercontent.com/TM0phEutSyIFeDGW3UAGLExe73xuRbYEfKVKQxHAcfzKoAj-GA6mW-UvjqYwg7bjx5tigo6T2el2z7tDsPBWas4=w1296-h728-rw",
-    appIconUrl:
-      "https://play-lh.googleusercontent.com/ufvs48ZAzaZLOsW5l3Rw3xrSwKtkt0FEGfLWYd8Dmmw2bJJP_faRr0WesNq_rCqGCg=s128-rw",
-    appName: "Storytel - Audiobooks & Books",
-    publisher: "Storytel Sweden AB",
-    contentRating: "Rated for 12+",
-    installCta: "Install",
-    monetization: "In-app purchases",
-  },
-  {
-    id: "tiktok",
-    theme: "tiktok",
-    statusLabel: "Update available",
-    title: "Grow your Streak Pet",
-    imageUrl:
-      "https://play-lh.googleusercontent.com/IX4byfOj5CuZ6sqAubPF7LEea2rDAzk4s_b9y7V_D-LdnKTWvnH9IPB04akwZKvI2BFuXgdVWYd5TYOax29e8w=w1296-h728-rw",
-    appIconUrl:
-      "https://play-lh.googleusercontent.com/Ui_-OW6UJI147ySDX9guWWDiCPSq1vtxoC-xG17BU2FpU0Fi6qkWwuLdpddmT9fqrA=s128-rw",
-    appName: "TikTok",
-    publisher: "TikTok Pte. Ltd.",
-    contentRating: "Rated for 12+",
-    installCta: "Install",
-    monetization: "In-app purchases",
-  },
-];
+const heroSlides: HeroSlide[] = heroBannerMock.items;
 
 const cardThemeClass: Record<HeroTheme, string> = {
-  canva: styles.heroCardCanva,
-  storytel: styles.heroCardStorytel,
-  tiktok: styles.heroCardTiktok,
+  campaign: styles.heroCardCampaign,
+  workflow: styles.heroCardWorkflow,
+  loader: styles.heroCardLoader,
 };
 
 const overlayThemeClass: Record<HeroTheme, string> = {
-  canva: styles.heroOverlayCanva,
-  storytel: styles.heroOverlayStorytel,
-  tiktok: styles.heroOverlayTiktok,
+  campaign: styles.heroOverlayCampaign,
+  workflow: styles.heroOverlayWorkflow,
+  loader: styles.heroOverlayLoader,
 };
+
+function getAppInitials(appName: string): string {
+  const parts = appName.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
 
 export function HeroBannerSlider() {
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -128,6 +81,11 @@ export function HeroBannerSlider() {
     slider.scrollBy({ left: Math.round(viewport * 0.78), behavior: "smooth" });
   };
 
+  const ctaLabelByActionType: Record<HeroSlide["actionType"], string> = {
+    internal: "View detail",
+    linkout: "Link",
+  };
+
   return (
     <section className="mt-6">
       <div className="group relative">
@@ -139,14 +97,14 @@ export function HeroBannerSlider() {
         >
           {heroSlides.map((slide) => (
             <article
-              key={slide.id}
+              key={slide.heroId}
               role="listitem"
               className={`relative w-[86vw] sm:w-[78vw] md:w-[66vw] lg:w-[44%] xl:w-[43%] max-w-162 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 ${cardThemeClass[slide.theme]}`}
             >
               <div className="relative aspect-648/364">
-                {slide.statusLabel ? (
+                {slide.badge ? (
                   <span className="absolute left-4 top-4 z-20 rounded-xl bg-white/85 px-3 py-1 text-sm font-medium text-slate-800">
-                    {slide.statusLabel}
+                    {slide.badge}
                   </span>
                 ) : null}
 
@@ -154,6 +112,7 @@ export function HeroBannerSlider() {
                   src={slide.imageUrl}
                   alt=""
                   fill
+                  unoptimized
                   sizes="(max-width: 640px) 86vw, (max-width: 768px) 78vw, (max-width: 1024px) 66vw, (max-width: 1280px) 44vw, 648px"
                   className="object-cover"
                 />
@@ -170,34 +129,49 @@ export function HeroBannerSlider() {
               </div>
 
               <div className="flex items-center gap-3 px-4 py-4 text-white md:px-5">
-                <Image
-                  src={slide.appIconUrl}
-                  alt={`${slide.appName} icon`}
-                  width={56}
-                  height={56}
-                  className="size-14 rounded-xl object-cover"
-                />
+                {slide.appIconUrl ? (
+                  <div className="flex size-14 shrink-0 items-center justify-center rounded-xl p-1.5 shadow-md ring-1 ring-white/25 bg-white/10">
+                    <div className="relative size-full overflow-hidden rounded-lg">
+                      <Image
+                        src={slide.appIconUrl}
+                        alt={`${slide.appName} icon`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-white/25 text-sm font-semibold tracking-wide text-white shadow-md ring-1 ring-white/25"
+                  >
+                    {getAppInitials(slide.appName)}
+                  </div>
+                )}
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium">
                     {slide.appName}
                   </p>
                   <p className="truncate text-sm text-white/90">
-                    {slide.publisher} <span className="mx-1">•</span>
-                    {slide.contentRating}
+                    {slide.category} <span className="mx-1">•</span>
+                    {slide.toolTags.join(" • ")}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <button
-                    type="button"
+                  <Link
+                    href={slide.actionUrl}
+                    target={
+                      slide.actionType === "linkout" ? "_blank" : undefined
+                    }
+                    rel={
+                      slide.actionType === "linkout" ? "noreferrer" : undefined
+                    }
                     className="inline-flex h-8 w-21.5 items-center justify-center rounded-sm bg-white/22 text-sm font-medium backdrop-blur-sm transition hover:bg-white/30"
                   >
-                    {slide.installCta}
-                  </button>
-                  <p className="mt-1 text-sm text-white/90">
-                    {slide.monetization}
-                  </p>
+                    {ctaLabelByActionType[slide.actionType]}
+                  </Link>
                 </div>
               </div>
             </article>

@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState } from "react";
+import { statusBadgeClass } from "@/lib/utils";
 
 type CategoryKey = "mcp" | "platform" | "tool";
 
@@ -201,28 +202,6 @@ function splitColumns(apps: RankedApp[]) {
   ];
 }
 
-function metaBadgeClass(meta: string) {
-  const normalized = meta.toLowerCase();
-
-  if (normalized === "new") {
-    return "bg-red-100 text-red-700";
-  }
-
-  if (normalized === "production ready") {
-    return "bg-emerald-100 text-emerald-700";
-  }
-
-  if (normalized === "in rollout") {
-    return "bg-amber-100 text-amber-800";
-  }
-
-  if (normalized === "beta") {
-    return "bg-sky-100 text-sky-800";
-  }
-
-  return "bg-slate-100 text-slate-700";
-}
-
 export function AppCategoryRanking() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("tool");
   const sliderRef = useRef<HTMLDivElement | null>(null);
@@ -394,7 +373,7 @@ export function AppCategoryRanking() {
                                   </div>
                                   <div className="app-meta-row mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
                                     <span
-                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${metaBadgeClass(
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${statusBadgeClass(
                                         app.meta,
                                       )}`}
                                     >
