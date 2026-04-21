@@ -210,7 +210,7 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 px-4 py-4 text-white md:px-5">
+              <div className="-mt-px flex items-center gap-3 px-4 py-4 text-white md:px-5">
                 {slide.appIconUrl ? (
                   <div className="flex size-14 shrink-0 items-center justify-center rounded-xl p-1.5 shadow-md ring-1 ring-white/25 bg-white/10">
                     <div className="relative size-full overflow-hidden rounded-lg">
@@ -255,7 +255,7 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
                     rel={
                       slide.actionType === "linkout" ? "noreferrer" : undefined
                     }
-                    className="inline-flex h-8 w-21.5 items-center justify-center rounded-sm bg-white/22 text-sm font-medium backdrop-blur-sm transition hover:bg-white/30"
+                    className="inline-flex h-8 items-center justify-center rounded-sm bg-white/22 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm transition hover:bg-white/30"
                   >
                     {slide.ctaLabel}
                   </Link>

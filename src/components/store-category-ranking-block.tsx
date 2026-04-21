@@ -5,30 +5,60 @@ import {
   type CategoryKey,
   type RankedApp,
 } from "@/components/app-category-ranking";
-import { getAppStatus, getStableIconBg } from "@/app/store/apps/data";
+import { getAppStatus, slugifyAppName } from "@/app/store/apps/data";
 import { getApps } from "@/core/services/store.service";
 import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
 
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
+type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
+
+function normalizeInternalPath(path: string): string {
+  if (path.startsWith("/store/")) return path;
+  if (path.startsWith("/apps/")) return `/store${path}`;
+  if (path.startsWith("/")) return path;
+  return `/store/apps/${path}`;
+}
+
+function mapAction(item: StoreAppApiItem): RankedAction {
+  const derivedSlug = item.ctaLink?.startsWith("/apps/")
+    ? item.ctaLink.replace(/^\/apps\//, "")
+    : slugifyAppName(item.name);
+
+  const actionType =
+    item.linkType === "external"
+      ? "linkout"
+      : item.linkType === "instruction"
+        ? "instruction"
+        : "internal";
+
+  const actionUrl =
+    actionType === "linkout"
+      ? (item.ctaLink ?? "https://store-api.adapterdigital.com")
+      : actionType === "instruction"
+        ? `/store/apps/${derivedSlug}`
+        : item.ctaLink
+          ? normalizeInternalPath(item.ctaLink)
+          : `/store/apps/${derivedSlug}`;
+
+  return { actionType, actionUrl };
 }
 
 function mapToRankedApps(items: StoreAppApiItem[]): RankedApp[] {
   return [...items]
     .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((item, index) => ({
-      id: item.appId,
-      rank: index + 1,
-      name: item.name,
-      category: item.category,
-      meta: getAppStatus(item),
-      iconText: getInitials(item.name),
-      iconClassName: getStableIconBg(item.appId),
-    }));
+    .map((item, index) => {
+      const action = mapAction(item);
+
+      return {
+        id: item.appId,
+        rank: index + 1,
+        name: item.name,
+        category: item.category,
+        meta: getAppStatus(item),
+        imageUrl: item.imageUrl || item.iconUrl || "",
+        actionType: action.actionType,
+        actionUrl: action.actionUrl,
+      };
+    });
 }
 
 async function fetchRankingData(): Promise<Record<
