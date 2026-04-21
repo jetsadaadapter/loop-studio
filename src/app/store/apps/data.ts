@@ -100,12 +100,3 @@ export const storeAppsResponse: StoreAppsResponse = {
         },
     ],
 };
-
-// ------------------------------------------------------------
-// 5) Static UI data for store footer links
-// ------------------------------------------------------------
-export const footerLinks = {
-    Marketplace: ["MCP", "Platform", "Tool", "New Releases", "Top Charts"],
-    Developers: ["Submit an App", "Developer Docs", "API Reference", "Changelog"],
-    Company: ["About", "Blog", "Careers", "Privacy Policy", "Terms"],
-};
