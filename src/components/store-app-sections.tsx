@@ -1,36 +1,106 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppTile } from "@/components/app-tile";
 import { type StoreSection } from "@/app/store/apps/data";
+import styles from "@/components/store-app-sections.module.css";
 
 type StoreAppSectionsProps = {
   sections: StoreSection[];
 };
 
 export function StoreAppSections({ sections }: StoreAppSectionsProps) {
+  const [visibleCards, setVisibleCards] = useState<Record<string, true>>({});
+  const cardElementsRef = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const cardKeys = useMemo(
+    () =>
+      sections.flatMap((section) =>
+        section.items.map((app) => `${section.id}:${app.id}`),
+      ),
+    [sections],
+  );
+
+  const revealDelayClasses = [
+    styles.revealDelay0,
+    styles.revealDelay1,
+    styles.revealDelay2,
+    styles.revealDelay3,
+    styles.revealDelay4,
+    styles.revealDelay5,
+    styles.revealDelay6,
+  ];
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleCards((previous) => {
+          let changed = false;
+          const next = { ...previous };
+
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const key = entry.target.getAttribute("data-card-key");
+            if (!key || next[key]) continue;
+            next[key] = true;
+            changed = true;
+          }
+
+          return changed ? next : previous;
+        });
+      },
+      {
+        threshold: 0.22,
+        rootMargin: "0px 8% -6% 8%",
+      },
+    );
+
+    for (const key of cardKeys) {
+      const element = cardElementsRef.current[key];
+      if (element) observer.observe(element);
+    }
+
+    return () => observer.disconnect();
+  }, [cardKeys]);
+
   return (
     <section className="mt-8 space-y-6">
       {sections.map((section) => (
-        <div
-          key={section.id}
-          className="rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white px-4 py-5 sm:px-6"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-900">
+        <div key={section.id} className="px-1 py-1 sm:px-0">
+          <div className="mb-4 flex items-center justify-between sm:mb-5">
+            <h2 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
               {section.title}
             </h2>
             <button
               type="button"
-              className="text-xs font-medium text-brand hover:text-brand"
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
             >
               See more
             </button>
           </div>
 
-          <div className="-mx-1 flex snap-x gap-2 overflow-x-auto pb-1">
-            {section.items.map((app) => (
-              <div key={app.id} className="snap-start">
-                <AppTile app={app} />
-              </div>
-            ))}
+          <div className="flex snap-x gap-3 overflow-x-auto px-1 py-2 sm:gap-4 sm:py-3">
+            {section.items.map((app, index) => {
+              const cardKey = `${section.id}:${app.id}`;
+              const isVisible = Boolean(visibleCards[cardKey]);
+
+              return (
+                <div
+                  key={app.id}
+                  data-card-key={cardKey}
+                  ref={(element) => {
+                    cardElementsRef.current[cardKey] = element;
+                  }}
+                  className={`snap-start transition-all duration-500 ease-out ${
+                    isVisible
+                      ? "translate-y-0 scale-100 opacity-100"
+                      : "translate-y-3 scale-[0.985] opacity-0"
+                  } ${revealDelayClasses[Math.min(index, 6)]}`}
+                >
+                  <AppTile app={app} />
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}
