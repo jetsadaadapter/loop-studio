@@ -94,6 +94,18 @@ async function apiFetch<T>(
         ...init,
     });
 
+    if (res.status === 401) {
+        // Token expired or revoked — clear and bounce to login
+        if (typeof document !== "undefined") {
+            document.cookie = `${TOKEN_COOKIE_KEY}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+        }
+        if (typeof window !== "undefined") {
+            window.localStorage.removeItem(TOKEN_COOKIE_KEY);
+            window.location.href = "/login";
+        }
+        throw new Error(`Store API error 401 Unauthorized — ${url}`);
+    }
+
     if (!res.ok) {
         throw new Error(
             `Store API error ${res.status} ${res.statusText} — ${url}`,

@@ -147,11 +147,11 @@
     });
   }
 
-  /** logout — remove stored token and optionally redirect. */
+  /** logout — remove stored token and redirect to login (default). */
   function logout(redirectTo) {
     localStorage.removeItem(KEY_TOKEN);
     _clearTokenCookie();
-    if (redirectTo) window.location.href = redirectTo;
+    window.location.href = redirectTo || "/login";
   }
 
   /**
@@ -178,6 +178,7 @@
         if (res.status === 401) {
           localStorage.removeItem(KEY_TOKEN);
           _clearTokenCookie();
+          window.location.href = "/login";
           return null;
         }
         if (!res.ok) return null;

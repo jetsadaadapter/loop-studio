@@ -1,18 +1,28 @@
 "use client";
 
 import Image from "next/image";
-import { type ComponentType, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogOut, Settings } from "lucide-react";
+
+function handleSignOut() {
+  const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
+    .ZeroTrust;
+  if (zt?.logout) {
+    zt.logout("/login");
+  } else {
+    // Fallback: clear manually and redirect
+    document.cookie =
+      "zt_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    localStorage.removeItem("zt_token");
+    window.location.href = "/login";
+  }
+}
 
 type MenuItem = {
   label: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
+  onClick?: () => void;
 };
-
-const menuItems: MenuItem[] = [
-  { label: "Settings", icon: Settings },
-  { label: "Sign out", icon: LogOut },
-];
 
 function MenuSection({ items }: { items: MenuItem[] }) {
   return (
@@ -21,6 +31,7 @@ function MenuSection({ items }: { items: MenuItem[] }) {
         <button
           key={item.label}
           type="button"
+          onClick={item.onClick}
           className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-xs text-slate-700 transition hover:bg-slate-100"
         >
           <item.icon className="size-5 text-slate-500" />
@@ -34,6 +45,11 @@ function MenuSection({ items }: { items: MenuItem[] }) {
 export function ProfileAvatarMenu() {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const menuItems: MenuItem[] = [
+    { label: "Settings", icon: Settings },
+    { label: "Sign out", icon: LogOut, onClick: handleSignOut },
+  ];
 
   useEffect(() => {
     if (!open) return;
