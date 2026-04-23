@@ -2,7 +2,6 @@
 import { redirect } from "next/navigation";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
 import { getBanners, ApiError } from "@/core/services/store.service";
-import { cookies } from "next/headers";
 import {
   heroBannerMock,
   mapBannerToHeroSlide,
@@ -10,12 +9,8 @@ import {
 
 export async function StoreHeroBannerBlock() {
   try {
-    const cookieStore = await cookies();
-    const ztToken = cookieStore.get("zt_token")?.value;
-
     const response = await getBanners(undefined, {
       next: { revalidate: 60 },
-      headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
     });
 
     const slides = response.data.map(mapBannerToHeroSlide);

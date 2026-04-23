@@ -73,11 +73,18 @@ function readBrowserCookie(name: string): string | null {
     return null;
 }
 
-function getClientZtToken(): string | null {
-    const fromCookie = readBrowserCookie(TOKEN_COOKIE_KEY);
-    if (fromCookie) return fromCookie;
+async function getAuthToken(): Promise<string | null> {
+    if (typeof window !== "undefined") {
+        return readBrowserCookie(TOKEN_COOKIE_KEY);
+    }
 
-    return null;
+    try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        return cookieStore.get(TOKEN_COOKIE_KEY)?.value || null;
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -91,7 +98,7 @@ async function apiFetch<T>(
     const incomingHeaders = new Headers(init?.headers);
 
     if (!incomingHeaders.has("Authorization")) {
-        const token = getClientZtToken();
+        const token = await getAuthToken();
         if (token) {
             incomingHeaders.set("Authorization", `Bearer ${token}`);
         }

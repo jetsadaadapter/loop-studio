@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   StorePageBlocks,
@@ -12,9 +11,6 @@ import {
 } from "@/app/store/apps/data";
 
 export default async function StoreAppsPage() {
-  const cookieStore = await cookies();
-  const ztToken = cookieStore.get("zt_token")?.value;
-
   let sections: StoreSection[] = [];
 
   try {
@@ -22,7 +18,6 @@ export default async function StoreAppsPage() {
       {},
       {
         next: { revalidate: 60 },
-        headers: { Authorization: `Bearer ${ztToken}` },
       },
     );
     sections = mapAppsResponseToSections(response);

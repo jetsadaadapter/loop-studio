@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
@@ -69,14 +68,10 @@ async function fetchRankingData(): Promise<Record<
   RankedApp[]
 > | null> {
   try {
-    const cookieStore = await cookies();
-    const ztToken = cookieStore.get("zt_token")?.value;
-
     const response = await getApps(
       { limit: 100 },
       {
         next: { revalidate: 60 },
-        headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
       },
     );
 

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAppBySlug, getRelatedApps } from "@/core/services/store.service";
 import { AppIcon } from "@/components/app-icon";
@@ -25,11 +24,8 @@ function formatDate(value: string): string {
 export default async function AppDetailPage({ params }: Props) {
   const { slug } = await params;
 
-  const cookieStore = await cookies();
-  const ztToken = cookieStore.get("zt_token")?.value;
   const initOptions = {
     next: { revalidate: 60 },
-    headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
   };
 
   const app = await getAppBySlug(slug, initOptions);
