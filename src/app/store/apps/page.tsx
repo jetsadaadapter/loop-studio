@@ -1,31 +1,40 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   StorePageBlocks,
   STORE_BLOCK_PRESETS,
 } from "@/components/store-page-blocks";
 import { StoreAppsClient } from "@/app/store/apps/store-apps-client";
-import { getApps } from "@/core/services/store.service";
+import { getApps, ApiError } from "@/core/services/store.service";
 import {
   mapAppsResponseToSections,
   type StoreSection,
 } from "@/app/store/apps/data";
 
 export default async function StoreAppsPage() {
+  const cookieStore = await cookies();
+  const ztToken = cookieStore.get("zt_token")?.value;
+
+  if (!ztToken) {
+    redirect("/login");
+  }
+
   let sections: StoreSection[] = [];
 
   try {
-    const cookieStore = await cookies();
-    const ztToken = cookieStore.get("zt_token")?.value;
     const response = await getApps(
       {},
       {
         next: { revalidate: 60 },
-        headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
+        headers: { Authorization: `Bearer ${ztToken}` },
       },
     );
     sections = mapAppsResponseToSections(response);
   } catch (error) {
-    console.error("Failed to fetch /store/apps", error);
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/login");
+    }
+    console.error("Failed to fetch /library/apps", error);
   }
 
   return (

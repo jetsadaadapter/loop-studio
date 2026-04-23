@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,14 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { ZeroTrustGoogleButton } from "@/components/zero-trust-google-button";
 
 export function LoginForm({
@@ -22,69 +13,40 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div className={cn("flex flex-col gap-6 text-sm", className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-lg">Welcome back</CardTitle>
-          <CardDescription className="text-xs">
-            Continue with your Google account
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className="border-neutral-200 bg-white shadow-xl shadow-neutral-200/50">
+        <CardHeader className="space-y-1 pb-6 pt-8 text-center">
+          <CardTitle className="text-xl font-bold tracking-tight text-neutral-900">
+            Adapter Library Access
+          </CardTitle>
+          <CardDescription className="text-sm text-neutral-500">
+            Authenticate to access MCPs, tools, and platforms
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form>
-            <FieldGroup>
-              <Field>
+        <CardContent className="px-8 pb-8 pt-0">
+          <div className="flex flex-col gap-6">
+            <div className="group relative">
+              <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-rich-mahogany-600 to-dark-garnet-500 opacity-0 blur transition duration-1000 group-hover:opacity-20" />
+              <div className="relative">
                 <ZeroTrustGoogleButton />
-              </Field>
-              <FieldSeparator className="text-xs *:data-[slot=field-separator-content]:bg-card">
-                Or continue with
-              </FieldSeparator>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  className="text-sm"
-                  placeholder="m@example.com"
-                  required
-                />
-              </Field>
-              <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-xs underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  className="text-sm"
-                  required
-                />
-              </Field>
-              <Field>
-                <Button
-                  type="submit"
-                  className="bg-brand text-white hover:bg-brand/90"
-                >
-                  Continue
-                </Button>
-                <FieldDescription className="text-center text-xs">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </form>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 text-center">
+              <p className="text-[11px] leading-relaxed text-neutral-400">
+                Authorized personnel only. By continuing, you agree to our{" "}
+                <a href="#" className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600">
+                  Terms
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600">
+                  Privacy Policy
+                </a>.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center text-xs">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
     </div>
   );
 }

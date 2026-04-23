@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import {
   AppCategoryRanking,
@@ -6,16 +7,18 @@ import {
   type RankedApp,
 } from "@/components/app-category-ranking";
 import { getAppStatus, slugifyAppName } from "@/app/store/apps/data";
-import { getApps } from "@/core/services/store.service";
+import { getApps, ApiError } from "@/core/services/store.service";
 import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
 
 type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
 
 function normalizeInternalPath(path: string): string {
-  if (path.startsWith("/store/")) return path;
-  if (path.startsWith("/apps/")) return `/store${path}`;
+  if (path.startsWith("/apps/")) return path;
+  if (path.startsWith("/library/apps/")) {
+    return path.replace(/^\/library/, "");
+  }
   if (path.startsWith("/")) return path;
-  return `/store/apps/${path}`;
+  return `/apps/${path}`;
 }
 
 function mapAction(item: StoreAppApiItem): RankedAction {
@@ -32,12 +35,12 @@ function mapAction(item: StoreAppApiItem): RankedAction {
 
   const actionUrl =
     actionType === "linkout"
-      ? (item.ctaLink ?? "https://store-api.adapterdigital.com")
+      ? (item.ctaLink ?? "https://library-api.adapterdigital.com")
       : actionType === "instruction"
-        ? `/store/apps/${derivedSlug}`
+        ? `/apps/${derivedSlug}`
         : item.ctaLink
           ? normalizeInternalPath(item.ctaLink)
-          : `/store/apps/${derivedSlug}`;
+          : `/apps/${derivedSlug}`;
 
   return { actionType, actionUrl };
 }
@@ -91,7 +94,10 @@ async function fetchRankingData(): Promise<Record<
     }
 
     return rankingData;
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/login");
+    }
     return null;
   }
 }

@@ -16,15 +16,16 @@ export function StoreGuidedCtaBlock() {
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
           <div className="max-w-3xl">
             <span className="inline-flex items-center rounded-full border border-indigo-200/80 bg-white/80 px-3 py-1 text-[11px] font-semibold tracking-[0.08em] text-indigo-700">
-              GUIDED ONBOARDING
+              เก็บความต้องการใช้งาน
             </span>
 
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem] sm:leading-tight">
-              Launch the right app stack faster.
+              แจ้งความต้องการ MCP, Platform หรือ Tool ใหม่
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700/90 sm:text-base md:text-lg">
-              Tell us your workflow goals and start with a curated setup across
-              MCP, Platform, and Tool categories.
+              หากทีมของคุณต้องการเครื่องมือเพิ่ม สามารถกรอก requirement
+              เพื่อให้เราประเมินและนำเข้าระบบให้เหมาะกับ workflow ได้เร็วขึ้น
+              และตรงความต้องการมากขึ้น
             </p>
           </div>
 
@@ -32,7 +33,7 @@ export function StoreGuidedCtaBlock() {
             href="/login"
             className="inline-flex h-12 items-center justify-center gap-3 self-start rounded-2xl border border-slate-900 bg-slate-950 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_-16px_rgba(15,23,42,0.55)] transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800/40 md:self-auto"
           >
-            Start guided setup
+            กรอกความต้องการ
             <ArrowRight className="size-4.5" aria-hidden="true" />
           </Link>
         </div>

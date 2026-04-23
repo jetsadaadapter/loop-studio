@@ -3,7 +3,7 @@ import type { GetAppsResponse, StoreAppApiItem } from "@/core/interfaces/store.i
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
 // ------------------------------------------------------------
-export type MainTabKey = "mcp" | "platform" | "tool" | "marketplace-updates" | "admin";
+export type MainTabKey = "mcp" | "platform" | "tool";
 export type StatusFilterKey =
     | "all"
     | "production ready"
@@ -46,8 +46,6 @@ export const mainTabs: Array<{ key: MainTabKey; label: string }> = [
     { key: "mcp", label: "MCP" },
     { key: "platform", label: "Platform" },
     { key: "tool", label: "Tool" },
-    { key: "marketplace-updates", label: "Marketplace Updates" },
-    { key: "admin", label: "Admin" },
 ];
 
 export const statusFilters: Array<{ key: StatusFilterKey; label: string }> = [

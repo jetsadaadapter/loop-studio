@@ -1,16 +1,11 @@
 export const storeFooterLinks = {
-    Marketplace: ["MCP", "Platform", "Tool", "New Releases", "Top Charts"],
-    Developers: [
-        "Submit an App",
-        "Developer Docs",
-        "API Reference",
-        "Changelog",
-    ],
-    Company: ["About", "Blog", "Careers", "Privacy Policy", "Terms"],
+    Library: ["MCP", "Platform", "Tool"],
+    Updates: ["Submit an App", "Changelog"],
+    Company: ["About", "Privacy Policy", "Terms of Service"],
 };
 
 export const storeShellCopy = {
-    title: "Adapter App Store",
+    title: "Adapter Library",
     description:
-        "The app marketplace for Adapter's ecosystem — MCPs, Platforms & Tools built for modern marketing teams.",
+        "คลังรวม MCP, Platform และ Tool สำหรับทีมงานภายใน Adapter พร้อมใช้งานใน workflow จริง",
 };

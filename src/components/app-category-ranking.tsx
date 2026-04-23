@@ -268,7 +268,7 @@ export function AppCategoryRanking({
   }
 
   function getAppActionUrl(app: RankedApp) {
-    return app.actionUrl || `/store/apps/${app.id}`;
+    return app.actionUrl || `/apps/${app.id}`;
   }
 
   return (

@@ -41,7 +41,7 @@ const sukhumvitSet = localFont({
 });
 
 const inter = Inter({
-  variable: "--font-geist",
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -51,8 +51,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "App Store",
-  description: "Internal app store for Adapter teams",
+  title: "Adapter Library",
+  description: "Internal app library for Adapter teams",
 };
 
 export default function RootLayout({

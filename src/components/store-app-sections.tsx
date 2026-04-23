@@ -106,13 +106,18 @@ export function StoreAppSections({ sections }: StoreAppSectionsProps) {
       ))}
 
       {sections.length === 0 && (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center sm:px-6">
-          <p className="text-sm font-medium text-slate-700">
-            No apps match this filter.
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            Try switching status or category.
-          </p>
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-b from-white to-slate-50 px-6 py-12 text-center shadow-sm sm:px-8">
+          <div className="mx-auto max-w-xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Library Status
+            </p>
+            <p className="mt-2 text-base font-semibold text-slate-800 sm:text-lg">
+              ไม่พบแอปที่ตรงกับเงื่อนไขที่เลือก
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              กรุณาปรับสถานะหรือหมวดหมู่ใหม่ เพื่อแสดงรายการแอปที่เกี่ยวข้องกับการใช้งานของทีม
+            </p>
+          </div>
         </div>
       )}
     </section>

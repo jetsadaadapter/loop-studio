@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/library/apps",
+        destination: "/apps",
+        permanent: true,
+      },
+      {
+        source: "/library/apps/:slug",
+        destination: "/apps/:slug",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
@@ -26,7 +40,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "store-api.adapterdigital.com",
+        hostname: "library-api.adapterdigital.com",
       },
     ],
   },

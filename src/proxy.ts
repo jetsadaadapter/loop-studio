@@ -13,7 +13,7 @@ const STATIC_PATTERN =
 
 const TOKEN_COOKIE = "zt_token";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Allow static assets through unconditionally

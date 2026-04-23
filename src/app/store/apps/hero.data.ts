@@ -129,10 +129,12 @@ function slugifyAppName(value: string): string {
 }
 
 function normalizeInternalPath(path: string): string {
-    if (path.startsWith("/store/")) return path;
-    if (path.startsWith("/apps/")) return `/store${path}`;
+    if (path.startsWith("/apps/")) return path;
+    if (path.startsWith("/library/apps/")) {
+        return path.replace(/^\/library/, "");
+    }
     if (path.startsWith("/")) return path;
-    return `/store/apps/${path}`;
+    return `/apps/${path}`;
 }
 
 export function mapBannerToHeroSlide(item: StoreBannerItem): HeroSlide {
@@ -149,12 +151,12 @@ export function mapBannerToHeroSlide(item: StoreBannerItem): HeroSlide {
 
     const actionUrl =
         actionType === "linkout"
-            ? item.app.ctaLink ?? "https://store-api.adapterdigital.com"
+            ? item.app.ctaLink ?? "https://library-api.adapterdigital.com"
             : actionType === "instruction"
-                ? `/store/apps/${derivedSlug}`
+                ? `/apps/${derivedSlug}`
                 : item.app.ctaLink
                     ? normalizeInternalPath(item.app.ctaLink)
-                    : `/store/apps/${derivedSlug}`;
+                    : `/apps/${derivedSlug}`;
 
     return {
         appId: item.appId,
@@ -178,7 +180,7 @@ export function mapBannerToHeroSlide(item: StoreBannerItem): HeroSlide {
 
 export const heroBannerMock: HeroBannerResponse = {
     sectionId: "featured-hero",
-    sectionTitle: "Featured app stories",
+    sectionTitle: "Featured Library stories",
     items: [
         {
             // Reference: Adapter Campaign (app_007) from Platform section
@@ -194,11 +196,11 @@ export const heroBannerMock: HeroBannerResponse = {
             heroSlug: "adapter-campaign-spring-update",
             theme: "indigo",
             title: "Run campaigns at scale with multi-channel orchestration",
-            imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1296&h=728&fit=crop",
+            imageUrl: "/images/mock/hero/campaign.png",
             toolTags: ["Multi-Channel", "Orchestration", "Analytics"],
             ctaLabel: "Open app",
             actionType: "internal",
-            actionUrl: "/store/apps/adapter-campaign",
+            actionUrl: "/apps/adapter-campaign",
         },
         {
             // Reference: Workflow Hub (app_008) from Platform section
@@ -213,11 +215,11 @@ export const heroBannerMock: HeroBannerResponse = {
             heroSlug: "workflow-hub-automation-engine",
             theme: "sky",
             title: "Automate complex workflows with visual builder",
-            imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1296&h=728&fit=crop",
+            imageUrl: "/images/mock/hero/workflow.png",
             toolTags: ["Visual Builder", "Automation", "Integration"],
             ctaLabel: "View detail",
             actionType: "internal",
-            actionUrl: "/store/apps/adapter-workflow-hub",
+            actionUrl: "/apps/adapter-workflow-hub",
         },
         {
             // Reference: Comment Loader (app_013) from Tool section
@@ -234,11 +236,11 @@ export const heroBannerMock: HeroBannerResponse = {
             heroSlug: "comment-loader-engagement-engine",
             theme: "orange",
             title: "Load and analyze comments from any platform",
-            imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1296&auto=format&fit=crop",
+            imageUrl: "/images/mock/hero/data.png",
             toolTags: ["Data Import", "Comment Analysis", "Platform Support"],
             ctaLabel: "View detail",
             actionType: "internal",
-            actionUrl: "/store/apps/comment-loader",
+            actionUrl: "/apps/comment-loader",
         },
     ],
 };

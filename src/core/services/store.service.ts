@@ -6,14 +6,29 @@ import type {
 } from "@/core/interfaces/store.interface";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Store API service
-// Base URL: https://store-api.adapterdigital.com/api
+// Library API service
+// Base URL: https://library-api.adapterdigital.com/api
 //
 // All functions are thin fetch wrappers — no caching strategy is assumed here.
 // Callers control revalidation via Next.js fetch options or SWR/React Query.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://store-api.adapterdigital.com/api";
+export class ApiError extends Error {
+    constructor(
+        public status: number,
+        message: string,
+        public url: string,
+    ) {
+        super(message);
+        this.name = "ApiError";
+    }
+}
+
+const BASE_URL = process.env.NEXT_PUBLIC_STORE_API_BASE_URL;
+
+if (!BASE_URL) {
+    throw new Error("Missing NEXT_PUBLIC_STORE_API_BASE_URL");
+}
 
 const TOKEN_COOKIE_KEY = "zt_token";
 
@@ -95,7 +110,7 @@ async function apiFetch<T>(
     });
 
     if (res.status === 401) {
-        // Token expired or revoked — clear and bounce to login
+        // Token expired or revoked — clear and bounce to login (client-side only)
         if (typeof document !== "undefined") {
             document.cookie = `${TOKEN_COOKIE_KEY}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
         }
@@ -103,12 +118,14 @@ async function apiFetch<T>(
             window.localStorage.removeItem(TOKEN_COOKIE_KEY);
             window.location.href = "/login";
         }
-        throw new Error(`Store API error 401 Unauthorized — ${url}`);
+        throw new ApiError(401, "Unauthorized", url);
     }
 
     if (!res.ok) {
-        throw new Error(
-            `Store API error ${res.status} ${res.statusText} — ${url}`,
+        throw new ApiError(
+            res.status,
+            `Library API error ${res.status} ${res.statusText}`,
+            url,
         );
     }
 
@@ -118,7 +135,7 @@ async function apiFetch<T>(
 // ─── Apps ─────────────────────────────────────────────────────────────────────
 
 /**
- * GET /store/apps
+ * GET /library/apps
  *
  * @example
  * // page 1, limit 10, all categories
@@ -137,7 +154,7 @@ export async function getApps(
     params: GetAppsParams = {},
     init?: RequestInit,
 ): Promise<GetAppsResponse> {
-    const url = buildUrl("/store/apps", {
+    const url = buildUrl("/library/apps", {
         page: params.page,
         limit: params.limit,
         category: params.category,
@@ -149,7 +166,7 @@ export async function getApps(
 // ─── Banners ──────────────────────────────────────────────────────────────────
 
 /**
- * GET /store/banners
+ * GET /library/banners
  *
  * @example
  * // first 3 banners
@@ -159,7 +176,7 @@ export async function getBanners(
     params: GetBannersParams = {},
     init?: RequestInit,
 ): Promise<GetBannersResponse> {
-    const url = buildUrl("/store/banners", {
+    const url = buildUrl("/library/banners", {
         page: params.page,
         limit: params.limit,
     });

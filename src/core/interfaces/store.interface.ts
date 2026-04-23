@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Store API — shared response contracts
-// Base URL: https://store-api.adapterdigital.com/api
+// Library API — shared response contracts
+// Base URL: https://library-api.adapterdigital.com/api
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Pagination ──────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ export type Paginated<T> = {
     meta: PaginationMeta;
 };
 
-// ─── Apps  GET /store/apps ───────────────────────────────────────────────────
+// ─── Apps  GET /library/apps ───────────────────────────────────────────────────
 
 export type StoreAppCategory = "MCP" | "Platform" | "Tool" | string;
 
@@ -55,9 +55,7 @@ export type GetAppsParams = {
 
 export type GetAppsResponse = Paginated<StoreAppsGroupItem>;
 
-// ─── Banners  GET /store/banners ─────────────────────────────────────────────
-
-// ─── Banners  GET /store/banners ─────────────────────────────────────────────
+// ─── Banners  GET /library/banners ─────────────────────────────────────────────
 
 export type AppTag = {
     tagId: string;

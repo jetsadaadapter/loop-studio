@@ -33,14 +33,10 @@ const blockRegistry: Record<StorePageBlock, BlockComponent> = {
 // ─── Preset configs for named page layouts ───────────────────────────────────
 
 export const STORE_BLOCK_PRESETS = {
-  /** Marketplace discovery content shown above the main app sections */
-  marketplace: [
-    "hero-banner",
-    "category-ranking",
-    "integration-showcase",
-  ] satisfies StorePageBlock[],
+  /** Library discovery content shown above the main app sections */
+  marketplace: ["hero-banner"] satisfies StorePageBlock[],
 
-  /** Marketplace footer CTA shown after the main app sections */
+  /** Library footer CTA shown after the main app sections */
   marketplaceFooter: ["guided-cta"] satisfies StorePageBlock[],
 
   /** Detail or sub-pages — no discovery chrome, content-only */

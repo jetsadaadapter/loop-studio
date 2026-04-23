@@ -35,6 +35,94 @@ async function fetchAppsForDetail(): Promise<StoreAppApiItem[]> {
   return response.data.flatMap((groupBlock) => groupBlock.items);
 }
 
+const PRIMARY_CTA_CLASS =
+  "inline-flex min-w-44 items-center justify-center rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand/90 sm:text-base";
+
+function PrimaryCta({
+  label,
+  ctaLink,
+  isExternal,
+  isInternal,
+}: {
+  label: string;
+  ctaLink: string | null;
+  isExternal: boolean;
+  isInternal: boolean;
+}) {
+  if (isExternal) {
+    return (
+      <a
+        href={ctaLink ?? "#"}
+        target="_blank"
+        rel="noreferrer"
+        className={PRIMARY_CTA_CLASS}
+      >
+        {label}
+      </a>
+    );
+  }
+
+  if (isInternal) {
+    return (
+      <Link href={ctaLink ?? "/apps"} className={PRIMARY_CTA_CLASS}>
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" className={PRIMARY_CTA_CLASS}>
+      {label}
+    </button>
+  );
+}
+
+function MetadataItem({
+  label,
+  value,
+  valueClassName = "mt-0.5 text-slate-600",
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div>
+      <p className="font-semibold text-slate-900">{label}</p>
+      <p className={valueClassName}>{value}</p>
+    </div>
+  );
+}
+
+function RelatedAppListItem({ item }: { item: StoreAppApiItem }) {
+  return (
+    <Link
+      href={`/apps/${slugifyAppName(item.name)}`}
+      className="flex items-start gap-3 rounded-2xl p-1.5 transition hover:bg-slate-100/80"
+    >
+      <AppIcon
+        name={item.name}
+        iconUrl={item.iconUrl}
+        containerClassName="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 shadow-md ring-1 ring-white/25"
+        fallbackClassName="flex h-full w-full items-center justify-center bg-white/25 text-sm font-semibold tracking-wide text-white"
+        initialsClassName="text-sm font-semibold tracking-wide"
+        imageSizes="56px"
+        imageOuterClassName="absolute inset-0 p-1.5"
+        imageInnerClassName="relative size-full overflow-hidden rounded-lg"
+        imageClassName="object-cover"
+      />
+      <div className="min-w-0 pt-1">
+        <p className="truncate text-sm font-medium text-slate-900">
+          {item.name}
+        </p>
+        <p className="mt-0.5 truncate text-xs text-slate-500">
+          {item.category}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default async function AppDetailPage({ params }: Props) {
   const { slug } = await params;
 
@@ -42,7 +130,7 @@ export default async function AppDetailPage({ params }: Props) {
   try {
     allApps = await fetchAppsForDetail();
   } catch (error) {
-    console.error("Failed to fetch app detail from /store/apps", error);
+    console.error("Failed to fetch app detail from /apps", error);
   }
 
   const app = allApps.find((item) => slugifyAppName(item.name) === slug);
@@ -87,7 +175,7 @@ export default async function AppDetailPage({ params }: Props) {
           {/* Back button overlay */}
           <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
             <Link
-              href="/store/apps"
+              href="/apps"
               className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-black/70"
             >
               <svg
@@ -103,7 +191,7 @@ export default async function AppDetailPage({ params }: Props) {
                   clipRule="evenodd"
                 />
               </svg>
-              Back to Store
+              Back to Library
             </Link>
           </div>
 
@@ -152,30 +240,12 @@ export default async function AppDetailPage({ params }: Props) {
               ) : null}
 
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-                {hasExternalCta ? (
-                  <a
-                    href={app.ctaLink ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-w-44 items-center justify-center rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand/90 sm:text-base"
-                  >
-                    {primaryCtaLabel}
-                  </a>
-                ) : hasInternalCta ? (
-                  <Link
-                    href={app.ctaLink ?? "/store/apps"}
-                    className="inline-flex min-w-44 items-center justify-center rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand/90 sm:text-base"
-                  >
-                    {primaryCtaLabel}
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    className="inline-flex min-w-44 items-center justify-center rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand/90 sm:text-base"
-                  >
-                    {primaryCtaLabel}
-                  </button>
-                )}
+                <PrimaryCta
+                  label={primaryCtaLabel}
+                  ctaLink={app.ctaLink}
+                  isExternal={hasExternalCta}
+                  isInternal={hasInternalCta}
+                />
               </div>
             </div>
           </div>
@@ -219,7 +289,7 @@ export default async function AppDetailPage({ params }: Props) {
 
               <p className="page-body-copy mt-4 text-slate-700">
                 {app.description ||
-                  `${app.name} is a ${app.category.toLowerCase()} integration available on the Adapter App Store.`}
+                  `${app.name} is a ${app.category.toLowerCase()} integration available on the Adapter Library.`}
               </p>
 
               <div className="mt-6">
@@ -251,9 +321,14 @@ export default async function AppDetailPage({ params }: Props) {
                 <h2 className="page-section-title text-slate-900">
                   Instructions
                 </h2>
-                <p className="page-body-copy mt-4 text-slate-700">
-                  {app.instructions}
-                </p>
+                <div
+                  className="page-body-copy mt-4 text-slate-700 space-y-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&_a]:text-brand [&_a]:underline"
+                  dangerouslySetInnerHTML={{
+                    __html: app.instructions
+                      .replace(/\\n/g, "<br />")
+                      .replace(/\n/g, "<br />"),
+                  }}
+                />
               </section>
             ) : null}
           </div>
@@ -262,24 +337,18 @@ export default async function AppDetailPage({ params }: Props) {
           <aside className="motion-enter-3 min-w-0 lg:sticky lg:top-24 lg:self-start">
             {/* Metadata */}
             <div className="py-7 lg:pt-0">
-              <dl className="space-y-4 text-sm">
-                <div>
-                  <dt className="font-semibold text-slate-900">Category</dt>
-                  <dd className="mt-0.5 text-slate-600">{app.category}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-slate-900">Updated</dt>
-                  <dd className="mt-0.5 text-slate-600">
-                    {formatDate(app.updatedAt)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-slate-900">App ID</dt>
-                  <dd className="mt-0.5 truncate text-xs text-slate-500">
-                    {app.appId}
-                  </dd>
-                </div>
-              </dl>
+              <div className="space-y-4 text-sm">
+                <MetadataItem label="Category" value={app.category} />
+                <MetadataItem
+                  label="Updated"
+                  value={formatDate(app.updatedAt)}
+                />
+                <MetadataItem
+                  label="App ID"
+                  value={app.appId}
+                  valueClassName="mt-0.5 truncate text-xs text-slate-500"
+                />
+              </div>
             </div>
 
             {relatedApps.length > 0 ? (
@@ -289,31 +358,10 @@ export default async function AppDetailPage({ params }: Props) {
                 </h3>
                 <div className="mt-3 space-y-3">
                   {relatedApps.map((relatedApp) => (
-                    <Link
+                    <RelatedAppListItem
                       key={relatedApp.appId}
-                      href={`/store/apps/${slugifyAppName(relatedApp.name)}`}
-                      className="flex items-start gap-3 rounded-2xl p-1.5 transition hover:bg-slate-100/80"
-                    >
-                      <AppIcon
-                        name={relatedApp.name}
-                        iconUrl={relatedApp.iconUrl}
-                        containerClassName="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 shadow-md ring-1 ring-white/25"
-                        fallbackClassName="flex h-full w-full items-center justify-center bg-white/25 text-sm font-semibold tracking-wide text-white"
-                        initialsClassName="text-sm font-semibold tracking-wide"
-                        imageSizes="56px"
-                        imageOuterClassName="absolute inset-0 p-1.5"
-                        imageInnerClassName="relative size-full overflow-hidden rounded-lg"
-                        imageClassName="object-cover"
-                      />
-                      <div className="min-w-0 pt-1">
-                        <p className="truncate text-sm font-medium text-slate-900">
-                          {relatedApp.name}
-                        </p>
-                        <p className="mt-0.5 truncate text-xs text-slate-500">
-                          {relatedApp.category}
-                        </p>
-                      </div>
-                    </Link>
+                      item={relatedApp}
+                    />
                   ))}
                 </div>
               </section>

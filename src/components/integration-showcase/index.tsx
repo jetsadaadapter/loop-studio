@@ -85,7 +85,7 @@ export function IntegrationShowcase() {
 
       <div className="relative mt-12 flex justify-center">
         <Link
-          href="/store/apps"
+          href="/apps"
           className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-[0_18px_36px_-18px_rgba(194,0,25,0.6)] transition hover:-translate-y-0.5 hover:bg-brand/90"
         >
           Discover all tools

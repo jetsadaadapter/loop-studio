@@ -25,9 +25,6 @@ export function StoreAppsClient({ sections, children }: StoreAppsClientProps) {
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const baseSections = useMemo(() => {
-    if (selectedMainTab === "marketplace-updates") return sections;
-    if (selectedMainTab === "admin")
-      return sections.filter((s) => s.id === "platform");
     return sections.filter((s) => s.id === selectedMainTab);
   }, [sections, selectedMainTab]);
 

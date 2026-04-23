@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
-import { TopbarSearch } from "@/components/topbar-search";
 import { storeFooterLinks, storeShellCopy } from "./layout.data";
 
 type StoreShellContextValue = {
@@ -38,7 +37,7 @@ export function StoreShell({ children }: { children: ReactNode }) {
     <StoreShellContext.Provider value={value}>
       <div className="min-h-screen bg-white">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 md:px-6">
+          <div className="flex h-16 w-full items-center gap-3 px-4 md:px-6">
             <Image
               src="/images/logo/logo-black-110x30.png"
               alt="Adapter Digital Group"
@@ -49,7 +48,6 @@ export function StoreShell({ children }: { children: ReactNode }) {
               priority
             />
             <div className="ml-auto flex items-center gap-2">
-              <TopbarSearch value={searchQuery} onChange={setSearchQuery} />
               <ProfileAvatarMenu />
             </div>
           </div>

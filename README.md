@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Internal App Store (Adapter Library)
 
-## Getting Started
+ยินดีต้อนรับสู่ **Internal App Store** แพลตฟอร์มศูนย์กลางสำหรับการจัดการและติดตั้งแอปพลิเคชันภายในองค์กร (เช่น MCP, Apify, Media) พัฒนาขึ้นเพื่อให้ทีมงานภายในสามารถเข้าถึงเครื่องมือและทรัพยากรต่างๆ ได้อย่างรวดเร็วและปลอดภัย ในรูปแบบที่ใช้งานง่ายสไตล์ Play Store
 
-First, run the development server:
+## 🛠 Tech Stack
+
+โปรเจกต์นี้พัฒนาด้วยเทคโนโลยีที่เน้นประสิทธิภาพและความปลอดภัยระดับองค์กร:
+
+- **Framework:** [Next.js 16 (App Router)](https://nextjs.org/)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **UI Components:** [Shadcn UI](https://ui.shadcn.com/) (Radix UI)
+- **Typography:** `Sukhumvit Set` (Required Local Font)
+- **Authentication:** [NextAuth.js](https://next-auth.js.org/) (Google Provider via Centralized MCP)
+- **Validation:** [Zod](https://zod.dev/) (Strict Schema Validation)
+- **Architecture:** Validator Interface Pattern (Clean Architecture)
+
+## 📁 โครงสร้างโฟลเดอร์ (Directory Structure)
+
+เรายึดหลักการแยกส่วนระหว่าง UI, Logic และ Data Validation อย่างชัดเจน (Separation of Concerns):
+
+```text
+├── src/
+│   ├── app/                # UI Pages & Layouts (Next.js App Router)
+│   ├── components/         # Shared UI Components (shadcn & composite)
+│   ├── core/               # Business Logic & Infrastructure (หัวใจของระบบ)
+│   │   ├── interfaces/     # TypeScript definitions & Contracts
+│   │   ├── validators/     # Zod Schemas (Single source of truth)
+│   │   ├── services/       # API Clients, Config Generators
+│   │   └── adapters/       # Data transformers (External to Internal formats)
+│   ├── hooks/              # Reusable React hooks
+│   ├── lib/                # Shared utilities (auth config, db, utils)
+│   └── types/              # Global types
+```
+
+## 🛡️ มาตรฐานการจัดการข้อมูล (Validator Interface Standard)
+
+เราใช้ **Zod** เป็นด่านหน้าในการทำ Validation ทุกช่องทาง เพื่อความปลอดภัยและลดข้อผิดพลาด:
+
+- **Never trust external data:** ข้อมูลทุกอย่างจากภายนอกต้องผ่าน Validator ก่อนเข้าสู่ Application State
+- **Single Source of Truth:** ใช้ `z.infer<typeof Schema>` เพื่อสร้าง TypeScript types จาก Schema เสมอ
+- **Strict Validation:** ใช้ `.strict()` เพื่อป้องกัน Unknown Keys และใช้ `.max()` เพื่อจำกัดขนาดข้อมูล
+
+ตัวอย่างการใช้งาน:
+
+```typescript
+// src/core/validators/resource.validator.ts
+export const BaseResourceSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1),
+  type: ResourceType,
+}).strict();
+```
+
+## 🚀 เริ่มต้นพัฒนา (Getting Started)
+
+### 1. ติดตั้ง Dependencies
+
+```bash
+npm install
+```
+
+### 2. ตั้งค่า Environment Variables
+
+คัดลอกไฟล์ `.env.example` ไปเป็น `.env.local` และระบุค่าที่จำเป็น
+
+```bash
+cp .env.example .env.local
+```
+
+### 3. รันโปรเจกต์ในโหมด Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด [http://localhost:3000](http://localhost:3000) บนบราวเซอร์เพื่อดูผลลัพธ์
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎨 แนวทางการออกแบบ (UI & Design Principles)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+เน้นความสวยงาม ลื่นไหล และพรีเมียม (Premium UX/UI):
 
-## Learn More
+- **Typography:** ใช้ `Sukhumvit Set` เป็นฟอนต์หลักเพื่อภาพลักษณ์ที่ทันสมัย
+- **Visual Hierarchy:** ใช้ Carousel และ Grid ในการจัดหมวดหมู่แอปพลิเคชัน
+- **States:** ต้องมีการจัดการ `Loading` (Skeleton), `Empty`, และ `Error` states เสมอ
+- **Modals:** ใช้ Shadcn `Dialog` หรือ `Sheet` สำหรับแสดงรายละเอียดแอป (App Details)
 
-To learn more about Next.js, take a look at the following resources:
+## 🔐 ความปลอดภัยและการยืนยันตัวตน
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Domain Restriction:** อนุญาตเฉพาะอีเมลโดเมนที่กำหนดเท่านั้น (เช่น `@company.com`)
+- **Middleware Protection:** ปกป้องทุก Private Route และ API ผ่าน `middleware.ts`
+- **MCP Execution Safety:** มี Allowlist สำหรับคำสั่งและการทำงานของ MCP พร้อมระบบ Audit Trail
+- **Secrets Management:** ห้ามจัดเก็บ Secrets ไว้ใน Source Code หรือ Client Bundle โดยเด็ดขาด
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🤖 กฎการพัฒนา (Development Guidelines)
 
-## Deploy on Vercel
+- **Component Scoping:** รักษาขนาดไฟล์ให้กะทัดรัด (แนะนำไม่เกิน 150 บรรทัดต่อไฟล์)
+- **Naming Convention:**
+  - Validators: `[name].validator.ts`
+  - Components: `[Name].tsx` (PascalCase)
+  - Hooks: `use[Name].ts` (camelCase)
+- **Error Handling:** ใช้ `ZodError` และแสดงข้อความที่เข้าใจง่ายผ่าน Shadcn `Toast`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**อ่านรายละเอียดแนวทางปฏิบัติฉบับเต็มได้ที่:** [Project Guidelines](.github/project-guidlines.md)

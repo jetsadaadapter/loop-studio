@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from "react";
 type TopbarSearchProps = {
   value: string;
   onChange: (value: string) => void;
+  onSubmit?: () => void;
 };
 
-export function TopbarSearch({ value, onChange }: TopbarSearchProps) {
+export function TopbarSearch({ value, onChange, onSubmit }: TopbarSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -55,6 +56,9 @@ export function TopbarSearch({ value, onChange }: TopbarSearchProps) {
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             closeSearch();
+          }
+          if (event.key === "Enter") {
+            onSubmit?.();
           }
         }}
         placeholder="Search for apps"

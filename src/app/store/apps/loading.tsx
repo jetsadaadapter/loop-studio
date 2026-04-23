@@ -33,37 +33,27 @@ function SectionSkeleton() {
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="flex h-16 w-full items-center gap-3 px-4 md:px-6">
-          <div className="h-7 w-30 animate-pulse rounded bg-slate-200" />
-          <div className="ml-auto h-10 w-10 animate-pulse rounded-full bg-slate-200" />
+    <div className="w-full animate-in fade-in duration-500">
+      <section className="border-b border-slate-200 pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <PillSkeleton key={`tab-${index}`} />
+          ))}
         </div>
-      </header>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <PillSkeleton key={`status-${index}`} />
+          ))}
+        </div>
+      </section>
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-10 pt-5 md:px-6">
-        <section className="border-b border-slate-200 pb-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <PillSkeleton key={`tab-${index}`} />
-            ))}
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <PillSkeleton key={`status-${index}`} />
-            ))}
-          </div>
-        </section>
+      <div className="mt-6 h-[26rem] animate-pulse rounded-3xl bg-slate-100" />
+      <div className="mt-12 h-64 animate-pulse rounded-3xl bg-slate-100" />
 
-        <div className="mt-6 h-72 animate-pulse rounded-2xl bg-slate-100" />
-        <div className="mt-8 h-120 animate-pulse rounded-3xl bg-slate-100" />
-        <div className="mt-10 h-80 animate-pulse rounded-3xl bg-slate-100" />
-
-        <section className="mt-8 space-y-6">
-          <SectionSkeleton />
-          <SectionSkeleton />
-        </section>
-      </main>
+      <section className="mt-12 space-y-10">
+        <SectionSkeleton />
+        <SectionSkeleton />
+      </section>
     </div>
   );
 }

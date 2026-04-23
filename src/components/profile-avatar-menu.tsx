@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 function handleSignOut() {
   const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
@@ -47,7 +47,6 @@ export function ProfileAvatarMenu() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const menuItems: MenuItem[] = [
-    { label: "Settings", icon: Settings },
     { label: "Sign out", icon: LogOut, onClick: handleSignOut },
   ];
 
@@ -113,13 +112,6 @@ export function ProfileAvatarMenu() {
                 </p>
               </div>
             </div>
-
-            <button
-              type="button"
-              className="mt-5 w-full rounded-full border border-slate-300 px-4 py-2.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
-            >
-              Manage your Google Account
-            </button>
           </div>
 
           <MenuSection items={menuItems} />

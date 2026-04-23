@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/error-boundaries */
+import { redirect } from "next/navigation";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
-import { getBanners } from "@/core/services/store.service";
+import { getBanners, ApiError } from "@/core/services/store.service";
 import { cookies } from "next/headers";
 import {
   heroBannerMock,
@@ -24,7 +25,10 @@ export async function StoreHeroBannerBlock() {
     }
 
     return <HeroBannerSlider initialSlides={slides} />;
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/login");
+    }
     return <HeroBannerSlider initialSlides={heroBannerMock.items} />;
   }
 }

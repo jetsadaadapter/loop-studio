@@ -1,6 +1,6 @@
-# 🚀 Internal App Store: AI Development Guidelines
+# 🚀 Internal Library: AI Development Guidelines
 
-This document serves as the primary source of truth for the development of the Internal App Store. All AI-generated code (GitHub Copilot, Cursor, etc.) must adhere to these standards.
+This document serves as the primary source of truth for the development of the Internal Library. All AI-generated code (GitHub Copilot, Cursor, etc.) must adhere to these standards.
 
 ## 🏗️ 1. Tech Stack Overview
 
@@ -36,7 +36,7 @@ Maintain a clear separation between UI, Logic, and Data Validation. Never mix bu
 
 ## 🛡️ 3. Validator Interface Standard
 
-**Principle:** Never trust external data. Every resource (App, MCP, Media, Apify) must be validated before entering the application state.
+**Principle:** Never trust external data. Every resource (Library Item, MCP, Media, Apify) must be validated before entering the application state.
 
 Always derive TypeScript types from Zod schemas using `z.infer<typeof Schema>`.
 
@@ -54,7 +54,7 @@ Security requirements for validators:
 // src/core/validators/resource.validator.ts
 import { z } from "zod";
 
-export const ResourceType = z.enum(["APP", "MCP", "APIFY", "MEDIA"]);
+export const ResourceType = z.enum(["LIBRARY_ITEM", "MCP", "APIFY", "MEDIA"]);
 
 export const BaseResourceSchema = z.object({
   id: z.string().uuid(),
@@ -73,17 +73,17 @@ export const MCPSchema = BaseResourceSchema.extend({
 });
 
 // Use Discriminated Unions for scalable typing
-export const AppResourceSchema = z.discriminatedUnion("type", [
+export const LibraryResourceSchema = z.discriminatedUnion("type", [
   MCPSchema,
   // Add APIFY, MEDIA, WEB_APP schemas here
 ]);
 
-export type AppResource = z.infer<typeof AppResourceSchema>;
+export type LibraryResource = z.infer<typeof LibraryResourceSchema>;
 ```
 
 ---
 
-## 🎨 4. UI & Design Principles (Play Store Style)
+## 🎨 4. UI & Design Principles (Library Style)
 
 ### Font Baseline (Required for new projects)
 
@@ -92,10 +92,10 @@ export type AppResource = z.infer<typeof AppResourceSchema>;
 3. Set `--font-sans` and `--font-heading` to the local Sukhumvit variable in `src/app/globals.css`.
 4. Keep a monospaced fallback (for code/logs) as a separate font variable.
 
-- **Visual Hierarchy:** Use Shadcn/Embla `Carousel` for featured apps and horizontal `Grid` for app categories.
+- **Visual Hierarchy:** Use Shadcn/Embla `Carousel` for featured resources and horizontal `Grid` for resource categories.
 - **Micro-interactions:** Use Framer Motion or Tailwind transitions for smooth hover states.
 - **States:** Always handle `Loading`, `Empty`, and `Error` states using Shadcn `Skeleton` and `Alert` components.
-- **Modals:** Use Shadcn `Dialog` or `Sheet` to display app details (screenshots, permissions, version history) without leaving the overview page.
+- **Modals:** Use Shadcn `Dialog` or `Sheet` to display library item details (screenshots, permissions, version history) without leaving the overview page.
 
 ---
 
@@ -103,7 +103,7 @@ export type AppResource = z.infer<typeof AppResourceSchema>;
 
 To enable "One-Click Install" for MCP/Configs:
 
-1. **Desktop Agent / CLI:** The app must trigger a protocol handler (e.g., `company-store://install?id=123`) or provide a clear CLI sync command.
+1. **Desktop Agent / CLI:** The system must trigger a protocol handler (e.g., `company-library://install?id=123`) or provide a clear CLI sync command.
 2. **Config Generation:** Use a dedicated service in `src/core/services` to transform Zod-validated data into tool-specific configurations (e.g., `claude_desktop_config.json`).
 
 Secure MCP installation workflow (mandatory):
