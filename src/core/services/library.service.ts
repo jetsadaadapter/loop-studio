@@ -3,9 +3,9 @@ import type {
     GetAppsResponse,
     GetBannersParams,
     GetBannersResponse,
-    StoreAppApiItem,
-} from "@/core/interfaces/store.interface";
-import { slugifyAppName } from "@/app/store/apps/data";
+    LibraryAppApiItem,
+} from "@/core/interfaces/library.interface";
+import { slugifyAppName } from "@/app/library/apps/data";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Library API service
@@ -171,7 +171,7 @@ export async function getApps(
 export async function getAppBySlug(
     slug: string,
     init?: RequestInit,
-): Promise<StoreAppApiItem | null> {
+): Promise<LibraryAppApiItem | null> {
     try {
         const response = await getApps({ page: 1, limit: 100 }, init);
         const allApps = response.data.flatMap((group) => group.items);
@@ -189,7 +189,7 @@ export async function getRelatedApps(
     appId: string,
     category: string,
     init?: RequestInit,
-): Promise<StoreAppApiItem[]> {
+): Promise<LibraryAppApiItem[]> {
     try {
         const response = await getApps({ page: 1, limit: 100 }, init);
         const allApps = response.data.flatMap((group) => group.items);

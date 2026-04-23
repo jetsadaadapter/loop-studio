@@ -12,33 +12,33 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
-import { storeFooterLinks, storeShellCopy } from "./layout.data";
+import { libraryFooterLinks, libraryShellCopy } from "./layout.data";
 
-type StoreShellContextValue = {
+type LibraryShellContextValue = {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
 };
 
-const StoreShellContext = createContext<StoreShellContextValue | null>(null);
+const LibraryShellContext = createContext<LibraryShellContextValue | null>(null);
 
-export function useStoreShell() {
-  const context = useContext(StoreShellContext);
+export function useLibraryShell() {
+  const context = useContext(LibraryShellContext);
 
   if (!context) {
-    throw new Error("useStoreShell must be used within StoreShell");
+    throw new Error("useLibraryShell must be used within LibraryShell");
   }
 
   return context;
 }
 
-export function StoreShell({ children }: { children: ReactNode }) {
+export function LibraryShell({ children }: { children: ReactNode }) {
   const [searchQuery, setSearchQuery] = useState("");
   // Edge Middleware handles auth protection
 
   const value = useMemo(() => ({ searchQuery, setSearchQuery }), [searchQuery]);
 
   return (
-    <StoreShellContext.Provider value={value}>
+    <LibraryShellContext.Provider value={value}>
       <div className="min-h-screen bg-white">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
           <div className="flex h-16 w-full items-center gap-3 px-4 md:px-6">
@@ -75,11 +75,11 @@ export function StoreShell({ children }: { children: ReactNode }) {
                   className="h-6 w-auto"
                 />
                 <p className="mt-3 text-xs leading-relaxed text-slate-600">
-                  {storeShellCopy.description}
+                  {libraryShellCopy.description}
                 </p>
               </div>
 
-              {Object.entries(storeFooterLinks).map(([heading, links]) => (
+              {Object.entries(libraryFooterLinks).map(([heading, links]) => (
                 <div key={heading}>
                   <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
                     {heading}
@@ -105,13 +105,13 @@ export function StoreShell({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-1">
                 <span className="inline-block size-2 rounded-full bg-brand" />
                 <span className="text-xs font-medium text-slate-600">
-                  {storeShellCopy.title}
+                  {libraryShellCopy.title}
                 </span>
               </div>
             </div>
           </div>
         </footer>
       </div>
-    </StoreShellContext.Provider>
+    </LibraryShellContext.Provider>
   );
 }

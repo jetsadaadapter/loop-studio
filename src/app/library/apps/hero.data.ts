@@ -1,4 +1,4 @@
-import type { StoreBannerItem } from "@/core/interfaces/store.interface";
+import type { LibraryBannerItem } from "@/core/interfaces/library.interface";
 
 export type HeroMood = "cool" | "warm" | "neutral" | "premium";
 
@@ -27,16 +27,16 @@ const HERO_THEME_PRESETS_BY_MOOD: Record<HeroMood, HeroTheme[]> = {
 /**
  * HeroSlide: Featured app story
  * 
- * References a selected app from storeAppsResponse and enriches it with:
+ * References a selected app from libraryAppsResponse and enriches it with:
  * - Marketing narrative (title, imageUrl, toolTags)
  * - Visual theme for hero card styling
  * - Navigation action (internal detail page or external)
  * 
- * The app reference (appId, appSlug, appName, category, status) comes from storeAppsResponse.
+ * The app reference (appId, appSlug, appName, category, status) comes from libraryAppsResponse.
  * Hero-specific enrichment (title, imageUrl, theme, toolTags) is curated separately.
  */
 export type HeroSlide = {
-    // App reference (from storeAppsResponse)
+    // App reference (from libraryAppsResponse)
     appId: string;                          // e.g., "app_007"
     appSlug: string;                        // e.g., "adapter-campaign"
     appName: string;                        // e.g., "Adapter Campaign"
@@ -75,7 +75,7 @@ function getStableHash(seed: string): number {
     return hash;
 }
 
-function getMoodFromBanner(item: StoreBannerItem): HeroMood {
+function getMoodFromBanner(item: LibraryBannerItem): HeroMood {
     const category = item.app.category.toLowerCase();
     const tags = item.app.tags.map((tag) => tag.name.toLowerCase());
 
@@ -111,7 +111,7 @@ function getStableThemePreset(seed: string, mood: HeroMood): HeroTheme {
     return presets[hash % presets.length];
 }
 
-export function mapBannerTheme(item: StoreBannerItem): HeroTheme {
+export function mapBannerTheme(item: LibraryBannerItem): HeroTheme {
     const mood = getMoodFromBanner(item);
 
     return getStableThemePreset(
@@ -137,7 +137,7 @@ function normalizeInternalPath(path: string): string {
     return `/apps/${path}`;
 }
 
-export function mapBannerToHeroSlide(item: StoreBannerItem): HeroSlide {
+export function mapBannerToHeroSlide(item: LibraryBannerItem): HeroSlide {
     const derivedSlug = item.app.ctaLink?.startsWith("/apps/")
         ? item.app.ctaLink.replace(/^\/apps\//, "")
         : slugifyAppName(item.app.name);

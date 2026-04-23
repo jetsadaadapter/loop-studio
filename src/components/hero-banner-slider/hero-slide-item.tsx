@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { type HeroSlide, type HeroTheme } from "@/app/store/apps/hero.data";
+import { type HeroSlide, type HeroTheme } from "@/app/library/apps/hero.data";
 import styles from "./styles.module.css";
 
 const cardThemeClass: Record<HeroTheme, string> = {

@@ -1,1 +1,1 @@
-export { default } from "@/app/store/apps/page";
+export { default } from "@/app/library/apps/page";

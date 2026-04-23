@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAppBySlug, getRelatedApps } from "@/core/services/store.service";
+import { getAppBySlug, getRelatedApps } from "@/core/services/library.service";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";

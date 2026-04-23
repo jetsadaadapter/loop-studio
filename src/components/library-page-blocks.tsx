@@ -2,20 +2,20 @@
  * Config-driven store page block renderer.
  *
  * Each store page declares which showcase blocks it wants via an array of
- * `StorePageBlock` keys. The blocks render in the order they are listed.
+ * `LibraryPageBlock` keys. The blocks render in the order they are listed.
  *
  * Usage:
- *   <StorePageBlocks blocks={["hero-banner", "category-ranking"]} />
+ *   <LibraryPageBlocks blocks={["hero-banner", "category-ranking"]} />
  */
 
-import { StoreHeroBannerBlock } from "@/components/store-hero-banner-block";
-import { StoreCategoryRankingBlock } from "@/components/store-category-ranking-block";
+import { LibraryHeroBannerBlock } from "@/components/library-hero-banner-block";
+import { LibraryCategoryRankingBlock } from "@/components/library-category-ranking-block";
 import { IntegrationShowcase } from "@/components/integration-showcase";
-import { StoreGuidedCtaBlock } from "@/components/store-guided-cta-block";
+import { LibraryGuidedCtaBlock } from "@/components/library-guided-cta-block";
 
 // ─── Block registry ──────────────────────────────────────────────────────────
 
-export type StorePageBlock =
+export type LibraryPageBlock =
   | "hero-banner"
   | "category-ranking"
   | "integration-showcase"
@@ -23,36 +23,36 @@ export type StorePageBlock =
 
 type BlockComponent = () => React.ReactNode;
 
-const blockRegistry: Record<StorePageBlock, BlockComponent> = {
-  "hero-banner": StoreHeroBannerBlock,
-  "category-ranking": StoreCategoryRankingBlock,
+const blockRegistry: Record<LibraryPageBlock, BlockComponent> = {
+  "hero-banner": LibraryHeroBannerBlock,
+  "category-ranking": LibraryCategoryRankingBlock,
   "integration-showcase": IntegrationShowcase,
-  "guided-cta": StoreGuidedCtaBlock,
+  "guided-cta": LibraryGuidedCtaBlock,
 };
 
 // ─── Preset configs for named page layouts ───────────────────────────────────
 
-export const STORE_BLOCK_PRESETS = {
+export const LIBRARY_BLOCK_PRESETS = {
   /** Library discovery content shown above the main app sections */
-  marketplace: ["hero-banner"] satisfies StorePageBlock[],
+  marketplace: ["hero-banner"] satisfies LibraryPageBlock[],
 
   /** Library footer CTA shown after the main app sections */
-  marketplaceFooter: ["guided-cta"] satisfies StorePageBlock[],
+  marketplaceFooter: ["guided-cta"] satisfies LibraryPageBlock[],
 
   /** Detail or sub-pages — no discovery chrome, content-only */
-  minimal: [] satisfies StorePageBlock[],
+  minimal: [] satisfies LibraryPageBlock[],
 
   /** Updates / changelog view — only category ranking for context */
-  updates: ["category-ranking"] satisfies StorePageBlock[],
+  updates: ["category-ranking"] satisfies LibraryPageBlock[],
 } as const;
 
 // ─── Renderer component ───────────────────────────────────────────────────────
 
-type StorePageBlocksProps = {
-  blocks: StorePageBlock[];
+type LibraryPageBlocksProps = {
+  blocks: LibraryPageBlock[];
 };
 
-export function StorePageBlocks({ blocks }: StorePageBlocksProps) {
+export function LibraryPageBlocks({ blocks }: LibraryPageBlocksProps) {
   if (blocks.length === 0) return null;
 
   return (

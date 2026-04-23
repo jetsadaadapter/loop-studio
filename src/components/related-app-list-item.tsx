@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { slugifyAppName } from "@/app/store/apps/data";
+import { slugifyAppName } from "@/app/library/apps/data";
 import { AppIcon } from "@/components/app-icon";
-import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
+import type { LibraryAppApiItem } from "@/core/interfaces/library.interface";
 
 type RelatedAppListItemProps = {
-  item: StoreAppApiItem;
+  item: LibraryAppApiItem;
 };
 
 export function RelatedAppListItem({ item }: RelatedAppListItemProps) {

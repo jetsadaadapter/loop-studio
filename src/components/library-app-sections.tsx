@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppTile } from "@/components/app-tile";
-import { type StoreSection } from "@/app/store/apps/data";
-import styles from "@/components/store-app-sections.module.css";
+import { type LibrarySection } from "@/app/library/apps/data";
+import styles from "@/components/library-app-sections.module.css";
 
-type StoreAppSectionsProps = {
-  sections: StoreSection[];
+type LibraryAppSectionsProps = {
+  sections: LibrarySection[];
 };
 
-export function StoreAppSections({ sections }: StoreAppSectionsProps) {
+export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
   const [visibleCards, setVisibleCards] = useState<Record<string, true>>({});
   const cardElementsRef = useRef<Record<string, HTMLDivElement | null>>({});
 

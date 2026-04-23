@@ -3,7 +3,7 @@ type ToolbarOption<TKey extends string> = {
   label: string;
 };
 
-type StoreFilterToolbarProps<
+type LibraryFilterToolbarProps<
   TTabKey extends string,
   TFilterKey extends string,
 > = {
@@ -16,7 +16,7 @@ type StoreFilterToolbarProps<
   onFilterChange: (key: TFilterKey) => void;
 };
 
-export function StoreFilterToolbar<
+export function LibraryFilterToolbar<
   TTabKey extends string,
   TFilterKey extends string,
 >({
@@ -27,7 +27,7 @@ export function StoreFilterToolbar<
   selectedFilter,
   filterCounts,
   onFilterChange,
-}: StoreFilterToolbarProps<TTabKey, TFilterKey>) {
+}: LibraryFilterToolbarProps<TTabKey, TFilterKey>) {
   return (
     <section className="border-b border-slate-200 pb-3">
       <div className="flex flex-wrap items-center gap-2">

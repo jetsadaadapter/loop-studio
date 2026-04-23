@@ -19,12 +19,12 @@ export type Paginated<T> = {
 
 // ─── Apps  GET /library/apps ───────────────────────────────────────────────────
 
-export type StoreAppCategory = "MCP" | "Platform" | "Tool" | string;
+export type LibraryAppCategory = "MCP" | "Platform" | "Tool" | string;
 
-export type StoreAppApiItem = {
+export type LibraryAppApiItem = {
     appId: string;
     name: string;
-    category: StoreAppCategory;
+    category: LibraryAppCategory;
     tags: AppTag[];
     description: string;
     imageId: string;
@@ -42,18 +42,18 @@ export type StoreAppApiItem = {
     iconUrl?: string;
 };
 
-export type StoreAppsGroupItem = {
+export type LibraryAppsGroupItem = {
     group: string;
-    items: StoreAppApiItem[];
+    items: LibraryAppApiItem[];
 };
 
 export type GetAppsParams = {
     page?: number;
     limit?: number;
-    category?: StoreAppCategory;
+    category?: LibraryAppCategory;
 };
 
-export type GetAppsResponse = Paginated<StoreAppsGroupItem>;
+export type GetAppsResponse = Paginated<LibraryAppsGroupItem>;
 
 // ─── Banners  GET /library/banners ─────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ export type AppLinkType = "instruction" | "internal" | "external";
 export type BannerAppItem = {
     appId: string;
     name: string;
-    category: StoreAppCategory;
+    category: LibraryAppCategory;
     tags: AppTag[];
     description: string;
     imageId: string;
@@ -89,7 +89,7 @@ export type BannerAppItem = {
     iconUrl: string;
 };
 
-export type StoreBannerItem = {
+export type LibraryBannerItem = {
     bannerId: string;
     title: string;
     subtitle: string;
@@ -111,4 +111,4 @@ export type GetBannersParams = {
     limit?: number;
 };
 
-export type GetBannersResponse = Paginated<StoreBannerItem>;
+export type GetBannersResponse = Paginated<LibraryBannerItem>;

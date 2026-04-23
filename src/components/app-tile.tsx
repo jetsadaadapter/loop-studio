@@ -1,9 +1,9 @@
-import { type StoreApp } from "@/app/store/apps/data";
+import { type LibraryApp } from "@/app/library/apps/data";
 import { AppIcon } from "@/components/app-icon";
 import { statusBadgeClass } from "@/lib/utils";
 import Link from "next/link";
 
-export function AppTile({ app }: { app: StoreApp }) {
+export function AppTile({ app }: { app: LibraryApp }) {
   return (
     <Link
       href={`/apps/${app.slug}`}

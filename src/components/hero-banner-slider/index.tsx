@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { getBanners } from "@/core/services/store.service";
+import { getBanners } from "@/core/services/library.service";
 import {
   heroBannerMock,
   mapBannerToHeroSlide,
   type HeroSlide,
-} from "@/app/store/apps/hero.data";
+} from "@/app/library/apps/hero.data";
 import { HeroSlideItem } from "./hero-slide-item";
 
 const FALLBACK_HERO_SLIDES: HeroSlide[] = heroBannerMock.items;

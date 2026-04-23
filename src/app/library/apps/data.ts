@@ -1,4 +1,4 @@
-import type { GetAppsResponse, StoreAppApiItem } from "@/core/interfaces/store.interface";
+import type { GetAppsResponse, LibraryAppApiItem } from "@/core/interfaces/library.interface";
 
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
@@ -17,7 +17,7 @@ export type StatusFilterKey =
 // ------------------------------------------------------------
 // id: stable identifier for systems/database relations
 // slug: human-readable identifier for URLs or client-side routing
-export type StoreApp = {
+export type LibraryApp = {
     id: string;
     slug: string;
     name: string;
@@ -28,14 +28,14 @@ export type StoreApp = {
     iconUrl?: string;
 };
 
-export type StoreSection = {
+export type LibrarySection = {
     id: string;
     title: string;
-    items: StoreApp[];
+    items: LibraryApp[];
 };
 
-export type StoreAppsResponse = {
-    sections: StoreSection[];
+export type LibraryAppsResponse = {
+    sections: LibrarySection[];
 };
 
 // ------------------------------------------------------------
@@ -94,12 +94,12 @@ export function getStableIconBg(seed: string): string {
     return ICON_BG_PRESETS[stableHash(seed) % ICON_BG_PRESETS.length];
 }
 
-export function getAppStatus(app: StoreAppApiItem): string {
+export function getAppStatus(app: LibraryAppApiItem): string {
     if (app.badgeLabel?.toLowerCase() === "new") return "New";
     return app.isActive ? "Production ready" : "Planned";
 }
 
-function mapApiApp(item: StoreAppApiItem): StoreApp {
+function mapApiApp(item: LibraryAppApiItem): LibraryApp {
     return {
         id: item.appId,
         slug: slugifyAppName(item.name),
@@ -112,7 +112,7 @@ function mapApiApp(item: StoreAppApiItem): StoreApp {
     };
 }
 
-export function mapAppsResponseToSections(response: GetAppsResponse): StoreSection[] {
+export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySection[] {
     return response.data.map((groupBlock) => ({
         id: groupBlock.group.toLowerCase(),
         title: toTitleCase(groupBlock.group),
@@ -122,6 +122,6 @@ export function mapAppsResponseToSections(response: GetAppsResponse): StoreSecti
     }));
 }
 
-export const storeAppsResponse: StoreAppsResponse = {
+export const libraryAppsResponse: LibraryAppsResponse = {
     sections: [],
 };

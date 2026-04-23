@@ -5,9 +5,9 @@ import {
   type CategoryKey,
   type RankedApp,
 } from "@/components/app-category-ranking";
-import { getAppStatus, slugifyAppName } from "@/app/store/apps/data";
-import { getApps, ApiError } from "@/core/services/store.service";
-import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
+import { getAppStatus, slugifyAppName } from "@/app/library/apps/data";
+import { getApps, ApiError } from "@/core/services/library.service";
+import type { LibraryAppApiItem } from "@/core/interfaces/library.interface";
 
 type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
 
@@ -20,7 +20,7 @@ function normalizeInternalPath(path: string): string {
   return `/apps/${path}`;
 }
 
-function mapAction(item: StoreAppApiItem): RankedAction {
+function mapAction(item: LibraryAppApiItem): RankedAction {
   const derivedSlug = item.ctaLink?.startsWith("/apps/")
     ? item.ctaLink.replace(/^\/apps\//, "")
     : slugifyAppName(item.name);
@@ -44,7 +44,7 @@ function mapAction(item: StoreAppApiItem): RankedAction {
   return { actionType, actionUrl };
 }
 
-function mapToRankedApps(items: StoreAppApiItem[]): RankedApp[] {
+function mapToRankedApps(items: LibraryAppApiItem[]): RankedApp[] {
   return [...items]
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((item, index) => {
@@ -97,7 +97,7 @@ async function fetchRankingData(): Promise<Record<
   }
 }
 
-export async function StoreCategoryRankingBlock() {
+export async function LibraryCategoryRankingBlock() {
   const rankingData = await fetchRankingData();
 
   if (rankingData) {

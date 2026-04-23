@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export function StoreGuidedCtaBlock() {
+export function LibraryGuidedCtaBlock() {
   return (
     <section
       className="relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-linear-to-b from-white via-slate-50/40 to-[#c2c6ff] py-5 shadow-[0_18px_48px_-32px_rgba(99,102,241,0.32)] sm:py-7"

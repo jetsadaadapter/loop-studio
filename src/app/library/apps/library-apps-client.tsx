@@ -1,27 +1,27 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
-import { StoreFilterToolbar } from "@/components/store-filter-toolbar";
-import { StoreAppSections } from "@/components/store-app-sections";
-import { useStoreShell } from "@/app/store/store-shell";
+import { LibraryFilterToolbar } from "@/components/library-filter-toolbar";
+import { LibraryAppSections } from "@/components/library-app-sections";
+import { useLibraryShell } from "@/app/library/library-shell";
 import {
   mainTabs,
   statusFilters,
-  type StoreSection,
+  type LibrarySection,
   type MainTabKey,
   type StatusFilterKey,
 } from "./data";
 
-type StoreAppsClientProps = {
-  sections: StoreSection[];
+type LibraryAppsClientProps = {
+  sections: LibrarySection[];
   children?: ReactNode;
 };
 
-export function StoreAppsClient({ sections, children }: StoreAppsClientProps) {
+export function LibraryAppsClient({ sections, children }: LibraryAppsClientProps) {
   const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
   const [selectedStatus, setSelectedStatus] =
     useState<StatusFilterKey>("production ready");
-  const { searchQuery } = useStoreShell();
+  const { searchQuery } = useLibraryShell();
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const baseSections = useMemo(() => {
@@ -92,7 +92,7 @@ export function StoreAppsClient({ sections, children }: StoreAppsClientProps) {
 
   return (
     <>
-      <StoreFilterToolbar
+      <LibraryFilterToolbar
         tabs={mainTabs}
         selectedTab={selectedMainTab}
         onTabChange={(tabKey) => {
@@ -107,7 +107,7 @@ export function StoreAppsClient({ sections, children }: StoreAppsClientProps) {
 
       {children}
 
-      <StoreAppSections sections={filteredSections} />
+      <LibraryAppSections sections={filteredSections} />
     </>
   );
 }
