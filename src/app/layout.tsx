@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -55,19 +56,28 @@ export const metadata: Metadata = {
   description: "Internal app library for Adapter teams",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read the per-request nonce set by proxy.ts via the x-nonce response header.
+  // Next.js App Router passes response headers back as request headers for Server Components.
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
     <html
       lang="th"
       className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
+        <meta name="next-nonce" content={nonce} />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
       </body>
     </html>
   );
 }
+

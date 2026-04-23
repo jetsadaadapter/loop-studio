@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAppBySlug, getRelatedApps } from "@/core/services/store.service";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";
@@ -216,9 +217,11 @@ export default async function AppDetailPage({ params }: Props) {
                 <div
                   className="page-body-copy mt-4 text-slate-700 space-y-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&_a]:text-brand [&_a]:underline"
                   dangerouslySetInnerHTML={{
-                    __html: app.instructions
-                      .replace(/\\n/g, "<br />")
-                      .replace(/\n/g, "<br />"),
+                    __html: sanitizeHtml(
+                      app.instructions
+                        .replace(/\\n/g, "<br />")
+                        .replace(/\n/g, "<br />"),
+                    ),
                   }}
                 />
               </section>
