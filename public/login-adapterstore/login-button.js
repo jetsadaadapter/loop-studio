@@ -149,7 +149,6 @@
 
   /** logout — remove stored token and redirect to login (default). */
   function logout(redirectTo) {
-    localStorage.removeItem(KEY_TOKEN);
     _clearTokenCookie();
     window.location.href = redirectTo || "/login";
   }
@@ -159,7 +158,7 @@
    * Does not verify expiry client-side — use getUser() for server-verified info.
    */
   function getToken() {
-    return _getCookie(KEY_TOKEN) || localStorage.getItem(KEY_TOKEN);
+    return _getCookie(KEY_TOKEN);
   }
 
   /**
@@ -176,7 +175,6 @@
     })
       .then(function (res) {
         if (res.status === 401) {
-          localStorage.removeItem(KEY_TOKEN);
           _clearTokenCookie();
           window.location.href = "/login";
           return null;
@@ -321,7 +319,6 @@
         return res.json();
       })
       .then(function (data) {
-        localStorage.setItem(KEY_TOKEN, data.access_token);
         _setTokenCookie(data.access_token);
         // Clean up the ?code=… from the URL before redirecting
         history.replaceState(null, "", window.location.pathname);

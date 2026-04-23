@@ -21,13 +21,18 @@ export function proxy(req: NextRequest) {
         return NextResponse.next();
     }
 
+    // Check for zt_token cookie
+    const token = req.cookies.get(TOKEN_COOKIE)?.value;
+
+    // Prevent logged-in users from returning to login page
+    if (pathname === "/login" && token) {
+        return NextResponse.redirect(new URL("/apps", req.url));
+    }
+
     // Allow public paths through
     if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
         return NextResponse.next();
     }
-
-    // Check for zt_token cookie
-    const token = req.cookies.get(TOKEN_COOKIE)?.value;
 
     if (!token) {
         const loginUrl = req.nextUrl.clone();

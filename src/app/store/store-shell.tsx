@@ -6,8 +6,10 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
 import { storeFooterLinks, storeShellCopy } from "./layout.data";
 
@@ -30,6 +32,7 @@ export function useStoreShell() {
 
 export function StoreShell({ children }: { children: ReactNode }) {
   const [searchQuery, setSearchQuery] = useState("");
+  // Edge Middleware handles auth protection
 
   const value = useMemo(() => ({ searchQuery, setSearchQuery }), [searchQuery]);
 
@@ -44,7 +47,6 @@ export function StoreShell({ children }: { children: ReactNode }) {
               width={120}
               height={36}
               className="h-7 w-auto"
-              unoptimized
               priority
             />
             <div className="ml-auto flex items-center gap-2">
@@ -67,7 +69,6 @@ export function StoreShell({ children }: { children: ReactNode }) {
                   width={110}
                   height={30}
                   className="h-6 w-auto"
-                  unoptimized
                 />
                 <p className="mt-3 text-xs leading-relaxed text-slate-500">
                   {storeShellCopy.description}

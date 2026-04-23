@@ -28,10 +28,9 @@ export default function LoginPage() {
             <Image
               src="/images/logo/logo-black-110x30.png"
               alt="Adapter Digital Group"
-              width={140}
-              height={42}
-              className="h-9 w-auto"
-              unoptimized
+              width={160}
+              height={48}
+              className="h-10 w-auto sm:h-12"
               priority
             />
           </div>
@@ -52,3 +51,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

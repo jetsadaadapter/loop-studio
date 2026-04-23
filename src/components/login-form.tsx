@@ -20,7 +20,7 @@ export function LoginForm({
             Adapter Library Access
           </CardTitle>
           <CardDescription className="text-sm text-neutral-500">
-            Authenticate to access MCPs, tools, and platforms
+            Authenticate to access the internal library of MCPs, tools, and platforms
           </CardDescription>
         </CardHeader>
         <CardContent className="px-8 pb-8 pt-0">

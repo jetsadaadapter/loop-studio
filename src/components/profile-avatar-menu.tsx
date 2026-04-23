@@ -13,7 +13,6 @@ function handleSignOut() {
     // Fallback: clear manually and redirect
     document.cookie =
       "zt_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-    localStorage.removeItem("zt_token");
     window.location.href = "/login";
   }
 }

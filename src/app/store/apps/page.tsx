@@ -15,10 +15,6 @@ export default async function StoreAppsPage() {
   const cookieStore = await cookies();
   const ztToken = cookieStore.get("zt_token")?.value;
 
-  if (!ztToken) {
-    redirect("/login");
-  }
-
   let sections: StoreSection[] = [];
 
   try {

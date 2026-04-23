@@ -3,7 +3,9 @@ import type {
     GetAppsResponse,
     GetBannersParams,
     GetBannersResponse,
+    StoreAppApiItem,
 } from "@/core/interfaces/store.interface";
+import { slugifyAppName } from "@/app/store/apps/data";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Library API service
@@ -75,10 +77,6 @@ function getClientZtToken(): string | null {
     const fromCookie = readBrowserCookie(TOKEN_COOKIE_KEY);
     if (fromCookie) return fromCookie;
 
-    if (typeof window !== "undefined") {
-        return window.localStorage.getItem(TOKEN_COOKIE_KEY);
-    }
-
     return null;
 }
 
@@ -115,7 +113,6 @@ async function apiFetch<T>(
             document.cookie = `${TOKEN_COOKIE_KEY}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
         }
         if (typeof window !== "undefined") {
-            window.localStorage.removeItem(TOKEN_COOKIE_KEY);
             window.location.href = "/login";
         }
         throw new ApiError(401, "Unauthorized", url);
@@ -161,6 +158,43 @@ export async function getApps(
     });
 
     return apiFetch<GetAppsResponse>(url, init);
+}
+
+/**
+ * Fetch all apps and find the one matching the given slug.
+ */
+export async function getAppBySlug(
+    slug: string,
+    init?: RequestInit,
+): Promise<StoreAppApiItem | null> {
+    try {
+        const response = await getApps({ page: 1, limit: 100 }, init);
+        const allApps = response.data.flatMap((group) => group.items);
+        return allApps.find((item) => slugifyAppName(item.name) === slug) || null;
+    } catch (error) {
+        console.error(`Failed to fetch app by slug: ${slug}`, error);
+        return null;
+    }
+}
+
+/**
+ * Fetch related apps by category, excluding the current app.
+ */
+export async function getRelatedApps(
+    appId: string,
+    category: string,
+    init?: RequestInit,
+): Promise<StoreAppApiItem[]> {
+    try {
+        const response = await getApps({ page: 1, limit: 100 }, init);
+        const allApps = response.data.flatMap((group) => group.items);
+        return allApps
+            .filter((item) => item.appId !== appId && item.category === category)
+            .slice(0, 3);
+    } catch (error) {
+        console.error(`Failed to fetch related apps for ${appId}`, error);
+        return [];
+    }
 }
 
 // ─── Banners ──────────────────────────────────────────────────────────────────

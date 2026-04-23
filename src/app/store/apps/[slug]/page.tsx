@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { getApps } from "@/core/services/store.service";
-import type { StoreAppApiItem } from "@/core/interfaces/store.interface";
-import { slugifyAppName } from "@/app/store/apps/data";
+import { getAppBySlug, getRelatedApps } from "@/core/services/store.service";
 import { AppIcon } from "@/components/app-icon";
+import { PrimaryCta } from "@/components/primary-cta";
+import { MetadataItem } from "@/components/metadata-item";
+import { RelatedAppListItem } from "@/components/related-app-list-item";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -21,130 +22,25 @@ function formatDate(value: string): string {
   }).format(parsed);
 }
 
-async function fetchAppsForDetail(): Promise<StoreAppApiItem[]> {
-  const cookieStore = await cookies();
-  const ztToken = cookieStore.get("zt_token")?.value;
-  const response = await getApps(
-    { page: 1, limit: 100 },
-    {
-      next: { revalidate: 60 },
-      headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
-    },
-  );
-
-  return response.data.flatMap((groupBlock) => groupBlock.items);
-}
-
-const PRIMARY_CTA_CLASS =
-  "inline-flex min-w-44 items-center justify-center rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand/90 sm:text-base";
-
-function PrimaryCta({
-  label,
-  ctaLink,
-  isExternal,
-  isInternal,
-}: {
-  label: string;
-  ctaLink: string | null;
-  isExternal: boolean;
-  isInternal: boolean;
-}) {
-  if (isExternal) {
-    return (
-      <a
-        href={ctaLink ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-        className={PRIMARY_CTA_CLASS}
-      >
-        {label}
-      </a>
-    );
-  }
-
-  if (isInternal) {
-    return (
-      <Link href={ctaLink ?? "/apps"} className={PRIMARY_CTA_CLASS}>
-        {label}
-      </Link>
-    );
-  }
-
-  return (
-    <button type="button" className={PRIMARY_CTA_CLASS}>
-      {label}
-    </button>
-  );
-}
-
-function MetadataItem({
-  label,
-  value,
-  valueClassName = "mt-0.5 text-slate-600",
-}: {
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div>
-      <p className="font-semibold text-slate-900">{label}</p>
-      <p className={valueClassName}>{value}</p>
-    </div>
-  );
-}
-
-function RelatedAppListItem({ item }: { item: StoreAppApiItem }) {
-  return (
-    <Link
-      href={`/apps/${slugifyAppName(item.name)}`}
-      className="flex items-start gap-3 rounded-2xl p-1.5 transition hover:bg-slate-100/80"
-    >
-      <AppIcon
-        name={item.name}
-        iconUrl={item.iconUrl}
-        containerClassName="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 shadow-md ring-1 ring-white/25"
-        fallbackClassName="flex h-full w-full items-center justify-center bg-white/25 text-sm font-semibold tracking-wide text-white"
-        initialsClassName="text-sm font-semibold tracking-wide"
-        imageSizes="56px"
-        imageOuterClassName="absolute inset-0 p-1.5"
-        imageInnerClassName="relative size-full overflow-hidden rounded-lg"
-        imageClassName="object-cover"
-      />
-      <div className="min-w-0 pt-1">
-        <p className="truncate text-sm font-medium text-slate-900">
-          {item.name}
-        </p>
-        <p className="mt-0.5 truncate text-xs text-slate-500">
-          {item.category}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
 export default async function AppDetailPage({ params }: Props) {
   const { slug } = await params;
 
-  let allApps: StoreAppApiItem[] = [];
-  try {
-    allApps = await fetchAppsForDetail();
-  } catch (error) {
-    console.error("Failed to fetch app detail from /apps", error);
-  }
+  const cookieStore = await cookies();
+  const ztToken = cookieStore.get("zt_token")?.value;
+  const initOptions = {
+    next: { revalidate: 60 },
+    headers: ztToken ? { Authorization: `Bearer ${ztToken}` } : undefined,
+  };
 
-  const app = allApps.find((item) => slugifyAppName(item.name) === slug);
+  const app = await getAppBySlug(slug, initOptions);
 
   if (!app) notFound();
 
   const primaryCtaLabel = app.ctaLabel ?? "View Guide";
   const hasExternalCta = app.linkType === "external" && !!app.ctaLink;
   const hasInternalCta = app.linkType === "internal" && !!app.ctaLink;
-  const relatedApps = allApps
-    .filter(
-      (item) => item.appId !== app.appId && item.category === app.category,
-    )
-    .slice(0, 3);
+  
+  const relatedApps = await getRelatedApps(app.appId, app.category, initOptions);
   const screenshotUrls = [app.imageUrl].filter((value): value is string =>
     Boolean(value),
   );
