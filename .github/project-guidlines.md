@@ -126,7 +126,7 @@ Execution safety rules:
 
 - **Domain Restriction:** Only authorize emails ending with the designated `@company.com`.
 - **RBAC:** User roles and permissions must be extracted from the Centralized MCP Auth token.
-- **Middleware:** Use Next.js Middleware (`middleware.ts`) to protect all `/api` and private routes. Unauthenticated users must be redirected to the login page immediately.
+- **Routing Proxy & Middleware:** Use `src/proxy.ts` (instead of standard middleware.ts due to framework configuration) to protect all `/api` and private routes. Unauthenticated users must be redirected to the login page immediately. Logged-in users should be redirected away from public login pages.
 - **Token Handling:** Use short-lived access tokens, rotate refresh tokens, and enforce secure cookie settings (`HttpOnly`, `Secure`, `SameSite`).
 - **Secrets Management:** Never store secrets in source code or client bundles. Use managed secret storage and environment injection at runtime.
 - **API Protection:** Apply rate limiting and abuse detection on auth, install, and config endpoints.
@@ -141,7 +141,9 @@ Execution safety rules:
 1. **Component Scoping:** Keep components small and focused (Single Responsibility). If a file exceeds 150 lines, split it into smaller sub-components.
 2. **Naming Convention:** Validators use `[name].validator.ts`, components use `[Name].tsx` (PascalCase), and hooks use `use[Name].ts` (camelCase).
 3. **Error Handling:** Use `ZodError` for validation and display user-friendly messages via Shadcn `Toast`. Never expose raw stack traces to the UI.
-4. **Client vs Server:** Explicitly use `"use client"` only when React hooks (`useState`, `useEffect`, context) or event listeners are required. Default to Server Components.
+4. **Client vs Server:** Explicitly use `"use client"` only when React hooks (`useState`, `useEffect`, context) or event listeners are required. Default to Server Components for performance and direct data fetching using `core/services/`.
+5. **Data Fetching & APIs:** Use direct server-side fetching in Server Components (e.g., `await getApps()`). Avoid client-side data fetching unless dealing with high-frequency dynamic states.
+6. **Images:** Use Next.js `<Image />` for automatic optimization. External domains must be declared in `next.config.ts`. Ensure backend APIs do not strictly block the Next.js server if images require cross-origin authentication (or fallback to client-side `<Image unoptimized />` with cookies).
 
 ---
 

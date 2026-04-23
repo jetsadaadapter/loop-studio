@@ -14,6 +14,21 @@
 - **Validation:** [Zod](https://zod.dev/) (Strict Schema Validation)
 - **Architecture:** Validator Interface Pattern (Clean Architecture)
 
+## ✨ ฟีเจอร์ที่พร้อมใช้งาน (Current Features)
+
+ระบบปัจจุบันได้รับการพัฒนาและเชื่อมต่อกับ API จริงเรียบร้อยแล้ว โดยมีฟีเจอร์หลักที่ใช้งานได้ดังนี้:
+
+- **ระบบยืนยันตัวตน (Authentication & Proxy Guard):** ปกป้องหน้าเว็บด้วยการตรวจสอบ `zt_token` ผ่าน `src/proxy.ts` หากยังไม่ล็อกอินจะถูกส่งไปหน้า `/login` ทันที
+- **หน้ารวมแอปพลิเคชัน (App Store Dashboard):**
+  - **Hero Banners:** แบนเนอร์แสดงแอปล่าสุดหรือแอปแนะนำ เลื่อนสไลด์ได้
+  - **Top Charts (Ranking):** จัดอันดับแอปยอดนิยมแบ่งตามหมวดหมู่ (MCP, Platform, Tool)
+  - **App Icons:** รองรับการทำ Image Optimization จากเซิร์ฟเวอร์ พร้อมระบบ Fallback เป็นชื่อย่อหากไม่มีรูป
+- **หน้ารายละเอียดแอป (App Details Page):**
+  - รองรับ Dynamic Routing (`/apps/[slug]`)
+  - แสดงข้อมูลแอปแบบเจาะลึก (เวอร์ชัน, นักพัฒนา, คำแนะนำการใช้งาน)
+  - มีส่วนแสดง "แอปที่เกี่ยวข้อง (Related Apps)" ด้านล่าง
+- **Server-Side Data Fetching:** โหลดข้อมูลทั้งหมดจาก `library-api.adapterdigital.com` อย่างรวดเร็วด้วย Server Components
+
 ## 📁 โครงสร้างโฟลเดอร์ (Directory Structure)
 
 เรายึดหลักการแยกส่วนระหว่าง UI, Logic และ Data Validation อย่างชัดเจน (Separation of Concerns):
@@ -87,12 +102,13 @@ npm run dev
 ## 🔐 ความปลอดภัยและการยืนยันตัวตน
 
 - **Domain Restriction:** อนุญาตเฉพาะอีเมลโดเมนที่กำหนดเท่านั้น (เช่น `@company.com`)
-- **Middleware Protection:** ปกป้องทุก Private Route และ API ผ่าน `middleware.ts`
+- **Routing & Middleware Protection:** ปกป้องทุก Private Route และ API ผ่านไฟล์ `src/proxy.ts` (ใช้เป็น Proxy/Middleware หลักแทน `middleware.ts` ตามโครงสร้างของ Framework ที่ตั้งไว้) เพื่อดักจับ Token และทำการ Redirect ผู้ใช้ที่ไม่ได้รับอนุญาตกลับไปยังหน้าล็อกอิน
 - **MCP Execution Safety:** มี Allowlist สำหรับคำสั่งและการทำงานของ MCP พร้อมระบบ Audit Trail
 - **Secrets Management:** ห้ามจัดเก็บ Secrets ไว้ใน Source Code หรือ Client Bundle โดยเด็ดขาด
 
 ## 🤖 กฎการพัฒนา (Development Guidelines)
 
+- **Server-First Approach:** เน้นการใช้งาน Server Components เป็นค่าเริ่มต้น (Default) เพื่อเพิ่มประสิทธิภาพ (Performance) และดึงข้อมูล (Fetch API) ตรงจาก `core/services/` ในฝั่ง Server เสมอ หลีกเลี่ยงการทำ Client-side Fetching เว้นแต่จำเป็น
 - **Component Scoping:** รักษาขนาดไฟล์ให้กะทัดรัด (แนะนำไม่เกิน 150 บรรทัดต่อไฟล์)
 - **Naming Convention:**
   - Validators: `[name].validator.ts`
