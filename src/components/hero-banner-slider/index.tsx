@@ -133,8 +133,12 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
           aria-label="Featured app stories"
           className={`flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isLoading ? "hidden" : ""}`}
         >
-          {heroSlides.map((slide) => (
-            <HeroSlideItem key={slide.heroId} slide={slide} />
+          {heroSlides.map((slide, index) => (
+            <HeroSlideItem 
+              key={slide.heroId} 
+              slide={slide} 
+              isPriority={index === 0} 
+            />
           ))}
         </div>
 

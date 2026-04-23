@@ -9,7 +9,7 @@ const PUBLIC_PATHS = [
 
 // Static asset patterns — skip middleware entirely
 const STATIC_PATTERN =
-    /^\/(_next\/static|_next\/image|favicon\.ico|images|fonts|login-adapterstore)/;
+    /^\/(_next\/static|_next\/image|favicon\.ico|images|fonts|login-adapterstore|robots\.txt|sitemap\.xml)/;
 
 const TOKEN_COOKIE = "zt_token";
 

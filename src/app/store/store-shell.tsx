@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   createContext,
   useContext,
@@ -41,14 +42,17 @@ export function StoreShell({ children }: { children: ReactNode }) {
       <div className="min-h-screen bg-white">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
           <div className="flex h-16 w-full items-center gap-3 px-4 md:px-6">
-            <Image
-              src="/images/logo/logo-black-110x30.png"
-              alt="Adapter Digital Group"
-              width={120}
-              height={36}
-              className="h-7 w-auto"
-              priority
-            />
+            <Link href="/apps" className="flex items-center gap-3">
+              <h1 className="sr-only">Adapter Library</h1>
+              <Image
+                src="/images/logo/logo-black-110x30.png"
+                alt="Adapter Digital Group"
+                width={120}
+                height={36}
+                className="h-7 w-auto"
+                priority
+              />
+            </Link>
             <div className="ml-auto flex items-center gap-2">
               <ProfileAvatarMenu />
             </div>
@@ -70,17 +74,17 @@ export function StoreShell({ children }: { children: ReactNode }) {
                   height={30}
                   className="h-6 w-auto"
                 />
-                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                <p className="mt-3 text-xs leading-relaxed text-slate-600">
                   {storeShellCopy.description}
                 </p>
               </div>
 
               {Object.entries(storeFooterLinks).map(([heading, links]) => (
                 <div key={heading}>
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                  <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
                     {heading}
-                  </h4>
-                  <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                  </h2>
+                  <ul className="mt-3 space-y-2 text-xs text-slate-600">
                     {links.map((item) => (
                       <li key={item}>
                         <a href="#" className="transition hover:text-slate-900">
@@ -94,13 +98,13 @@ export function StoreShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 &copy; {new Date().getFullYear()} Adapter Digital Group. All
                 rights reserved.
               </p>
               <div className="flex items-center gap-1">
                 <span className="inline-block size-2 rounded-full bg-brand" />
-                <span className="text-xs font-medium text-slate-500">
+                <span className="text-xs font-medium text-slate-600">
                   {storeShellCopy.title}
                 </span>
               </div>

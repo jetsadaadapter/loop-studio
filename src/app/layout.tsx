@@ -71,11 +71,18 @@ export default async function RootLayout({
       className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <link rel="preconnect" href="https://library-api.adapterdigital.com" />
+        <link rel="preconnect" href="https://auth.adapterinternal.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://library-api.adapterdigital.com" />
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
+        <main className="flex-1 flex flex-col">
+          {children}
+        </main>
       </body>
     </html>
   );

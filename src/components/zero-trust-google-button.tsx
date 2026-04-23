@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 
 type ZeroTrustInitOptions = {
   authBaseURL: string;
@@ -30,92 +31,46 @@ const CALLBACK_PATH = process.env.NEXT_PUBLIC_ZT_CALLBACK_PATH ?? "/callback";
 const SCRIPT_SRC = "/login-adapterstore/login-button.js";
 const DEFAULT_RETURN_TO = "/apps";
 
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[data-zt-script="${src}"]`,
-    );
-
-    if (existing) {
-      if ((window as Window & { ZeroTrust?: ZeroTrustApi }).ZeroTrust) {
-        resolve();
-        return;
-      }
-
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener(
-        "error",
-        () => reject(new Error("Failed to load ZeroTrust script")),
-        { once: true },
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.dataset.ztScript = src;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load ZeroTrust script"));
-
-    document.body.appendChild(script);
-  });
-}
-
 export function ZeroTrustGoogleButton() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    // Only run when script is loaded AND container is ready
+    if (!isScriptLoaded || !containerRef.current) return;
 
-    const bootstrap = async () => {
-      try {
-        await loadScript(SCRIPT_SRC);
+    try {
+      const zeroTrust = (window as Window & { ZeroTrust?: ZeroTrustApi })
+        .ZeroTrust;
+      const container = containerRef.current;
 
-        if (cancelled) {
-          return;
-        }
+      // This should theoretically not happen if isScriptLoaded is set correctly in onLoad
+      if (!zeroTrust || !container) return;
 
-        const zeroTrust = (window as Window & { ZeroTrust?: ZeroTrustApi })
-          .ZeroTrust;
-        const container = containerRef.current;
+      zeroTrust.init({
+        authBaseURL: AUTH_BASE_URL,
+        clientId: CLIENT_ID,
+        callbackPath: CALLBACK_PATH,
+      });
 
-        if (!zeroTrust || !container) {
-          setError("Google login is unavailable right now.");
-          return;
-        }
+      container.innerHTML = "";
+      zeroTrust.renderButton(container, {
+        label: "Continue with Google",
+        returnTo: DEFAULT_RETURN_TO,
+      });
 
-        zeroTrust.init({
-          authBaseURL: AUTH_BASE_URL,
-          clientId: CLIENT_ID,
-          callbackPath: CALLBACK_PATH,
-        });
-
-        container.innerHTML = "";
-        zeroTrust.renderButton(container, {
-          label: "Continue with Google",
-          returnTo: DEFAULT_RETURN_TO,
-        });
-
-        const renderedButton = container.querySelector("button");
-        if (renderedButton instanceof HTMLButtonElement) {
-          renderedButton.style.width = "100%";
-          renderedButton.style.justifyContent = "center";
-        }
-      } catch {
-        if (!cancelled) {
-          setError("Unable to load Google login.");
-        }
+      const renderedButton = container.querySelector("button");
+      if (renderedButton instanceof HTMLButtonElement) {
+        renderedButton.style.width = "100%";
+        renderedButton.style.justifyContent = "center";
       }
-    };
-
-    void bootstrap();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    } catch (err) {
+      console.error("ZeroTrust initialization error:", err);
+      // Using a functional update or keeping it in a safe catch block is okay, 
+      // but let's be extra safe and only set error if it's really an init failure.
+    }
+  }, [isScriptLoaded]);
 
   if (error) {
     return (
@@ -129,5 +84,23 @@ export function ZeroTrustGoogleButton() {
     );
   }
 
-  return <div ref={containerRef} className="w-full" aria-live="polite" />;
+  return (
+    <>
+      <Script
+        src={SCRIPT_SRC}
+        strategy="lazyOnload"
+        onLoad={() => {
+          const zt = (window as Window & { ZeroTrust?: ZeroTrustApi }).ZeroTrust;
+          if (zt) {
+            setIsScriptLoaded(true);
+          } else {
+            setError("Google login is unavailable right now.");
+          }
+        }}
+        onError={() => setError("Failed to load Google login script")}
+      />
+      <div ref={containerRef} className="w-full" aria-live="polite" />
+    </>
+  );
 }
+

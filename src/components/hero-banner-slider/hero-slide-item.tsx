@@ -46,9 +46,10 @@ function getAppInitials(appName: string): string {
 
 type HeroSlideItemProps = {
   slide: HeroSlide;
+  isPriority?: boolean;
 };
 
-export function HeroSlideItem({ slide }: HeroSlideItemProps) {
+export function HeroSlideItem({ slide, isPriority }: HeroSlideItemProps) {
   return (
     <article
       role="listitem"
@@ -63,10 +64,13 @@ export function HeroSlideItem({ slide }: HeroSlideItemProps) {
 
         <Image
           src={slide.imageUrl}
-          alt=""
+          alt={slide.title}
           fill
           sizes="(max-width: 640px) 86vw, (max-width: 768px) 78vw, (max-width: 1024px) 66vw, (max-width: 1280px) 44vw, 648px"
           className="object-cover"
+          priority={isPriority}
+          fetchPriority={isPriority ? "high" : undefined}
+          loading={isPriority ? "eager" : "lazy"}
         />
 
         <div

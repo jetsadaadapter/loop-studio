@@ -8,16 +8,16 @@ export default function LoginPage() {
     <div className="relative flex min-h-svh items-center justify-center overflow-hidden bg-[#F8F9FA] px-6 py-12 md:p-10">
       {/* Premium Background Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] h-[70%] w-[70%] rounded-full bg-rich-mahogany-600/10 blur-[120px] animate-blob" />
-        <div className="absolute top-[20%] -right-[10%] h-[60%] w-[60%] rounded-full bg-dark-garnet-600/10 blur-[120px] animate-blob [animation-delay:2s]" />
-        <div className="absolute -bottom-[10%] left-[20%] h-[50%] w-[50%] rounded-full bg-rich-mahogany-500/10 blur-[100px] animate-blob [animation-delay:4s]" />
+        <div className="absolute -top-[20%] -left-[10%] h-[70%] w-[70%] rounded-full bg-rich-mahogany-600/5 blur-[80px] animate-blob" />
+        <div className="absolute top-[20%] -right-[10%] h-[60%] w-[60%] rounded-full bg-dark-garnet-600/5 blur-[80px] animate-blob [animation-delay:2s]" />
+        <div className="absolute -bottom-[10%] left-[20%] h-[50%] w-[50%] rounded-full bg-rich-mahogany-500/5 blur-[60px] animate-blob [animation-delay:4s]" />
 
         {/* Sublte Grid Pattern */}
         <div
-          className="absolute inset-0 opacity-[0.4]"
+          className="absolute inset-0 opacity-[0.2]"
           style={{
-            backgroundImage: `radial-gradient(#E2E8F0 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
+            backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
+            backgroundSize: '32px 32px'
           }}
         />
       </div>
