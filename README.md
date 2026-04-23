@@ -1,121 +1,110 @@
-# 🚀 Internal App Store (Adapter Library)
+# Internal App Store (Adapter Library)
 
-ยินดีต้อนรับสู่ **Internal App Store** แพลตฟอร์มศูนย์กลางสำหรับการจัดการและติดตั้งแอปพลิเคชันภายในองค์กร (เช่น MCP, Apify, Media) พัฒนาขึ้นเพื่อให้ทีมงานภายในสามารถเข้าถึงเครื่องมือและทรัพยากรต่างๆ ได้อย่างรวดเร็วและปลอดภัย ในรูปแบบที่ใช้งานง่ายสไตล์ Play Store
+Internal App Store คือแอปภายในองค์กรสำหรับแสดงและเข้าถึง Library ของแอป/เครื่องมือภายใน (เช่น MCP, APIFY, MEDIA, APP) โดยเน้นความปลอดภัย, Server-first rendering และโครงสร้างที่แยกชั้น UI กับ Business Logic ชัดเจน
 
-## 🛠 Tech Stack
+## Tech Stack
 
-โปรเจกต์นี้พัฒนาด้วยเทคโนโลยีที่เน้นประสิทธิภาพและความปลอดภัยระดับองค์กร:
+- Next.js 16 (App Router)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- Shadcn UI / Radix
+- Zod 4 (strict validation)
+- NextAuth.js 4 (มี endpoint รองรับ)
+- Zero Trust Google Login script flow (ใช้งานจริงในหน้า login/callback)
 
-- **Framework:** [Next.js 16 (App Router)](https://nextjs.org/)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
-- **UI Components:** [Shadcn UI](https://ui.shadcn.com/) (Radix UI)
-- **Typography:** `Sukhumvit Set` (Required Local Font)
-- **Authentication:** [NextAuth.js](https://next-auth.js.org/) (Google Provider via Centralized MCP)
-- **Validation:** [Zod](https://zod.dev/) (Strict Schema Validation)
-- **Architecture:** Validator Interface Pattern (Clean Architecture)
+## Current Architecture Summary
 
-## ✨ ฟีเจอร์ที่พร้อมใช้งาน (Current Features)
+- Routing หลักของแอปอยู่ใต้ `/apps` และรายละเอียดแอปที่ `/apps/[slug]`
+- มีการ redirect รองรับเส้นทางเก่า `/library/apps -> /apps` ผ่าน `next.config.ts`
+- Data fetching หลักอยู่ใน `src/core/services/library.service.ts`
+- API base URL บังคับผ่าน env `NEXT_PUBLIC_STORE_API_BASE_URL`
+- Auth ที่ใช้งานจริงเป็น Zero Trust flow:
+  - ปุ่ม login จาก script `/login-adapterstore/login-button.js`
+  - callback ที่ `/callback`
+  - บันทึก token เป็น httpOnly cookie (`zt_token`) ผ่าน `/api/auth/zt-cookie`
+- Route protection ใช้ `src/proxy.ts` ตรวจ cookie `zt_token`
 
-ระบบปัจจุบันได้รับการพัฒนาและเชื่อมต่อกับ API จริงเรียบร้อยแล้ว โดยมีฟีเจอร์หลักที่ใช้งานได้ดังนี้:
+## Security Highlights
 
-- **ระบบยืนยันตัวตน (Authentication & Proxy Guard):** ปกป้องหน้าเว็บด้วยการตรวจสอบ `zt_token` ผ่าน `src/proxy.ts` หากยังไม่ล็อกอินจะถูกส่งไปหน้า `/login` ทันที
-- **หน้ารวมแอปพลิเคชัน (App Store Dashboard):**
-  - **Hero Banners:** แบนเนอร์แสดงแอปล่าสุดหรือแอปแนะนำ เลื่อนสไลด์ได้
-  - **Top Charts (Ranking):** จัดอันดับแอปยอดนิยมแบ่งตามหมวดหมู่ (MCP, Platform, Tool)
-  - **App Icons:** รองรับการทำ Image Optimization จากเซิร์ฟเวอร์ พร้อมระบบ Fallback เป็นชื่อย่อหากไม่มีรูป
-- **หน้ารายละเอียดแอป (App Details Page):**
-  - รองรับ Dynamic Routing (`/apps/[slug]`)
-  - แสดงข้อมูลแอปแบบเจาะลึก (เวอร์ชัน, นักพัฒนา, คำแนะนำการใช้งาน)
-  - มีส่วนแสดง "แอปที่เกี่ยวข้อง (Related Apps)" ด้านล่าง
-- **Server-Side Data Fetching:** โหลดข้อมูลทั้งหมดจาก `library-api.adapterdigital.com` อย่างรวดเร็วด้วย Server Components
+- Proxy ใส่ Content Security Policy (CSP) แบบ nonce ต่อ request
+- ใส่ security headers เพิ่มเติมทั้งใน `src/proxy.ts` และ `next.config.ts`
+- Private routes redirect ไป `/login` อัตโนมัติถ้าไม่มี `zt_token`
+- Route สาธารณะหลัก: `/login`, `/callback`, `/api/auth/*`
 
-## 📁 โครงสร้างโฟลเดอร์ (Directory Structure)
+## Environment Variables
 
-เรายึดหลักการแยกส่วนระหว่าง UI, Logic และ Data Validation อย่างชัดเจน (Separation of Concerns):
+ไฟล์ตัวอย่างอยู่ที่ `.env.example`
 
-```text
-├── src/
-│   ├── app/                # UI Pages & Layouts (Next.js App Router)
-│   ├── components/         # Shared UI Components (shadcn & composite)
-│   ├── core/               # Business Logic & Infrastructure (หัวใจของระบบ)
-│   │   ├── interfaces/     # TypeScript definitions & Contracts
-│   │   ├── validators/     # Zod Schemas (Single source of truth)
-│   │   ├── services/       # API Clients, Config Generators
-│   │   └── adapters/       # Data transformers (External to Internal formats)
-│   ├── hooks/              # Reusable React hooks
-│   ├── lib/                # Shared utilities (auth config, db, utils)
-│   └── types/              # Global types
-```
+ค่าที่ใช้งานในโค้ดปัจจุบัน:
 
-## 🛡️ มาตรฐานการจัดการข้อมูล (Validator Interface Standard)
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `ALLOWED_EMAIL_DOMAIN`
+- `NEXT_PUBLIC_STORE_API_BASE_URL`
+- `NEXT_PUBLIC_ZT_AUTH_BASE_URL` (optional, มี fallback)
+- `NEXT_PUBLIC_ZT_CLIENT_ID` (optional, มี fallback)
+- `NEXT_PUBLIC_ZT_CALLBACK_PATH` (optional, default `/callback`)
+- `NEXT_PUBLIC_ZT_DEBUG_CALLBACK` (optional, สำหรับ debug callback flow)
 
-เราใช้ **Zod** เป็นด่านหน้าในการทำ Validation ทุกช่องทาง เพื่อความปลอดภัยและลดข้อผิดพลาด:
+## Getting Started
 
-- **Never trust external data:** ข้อมูลทุกอย่างจากภายนอกต้องผ่าน Validator ก่อนเข้าสู่ Application State
-- **Single Source of Truth:** ใช้ `z.infer<typeof Schema>` เพื่อสร้าง TypeScript types จาก Schema เสมอ
-- **Strict Validation:** ใช้ `.strict()` เพื่อป้องกัน Unknown Keys และใช้ `.max()` เพื่อจำกัดขนาดข้อมูล
-
-ตัวอย่างการใช้งาน:
-
-```typescript
-// src/core/validators/resource.validator.ts
-export const BaseResourceSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1),
-  type: ResourceType,
-}).strict();
-```
-
-## 🚀 เริ่มต้นพัฒนา (Getting Started)
-
-### 1. ติดตั้ง Dependencies
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. ตั้งค่า Environment Variables
-
-คัดลอกไฟล์ `.env.example` ไปเป็น `.env.local` และระบุค่าที่จำเป็น
+2. Prepare env
 
 ```bash
 cp .env.example .env.local
 ```
 
-### 3. รันโปรเจกต์ในโหมด Development
+3. Run dev server
 
 ```bash
 npm run dev
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000) บนบราวเซอร์เพื่อดูผลลัพธ์
+4. Build production
 
-## 🎨 แนวทางการออกแบบ (UI & Design Principles)
+```bash
+npm run build
+```
 
-เน้นความสวยงาม ลื่นไหล และพรีเมียม (Premium UX/UI):
+5. Start production server
 
-- **Typography:** ใช้ `Sukhumvit Set` เป็นฟอนต์หลักเพื่อภาพลักษณ์ที่ทันสมัย
-- **Visual Hierarchy:** ใช้ Carousel และ Grid ในการจัดหมวดหมู่แอปพลิเคชัน
-- **States:** ต้องมีการจัดการ `Loading` (Skeleton), `Empty`, และ `Error` states เสมอ
-- **Modals:** ใช้ Shadcn `Dialog` หรือ `Sheet` สำหรับแสดงรายละเอียดแอป (App Details)
+```bash
+npm run start
+```
 
-## 🔐 ความปลอดภัยและการยืนยันตัวตน
+## Project Structure
 
-- **Domain Restriction:** อนุญาตเฉพาะอีเมลโดเมนที่กำหนดเท่านั้น (เช่น `@company.com`)
-- **Routing & Middleware Protection:** ปกป้องทุก Private Route และ API ผ่านไฟล์ `src/proxy.ts` (ใช้เป็น Proxy/Middleware หลักแทน `middleware.ts` ตามโครงสร้างของ Framework ที่ตั้งไว้) เพื่อดักจับ Token และทำการ Redirect ผู้ใช้ที่ไม่ได้รับอนุญาตกลับไปยังหน้าล็อกอิน
-- **MCP Execution Safety:** มี Allowlist สำหรับคำสั่งและการทำงานของ MCP พร้อมระบบ Audit Trail
-- **Secrets Management:** ห้ามจัดเก็บ Secrets ไว้ใน Source Code หรือ Client Bundle โดยเด็ดขาด
+```text
+src/
+  app/            UI pages, routes, layouts (App Router)
+  components/     Shared UI components
+  core/
+    interfaces/   Contracts/types for domain and API responses
+    validators/   Zod schemas (boundary validation)
+    services/     API/service layer
+    adapters/     External-to-internal data transformation
+  lib/            Shared helpers (auth, sanitize, utils)
+  types/          App/global type augmentation
+  proxy.ts        Route guard + CSP/security headers
+```
 
-## 🤖 กฎการพัฒนา (Development Guidelines)
+## Development Notes
 
-- **Server-First Approach:** เน้นการใช้งาน Server Components เป็นค่าเริ่มต้น (Default) เพื่อเพิ่มประสิทธิภาพ (Performance) และดึงข้อมูล (Fetch API) ตรงจาก `core/services/` ในฝั่ง Server เสมอ หลีกเลี่ยงการทำ Client-side Fetching เว้นแต่จำเป็น
-- **Component Scoping:** รักษาขนาดไฟล์ให้กะทัดรัด (แนะนำไม่เกิน 150 บรรทัดต่อไฟล์)
-- **Naming Convention:**
-  - Validators: `[name].validator.ts`
-  - Components: `[Name].tsx` (PascalCase)
-  - Hooks: `use[Name].ts` (camelCase)
-- **Error Handling:** ใช้ `ZodError` และแสดงข้อความที่เข้าใจง่ายผ่าน Shadcn `Toast`
+- Default เป็น Server Components; ใช้ `"use client"` เฉพาะจำเป็น
+- Validate external payload ที่ boundary เท่านั้น แล้วส่งต่อเป็น typed data
+- หากเพิ่ม external image domain ต้องเพิ่มทั้ง `next.config.ts` และ CSP trusted sources ใน `src/proxy.ts`
+- หากปรับ auth flow ต้องอัปเดตทั้ง `/login`, `/callback`, `/api/auth/zt-cookie`, และเงื่อนไขใน `src/proxy.ts`
 
----
+## Documentation
 
-**อ่านรายละเอียดแนวทางปฏิบัติฉบับเต็มได้ที่:** [Project Guidelines](.github/project-guidlines.md)
+- Contributor/developer rules: `.github/project-guidlines.md`
+- Agent execution rules: `AGENTS.md`
