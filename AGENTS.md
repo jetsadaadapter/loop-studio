@@ -3,3 +3,164 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+# 🚀 Internal Library: AI Development Guidelines
+
+This document serves as the primary source of truth for the development of the Internal Library. All AI-generated code (GitHub Copilot, Cursor, etc.) must adhere to these standards.
+
+## 🏗️ 1. Tech Stack Overview
+
+- **Framework:** Next.js (App Router)
+- **Styling:** Tailwind CSS
+- **Typography:** Local `Sukhumvit Set` font family (default sans + heading)
+- **UI Components:** Shadcn UI (Radix UI underneath)
+- **Authentication:** NextAuth.js (Gmail/Google Provider via Centralized MCP)
+- **Validation:** Zod (Strict Schema Validation)
+- **Architecture:** Validator Interface Pattern (Clean Architecture)
+
+---
+
+## 📁 2. Directory Structure
+
+Maintain a clear separation between UI, Logic, and Data Validation. Never mix business logic directly inside UI components.
+
+```text
+├── src/
+│   ├── app/                # UI Pages & Layouts (Next.js App Router)
+│   ├── components/         # Shared UI (shadcn, composite components)
+│   ├── core/               # Business Logic & Infrastructure (The Core)
+│   │   ├── interfaces/     # TypeScript definitions & Contracts
+│   │   ├── validators/     # Zod Schemas (Single source of truth)
+│   │   ├── services/       # API Clients, Config Generators
+│   │   └── adapters/       # Data transformers (External to Internal formats)
+│   ├── hooks/              # Reusable React hooks
+│   ├── lib/                # Shared utilities (auth config, db, utils)
+│   └── types/              # Global types
+```
+
+---
+
+## 🛡️ 3. Validator Interface Standard
+
+**Principle:** Never trust external data. Every resource (Library Item, MCP, Media, Apify) must be validated before entering the application state.
+
+Always derive TypeScript types from Zod schemas using `z.infer<typeof Schema>`.
+
+Security requirements for validators:
+
+- Use strict schemas (`.strict()`) for all external payloads to reject unknown keys.
+- Validate URL fields with protocol/domain constraints (`https` only and approved host allowlist).
+- Enforce input size limits (`.max(...)`) for text, arrays, and nested objects to prevent abuse.
+- Parse once at boundaries (API, adapters, webhook handlers); internal layers must only consume validated types.
+- Convert `ZodError` to safe user-facing messages and structured logs. Never log raw sensitive payloads.
+
+### Resource Schema Implementation Example
+
+```typescript
+// src/core/validators/resource.validator.ts
+import { z } from "zod";
+
+export const ResourceType = z.enum(["LIBRARY_ITEM", "MCP", "APIFY", "MEDIA"]);
+
+export const BaseResourceSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1),
+  type: ResourceType,
+  iconUrl: z.string().url(),
+});
+
+export const MCPSchema = BaseResourceSchema.extend({
+  type: z.literal("MCP"),
+  config: z.object({
+    command: z.string(),
+    args: z.array(z.string()),
+    env: z.record(z.string()).optional(),
+  }),
+});
+
+// Use Discriminated Unions for scalable typing
+export const LibraryResourceSchema = z.discriminatedUnion("type", [
+  MCPSchema,
+  // Add APIFY, MEDIA, WEB_APP schemas here
+]);
+
+export type LibraryResource = z.infer<typeof LibraryResourceSchema>;
+```
+
+---
+
+## 🎨 4. UI & Design Principles (Library Style)
+
+### Font Baseline (Required for new projects)
+
+1. Use `Sukhumvit Set` as the required project font family (default sans + heading) and keep all font files in `src/app/fonts/sukhumvit-set`.
+2. Register fonts using `next/font/local` in `src/app/layout.tsx` with all provided weights.
+3. Set `--font-sans` and `--font-heading` to the local Sukhumvit variable in `src/app/globals.css`.
+4. Keep a monospaced fallback (for code/logs) as a separate font variable.
+
+- **Visual Hierarchy:** Use Shadcn/Embla `Carousel` for featured resources and horizontal `Grid` for resource categories.
+- **Micro-interactions:** Use Framer Motion or Tailwind transitions for smooth hover states.
+- **States:** Always handle `Loading`, `Empty`, and `Error` states using Shadcn `Skeleton` and `Alert` components.
+- **Modals:** Use Shadcn `Dialog` or `Sheet` to display library item details (screenshots, permissions, version history) without leaving the overview page.
+
+---
+
+## ⚙️ 5. Push Config & Integrations Logic
+
+To enable "One-Click Install" for MCP/Configs:
+
+1. **Desktop Agent / CLI:** The system must trigger a protocol handler (e.g., `company-library://install?id=123`) or provide a clear CLI sync command.
+2. **Config Generation:** Use a dedicated service in `src/core/services` to transform Zod-validated data into tool-specific configurations (e.g., `claude_desktop_config.json`).
+
+Secure MCP installation workflow (mandatory):
+
+1. Validate install request with signed metadata (resource id, version, checksum, publisher).
+2. Resolve command from server-side allowlist only. Never execute commands provided directly by clients.
+3. Enforce policy checks before install: user role, environment, scope, and approval requirement.
+4. Persist audit event for each action (requested, approved, installed, failed) with actor and timestamp.
+
+Execution safety rules:
+
+- Allowlist only known commands and fixed binary paths.
+- Disallow shell interpolation and dynamic script composition.
+- Restrict environment variables to approved keys.
+- Run integrations with least privilege and explicit filesystem/network boundaries.
+
+---
+
+## 🔐 6. Auth & Security
+
+- **Domain Restriction:** Only authorize emails ending with the designated `@company.com`.
+- **RBAC:** User roles and permissions must be extracted from the Centralized MCP Auth token.
+- **Routing Proxy & Middleware:** Use `src/proxy.ts` (instead of standard middleware.ts due to framework configuration) to protect all `/api` and private routes. Unauthenticated users must be redirected to the login page immediately. Logged-in users should be redirected away from public login pages.
+- **Token Handling:** Use short-lived access tokens, rotate refresh tokens, and enforce secure cookie settings (`HttpOnly`, `Secure`, `SameSite`).
+- **Secrets Management:** Never store secrets in source code or client bundles. Use managed secret storage and environment injection at runtime.
+- **API Protection:** Apply rate limiting and abuse detection on auth, install, and config endpoints.
+- **Security Headers:** Enforce CSP, HSTS, `X-Frame-Options`, and `Referrer-Policy` for production.
+- **CSRF Protection:** Protect all state-changing routes and callback endpoints.
+- **Audit Logging:** Log auth decisions, privilege changes, and install operations with redaction of sensitive values.
+
+---
+
+## 🤖 7. AI Code Generation Rules (Strict)
+
+1. **Component Scoping:** Keep components small and focused (Single Responsibility). If a file exceeds 150 lines, split it into smaller sub-components.
+2. **Naming Convention:** Validators use `[name].validator.ts`, components use `[Name].tsx` (PascalCase), and hooks use `use[Name].ts` (camelCase).
+3. **Error Handling:** Use `ZodError` for validation and display user-friendly messages via Shadcn `Toast`. Never expose raw stack traces to the UI.
+4. **Client vs Server:** Explicitly use `"use client"` only when React hooks (`useState`, `useEffect`, context) or event listeners are required. Default to Server Components for performance and direct data fetching using `core/services/`.
+5. **Data Fetching & APIs:** Use direct server-side fetching in Server Components (e.g., `await getApps()`). Avoid client-side data fetching unless dealing with high-frequency dynamic states.
+6. **Images:** Use Next.js `<Image />` for automatic optimization. External domains must be declared in `next.config.ts`. Ensure backend APIs do not strictly block the Next.js server if images require cross-origin authentication (or fallback to client-side `<Image unoptimized />` with cookies).
+
+---
+
+## ✅ 8. Security Baseline & Delivery Checklist
+
+Every feature and release must pass the following checks:
+
+1. **Authorization:** API routes enforce role checks server-side; no client-side-only authorization.
+2. **Validation:** External inputs validated with strict schemas and bounded sizes.
+3. **Secrets:** No credentials in repository, logs, or browser-visible payloads.
+4. **Install Safety:** MCP execution uses allowlisted commands with audit trail.
+5. **Observability:** Security-relevant events are logged and monitored.
+6. **Testing:** Include at least one positive and one negative auth/permission test per protected flow.
+7. **Dependency Hygiene:** Run dependency vulnerability checks in CI for each pull request.
