@@ -4,13 +4,17 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
 
-function handleSignOut() {
+async function handleSignOut() {
   const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
     .ZeroTrust;
+
+  // Clear HttpOnly cookie on our server
+  await fetch("/api/auth/zt-cookie", { method: "DELETE" }).catch(() => {});
+
   if (zt?.logout) {
     zt.logout("/login");
   } else {
-    // Fallback: clear manually and redirect
+    // Fallback: clear manually (in case of old non-HttpOnly cookie leftovers) and redirect
     document.cookie =
       "zt_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
     window.location.href = "/login";

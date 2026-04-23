@@ -22,7 +22,7 @@ export async function StoreHeroBannerBlock() {
     return <HeroBannerSlider initialSlides={slides} />;
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     return <HeroBannerSlider initialSlides={heroBannerMock.items} />;
   }

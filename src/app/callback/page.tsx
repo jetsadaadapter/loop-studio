@@ -94,20 +94,44 @@ export default function CallbackPage() {
           authBaseURL: AUTH_BASE_URL,
           clientId: CLIENT_ID,
           callbackPath: CALLBACK_PATH,
-          onBeforeRedirect: IS_DEBUG_CALLBACK
-            ? (payload) => {
-                const params = new URLSearchParams(window.location.search);
-                setPreview({
-                  returnTo: payload.returnTo,
-                  tokenType: payload.tokenType,
+          onBeforeRedirect: (payload) => {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (IS_DEBUG_CALLBACK) {
+              setPreview({
+                returnTo: payload.returnTo,
+                tokenType: payload.tokenType,
+                expiresIn: payload.expiresIn,
+                hasToken: Boolean(payload.token),
+                code: params.get("code"),
+                state: params.get("state"),
+              });
+              return false;
+            }
+
+            // Always save token securely and redirect manually
+            if (payload.token) {
+              fetch("/api/auth/zt-cookie", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  token: payload.token,
                   expiresIn: payload.expiresIn,
-                  hasToken: Boolean(payload.token),
-                  code: params.get("code"),
-                  state: params.get("state"),
+                }),
+              })
+                .then(() => {
+                  window.location.replace(payload.returnTo);
+                })
+                .catch((err) => {
+                  console.error("Failed to set secure cookie", err);
+                  setError("Unable to complete secure login callback.");
                 });
-                return false;
-              }
-            : undefined,
+            } else {
+              window.location.replace(payload.returnTo);
+            }
+
+            return false; // Prevent script's default redirect
+          },
         });
       } catch {
         if (!cancelled) {

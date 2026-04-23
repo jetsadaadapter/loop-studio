@@ -115,12 +115,10 @@ async function apiFetch<T>(
     });
 
     if (res.status === 401) {
-        // Token expired or revoked — clear and bounce to login (client-side only)
-        if (typeof document !== "undefined") {
-            document.cookie = `${TOKEN_COOKIE_KEY}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
-        }
+        // Token expired or revoked — bounce to login (client-side only).
+        // Server-side errors will throw and be caught by the page/component to redirect to /api/auth/logout
         if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            window.location.href = "/api/auth/logout";
         }
         throw new ApiError(401, "Unauthorized", url);
     }

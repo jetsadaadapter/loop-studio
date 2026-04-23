@@ -91,7 +91,7 @@ async function fetchRankingData(): Promise<Record<
     return rankingData;
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     return null;
   }

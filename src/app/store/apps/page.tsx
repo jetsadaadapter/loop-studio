@@ -23,7 +23,7 @@ export default async function StoreAppsPage() {
     sections = mapAppsResponseToSections(response);
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     console.error("Failed to fetch /library/apps", error);
   }
