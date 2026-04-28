@@ -17,7 +17,7 @@ export type Paginated<T> = {
     meta: PaginationMeta;
 };
 
-// ─── Apps  GET /library/apps ───────────────────────────────────────────────────
+// ─── Apps  GET /apps ───────────────────────────────────────────────────────────
 
 export type LibraryAppCategory = "MCP" | "Platform" | "Tool" | string;
 
@@ -55,7 +55,7 @@ export type GetAppsParams = {
 
 export type GetAppsResponse = Paginated<LibraryAppsGroupItem>;
 
-// ─── Banners  GET /library/banners ─────────────────────────────────────────────
+// ─── Banners  GET /banners ─────────────────────────────────────────────────────
 
 export type AppTag = {
     tagId: string;

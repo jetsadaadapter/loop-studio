@@ -100,6 +100,8 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
     slider.scrollBy({ left: Math.round(viewport * 0.78), behavior: "smooth" });
   };
 
+  const isSingleSlide = heroSlides.length === 1;
+
   return (
     <section className="mt-6">
       {hasError ? (
@@ -129,20 +131,30 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
       <div className="group relative">
         <div
           ref={sliderRef}
-          role="list"
-          aria-label="Featured app stories"
-          className={`flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isLoading ? "hidden" : ""}`}
+          className={`flex rounded-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+            isSingleSlide
+              ? "overflow-hidden"
+              : "snap-x snap-mandatory gap-4 overflow-x-auto"
+          } ${isLoading ? "hidden" : ""}`}
         >
-          {heroSlides.map((slide, index) => (
-            <HeroSlideItem 
-              key={slide.heroId} 
-              slide={slide} 
-              isPriority={index === 0} 
-            />
-          ))}
+          {heroSlides.map((slide, index) => {
+            // Generate stable composite key from slide properties (never use index alone)
+            const slideKey = slide.heroId
+              ? `hero:${slide.heroId}`
+              : `slide:${slide.appId}:${slide.appSlug}`;
+
+            return (
+              <HeroSlideItem
+                key={slideKey}
+                slide={slide}
+                isPriority={index === 0}
+                isSingleSlide={isSingleSlide}
+              />
+            );
+          })}
         </div>
 
-        {canScrollPrev ? (
+        {!isSingleSlide && canScrollPrev ? (
           <button
             type="button"
             aria-label="Previous hero banner"
@@ -153,7 +165,7 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
           </button>
         ) : null}
 
-        {canScrollNext ? (
+        {!isSingleSlide && canScrollNext ? (
           <button
             type="button"
             aria-label="Next hero banner"

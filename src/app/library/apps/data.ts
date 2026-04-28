@@ -25,6 +25,7 @@ export type LibraryApp = {
     status: string;
     badge?: string;
     iconBg: string;
+    imageUrl?: string;
     iconUrl?: string;
 };
 
@@ -74,6 +75,17 @@ function toTitleCase(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
+function toSectionLabel(value: string): string {
+    const normalized = normalizeText(value, "Tool");
+    return normalized.toUpperCase();
+}
+
+function normalizeText(value: unknown, fallback = ""): string {
+    if (typeof value !== "string") return fallback;
+    const normalized = value.trim();
+    return normalized || fallback;
+}
+
 export function slugifyAppName(value: string): string {
     return value
         .trim()
@@ -91,7 +103,8 @@ function stableHash(seed: string): number {
 }
 
 export function getStableIconBg(seed: string): string {
-    return ICON_BG_PRESETS[stableHash(seed) % ICON_BG_PRESETS.length];
+    const safeSeed = normalizeText(seed, "app");
+    return ICON_BG_PRESETS[stableHash(safeSeed) % ICON_BG_PRESETS.length];
 }
 
 export function getAppStatus(app: LibraryAppApiItem): string {
@@ -99,27 +112,46 @@ export function getAppStatus(app: LibraryAppApiItem): string {
     return app.isActive ? "Production ready" : "Planned";
 }
 
-function mapApiApp(item: LibraryAppApiItem): LibraryApp {
+function mapApiApp(item: LibraryAppApiItem, sectionId: string, index: number): LibraryApp {
+    const name = normalizeText(item.name, "Unknown app");
+    const slug = slugifyAppName(name) || `${sectionId}-app-${index + 1}`;
+    const id = normalizeText(item.appId, `${sectionId}:${slug}`);
+
     return {
-        id: item.appId,
-        slug: slugifyAppName(item.name),
-        name: item.name,
-        category: item.category,
+        id,
+        slug,
+        name,
+        category: normalizeText(item.category, "Tool"),
         status: getAppStatus(item),
         badge: item.badgeLabel ?? undefined,
-        iconBg: getStableIconBg(item.appId),
+        iconBg: getStableIconBg(id),
+        imageUrl: item.imageUrl,
         iconUrl: item.iconUrl,
     };
 }
 
 export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySection[] {
-    return response.data.map((groupBlock) => ({
-        id: groupBlock.group.toLowerCase(),
-        title: toTitleCase(groupBlock.group),
-        items: [...groupBlock.items]
-            .sort((left, right) => left.sortOrder - right.sortOrder)
-            .map(mapApiApp),
-    }));
+    console.log(`[LibraryApps] Mapping ${response.data.length} groups to sections`);
+
+    const sections = response.data.map((groupBlock, groupIndex) => {
+        const sectionId = normalizeText(groupBlock.group, "tool").toLowerCase();
+        const itemCount = groupBlock.items?.length ?? 0;
+        console.log(`[LibraryApps] Group ${groupIndex + 1}: "${groupBlock.group}" → ${itemCount} items`);
+
+        return {
+            id: sectionId,
+            title: toSectionLabel(groupBlock.group),
+            items: [...(groupBlock.items ?? [])]
+                .sort((left, right) => left.sortOrder - right.sortOrder)
+                .map((item, index) =>
+                    mapApiApp(item, sectionId, index),
+                ),
+        };
+    });
+
+    const totalApps = sections.reduce((sum, s) => sum + s.items.length, 0);
+    console.log(`[LibraryApps] ✓ Mapped to ${sections.length} sections with ${totalApps} total apps`);
+    return sections;
 }
 
 export const libraryAppsResponse: LibraryAppsResponse = {

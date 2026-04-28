@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
+import { LEGAL_LINKS } from "@/lib/legal-links";
 
 async function handleSignOut() {
   const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
@@ -120,13 +121,23 @@ export function ProfileAvatarMenu() {
           <MenuSection items={menuItems} />
 
           <div className="border-t border-slate-200 px-5 py-4 text-center text-xs text-slate-500">
-            <button type="button" className="transition hover:text-slate-800">
+            <a
+              href={LEGAL_LINKS.privacyPolicy}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-slate-800"
+            >
               Privacy Policy
-            </button>
+            </a>
             <span className="px-2">•</span>
-            <button type="button" className="transition hover:text-slate-800">
+            <a
+              href={LEGAL_LINKS.termsOfService}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-slate-800"
+            >
               Terms of Service
-            </button>
+            </a>
           </div>
         </div>
       ) : null}

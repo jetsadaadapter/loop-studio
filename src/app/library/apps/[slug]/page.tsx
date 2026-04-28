@@ -36,8 +36,12 @@ export default async function AppDetailPage({ params }: Props) {
   const primaryCtaLabel = app.ctaLabel ?? "View Guide";
   const hasExternalCta = app.linkType === "external" && !!app.ctaLink;
   const hasInternalCta = app.linkType === "internal" && !!app.ctaLink;
-  
-  const relatedApps = await getRelatedApps(app.appId, app.category, initOptions);
+
+  const relatedApps = await getRelatedApps(
+    app.appId,
+    app.category,
+    initOptions,
+  );
   const screenshotUrls = [app.imageUrl].filter((value): value is string =>
     Boolean(value),
   );
@@ -121,9 +125,9 @@ export default async function AppDetailPage({ params }: Props) {
 
               {app.tags.length > 0 ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {app.tags.slice(0, 4).map((tag) => (
+                  {app.tags.slice(0, 4).map((tag, index) => (
                     <span
-                      key={tag.tagId}
+                      key={`hero-tag:${tag.tagId || tag.name}:${index}`}
                       className="rounded-full bg-white/8 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-white/10"
                     >
                       {tag.name}
@@ -196,9 +200,9 @@ export default async function AppDetailPage({ params }: Props) {
 
               {app.tags.length > 0 ? (
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {app.tags.map((tag) => (
+                  {app.tags.map((tag, index) => (
                     <span
-                      key={tag.tagId}
+                      key={`about-tag:${tag.tagId || tag.name}:${index}`}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
                     >
                       {tag.name}
@@ -252,9 +256,9 @@ export default async function AppDetailPage({ params }: Props) {
                   Related apps
                 </h3>
                 <div className="mt-3 space-y-3">
-                  {relatedApps.map((relatedApp) => (
+                  {relatedApps.map((relatedApp, index) => (
                     <RelatedAppListItem
-                      key={relatedApp.appId}
+                      key={`related:${relatedApp.appId || "app"}:${index}`}
                       item={relatedApp}
                     />
                   ))}

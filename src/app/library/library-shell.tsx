@@ -19,7 +19,9 @@ type LibraryShellContextValue = {
   setSearchQuery: (value: string) => void;
 };
 
-const LibraryShellContext = createContext<LibraryShellContextValue | null>(null);
+const LibraryShellContext = createContext<LibraryShellContextValue | null>(
+  null,
+);
 
 export function useLibraryShell() {
   const context = useContext(LibraryShellContext);
@@ -59,7 +61,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-10 pt-5 md:px-6">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 md:px-6">
           {children}
         </main>
 
@@ -85,10 +87,21 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                     {heading}
                   </h2>
                   <ul className="mt-3 space-y-2 text-xs text-slate-600">
-                    {links.map((item) => (
-                      <li key={item}>
-                        <a href="#" className="transition hover:text-slate-900">
-                          {item}
+                    {links.map((item, index) => (
+                      <li key={`${heading}:${item.label}:${index}`}>
+                        <a
+                          href={item.href}
+                          target={
+                            item.href.startsWith("http") ? "_blank" : undefined
+                          }
+                          rel={
+                            item.href.startsWith("http")
+                              ? "noreferrer"
+                              : undefined
+                          }
+                          className="transition hover:text-slate-900"
+                        >
+                          {item.label}
                         </a>
                       </li>
                     ))}

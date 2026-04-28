@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ZeroTrustGoogleButton } from "@/components/zero-trust-google-button";
+import { LEGAL_LINKS } from "@/lib/legal-links";
 
 export function LoginForm({
   className,
@@ -20,7 +21,8 @@ export function LoginForm({
             Adapter Library Access
           </CardTitle>
           <CardDescription className="text-sm text-neutral-500">
-            Authenticate to access the internal library of MCPs, tools, and platforms
+            Authenticate to access the internal library of MCPs, tools, and
+            platforms
           </CardDescription>
         </CardHeader>
         <CardContent className="px-8 pb-8 pt-0">
@@ -35,13 +37,24 @@ export function LoginForm({
             <div className="flex flex-col gap-3 text-center">
               <p className="text-[11px] leading-relaxed text-neutral-400">
                 Authorized personnel only. By continuing, you agree to our{" "}
-                <a href="#" className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600">
+                <a
+                  href={LEGAL_LINKS.termsOfService}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600"
+                >
                   Terms
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600">
+                <a
+                  href={LEGAL_LINKS.privacyPolicy}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 hover:text-dark-garnet-600 hover:decoration-dark-garnet-600"
+                >
                   Privacy Policy
-                </a>.
+                </a>
+                .
               </p>
             </div>
           </div>

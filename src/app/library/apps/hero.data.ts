@@ -130,17 +130,23 @@ function slugifyAppName(value: string): string {
 
 function normalizeInternalPath(path: string): string {
     if (path.startsWith("/apps/")) return path;
-    if (path.startsWith("/library/apps/")) {
-        return path.replace(/^\/library/, "");
-    }
     if (path.startsWith("/")) return path;
     return `/apps/${path}`;
 }
 
+function normalizeText(value: unknown, fallback = ""): string {
+    if (typeof value !== "string") return fallback;
+    const normalized = value.trim();
+    return normalized || fallback;
+}
+
 export function mapBannerToHeroSlide(item: LibraryBannerItem): HeroSlide {
+    const safeAppName = normalizeText(item.app.name, "Unknown app");
     const derivedSlug = item.app.ctaLink?.startsWith("/apps/")
         ? item.app.ctaLink.replace(/^\/apps\//, "")
-        : slugifyAppName(item.app.name);
+        : slugifyAppName(safeAppName);
+    const safeAppSlug = derivedSlug || "app";
+    const safeHeroId = normalizeText(item.bannerId, `${normalizeText(item.appId, "app")}:${safeAppSlug}`);
 
     const actionType =
         item.app.linkType === "external"
@@ -153,27 +159,27 @@ export function mapBannerToHeroSlide(item: LibraryBannerItem): HeroSlide {
         actionType === "linkout"
             ? item.app.ctaLink ?? "https://library-api.adapterdigital.com"
             : actionType === "instruction"
-                ? `/apps/${derivedSlug}`
+                ? `/apps/${safeAppSlug}`
                 : item.app.ctaLink
                     ? normalizeInternalPath(item.app.ctaLink)
-                    : `/apps/${derivedSlug}`;
+                    : `/apps/${safeAppSlug}`;
 
     return {
-        appId: item.appId,
-        appSlug: derivedSlug,
-        appName: item.app.name,
+        appId: normalizeText(item.appId, safeHeroId),
+        appSlug: safeAppSlug,
+        appName: safeAppName,
         appIconUrl: item.app.iconUrl,
-        category: item.app.category,
+        category: normalizeText(item.app.category, "Tool"),
         status: item.app.isActive ? "Active" : "Inactive",
         badge: item.app.badgeLabel ?? undefined,
-        heroId: item.bannerId,
-        heroSlug: item.bannerId,
+        heroId: safeHeroId,
+        heroSlug: safeHeroId,
         theme: mapBannerTheme(item),
-        title: item.title,
+        title: normalizeText(item.title, safeAppName),
         imageUrl: item.imageUrl,
         toolTags: item.app.tags.map((tag) => tag.name),
         actionType,
-        ctaLabel: item.app.ctaLabel,
+        ctaLabel: normalizeText(item.app.ctaLabel, "Open app"),
         actionUrl,
     };
 }

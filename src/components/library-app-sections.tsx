@@ -71,12 +71,14 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
             <h2 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
               {section.title}
             </h2>
-            <button
-              type="button"
-              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
-            >
-              See more
-            </button>
+            {section.items.length >= 8 ? (
+              <button
+                type="button"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                See more
+              </button>
+            ) : null}
           </div>
 
           <div className="flex snap-x gap-3 overflow-x-auto px-1 py-2 sm:gap-4 sm:py-3">
@@ -86,7 +88,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
 
               return (
                 <div
-                  key={app.id}
+                  key={cardKey}
                   data-card-key={cardKey}
                   ref={(element) => {
                     cardElementsRef.current[cardKey] = element;
@@ -106,7 +108,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
       ))}
 
       {sections.length === 0 && (
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-b from-white to-slate-50 px-6 py-12 text-center shadow-sm sm:px-8">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-b from-white to-slate-50 px-6 py-12 text-center shadow-sm sm:px-8">
           <div className="mx-auto max-w-xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               Library Status
@@ -115,7 +117,8 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
               ไม่พบแอปที่ตรงกับเงื่อนไขที่เลือก
             </p>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              กรุณาปรับสถานะหรือหมวดหมู่ใหม่ เพื่อแสดงรายการแอปที่เกี่ยวข้องกับการใช้งานของทีม
+              กรุณาปรับสถานะหรือหมวดหมู่ใหม่
+              เพื่อแสดงรายการแอปที่เกี่ยวข้องกับการใช้งานของทีม
             </p>
           </div>
         </div>

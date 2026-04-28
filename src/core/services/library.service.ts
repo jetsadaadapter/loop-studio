@@ -75,14 +75,19 @@ function readBrowserCookie(name: string): string | null {
 
 async function getAuthToken(): Promise<string | null> {
     if (typeof window !== "undefined") {
-        return readBrowserCookie(TOKEN_COOKIE_KEY);
+        const token = readBrowserCookie(TOKEN_COOKIE_KEY);
+        console.log(`[Library API] Browser token: ${token ? "✓ Found" : "✗ Missing"}`);
+        return token;
     }
 
     try {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
-        return cookieStore.get(TOKEN_COOKIE_KEY)?.value || null;
-    } catch {
+        const token = cookieStore.get(TOKEN_COOKIE_KEY)?.value || null;
+        console.log(`[Library API] Server token: ${token ? "✓ Found" : "✗ Missing"}`);
+        return token;
+    } catch (err) {
+        console.error("[Library API] Failed to read auth token:", err);
         return null;
     }
 }
@@ -137,7 +142,7 @@ async function apiFetch<T>(
 // ─── Apps ─────────────────────────────────────────────────────────────────────
 
 /**
- * GET /library/apps
+ * GET /apps
  *
  * @example
  * // page 1, limit 10, all categories
@@ -156,13 +161,21 @@ export async function getApps(
     params: GetAppsParams = {},
     init?: RequestInit,
 ): Promise<GetAppsResponse> {
-    const url = buildUrl("/library/apps", {
+    const url = buildUrl("/apps", {
         page: params.page,
         limit: params.limit,
         category: params.category,
     });
 
-    return apiFetch<GetAppsResponse>(url, init);
+    console.log(`[Library API] Fetching apps from: ${url}`);
+    try {
+        const response = await apiFetch<GetAppsResponse>(url, init);
+        console.log(`[Library API] ✓ Fetch successful. Received ${response.data.length} groups`);
+        return response;
+    } catch (error) {
+        console.error("[Library API] ✗ Fetch failed:", error instanceof Error ? error.message : error);
+        throw error;
+    }
 }
 
 /**
@@ -205,7 +218,7 @@ export async function getRelatedApps(
 // ─── Banners ──────────────────────────────────────────────────────────────────
 
 /**
- * GET /library/banners
+ * GET /banners
  *
  * @example
  * // first 3 banners
@@ -215,7 +228,7 @@ export async function getBanners(
     params: GetBannersParams = {},
     init?: RequestInit,
 ): Promise<GetBannersResponse> {
-    const url = buildUrl("/library/banners", {
+    const url = buildUrl("/banners", {
         page: params.page,
         limit: params.limit,
     });

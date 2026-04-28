@@ -47,13 +47,21 @@ function getAppInitials(appName: string): string {
 type HeroSlideItemProps = {
   slide: HeroSlide;
   isPriority?: boolean;
+  isSingleSlide?: boolean;
 };
 
-export function HeroSlideItem({ slide, isPriority }: HeroSlideItemProps) {
+export function HeroSlideItem({
+  slide,
+  isPriority,
+  isSingleSlide,
+}: HeroSlideItemProps) {
   return (
     <article
-      role="listitem"
-      className={`relative w-[86vw] sm:w-[78vw] md:w-[66vw] lg:w-[44%] xl:w-[43%] max-w-162 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 ${cardThemeClass[slide.theme]}`}
+      className={`relative overflow-hidden rounded-2xl border border-slate-200 ${cardThemeClass[slide.theme]} ${
+        isSingleSlide
+          ? "w-full max-w-none lg:w-[44%] lg:max-w-162 lg:shrink-0 lg:snap-start xl:w-[43%]"
+          : "w-[86vw] sm:w-[78vw] md:w-[66vw] lg:w-[44%] xl:w-[43%] max-w-162 shrink-0 snap-start"
+      }`}
     >
       <div className="relative aspect-648/364">
         {slide.badge ? (

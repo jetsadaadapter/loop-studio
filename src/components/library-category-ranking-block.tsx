@@ -13,9 +13,6 @@ type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
 
 function normalizeInternalPath(path: string): string {
   if (path.startsWith("/apps/")) return path;
-  if (path.startsWith("/library/apps/")) {
-    return path.replace(/^\/library/, "");
-  }
   if (path.startsWith("/")) return path;
   return `/apps/${path}`;
 }

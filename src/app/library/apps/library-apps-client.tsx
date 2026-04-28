@@ -17,15 +17,31 @@ type LibraryAppsClientProps = {
   children?: ReactNode;
 };
 
-export function LibraryAppsClient({ sections, children }: LibraryAppsClientProps) {
+export function LibraryAppsClient({
+  sections,
+  children,
+}: LibraryAppsClientProps) {
   const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
   const [selectedStatus, setSelectedStatus] =
     useState<StatusFilterKey>("production ready");
   const { searchQuery } = useLibraryShell();
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
+  console.log(
+    "[LibraryAppsClient] Received sections:",
+    sections.map((s) => ({ id: s.id, itemCount: s.items.length })),
+  );
+  console.log("[LibraryAppsClient] Selected tab:", selectedMainTab);
+
   const baseSections = useMemo(() => {
-    return sections.filter((s) => s.id === selectedMainTab);
+    const filtered = sections.filter((s) => s.id === selectedMainTab);
+    console.log(
+      `[LibraryAppsClient] After tab filter (${selectedMainTab}):`,
+      filtered.length,
+      "sections",
+    );
+
+    return filtered;
   }, [sections, selectedMainTab]);
 
   const searchedSections = useMemo(() => {
