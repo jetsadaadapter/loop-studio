@@ -1,0 +1,136 @@
+/* Day-based gradient themes for LibraryGuidedCtaBlock */
+/* data-day="0" = Sun, 1 = Mon, … 6 = Sat */
+
+/* ── section background + shadow ──────────────────────────── */
+.section[data-day="0"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #ffc2d4
+  );
+  box-shadow: 0 18px 48px -32px rgba(244, 63, 94, 0.28);
+}
+.section[data-day="1"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #c2c6ff
+  );
+  box-shadow: 0 18px 48px -32px rgba(99, 102, 241, 0.32);
+}
+.section[data-day="2"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #99f6e4
+  );
+  box-shadow: 0 18px 48px -32px rgba(20, 184, 166, 0.28);
+}
+.section[data-day="3"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #ddd6fe
+  );
+  box-shadow: 0 18px 48px -32px rgba(139, 92, 246, 0.28);
+}
+.section[data-day="4"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #fed7aa
+  );
+  box-shadow: 0 18px 48px -32px rgba(251, 146, 60, 0.28);
+}
+.section[data-day="5"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #bae6fd
+  );
+  box-shadow: 0 18px 48px -32px rgba(14, 165, 233, 0.28);
+}
+.section[data-day="6"] {
+  background-image: linear-gradient(
+    to bottom,
+    white,
+    rgba(248, 250, 252, 0.4),
+    #f5d0fe
+  );
+  box-shadow: 0 18px 48px -32px rgba(217, 70, 239, 0.28);
+}
+
+/* ── bottom overlay ───────────────────────────────────────── */
+.bottomOverlay[data-day="0"] {
+  background-image: linear-gradient(to top, #ff85a1bf, #ffb3c680, transparent);
+}
+.bottomOverlay[data-day="1"] {
+  background-image: linear-gradient(to top, #9ea6ffbf, #c8ccff80, transparent);
+}
+.bottomOverlay[data-day="2"] {
+  background-image: linear-gradient(to top, #2dd4bfbf, #99f6e480, transparent);
+}
+.bottomOverlay[data-day="3"] {
+  background-image: linear-gradient(to top, #a78bfabf, #ddd6fe80, transparent);
+}
+.bottomOverlay[data-day="4"] {
+  background-image: linear-gradient(to top, #fb923cbf, #fed7aa80, transparent);
+}
+.bottomOverlay[data-day="5"] {
+  background-image: linear-gradient(to top, #38bdf8bf, #bae6fd80, transparent);
+}
+.bottomOverlay[data-day="6"] {
+  background-image: linear-gradient(to top, #e879f9bf, #f5d0fe80, transparent);
+}
+
+/* ── blob right ───────────────────────────────────────────── */
+.blobRight[data-day="0"] {
+  background-image: radial-gradient(circle, #ff85a173, transparent);
+}
+.blobRight[data-day="1"] {
+  background-image: radial-gradient(circle, #9fa8ff73, transparent);
+}
+.blobRight[data-day="2"] {
+  background-image: radial-gradient(circle, #5eead473, transparent);
+}
+.blobRight[data-day="3"] {
+  background-image: radial-gradient(circle, #c4b5fd73, transparent);
+}
+.blobRight[data-day="4"] {
+  background-image: radial-gradient(circle, #fdba7473, transparent);
+}
+.blobRight[data-day="5"] {
+  background-image: radial-gradient(circle, #7dd3fc73, transparent);
+}
+.blobRight[data-day="6"] {
+  background-image: radial-gradient(circle, #f0abfc73, transparent);
+}
+
+/* ── blob left ────────────────────────────────────────────── */
+.blobLeft[data-day="0"] {
+  background-image: radial-gradient(circle, #ffd6e0cc, transparent);
+}
+.blobLeft[data-day="1"] {
+  background-image: radial-gradient(circle, #d8dbffcc, transparent);
+}
+.blobLeft[data-day="2"] {
+  background-image: radial-gradient(circle, #ccfbf1cc, transparent);
+}
+.blobLeft[data-day="3"] {
+  background-image: radial-gradient(circle, #ede9fecc, transparent);
+}
+.blobLeft[data-day="4"] {
+  background-image: radial-gradient(circle, #ffedd5cc, transparent);
+}
+.blobLeft[data-day="5"] {
+  background-image: radial-gradient(circle, #e0f2fecc, transparent);
+}
+.blobLeft[data-day="6"] {
+  background-image: radial-gradient(circle, #fae8ffcc, transparent);
+}

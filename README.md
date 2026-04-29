@@ -108,3 +108,4 @@ src/
 
 - Contributor/developer rules: `.github/project-guidlines.md`
 - Agent execution rules: `AGENTS.md`
+- Component naming/structure standard: `src/components/COMPONENTS.md`

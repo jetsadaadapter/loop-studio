@@ -10,7 +10,7 @@ import {
   FALLBACK_RANKING_DATA,
   APP_IMAGE_BY_ID,
   DEFAULT_APP_IMAGE,
-} from "./app-category-ranking.data";
+} from "./data";
 
 export type { CategoryKey, RankedApp };
 

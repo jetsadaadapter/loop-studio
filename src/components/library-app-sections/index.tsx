@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppTile } from "@/components/app-tile";
 import { type LibrarySection } from "@/app/library/apps/data";
-import styles from "@/components/library-app-sections.module.css";
+import styles from "./styles.module.css";
 
 type LibraryAppSectionsProps = {
   sections: LibrarySection[];

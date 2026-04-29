@@ -70,11 +70,6 @@ const ICON_BG_PRESETS = [
     "bg-slate-700",
 ] as const;
 
-function toTitleCase(value: string): string {
-    if (!value) return value;
-    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}
-
 function toSectionLabel(value: string): string {
     const normalized = normalizeText(value, "Tool");
     return normalized.toUpperCase();
@@ -104,7 +99,9 @@ function stableHash(seed: string): number {
 
 export function getStableIconBg(seed: string): string {
     const safeSeed = normalizeText(seed, "app");
-    return ICON_BG_PRESETS[stableHash(safeSeed) % ICON_BG_PRESETS.length];
+    const dayOfWeek = new Date().getDay(); // 0 (Sun) – 6 (Sat)
+    const index = (stableHash(safeSeed) + dayOfWeek) % ICON_BG_PRESETS.length;
+    return ICON_BG_PRESETS[index];
 }
 
 export function getAppStatus(app: LibraryAppApiItem): string {

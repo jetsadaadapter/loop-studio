@@ -45,6 +45,7 @@ When these files diverge, update both in the same change.
 - Keep business logic in `src/core/services` and `src/core/adapters`, not in UI
 - Validate external data with strict Zod schemas at boundaries
 - Avoid unrelated refactors in focused fixes
+- Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and follow its naming/structure convention
 
 ## 5. Documentation Sync Policy
 

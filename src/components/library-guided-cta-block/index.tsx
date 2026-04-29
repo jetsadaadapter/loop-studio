@@ -1,21 +1,47 @@
 import { ArrowRight } from "lucide-react";
 import { CONTACT_LINKS } from "@/lib/legal-links";
+import styles from "./styles.module.css";
+
+// Badge Tailwind classes per day of week: 0 = Sun, 1 = Mon, … 6 = Sat
+const DAY_BADGE_CLASS = [
+  "border-rose-200/80 text-rose-700", // Sun
+  "border-indigo-200/80 text-indigo-700", // Mon
+  "border-teal-200/80 text-teal-700", // Tue
+  "border-violet-200/80 text-violet-700", // Wed
+  "border-orange-200/80 text-orange-700", // Thu
+  "border-sky-200/80 text-sky-700", // Fri
+  "border-fuchsia-200/80 text-fuchsia-700", // Sat
+] as const;
 
 export function LibraryGuidedCtaBlock() {
+  const day = new Date().getDay();
+
   return (
     <section
-      className="relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-linear-to-b from-white via-slate-50/40 to-[#c2c6ff] py-5 shadow-[0_18px_48px_-32px_rgba(99,102,241,0.32)] sm:py-7"
+      data-day={day}
+      className={`${styles.section} relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 overflow-hidden py-5 sm:py-7`}
       aria-label="Get guided app recommendations"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-2/3 bg-linear-to-b from-white via-white/95 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-[#9ea6ff]/75 via-[#c8ccff]/50 to-transparent sm:h-44" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 size-72 translate-y-1/3 rounded-full bg-radial from-[#9fa8ff]/45 to-transparent blur-2xl" />
-      <div className="pointer-events-none absolute -left-24 bottom-0 h-40 w-80 translate-y-1/4 rounded-full bg-radial from-[#d8dbff]/80 to-transparent blur-2xl" />
+      <div
+        data-day={day}
+        className={`${styles.bottomOverlay} pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-44`}
+      />
+      <div
+        data-day={day}
+        className={`${styles.blobRight} pointer-events-none absolute -right-24 bottom-0 size-72 translate-y-1/3 rounded-full blur-2xl`}
+      />
+      <div
+        data-day={day}
+        className={`${styles.blobLeft} pointer-events-none absolute -left-24 bottom-0 h-40 w-80 translate-y-1/4 rounded-full blur-2xl`}
+      />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full border border-indigo-200/80 bg-white/80 px-3 py-1 text-[11px] font-semibold tracking-[0.08em] text-indigo-700">
+            <span
+              className={`inline-flex items-center rounded-full border bg-white/80 px-3 py-1 text-[11px] font-semibold tracking-[0.08em] ${DAY_BADGE_CLASS[day]}`}
+            >
               เก็บความต้องการใช้งาน
             </span>
 

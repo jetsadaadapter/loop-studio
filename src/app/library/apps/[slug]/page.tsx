@@ -242,11 +242,6 @@ export default async function AppDetailPage({ params }: Props) {
                   label="Updated"
                   value={formatDate(app.updatedAt)}
                 />
-                <MetadataItem
-                  label="App ID"
-                  value={app.appId}
-                  valueClassName="mt-0.5 truncate text-xs text-slate-500"
-                />
               </div>
             </div>
 

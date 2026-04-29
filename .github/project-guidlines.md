@@ -112,11 +112,31 @@ Behavior บังคับ:
 
 - ตั้งชื่อไฟล์ตาม convention:
   - Validators: `[name].validator.ts`
-  - Components: `[Name].tsx`
+  - Components (new): ใช้โฟลเดอร์แบบ kebab-case เสมอ เช่น `src/components/library-guided-cta-block/`
   - Hooks: `use[Name].ts`
+- ก่อนสร้าง component ใหม่ ต้องอ่าน `src/components/COMPONENTS.md` ก่อนทุกครั้ง
 - แยก responsibilities ให้ไฟล์อ่านง่าย; ไฟล์ใหญ่เกินจำเป็นให้ split component/service
 - หลีกเลี่ยง refactor unrelated code ระหว่างแก้ issue เดียว
 - หากแก้ behavior ที่กระทบเอกสาร ให้ update เอกสารนี้, `README.md`, และ `AGENTS.md` พร้อมกัน
+
+### Component Structure Standard (New Components)
+
+โครงสร้างมาตรฐานสำหรับ component ใหม่:
+
+```text
+src/components/<component-name>/
+  index.tsx
+  styles.module.css      # optional
+  data.ts                # optional
+  types.ts               # optional
+```
+
+ข้อกำหนด:
+
+- ชื่อโฟลเดอร์ต้องเป็น kebab-case
+- ไฟล์หลักของ component ใช้ชื่อ `index.tsx`
+- CSS module ใช้ชื่อ `styles.module.css`
+- import ให้เรียกผ่าน path ของโฟลเดอร์ เช่น `@/components/library-guided-cta-block`
 
 ## 9. Delivery Checklist
 
