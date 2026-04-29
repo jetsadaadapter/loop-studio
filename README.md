@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Internal App Store (Adapter Library)
+
+Internal App Store คือแอปภายในองค์กรสำหรับแสดงและเข้าถึง Library ของแอป/เครื่องมือภายใน (เช่น MCP, APIFY, MEDIA, APP) โดยเน้นความปลอดภัย, Server-first rendering และโครงสร้างที่แยกชั้น UI กับ Business Logic ชัดเจน
+
+## Tech Stack
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- Shadcn UI / Radix
+- Zod 4 (strict validation)
+- NextAuth.js 4 (มี endpoint รองรับ)
+- Zero Trust Google Login script flow (ใช้งานจริงในหน้า login/callback)
+
+## Current Architecture Summary
+
+- Routing หลักของแอปอยู่ใต้ `/apps` และรายละเอียดแอปที่ `/apps/[slug]`
+- มีการ redirect รองรับเส้นทางเก่า `/library/apps -> /apps` ผ่าน `next.config.ts`
+- Data fetching หลักอยู่ใน `src/core/services/library.service.ts`
+- API base URL บังคับผ่าน env `NEXT_PUBLIC_STORE_API_BASE_URL`
+- Auth ที่ใช้งานจริงเป็น Zero Trust flow:
+  - ปุ่ม login จาก script `/login-adapterstore/login-button.js`
+  - callback ที่ `/callback`
+  - บันทึก token เป็น httpOnly cookie (`zt_token`) ผ่าน `/api/auth/zt-cookie`
+- Route protection ใช้ `src/proxy.ts` ตรวจ cookie `zt_token`
+
+## Security Highlights
+
+- Proxy ใส่ Content Security Policy (CSP) แบบ nonce ต่อ request
+- ใส่ security headers เพิ่มเติมทั้งใน `src/proxy.ts` และ `next.config.ts`
+- Private routes redirect ไป `/login` อัตโนมัติถ้าไม่มี `zt_token`
+- Route สาธารณะหลัก: `/login`, `/callback`, `/api/auth/*`
+
+## Environment Variables
+
+ไฟล์ตัวอย่างอยู่ที่ `.env.example`
+
+ค่าที่ใช้งานในโค้ดปัจจุบัน:
+
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `ALLOWED_EMAIL_DOMAIN`
+- `NEXT_PUBLIC_STORE_API_BASE_URL`
+- `NEXT_PUBLIC_ZT_AUTH_BASE_URL` (optional, มี fallback)
+- `NEXT_PUBLIC_ZT_CLIENT_ID` (optional, มี fallback)
+- `NEXT_PUBLIC_ZT_CALLBACK_PATH` (optional, default `/callback`)
+- `NEXT_PUBLIC_ZT_DEBUG_CALLBACK` (optional, สำหรับ debug callback flow)
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies
+
+```bash
+npm install
+```
+
+2. Prepare env
+
+```bash
+cp .env.example .env.local
+```
+
+3. Run dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Build production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. Start production server
 
-## Learn More
+```bash
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+src/
+  app/            UI pages, routes, layouts (App Router)
+  components/     Shared UI components
+  core/
+    interfaces/   Contracts/types for domain and API responses
+    validators/   Zod schemas (boundary validation)
+    services/     API/service layer
+    adapters/     External-to-internal data transformation
+  lib/            Shared helpers (auth, sanitize, utils)
+  types/          App/global type augmentation
+  proxy.ts        Route guard + CSP/security headers
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Development Notes
 
-## Deploy on Vercel
+- Default เป็น Server Components; ใช้ `"use client"` เฉพาะจำเป็น
+- Validate external payload ที่ boundary เท่านั้น แล้วส่งต่อเป็น typed data
+- หากเพิ่ม external image domain ต้องเพิ่มทั้ง `next.config.ts` และ CSP trusted sources ใน `src/proxy.ts`
+- หากปรับ auth flow ต้องอัปเดตทั้ง `/login`, `/callback`, `/api/auth/zt-cookie`, และเงื่อนไขใน `src/proxy.ts`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Contributor/developer rules: `.github/project-guidlines.md`
+- Agent execution rules: `AGENTS.md`

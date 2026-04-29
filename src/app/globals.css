@@ -8,11 +8,11 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
+    var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
     sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading:
-    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
+    var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
     sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -27,6 +27,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-brand: var(--brand);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -50,6 +51,28 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-rich-mahogany: #3c1518;
+  --color-rich-mahogany-100: #0c0405;
+  --color-rich-mahogany-200: #18080a;
+  --color-rich-mahogany-300: #240d0f;
+  --color-rich-mahogany-400: #301114;
+  --color-rich-mahogany-500: #3c1518;
+  --color-rich-mahogany-600: #7c2b32;
+  --color-rich-mahogany-700: #bb424c;
+  --color-rich-mahogany-800: #d28087;
+  --color-rich-mahogany-900: #e9c0c3;
+
+  --color-dark-garnet: #69140e;
+  --color-dark-garnet-100: #150403;
+  --color-dark-garnet-200: #290806;
+  --color-dark-garnet-300: #3e0c08;
+  --color-dark-garnet-400: #53100b;
+  --color-dark-garnet-500: #69140e;
+  --color-dark-garnet-600: #ac2118;
+  --color-dark-garnet-700: #e33c30;
+  --color-dark-garnet-800: #ec7d75;
+  --color-dark-garnet-900: #f6beba;
 }
 
 :root {
@@ -68,6 +91,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --brand: #c20019;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -123,6 +147,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --brand: #c20019;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -150,10 +175,100 @@
   }
   html {
     @apply font-sans;
+    overflow-x: hidden;
   }
 }
 
 @layer utilities {
+  @keyframes blob-float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+  }
+
+  .animate-blob {
+    animation: blob-float 15s infinite ease-in-out;
+  }
+
+  @keyframes cinematic-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.985);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fade-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .motion-hero-enter {
+    animation: cinematic-enter 780ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .motion-enter-1 {
+    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 120ms;
+  }
+
+  .motion-enter-2 {
+    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 220ms;
+  }
+
+  .motion-enter-3 {
+    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 320ms;
+  }
+
+  .page-hero-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 3.8vw, 2.625rem);
+    line-height: 1.08;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .page-section-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.125rem, 1.9vw, 1.375rem);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+  }
+
+  .page-body-copy {
+    font-size: clamp(0.9375rem, 1.05vw, 1rem);
+    line-height: 1.65;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-hero-enter,
+    .motion-enter-1,
+    .motion-enter-2,
+    .motion-enter-3 {
+      animation: none;
+    }
+  }
+
   .typo-display {
     font-family: var(--font-heading);
     font-size: var(--typo-display-size);

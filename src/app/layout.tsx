@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -40,8 +41,8 @@ const sukhumvitSet = localFont({
   ],
 });
 
-const geist = Geist({
-  variable: "--font-geist",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -51,23 +52,39 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "App Store",
-  description: "Internal app store for Adapter teams",
+  title: "Adapter Library",
+  description: "Internal app library for Adapter teams",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read the per-request nonce set by proxy.ts via the x-nonce response header.
+  // Next.js App Router passes response headers back as request headers for Server Components.
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
     <html
       lang="th"
-      className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://library-api.adapterdigital.com" />
+        <link rel="preconnect" href="https://auth.adapterinternal.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://library-api.adapterdigital.com" />
+        {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
+        <meta name="next-nonce" content={nonce} />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
+        <main className="flex-1 flex flex-col">
+          {children}
+        </main>
       </body>
     </html>
   );
 }
+

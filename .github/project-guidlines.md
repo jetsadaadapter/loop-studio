@@ -1,158 +1,129 @@
-# 🚀 Internal App Store: AI Development Guidelines
+# Internal Library: Project Guidelines
 
-This document serves as the primary source of truth for the development of the Internal App Store. All AI-generated code (GitHub Copilot, Cursor, etc.) must adhere to these standards.
+เอกสารนี้เป็นมาตรฐานหลักสำหรับการพัฒนาใน repository นี้ และต้องสอดคล้องกับโค้ดปัจจุบันเสมอ
 
-## 🏗️ 1. Tech Stack Overview
+## 1. Stack และ Version หลัก
 
-- **Framework:** Next.js (App Router)
-- **Styling:** Tailwind CSS
-- **Typography:** Local `Sukhumvit Set` font family (default sans + heading)
-- **UI Components:** Shadcn UI (Radix UI underneath)
-- **Authentication:** NextAuth.js (Gmail/Google Provider via Centralized MCP)
-- **Validation:** Zod (Strict Schema Validation)
-- **Architecture:** Validator Interface Pattern (Clean Architecture)
+- Next.js 16 (App Router)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- Zod 4
+- NextAuth.js 4 (มี route รองรับ)
+- Zero Trust Google login script flow (production flow ที่ใช้งานจริง)
 
----
-
-## 📁 2. Directory Structure
-
-Maintain a clear separation between UI, Logic, and Data Validation. Never mix business logic directly inside UI components.
+## 2. โครงสร้างระบบ
 
 ```text
-├── src/
-│   ├── app/                # UI Pages & Layouts (Next.js App Router)
-│   ├── components/         # Shared UI (shadcn, composite components)
-│   ├── core/               # Business Logic & Infrastructure (The Core)
-│   │   ├── interfaces/     # TypeScript definitions & Contracts
-│   │   ├── validators/     # Zod Schemas (Single source of truth)
-│   │   ├── services/       # API Clients, Config Generators
-│   │   └── adapters/       # Data transformers (External to Internal formats)
-│   ├── hooks/              # Reusable React hooks
-│   ├── lib/                # Shared utilities (auth config, db, utils)
-│   └── types/              # Global types
+src/
+  app/            Page routes และ layouts
+  components/     Shared UI
+  core/
+    interfaces/   Domain/API contracts
+    validators/   Zod schemas
+    services/     Fetch/API service layer
+    adapters/     Data adapters
+  lib/            Utilities และ auth setup
+  types/          Type augmentation
+  proxy.ts        Route protection + CSP/security headers
 ```
 
----
+กฎสำคัญ:
 
-## 🛡️ 3. Validator Interface Standard
+- ห้ามใส่ business logic หนักใน UI component
+- Validate external input ที่ boundary ก่อนเข้า domain เสมอ
+- ใช้ `z.infer` จาก schema เป็นหลัก ไม่ duplicate type แบบ manual
 
-**Principle:** Never trust external data. Every resource (App, MCP, Media, Apify) must be validated before entering the application state.
+## 3. Auth และ Routing Policy (Current Implementation)
 
-Always derive TypeScript types from Zod schemas using `z.infer<typeof Schema>`.
+Flow ปัจจุบัน:
 
-Security requirements for validators:
+1. `/login` แสดงปุ่ม Zero Trust
+2. script จาก `/login-adapterstore/login-button.js` พา login ผ่านผู้ให้บริการ
+3. callback ที่ `/callback`
+4. callback เรียก `/api/auth/zt-cookie` เพื่อเซ็ต `zt_token` เป็น httpOnly cookie
+5. `src/proxy.ts` ตรวจ `zt_token` ทุก request ที่เข้า matcher
 
-- Use strict schemas (`.strict()`) for all external payloads to reject unknown keys.
-- Validate URL fields with protocol/domain constraints (`https` only and approved host allowlist).
-- Enforce input size limits (`.max(...)`) for text, arrays, and nested objects to prevent abuse.
-- Parse once at boundaries (API, adapters, webhook handlers); internal layers must only consume validated types.
-- Convert `ZodError` to safe user-facing messages and structured logs. Never log raw sensitive payloads.
+Public paths:
 
-### Resource Schema Implementation Example
+- `/login`
+- `/callback`
+- `/api/auth/*`
 
-```typescript
-// src/core/validators/resource.validator.ts
-import { z } from "zod";
+Behavior บังคับ:
 
-export const ResourceType = z.enum(["APP", "MCP", "APIFY", "MEDIA"]);
+- ไม่มี `zt_token` -> redirect ไป `/login`
+- มี token แล้วเข้าหน้า `/login` -> redirect ไป `/apps`
 
-export const BaseResourceSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1),
-  type: ResourceType,
-  iconUrl: z.string().url(),
-});
+หมายเหตุ:
 
-export const MCPSchema = BaseResourceSchema.extend({
-  type: z.literal("MCP"),
-  config: z.object({
-    command: z.string(),
-    args: z.array(z.string()),
-    env: z.record(z.string()).optional(),
-  }),
-});
+- NextAuth route (`/api/auth/[...nextauth]`) ยังมีไว้รองรับ แต่ login UI หลักใช้ Zero Trust flow
 
-// Use Discriminated Unions for scalable typing
-export const AppResourceSchema = z.discriminatedUnion("type", [
-  MCPSchema,
-  // Add APIFY, MEDIA, WEB_APP schemas here
-]);
+## 4. Security Baseline
 
-export type AppResource = z.infer<typeof AppResourceSchema>;
-```
+ทุก change ที่แตะ auth/network/security ต้องคงหลักต่อไปนี้:
 
----
+- CSP แบบ nonce ต่อ request ผ่าน `src/proxy.ts`
+- Security headers ขั้นต่ำ: `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Referrer-Policy`, `Permissions-Policy`
+- Cookie auth ต้องเป็น `httpOnly` และ `secure` ใน production
+- หากเพิ่ม external host (API/image/script) ต้องอัปเดต allowlist ให้ครบทั้ง CSP และ `next.config.ts`
 
-## 🎨 4. UI & Design Principles (Play Store Style)
+## 5. Data Validation Standard
 
-### Font Baseline (Required for new projects)
+หลักการ:
 
-1. Use `Sukhumvit Set` as the required project font family (default sans + heading) and keep all font files in `src/app/fonts/sukhumvit-set`.
-2. Register fonts using `next/font/local` in `src/app/layout.tsx` with all provided weights.
-3. Set `--font-sans` and `--font-heading` to the local Sukhumvit variable in `src/app/globals.css`.
-4. Keep a monospaced fallback (for code/logs) as a separate font variable.
+- Never trust external data
+- Parse once at boundary
+- Internal layers ใช้เฉพาะ typed/validated objects
 
-- **Visual Hierarchy:** Use Shadcn/Embla `Carousel` for featured apps and horizontal `Grid` for app categories.
-- **Micro-interactions:** Use Framer Motion or Tailwind transitions for smooth hover states.
-- **States:** Always handle `Loading`, `Empty`, and `Error` states using Shadcn `Skeleton` and `Alert` components.
-- **Modals:** Use Shadcn `Dialog` or `Sheet` to display app details (screenshots, permissions, version history) without leaving the overview page.
+ข้อบังคับ validator:
 
----
+- External payload ต้องใช้ `.strict()`
+- URL field ต้อง enforce `https` และ host policy ตาม domain ที่กำหนด
+- ใส่ `.max()` ให้ข้อความ, array และ nested object ที่รับจากภายนอก
+- เมื่อเกิด `ZodError` ให้แปลงเป็นข้อความปลอดภัยต่อผู้ใช้ ห้าม leak raw payload
 
-## ⚙️ 5. Push Config & Integrations Logic
+## 6. Environment Variables
 
-To enable "One-Click Install" for MCP/Configs:
+กำหนดไว้ใน `.env.example` เป็น baseline ขั้นต่ำ:
 
-1. **Desktop Agent / CLI:** The app must trigger a protocol handler (e.g., `company-store://install?id=123`) or provide a clear CLI sync command.
-2. **Config Generation:** Use a dedicated service in `src/core/services` to transform Zod-validated data into tool-specific configurations (e.g., `claude_desktop_config.json`).
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `ALLOWED_EMAIL_DOMAIN`
+- `NEXT_PUBLIC_STORE_API_BASE_URL`
 
-Secure MCP installation workflow (mandatory):
+ค่าที่รองรับเพิ่มเติม (optional):
 
-1. Validate install request with signed metadata (resource id, version, checksum, publisher).
-2. Resolve command from server-side allowlist only. Never execute commands provided directly by clients.
-3. Enforce policy checks before install: user role, environment, scope, and approval requirement.
-4. Persist audit event for each action (requested, approved, installed, failed) with actor and timestamp.
+- `NEXT_PUBLIC_ZT_AUTH_BASE_URL`
+- `NEXT_PUBLIC_ZT_CLIENT_ID`
+- `NEXT_PUBLIC_ZT_CALLBACK_PATH`
+- `NEXT_PUBLIC_ZT_DEBUG_CALLBACK`
 
-Execution safety rules:
+## 7. UI และ Frontend Rules
 
-- Allowlist only known commands and fixed binary paths.
-- Disallow shell interpolation and dynamic script composition.
-- Restrict environment variables to approved keys.
-- Run integrations with least privilege and explicit filesystem/network boundaries.
+- ใช้ฟอนต์ local Sukhumvit Set จาก `src/app/fonts/sukhumvit-set`
+- ใช้ Server Components เป็น default
+- ใส่ `"use client"` เฉพาะเมื่อจำเป็นต้องใช้ state/effect/browser API
+- ต้องมี loading/empty/error state สำหรับหน้าที่ดึงข้อมูล
 
----
+## 8. Coding Rules for Contributors and AI Agents
 
-## 🔐 6. Auth & Security
+- ตั้งชื่อไฟล์ตาม convention:
+  - Validators: `[name].validator.ts`
+  - Components: `[Name].tsx`
+  - Hooks: `use[Name].ts`
+- แยก responsibilities ให้ไฟล์อ่านง่าย; ไฟล์ใหญ่เกินจำเป็นให้ split component/service
+- หลีกเลี่ยง refactor unrelated code ระหว่างแก้ issue เดียว
+- หากแก้ behavior ที่กระทบเอกสาร ให้ update เอกสารนี้, `README.md`, และ `AGENTS.md` พร้อมกัน
 
-- **Domain Restriction:** Only authorize emails ending with the designated `@company.com`.
-- **RBAC:** User roles and permissions must be extracted from the Centralized MCP Auth token.
-- **Middleware:** Use Next.js Middleware (`middleware.ts`) to protect all `/api` and private routes. Unauthenticated users must be redirected to the login page immediately.
-- **Token Handling:** Use short-lived access tokens, rotate refresh tokens, and enforce secure cookie settings (`HttpOnly`, `Secure`, `SameSite`).
-- **Secrets Management:** Never store secrets in source code or client bundles. Use managed secret storage and environment injection at runtime.
-- **API Protection:** Apply rate limiting and abuse detection on auth, install, and config endpoints.
-- **Security Headers:** Enforce CSP, HSTS, `X-Frame-Options`, and `Referrer-Policy` for production.
-- **CSRF Protection:** Protect all state-changing routes and callback endpoints.
-- **Audit Logging:** Log auth decisions, privilege changes, and install operations with redaction of sensitive values.
+## 9. Delivery Checklist
 
----
+ก่อน merge ให้ตรวจอย่างน้อย:
 
-## 🤖 7. AI Code Generation Rules (Strict)
-
-1. **Component Scoping:** Keep components small and focused (Single Responsibility). If a file exceeds 150 lines, split it into smaller sub-components.
-2. **Naming Convention:** Validators use `[name].validator.ts`, components use `[Name].tsx` (PascalCase), and hooks use `use[Name].ts` (camelCase).
-3. **Error Handling:** Use `ZodError` for validation and display user-friendly messages via Shadcn `Toast`. Never expose raw stack traces to the UI.
-4. **Client vs Server:** Explicitly use `"use client"` only when React hooks (`useState`, `useEffect`, context) or event listeners are required. Default to Server Components.
-
----
-
-## ✅ 8. Security Baseline & Delivery Checklist
-
-Every feature and release must pass the following checks:
-
-1. **Authorization:** API routes enforce role checks server-side; no client-side-only authorization.
-2. **Validation:** External inputs validated with strict schemas and bounded sizes.
-3. **Secrets:** No credentials in repository, logs, or browser-visible payloads.
-4. **Install Safety:** MCP execution uses allowlisted commands with audit trail.
-5. **Observability:** Security-relevant events are logged and monitored.
-6. **Testing:** Include at least one positive and one negative auth/permission test per protected flow.
-7. **Dependency Hygiene:** Run dependency vulnerability checks in CI for each pull request.
+1. Build ผ่าน (`npm run build`)
+2. Routes สำคัญทำงาน: `/login`, `/callback`, `/apps`, `/apps/[slug]`
+3. Auth guard ทำงานถูกต้อง (redirect ตามสถานะ token)
+4. ไม่มี hard-coded secrets ใน source
+5. หากเพิ่มโดเมนภายนอก อัปเดตทั้ง image config และ CSP allowlist ครบ

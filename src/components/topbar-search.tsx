@@ -3,17 +3,23 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export function TopbarSearch() {
+type TopbarSearchProps = {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit?: () => void;
+};
+
+export function TopbarSearch({ value, onChange, onSubmit }: TopbarSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const closeSearch = () => {
+    if (value) return;
     setIsOpen(false);
   };
 
   const clearSearch = () => {
-    setQuery("");
+    onChange("");
     inputRef.current?.focus();
   };
 
@@ -23,7 +29,7 @@ export function TopbarSearch() {
     }
   }, [isOpen]);
 
-  if (!isOpen) {
+  if (!isOpen && !value) {
     return (
       <button
         type="button"
@@ -42,8 +48,8 @@ export function TopbarSearch() {
       <input
         ref={inputRef}
         type="text"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         onBlur={() => {
           closeSearch();
         }}
@@ -51,11 +57,14 @@ export function TopbarSearch() {
           if (event.key === "Escape") {
             closeSearch();
           }
+          if (event.key === "Enter") {
+            onSubmit?.();
+          }
         }}
         placeholder="Search for apps"
-        className="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm outline-none transition focus:border-[#c20019] focus:bg-white"
+        className="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm outline-none transition focus:border-brand focus:bg-white"
       />
-      {query && (
+      {value && (
         <button
           type="button"
           onMouseDown={(event) => event.preventDefault()}

@@ -1,440 +1,223 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, MoveRight } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import {
+  type CategoryKey,
+  type RankedApp,
+  categoryTabs,
+  FALLBACK_RANKING_DATA,
+  APP_IMAGE_BY_ID,
+  DEFAULT_APP_IMAGE,
+} from "./app-category-ranking.data";
 
-type CategoryKey = "mcp" | "platform" | "tool";
+export type { CategoryKey, RankedApp };
 
-type RankedApp = {
-  id: string;
-  rank: number;
-  name: string;
-  category: string;
-  meta: string;
-  iconText: string;
-  iconClassName: string;
+type AppCategoryRankingProps = {
+  rankingData?: Record<CategoryKey, RankedApp[]>;
 };
 
-const categoryTabs: Array<{ key: CategoryKey; label: string }> = [
-  { key: "mcp", label: "MCP" },
-  { key: "platform", label: "Platform" },
-  { key: "tool", label: "Tool" },
-];
-
-const rankingData: Record<CategoryKey, RankedApp[]> = {
-  mcp: [
-    {
-      id: "apify-mcp",
-      rank: 1,
-      name: "APIFY MCP",
-      category: "Data Connector",
-      meta: "Production ready",
-      iconText: "AP",
-      iconClassName: "bg-emerald-600",
-    },
-    {
-      id: "adapter-media-mcp",
-      rank: 2,
-      name: "Adapter Media MCP",
-      category: "Media Integration",
-      meta: "Production ready",
-      iconText: "AM",
-      iconClassName: "bg-blue-600",
-    },
-    {
-      id: "hype-mcp",
-      rank: 3,
-      name: "HYPE MCP",
-      category: "Campaign Automation",
-      meta: "Planned",
-      iconText: "HY",
-      iconClassName: "bg-slate-700",
-    },
-    {
-      id: "audit-mcp",
-      rank: 4,
-      name: "Audit Stream MCP",
-      category: "Observability",
-      meta: "Beta",
-      iconText: "AS",
-      iconClassName: "bg-orange-600",
-    },
-    {
-      id: "policy-mcp",
-      rank: 5,
-      name: "Policy Guard MCP",
-      category: "Governance",
-      meta: "In rollout",
-      iconText: "PG",
-      iconClassName: "bg-purple-700",
-    },
-    {
-      id: "workflow-mcp",
-      rank: 6,
-      name: "Workflow Bridge MCP",
-      category: "Automation",
-      meta: "In rollout",
-      iconText: "WB",
-      iconClassName: "bg-pink-600",
-    },
-  ],
-  platform: [
-    {
-      id: "adapter-campaign",
-      rank: 1,
-      name: "Adapter Campaign",
-      category: "Campaign Platform",
-      meta: "Production ready",
-      iconText: "AC",
-      iconClassName: "bg-emerald-700",
-    },
-    {
-      id: "adapter-workflow-hub",
-      rank: 2,
-      name: "Workflow Hub",
-      category: "Orchestration",
-      meta: "Beta",
-      iconText: "WH",
-      iconClassName: "bg-indigo-700",
-    },
-    {
-      id: "adapter-insight-center",
-      rank: 3,
-      name: "Insight Center",
-      category: "Analytics",
-      meta: "Beta",
-      iconText: "IC",
-      iconClassName: "bg-cyan-700",
-    },
-    {
-      id: "adapter-identity",
-      rank: 4,
-      name: "Identity Access",
-      category: "Security",
-      meta: "In rollout",
-      iconText: "IA",
-      iconClassName: "bg-red-700",
-    },
-    {
-      id: "adapter-admin-console",
-      rank: 5,
-      name: "Admin Console",
-      category: "Operations",
-      meta: "In rollout",
-      iconText: "AD",
-      iconClassName: "bg-teal-700",
-    },
-    {
-      id: "adapter-billing",
-      rank: 6,
-      name: "Billing Core",
-      category: "Finance",
-      meta: "Planned",
-      iconText: "BC",
-      iconClassName: "bg-lime-700",
-    },
-  ],
-  tool: [
-    {
-      id: "comment-loader",
-      rank: 1,
-      name: "Comment Loader",
-      category: "Data Tool",
-      meta: "NEW",
-      iconText: "CL",
-      iconClassName: "bg-emerald-700",
-    },
-    {
-      id: "post-comment-analyzer",
-      rank: 2,
-      name: "Post Comment Analyzer",
-      category: "Insight Tool",
-      meta: "NEW",
-      iconText: "PA",
-      iconClassName: "bg-red-700",
-    },
-    {
-      id: "keyword-clustering",
-      rank: 3,
-      name: "Keyword Clustering",
-      category: "Analysis Tool",
-      meta: "Beta",
-      iconText: "KC",
-      iconClassName: "bg-violet-700",
-    },
-    {
-      id: "reply-assistant",
-      rank: 4,
-      name: "Reply Assistant",
-      category: "Engagement Tool",
-      meta: "Beta",
-      iconText: "RA",
-      iconClassName: "bg-amber-700",
-    },
-    {
-      id: "sentiment-monitor",
-      rank: 5,
-      name: "Sentiment Monitor",
-      category: "Monitoring Tool",
-      meta: "In rollout",
-      iconText: "SM",
-      iconClassName: "bg-zinc-700",
-    },
-    {
-      id: "campaign-qa",
-      rank: 6,
-      name: "Campaign QA",
-      category: "Quality Tool",
-      meta: "Planned",
-      iconText: "QA",
-      iconClassName: "bg-indigo-700",
-    },
-  ],
-};
-
-function splitColumns(apps: RankedApp[]) {
-  const size = Math.ceil(apps.length / 3);
-  return [
-    apps.slice(0, size),
-    apps.slice(size, size * 2),
-    apps.slice(size * 2),
-  ];
-}
-
-function metaBadgeClass(meta: string) {
-  const normalized = meta.toLowerCase();
-
-  if (normalized === "new") {
-    return "bg-red-100 text-red-700";
-  }
-
-  if (normalized === "production ready") {
-    return "bg-emerald-100 text-emerald-700";
-  }
-
-  if (normalized === "in rollout") {
-    return "bg-amber-100 text-amber-800";
-  }
-
-  if (normalized === "beta") {
-    return "bg-sky-100 text-sky-800";
-  }
-
-  return "bg-slate-100 text-slate-700";
-}
-
-export function AppCategoryRanking() {
+export function AppCategoryRanking({
+  rankingData = FALLBACK_RANKING_DATA,
+}: AppCategoryRankingProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("tool");
+  const [renderedCategory, setRenderedCategory] = useState<CategoryKey>("tool");
+  const [isSliderVisible, setIsSliderVisible] = useState(true);
+  const [canSlideLeft, setCanSlideLeft] = useState(false);
+  const [canSlideRight, setCanSlideRight] = useState(true);
   const sliderRef = useRef<HTMLDivElement | null>(null);
-  const sectionDescription: Record<CategoryKey, string> = {
-    mcp: "Model Context Protocol services",
-    platform: "Core platform systems",
-    tool: "Operational tools and utilities",
-  };
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const currentIndex = categoryTabs.findIndex(
-    (tab) => tab.key === selectedCategory,
-  );
-  const canScrollPrev = currentIndex > 0;
-  const canScrollNext = currentIndex < categoryTabs.length - 1;
+  const displayedApps = rankingData[renderedCategory] ?? [];
 
-  function scrollToCategory(nextCategory: CategoryKey) {
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+    };
+  }, []);
+
+  function updateSliderBounds() {
     const slider = sliderRef.current;
-    const nextIndex = categoryTabs.findIndex((tab) => tab.key === nextCategory);
+    if (!slider) return;
+    setCanSlideLeft(slider.scrollLeft > 2);
+    setCanSlideRight(
+      slider.scrollLeft < slider.scrollWidth - slider.clientWidth - 2,
+    );
+  }
 
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    slider.scrollLeft = 0;
+    updateSliderBounds();
+  }, [renderedCategory]);
+
+  useEffect(() => {
+    updateSliderBounds();
+    window.addEventListener("resize", updateSliderBounds);
+    return () => window.removeEventListener("resize", updateSliderBounds);
+  }, []);
+
+  function goToCategory(nextCategory: CategoryKey) {
+    if (nextCategory === selectedCategory) return;
     setSelectedCategory(nextCategory);
+    setIsSliderVisible(false);
+    if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+    transitionTimerRef.current = setTimeout(() => {
+      setRenderedCategory(nextCategory);
+      setIsSliderVisible(true);
+    }, 160);
+  }
 
-    if (!slider || nextIndex < 0) {
-      return;
-    }
-
-    slider.scrollTo({
-      left: slider.clientWidth * nextIndex,
+  function scrollSlider(direction: "left" | "right") {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    const cardWidth = slider.querySelector("article")?.clientWidth ?? 320;
+    slider.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
       behavior: "smooth",
     });
   }
 
-  function handleArrow(direction: "previous" | "next") {
-    const nextIndex =
-      direction === "next"
-        ? Math.min(currentIndex + 1, categoryTabs.length - 1)
-        : Math.max(currentIndex - 1, 0);
-
-    scrollToCategory(categoryTabs[nextIndex].key);
+  function handleSliderScroll() {
+    updateSliderBounds();
   }
 
-  function handleSliderScroll() {
-    const slider = sliderRef.current;
+  function getAppImageUrl(app: RankedApp) {
+    return app.imageUrl || APP_IMAGE_BY_ID[app.id] || DEFAULT_APP_IMAGE;
+  }
 
-    if (!slider) {
-      return;
-    }
-
-    const nextIndex = Math.round(slider.scrollLeft / slider.clientWidth);
-    const nextCategory = categoryTabs[nextIndex]?.key;
-
-    if (nextCategory && nextCategory !== selectedCategory) {
-      setSelectedCategory(nextCategory);
-    }
+  function getAppActionUrl(app: RankedApp) {
+    return app.actionUrl || `/apps/${app.id}`;
   }
 
   return (
     <section
-      className="mt-8 rounded-3xl border border-slate-200 bg-linear-to-b from-slate-50 to-white p-4 sm:p-6"
+      className="mt-10 w-full overflow-x-hidden py-4"
       aria-label="App categories"
     >
-      <header className="ranking-header">
-        <div className="ranking-title-group flex flex-col gap-1">
-          <h2 className="text-xl font-semibold text-slate-900">Top charts</h2>
-          <p className="text-xs text-slate-500">
-            Browse ranked Adapter apps by category.
-          </p>
-        </div>
-      </header>
+      <h2 className="text-pretty text-xl font-bold leading-tight text-slate-950 sm:text-2xl lg:text-[1.75rem]">
+        Top Charts Across Categories
+      </h2>
 
-      <div className="mt-5">
-        <div className="tab-container">
-          <div
-            className="tab-list flex flex-wrap gap-2"
-            role="tablist"
-            aria-label="App category filters"
-          >
-            {categoryTabs.map((tab) => {
-              const isActive = tab.key === selectedCategory;
-
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  role="tab"
-                  aria-label={tab.label}
-                  onClick={() => scrollToCategory(tab.key)}
-                  className={`tab-button rounded-full border px-4 py-1.5 text-sm font-medium shadow-sm transition ${
-                    isActive
-                      ? "border-[#c20019]/30 bg-[#c20019]/10 text-[#c20019]"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="apps-content mt-5">
-          <div className="apps-inner group/ranking-slider relative rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <div
-              ref={sliderRef}
-              onScroll={handleSliderScroll}
-              className="slider-track flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              aria-live="polite"
-            >
-              {categoryTabs.map((tab) => {
-                const groupedApps = splitColumns(rankingData[tab.key]);
-
-                return (
-                  <div
-                    key={tab.key}
-                    className="slide-panel min-w-full snap-start"
-                    role="group"
-                    aria-label={`${tab.label} rankings`}
-                  >
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                          {tab.label}
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          {sectionDescription[tab.key]}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      className="apps-grid grid gap-x-5 gap-y-3 lg:grid-cols-3"
-                      role="list"
-                      aria-label={`${tab.label} apps`}
-                    >
-                      {groupedApps.map((group, groupIndex) => (
-                        <div
-                          key={`${tab.key}-${groupIndex}`}
-                          role="listitem"
-                          className="app-column space-y-2"
-                        >
-                          {group.map((app) => (
-                            <article
-                              key={app.id}
-                              className="app-card flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-slate-50"
-                            >
-                              <div
-                                className="rank-badge inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500"
-                                aria-label={`Rank ${app.rank}`}
-                              >
-                                {app.rank}
-                              </div>
-
-                              <div className="app-info flex min-w-0 items-center gap-3">
-                                <div
-                                  className={`app-icon flex size-14 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold tracking-wide text-white shadow-sm ${app.iconClassName}`}
-                                >
-                                  {app.iconText}
-                                </div>
-
-                                <div className="app-text min-w-0">
-                                  <div className="app-name-row">
-                                    <h3 className="line-clamp-1 text-sm font-medium text-slate-900 sm:text-base">
-                                      {app.name}
-                                    </h3>
-                                  </div>
-                                  <div className="app-category-row">
-                                    <p className="line-clamp-1 text-sm text-slate-500">
-                                      {app.category}
-                                    </p>
-                                  </div>
-                                  <div className="app-meta-row mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                                    <span
-                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${metaBadgeClass(
-                                        app.meta,
-                                      )}`}
-                                    >
-                                      {app.meta}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </article>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
+      <div
+        className="mt-6 grid gap-x-8 gap-y-8 lg:mt-12 lg:grid-cols-3 lg:gap-x-14 lg:gap-y-10"
+        role="region"
+        aria-roledescription="carousel"
+      >
+        {/* LEFT: category links — 3rd on mobile, 1st col on desktop */}
+        <div className="order-3 flex flex-col gap-4 sm:gap-6 lg:order-0">
+          {categoryTabs.map((tab, index) => {
+            const isActive = tab.key === selectedCategory;
+            return (
+              <div key={tab.key}>
+                <div className="flex flex-col gap-1">
+                  <div className="font-mono text-xs uppercase tracking-widest text-slate-400">
+                    {tab.label}
                   </div>
-                );
-              })}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => goToCategory(tab.key)}
+                    aria-current={isActive ? "true" : undefined}
+                    className={`group flex items-center gap-2 text-left text-sm font-semibold transition-colors sm:text-base ${
+                      isActive
+                        ? "text-slate-950"
+                        : "text-slate-400 hover:text-slate-700"
+                    }`}
+                  >
+                    {tab.description}
+                    <MoveRight
+                      className={`mt-0.5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${
+                        isActive ? "text-slate-700" : "text-slate-300"
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+                {index < categoryTabs.length - 1 && (
+                  <hr className="mt-6 border-slate-200" />
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-            {canScrollPrev ? (
-              <button
-                type="button"
-                onClick={() => handleArrow("previous")}
-                className="absolute top-1/2 left-0 z-10 hidden size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
-                aria-label="Previous category"
+        {/* RIGHT: scrollable carousel — 1st on mobile, spans 2 cols on desktop */}
+        <div
+          className={`order-1 min-w-0 overflow-hidden lg:order-0 lg:col-span-2 transition-opacity duration-300 ${
+            isSliderVisible ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div
+            ref={sliderRef}
+            onScroll={handleSliderScroll}
+            className="flex w-full max-w-full select-none overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {displayedApps.map((app, index) => (
+              <article
+                key={app.id}
+                role="group"
+                aria-roledescription="slide"
+                className={`min-w-0 shrink-0 grow-0 basis-full border-y border-l border-slate-200 transition-colors duration-300 hover:bg-slate-50/80 sm:basis-1/2 ${
+                  index === displayedApps.length - 1 ? "border-r" : ""
+                }`}
               >
-                <ChevronLeft className="size-5" />
-              </button>
-            ) : null}
-
-            {canScrollNext ? (
-              <button
-                type="button"
-                onClick={() => handleArrow("next")}
-                className="absolute top-1/2 right-0 z-10 hidden size-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 opacity-0 shadow-sm transition-opacity duration-200 hover:border-[#c20019]/30 hover:text-[#c20019] group-hover/ranking-slider:opacity-100 group-focus-within/ranking-slider:opacity-100 lg:inline-flex"
-                aria-label="Next category"
-              >
-                <ChevronRight className="size-5" />
-              </button>
-            ) : null}
+                <Link
+                  href={getAppActionUrl(app)}
+                  target={app.actionType === "linkout" ? "_blank" : undefined}
+                  rel={app.actionType === "linkout" ? "noreferrer" : undefined}
+                  className="block h-full"
+                >
+                  <div className="flex aspect-video items-center justify-center bg-slate-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getAppImageUrl(app)}
+                      alt={app.name}
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        const target = event.currentTarget;
+                        target.onerror = null;
+                        target.src = DEFAULT_APP_IMAGE;
+                      }}
+                    />
+                  </div>
+                  <div className="px-5 py-5">
+                    <div className="font-mono text-xs uppercase tracking-widest text-slate-400">
+                      {app.category}
+                    </div>
+                    <h3 className="mt-1.5 text-sm font-semibold leading-snug text-slate-950 sm:text-base">
+                      {app.name}
+                    </h3>
+                  </div>
+                </Link>
+              </article>
+            ))}
           </div>
+        </div>
+
+        {/* NAV arrows — 2nd on mobile, below carousel start on desktop */}
+        <div className="order-2 flex items-center gap-4 lg:order-0 lg:col-start-2">
+          <button
+            type="button"
+            onClick={() => scrollSlider("left")}
+            disabled={!canSlideLeft}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 sm:size-12"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="size-5" />
+            <span className="sr-only">Previous slide</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollSlider("right")}
+            disabled={!canSlideRight}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 sm:size-12"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="size-5" />
+            <span className="sr-only">Next slide</span>
+          </button>
         </div>
       </div>
     </section>
