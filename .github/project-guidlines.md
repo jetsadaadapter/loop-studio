@@ -87,8 +87,6 @@ Behavior บังคับ:
 
 กำหนดไว้ใน `.env.example` เป็น baseline ขั้นต่ำ:
 
-- `NEXTAUTH_URL`
-- `NEXTAUTH_SECRET`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `ALLOWED_EMAIL_DOMAIN`

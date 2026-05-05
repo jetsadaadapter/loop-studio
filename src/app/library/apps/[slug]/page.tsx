@@ -43,6 +43,7 @@ export default async function AppDetailPage({ params }: Props) {
     app.category,
     initOptions,
   );
+  const coverAccentColor = app.tags.find((tag) => tag.color)?.color;
   const screenshotUrls = [app.imageUrl].filter((value): value is string =>
     Boolean(value),
   );
@@ -50,7 +51,11 @@ export default async function AppDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:pb-10">
       <div className="-mt-5 space-y-6">
-        <AppCover src={app.imageUrl} alt={`${app.name} cover image`}>
+        <AppCover
+          src={app.imageUrl}
+          alt={`${app.name} cover image`}
+          accentColor={coverAccentColor}
+        >
           <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
             <Link
               href="/apps"
