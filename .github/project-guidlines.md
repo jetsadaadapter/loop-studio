@@ -108,6 +108,14 @@ Behavior บังคับ:
 - ใส่ `"use client"` เฉพาะเมื่อจำเป็นต้องใช้ state/effect/browser API
 - ต้องมี loading/empty/error state สำหรับหน้าที่ดึงข้อมูล
 
+### App Cover Asset Guideline
+
+- หน้า detail ใช้ภาพ cover เดียวที่รองรับทั้ง desktop/mobile
+- อัตราส่วนแนะนำ: 16:9
+- ขนาดไฟล์แนะนำ (baseline): 2560x1440 px
+- ขนาดขั้นต่ำที่ยอมรับได้: 1920x1080 px
+- แนะนำ export เป็น WebP (หรือ AVIF) เพื่อคุมคุณภาพและขนาดไฟล์
+
 ## 8. Coding Rules for Contributors and AI Agents
 
 - ตั้งชื่อไฟล์ตาม convention:

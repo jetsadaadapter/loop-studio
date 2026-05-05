@@ -6,6 +6,7 @@ import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";
 import { RelatedAppListItem } from "@/components/related-app-list-item";
+import { AppCover } from "@/components/app-cover";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -49,27 +50,7 @@ export default async function AppDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:pb-10">
       <div className="-mt-5 space-y-6">
-        <section className="motion-hero-enter relative left-1/2 right-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#1d2028] text-white shadow-[0_30px_72px_-44px_rgba(2,6,23,0.92)]">
-          <div className="absolute inset-0">
-            {app.imageUrl ? (
-              <div className="absolute right-[-22%] top-1/2 w-[168%] -translate-y-1/2 sm:right-[-14%] sm:w-[132%] lg:right-[-6%] lg:w-[94%]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={app.imageUrl}
-                  alt={`${app.name} preview`}
-                  className="aspect-video w-full object-cover object-center"
-                />
-              </div>
-            ) : null}
-            <div className="absolute inset-0 bg-linear-to-b from-[#0a0d14]/82 via-[#111827]/62 to-[#111827]/24" />
-            <div className="absolute inset-0 bg-linear-to-r from-[#090d16]/98 via-[#111a2a]/80 via-45% to-[#0f172a]/30" />
-            <div className="absolute inset-0 bg-radial-[at_10%_50%] from-black/62 via-black/28 to-transparent" />
-            <div className="absolute inset-0 bg-radial-[at_75%_30%] from-black/28 via-transparent to-transparent" />
-            <div className="absolute inset-0 opacity-30 bg-[repeating-linear-gradient(0deg,rgba(255,255,255,0.03)_0px,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_3px)]" />
-            <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-size-[4px_4px]" />
-          </div>
-
-          {/* Back button overlay */}
+        <AppCover src={app.imageUrl} alt={`${app.name} cover image`}>
           <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
             <Link
               href="/apps"
@@ -92,7 +73,7 @@ export default async function AppDetailPage({ params }: Props) {
             </Link>
           </div>
 
-          <div className="relative z-10 flex min-h-80 flex-col justify-end p-5 pt-20 sm:min-h-104 sm:p-8 sm:pt-24 lg:min-h-124 lg:p-10 lg:pt-28">
+          <div className="relative z-10 flex min-h-80 flex-col justify-end p-5 pt-20 text-white sm:min-h-104 sm:p-8 sm:pt-24 lg:min-h-124 lg:p-10 lg:pt-28">
             <div className="max-w-3xl">
               <div className="flex items-end gap-4">
                 <AppIcon
@@ -146,7 +127,7 @@ export default async function AppDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
-        </section>
+        </AppCover>
 
         <div className="grid gap-x-10 gap-y-0 pt-2 sm:pt-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
           {/* ── Main content ─────────────────────────────────────── */}
