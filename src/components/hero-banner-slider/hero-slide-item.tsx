@@ -79,6 +79,7 @@ export function HeroSlideItem({
           priority={isPriority}
           fetchPriority={isPriority ? "high" : undefined}
           loading={isPriority ? "eager" : "lazy"}
+          unoptimized
         />
 
         <div
@@ -101,6 +102,7 @@ export function HeroSlideItem({
                 alt={`${slide.appName} icon`}
                 fill
                 className="object-cover"
+                unoptimized
               />
             </div>
           </div>

@@ -26,7 +26,11 @@ export class ApiError extends Error {
     }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_STORE_API_BASE_URL;
+// On the server, prefer SERVER_API_BASE_URL (internal network).
+// On the client, always use NEXT_PUBLIC_STORE_API_BASE_URL (public URL).
+const BASE_URL =
+    (typeof window === "undefined" ? process.env.SERVER_API_BASE_URL : undefined) ||
+    process.env.NEXT_PUBLIC_STORE_API_BASE_URL;
 
 if (!BASE_URL) {
     throw new Error("Missing NEXT_PUBLIC_STORE_API_BASE_URL");

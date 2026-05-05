@@ -19,6 +19,7 @@ export function AppTile({ app }: { app: LibraryApp }) {
               fill
               sizes="(max-width: 640px) 160px, 192px"
               className="object-cover transition duration-500 group-hover:scale-105"
+              unoptimized
             />
           ) : null}
           <div className="absolute inset-0 bg-linear-to-b from-white/5 via-slate-900/6 to-slate-900/28" />

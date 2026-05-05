@@ -98,6 +98,7 @@ export function AppCover({ src, alt, accentColor, children }: AppCoverProps) {
             className="object-cover"
             sizes="100vw"
             priority
+            unoptimized
           />
         ) : null}
         <div className="absolute inset-0 bg-linear-to-b from-[#0a0d14]/82 via-[#111827]/62 to-[#111827]/24" />

@@ -53,6 +53,7 @@ export function AppIcon({
               sizes={imageSizes}
               className={imageClassName}
               onError={() => setErroredUrl(iconUrl ?? null)}
+              unoptimized
             />
           </div>
         </div>
