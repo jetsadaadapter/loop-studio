@@ -16,7 +16,7 @@ export const libraryFooterLinks: Record<string, FooterLinkItem[]> = {
         { label: "Changelog", href: "#" },
     ],
     Company: [
-        { label: "About", href: "#" },
+        { label: "About", href: "/about" },
         { label: "Privacy Policy", href: LEGAL_LINKS.privacyPolicy },
         { label: "Terms of Service", href: LEGAL_LINKS.termsOfService },
     ],

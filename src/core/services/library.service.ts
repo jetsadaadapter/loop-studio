@@ -113,11 +113,17 @@ async function apiFetch<T>(
         incomingHeaders.set("Content-Type", "application/json");
     }
 
+    const hasAuth = incomingHeaders.has("Authorization");
+    console.log(`[Library API] → ${init?.method ?? "GET"} ${url}`);
+    console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING"}`);
+
+    const t0 = Date.now();
     const res = await fetch(url, {
         headers: incomingHeaders,
         credentials: "include",
         ...init,
     });
+    console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
 
     if (res.status === 401) {
         // Token expired or revoked — bounce to login (client-side only).
@@ -129,6 +135,9 @@ async function apiFetch<T>(
     }
 
     if (!res.ok) {
+        let body = "";
+        try { body = await res.text(); } catch { /* ignore */ }
+        console.error(`[Library API] ✗ Error body: ${body.slice(0, 500)}`);
         throw new ApiError(
             res.status,
             `Library API error ${res.status} ${res.statusText}`,

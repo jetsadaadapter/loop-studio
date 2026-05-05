@@ -55,16 +55,16 @@ function buildCsp(nonce: string): string {
     ].join(" ");
 
     const directives: Record<string, string> = {
-        "default-src":               "'self'",
-        "script-src":                scriptSrc,
-        "style-src":                 "'self' 'unsafe-inline'",
-        "img-src":                   TRUSTED_IMG_SRCS,
-        "font-src":                  "'self'",
-        "connect-src":               TRUSTED_CONNECT_SRCS,
-        "frame-ancestors":           "'none'",
-        "form-action":               "'self'",
-        "base-uri":                  "'self'",
-        "object-src":                "'none'",
+        "default-src": "'self'",
+        "script-src": scriptSrc,
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": TRUSTED_IMG_SRCS,
+        "font-src": "'self'",
+        "connect-src": TRUSTED_CONNECT_SRCS,
+        "frame-ancestors": "'none'",
+        "form-action": "'self'",
+        "base-uri": "'self'",
+        "object-src": "'none'",
         "upgrade-insecure-requests": "",
     };
 
