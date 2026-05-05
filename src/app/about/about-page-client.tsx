@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { aboutCopy, type Lang, type AboutSection } from "./copy";
+import {
+  AppWindowMac,
+  BarChart3,
+  Image,
+  SwatchBook,
+  WandSparkles,
+  type LucideIcon,
+} from "lucide-react";
 
 function hasItems(
   section: AboutSection,
@@ -59,6 +67,38 @@ const BUBBLE_CLASSES = [
   "about-bubble-5 animate-blob",
   "about-bubble-6 animate-blob-reverse",
 ] as const;
+
+const TOOL_CARD_STYLES: Array<{
+  icon: LucideIcon;
+  bgClass: string;
+  textClass: string;
+}> = [
+  {
+    icon: SwatchBook,
+    bgClass: "bg-[#e6edf8]",
+    textClass: "text-[#4b77cc]",
+  },
+  {
+    icon: WandSparkles,
+    bgClass: "bg-[#f2e8de]",
+    textClass: "text-[#dd8f43]",
+  },
+  {
+    icon: BarChart3,
+    bgClass: "bg-[#dff0ee]",
+    textClass: "text-[#33a89c]",
+  },
+  {
+    icon: Image,
+    bgClass: "bg-[#ddebf4]",
+    textClass: "text-[#4995c9]",
+  },
+  {
+    icon: AppWindowMac,
+    bgClass: "bg-[#f4e4e8]",
+    textClass: "text-[#d8656d]",
+  },
+];
 
 export function AboutPageClient() {
   const [lang, setLang] = useState<Lang>("en");
@@ -152,7 +192,11 @@ export function AboutPageClient() {
                 </div>
 
                 {/* Heading */}
-                <h2 className="mb-5 text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
+                <h2
+                  className={`text-2xl font-semibold leading-snug tracking-tight sm:text-3xl ${
+                    hasItems(section) ? "mb-7 sm:mb-8" : "mb-5"
+                  }`}
+                >
                   <span className="bg-linear-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
                     {section.heading}
                   </span>
@@ -160,20 +204,37 @@ export function AboutPageClient() {
 
                 {hasItems(section) ? (
                   <>
-                    <dl className="space-y-3">
-                      {section.items.map((item, j) => (
-                        <Reveal key={item.term} delay={j * 50}>
-                          <div className="group flex gap-4 rounded-xl border border-transparent px-3 py-2 transition-colors hover:border-brand/10 hover:bg-brand/2">
-                            <dt className="w-40 shrink-0 text-sm font-semibold text-slate-900">
-                              {item.term}
-                            </dt>
-                            <dd className="text-sm leading-snug text-slate-500">
-                              {item.detail}
-                            </dd>
-                          </div>
-                        </Reveal>
-                      ))}
-                    </dl>
+                    <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-8">
+                      <div className="mx-auto max-w-310">
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+                          {section.items.map((item, j) => {
+                            const style =
+                              TOOL_CARD_STYLES[j % TOOL_CARD_STYLES.length];
+                            const Icon = style.icon;
+
+                            return (
+                              <Reveal key={item.term} delay={j * 70}>
+                                <article
+                                  className={`group/card flex h-full min-h-56 flex-col justify-between rounded-2xl p-7.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(15,23,42,0.08)] ${style.bgClass}`}
+                                >
+                                  <Icon className={style.textClass} size={32} />
+                                  <div>
+                                    <h3
+                                      className={`text-[2.02rem] font-semibold leading-[1.12] tracking-[-0.01em] ${style.textClass}`}
+                                    >
+                                      {item.term}
+                                    </h3>
+                                    <p className="mt-3 text-sm leading-snug text-slate-600 lg:max-h-0 lg:translate-y-1 lg:overflow-hidden lg:opacity-0 lg:transition-all lg:duration-300 lg:group-hover/card:max-h-24 lg:group-hover/card:translate-y-0 lg:group-hover/card:opacity-100">
+                                      {item.detail}
+                                    </p>
+                                  </div>
+                                </article>
+                              </Reveal>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                     {"footer" in section && section.footer && (
                       <p className="mt-4 border-l-2 border-brand/30 pl-4 text-sm leading-snug text-slate-400 italic">
                         {section.footer}
