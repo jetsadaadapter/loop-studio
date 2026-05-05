@@ -63,6 +63,21 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "library-api.adapterdigital.com",
       },
+      {
+        protocol: "https",
+        hostname: "library-api.adapterdigital.com",
+        pathname: "/api/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "library.adapterdigital.com",
+        pathname: "/api/images/**",
+      },
+    ],
+    localPatterns: [
+      {
+        pathname: "/images/**",
+      },
     ],
   },
 };

@@ -118,11 +118,27 @@ async function apiFetch<T>(
     console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING"}`);
 
     const t0 = Date.now();
-    const res = await fetch(url, {
-        headers: incomingHeaders,
-        credentials: "include",
-        ...init,
-    });
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            headers: incomingHeaders,
+            credentials: "include",
+            ...init,
+        });
+    } catch (error) {
+        const err = error as Error & {
+            cause?: { code?: string; errno?: number; syscall?: string; address?: string; port?: number };
+        };
+
+        console.error("[Library API] ✗ Network fetch failed", {
+            url,
+            method: init?.method ?? "GET",
+            hasAuth,
+            message: err.message,
+            cause: err.cause,
+        });
+        throw error;
+    }
     console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
 
     if (res.status === 401) {
