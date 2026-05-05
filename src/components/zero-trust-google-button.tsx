@@ -26,7 +26,7 @@ const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_ZT_AUTH_BASE_URL ??
   "https://auth.adapterinternal.com";
 const CLIENT_ID =
-  process.env.NEXT_PUBLIC_ZT_CLIENT_ID ?? "5bef7ad454c6caff4909ee31e47d48dc";
+  process.env.NEXT_PUBLIC_ZT_CLIENT_ID || "5bef7ad454c6caff4909ee31e47d48dc";
 const CALLBACK_PATH = process.env.NEXT_PUBLIC_ZT_CALLBACK_PATH ?? "/callback";
 const SCRIPT_SRC = "/login-adapterstore/login-button.js";
 const DEFAULT_RETURN_TO = "/apps";
@@ -67,7 +67,7 @@ export function ZeroTrustGoogleButton() {
       }
     } catch (err) {
       console.error("ZeroTrust initialization error:", err);
-      // Using a functional update or keeping it in a safe catch block is okay, 
+      // Using a functional update or keeping it in a safe catch block is okay,
       // but let's be extra safe and only set error if it's really an init failure.
     }
   }, [isScriptLoaded]);
@@ -90,7 +90,8 @@ export function ZeroTrustGoogleButton() {
         src={SCRIPT_SRC}
         strategy="lazyOnload"
         onLoad={() => {
-          const zt = (window as Window & { ZeroTrust?: ZeroTrustApi }).ZeroTrust;
+          const zt = (window as Window & { ZeroTrust?: ZeroTrustApi })
+            .ZeroTrust;
           if (zt) {
             setIsScriptLoaded(true);
           } else {
@@ -103,4 +104,3 @@ export function ZeroTrustGoogleButton() {
     </>
   );
 }
-

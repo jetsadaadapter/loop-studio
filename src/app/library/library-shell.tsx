@@ -77,7 +77,12 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                   className="h-6 w-auto"
                 />
                 <p className="mt-3 text-xs leading-relaxed text-slate-600">
-                  {libraryShellCopy.description}
+                  <span className="block font-semibold text-slate-800">
+                    {libraryShellCopy.tagline}
+                  </span>
+                  <span className="mt-1 block">
+                    {libraryShellCopy.description}
+                  </span>
                 </p>
               </div>
 

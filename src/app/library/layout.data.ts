@@ -24,6 +24,7 @@ export const libraryFooterLinks: Record<string, FooterLinkItem[]> = {
 
 export const libraryShellCopy = {
     title: "Adapter Library",
+    tagline: "The agency's collective brain.",
     description:
-        "คลังรวม MCP, Platform และ Tool สำหรับทีมงานภายใน Adapter พร้อมใช้งานใน workflow จริง",
+        "One platform. Every tool, MCP, dataset, and skill we've built. Yours when you need it.",
 };
