@@ -65,7 +65,7 @@ export function AboutPageClient() {
   const copy = aboutCopy[lang];
 
   return (
-    <div className="relative isolate -mt-5 left-1/2 w-screen -translate-x-1/2 overflow-x-clip overflow-y-hidden sm:left-auto sm:mx-auto sm:w-full sm:max-w-3xl sm:translate-x-0 sm:overflow-visible">
+    <div className="relative isolate -mt-5 -mx-4 overflow-x-clip overflow-y-hidden sm:mx-auto sm:max-w-3xl sm:overflow-visible">
       {/* ── Bubble background ───────────────────────────────────── */}
       <div
         className="pointer-events-none absolute -top-14 -right-12 bottom-0 -left-12 -z-10 overflow-hidden sm:-inset-x-28 sm:-inset-y-24 sm:overflow-visible"
@@ -76,7 +76,7 @@ export function AboutPageClient() {
         ))}
       </div>
 
-      <div className="px-4 pb-24 sm:px-6">
+      <div className="px-4 pb-16 sm:px-6 sm:pb-20">
         {/* ── Language toggle ─────────────────────────────────────── */}
         <div className="relative z-10 flex justify-end pt-6">
           <div className="inline-flex rounded-full border border-slate-200 bg-white/80 p-0.5 text-xs font-medium shadow-sm backdrop-blur-sm">
@@ -104,7 +104,7 @@ export function AboutPageClient() {
         </div>
 
         {/* ── Hero ────────────────────────────────────────────────── */}
-        <Reveal className="relative z-10 pt-14 pb-16 sm:pt-20 sm:pb-20">
+        <Reveal className="relative z-10 pt-12 pb-10 sm:pt-18 sm:pb-12">
           <div className="mb-3 flex items-center gap-2">
             <span className="h-px w-6 bg-brand" />
             <p className="text-brand text-xs font-semibold uppercase tracking-widest">
@@ -133,16 +133,16 @@ export function AboutPageClient() {
               ))}
             <span className="text-slate-300">.</span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-500">
+          <p className="mt-4 max-w-xl text-lg leading-snug text-slate-500">
             {copy.hero.lead}
           </p>
         </Reveal>
 
         {/* ── Sections ────────────────────────────────────────────── */}
-        <div className="relative z-10 space-y-20">
+        <div className="relative z-10 space-y-14 sm:space-y-16">
           {copy.sections.map((section, i) => (
             <Reveal key={i} delay={i * 60}>
-              <section className="border-t border-slate-100 pt-10">
+              <section className="border-t border-slate-100 pt-8">
                 {/* Label */}
                 <div className="mb-3 flex items-center gap-2">
                   <span className="h-px w-4 bg-brand/50" />
@@ -152,7 +152,7 @@ export function AboutPageClient() {
                 </div>
 
                 {/* Heading */}
-                <h2 className="mb-6 text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
+                <h2 className="mb-5 text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
                   <span className="bg-linear-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
                     {section.heading}
                   </span>
@@ -160,14 +160,14 @@ export function AboutPageClient() {
 
                 {hasItems(section) ? (
                   <>
-                    <dl className="space-y-4">
+                    <dl className="space-y-3">
                       {section.items.map((item, j) => (
                         <Reveal key={item.term} delay={j * 50}>
-                          <div className="group flex gap-4 rounded-xl border border-transparent p-3 transition-colors hover:border-brand/10 hover:bg-brand/2">
+                          <div className="group flex gap-4 rounded-xl border border-transparent px-3 py-2 transition-colors hover:border-brand/10 hover:bg-brand/2">
                             <dt className="w-40 shrink-0 text-sm font-semibold text-slate-900">
                               {item.term}
                             </dt>
-                            <dd className="text-sm leading-relaxed text-slate-500">
+                            <dd className="text-sm leading-snug text-slate-500">
                               {item.detail}
                             </dd>
                           </div>
@@ -175,18 +175,18 @@ export function AboutPageClient() {
                       ))}
                     </dl>
                     {"footer" in section && section.footer && (
-                      <p className="mt-6 border-l-2 border-brand/30 pl-4 text-sm leading-relaxed text-slate-400 italic">
+                      <p className="mt-4 border-l-2 border-brand/30 pl-4 text-sm leading-snug text-slate-400 italic">
                         {section.footer}
                       </p>
                     )}
                   </>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {"body" in section &&
                       Array.isArray(section.body) &&
                       section.body.map((paragraph, j) => (
                         <Reveal key={j} delay={j * 40}>
-                          <p className="text-base leading-relaxed text-slate-600">
+                          <p className="text-base leading-snug text-slate-600">
                             {paragraph}
                           </p>
                         </Reveal>
@@ -201,7 +201,7 @@ export function AboutPageClient() {
         {/* ── CTA ─────────────────────────────────────────────────── */}
         <Reveal
           delay={80}
-          className="relative z-10 mt-24 border-t border-slate-100 pt-14"
+          className="relative z-10 mt-18 border-t border-slate-100 pt-10"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
             <Link
