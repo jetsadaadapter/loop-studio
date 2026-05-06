@@ -249,6 +249,73 @@
     transform: translateY(0);
   }
 
+  /* ── Animated Page Title (mask-wipe reveal) ──────────────────────── */
+  @keyframes about-pt-line-draw {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  .about-pt-line {
+    transform-origin: left center;
+    animation: about-pt-line-draw 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+  }
+
+  /* Brand-colored bar that sweeps in (0→45%) pauses (45→55%) then sweeps out (55→100%) */
+  @keyframes about-pt-mask-sweep {
+    0% {
+      transform: translateX(-101%);
+    }
+    45% {
+      transform: translateX(0%);
+    }
+    55% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(101%);
+    }
+  }
+
+  .about-pt-mask {
+    animation: about-pt-mask-sweep 1s cubic-bezier(0.76, 0, 0.24, 1) 0.25s both;
+  }
+
+  /* Title clips in from the left, timed to sync with mask bar exit (starts ~0.8s) */
+  @keyframes about-pt-title-clip {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0% 0 0);
+    }
+  }
+
+  .about-pt-title {
+    animation: about-pt-title-clip 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+  }
+
+  /* Subtitle fades up after title completes */
+  @keyframes about-pt-sub-appear {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .about-pt-sub {
+    animation: about-pt-sub-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.4s both;
+  }
+
   .about-bubble-1 {
     width: 520px;
     height: 520px;

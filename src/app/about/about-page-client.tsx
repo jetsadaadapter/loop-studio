@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { aboutCopy, type Lang, type AboutSection } from "./copy";
 import {
   AppWindowMac,
+  ArrowUpRight,
   BarChart3,
   Image,
   SwatchBook,
@@ -68,6 +69,37 @@ const BUBBLE_CLASSES = [
   "about-bubble-6 animate-blob-reverse",
 ] as const;
 
+// ─── Animated page title with mask-wipe reveal ───────────────────────────────
+function AnimatedPageTitle() {
+  return (
+    <div className="relative z-10 pt-8 sm:pt-12">
+      {/* Line that draws in first */}
+      <div
+        className="about-pt-line mb-5 h-px bg-linear-to-r from-brand/70 via-brand/30 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Title + sliding mask bar */}
+      <div className="relative overflow-hidden pt-[0.15em]">
+        {/* Mask bar sweeps in then out */}
+        <div
+          className="about-pt-mask absolute inset-0 z-10 bg-brand"
+          aria-hidden="true"
+        />
+        {/* Title text revealed by clip-path as bar exits */}
+        <h1 className="about-pt-title text-[clamp(3.2rem,9vw,6.5rem)] font-bold leading-none tracking-tighter text-slate-900">
+          About us
+        </h1>
+      </div>
+
+      {/* Subtitle fades up after reveal */}
+      <p className="about-pt-sub mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+        Adapter Library · What We Built
+      </p>
+    </div>
+  );
+}
+
 const TOOL_CARD_STYLES: Array<{
   icon: LucideIcon;
   bgClass: string;
@@ -117,6 +149,9 @@ export function AboutPageClient() {
       </div>
 
       <div className="px-4 pb-16 sm:px-6 sm:pb-20">
+        {/* ── Animated page title ──────────────────────────────────── */}
+        <AnimatedPageTitle />
+
         {/* ── Language toggle ─────────────────────────────────────── */}
         <div className="relative z-10 flex justify-end pt-6">
           <div className="inline-flex rounded-full border border-slate-200 bg-white/80 p-0.5 text-xs font-medium shadow-sm backdrop-blur-sm">
@@ -260,29 +295,40 @@ export function AboutPageClient() {
         </div>
 
         {/* ── CTA ─────────────────────────────────────────────────── */}
-        <Reveal
-          delay={80}
-          className="relative z-10 mt-18 border-t border-slate-100 pt-10"
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-            <Link
-              href={copy.cta.primary.href}
-              className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/25 transition hover:bg-brand-strong hover:shadow-brand/35"
-            >
-              <span>{copy.cta.primary.label}</span>
-              <span className="opacity-70">→</span>
-              <span className="opacity-70">{copy.cta.primary.action}</span>
-            </Link>
-            <Link
-              href={copy.cta.secondary.href}
-              className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900"
-            >
-              <span>{copy.cta.secondary.label}</span>
-              <span>→</span>
-              <span className="font-semibold text-slate-900">
-                {copy.cta.secondary.action}
-              </span>
-            </Link>
+        <Reveal delay={80} className="relative z-10 mt-18">
+          <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-310">
+              <div className="flex flex-col items-center justify-between gap-8 rounded-2xl bg-linear-to-r from-[#ddeeff] to-[#fef9e7] p-8 lg:flex-row lg:gap-12">
+                <div className="text-center lg:text-start">
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {copy.cta.primary.label}
+                  </p>
+                  <p className="text-2xl font-semibold text-slate-900">
+                    {copy.cta.secondary.label}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                  <Link
+                    href={copy.cta.primary.href}
+                    className="group inline-flex h-12 w-fit items-center gap-4 rounded-full bg-slate-950 py-1 pl-5 pr-1 text-sm font-medium text-white transition hover:bg-slate-800"
+                  >
+                    <span>{copy.cta.primary.action}</span>
+                    <div className="rounded-full bg-white p-3 text-black transition-transform duration-300 group-hover:rotate-45">
+                      <ArrowUpRight size={16} />
+                    </div>
+                  </Link>
+                  <Link
+                    href={copy.cta.secondary.href}
+                    className="group inline-flex h-12 w-fit items-center gap-4 rounded-full border border-slate-300 bg-white/60 py-1 pl-5 pr-1 text-sm font-medium text-slate-900 transition hover:border-slate-400 hover:bg-white/80"
+                  >
+                    <span>{copy.cta.secondary.action}</span>
+                    <div className="rounded-full bg-slate-900 p-3 text-white transition-transform duration-300 group-hover:rotate-45">
+                      <ArrowUpRight size={16} />
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </Reveal>
       </div>
