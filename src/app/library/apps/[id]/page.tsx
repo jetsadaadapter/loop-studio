@@ -1,6 +1,11 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getAppBySlug, getRelatedApps } from "@/core/services/library.service";
+import { notFound, redirect } from "next/navigation";
+import {
+  ApiError,
+  getAppById,
+  getRelatedApps,
+} from "@/core/services/library.service";
+import { getAppItemId } from "@/core/interfaces/library.interface";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
@@ -9,7 +14,7 @@ import { RelatedAppListItem } from "@/components/related-app-list-item";
 import { AppCover } from "@/components/app-cover";
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 };
 
 function formatDate(value: string): string {
@@ -24,13 +29,21 @@ function formatDate(value: string): string {
 }
 
 export default async function AppDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { id } = await params;
 
   const initOptions = {
     next: { revalidate: 60 },
   };
 
-  const app = await getAppBySlug(slug, initOptions);
+  let app = null;
+  try {
+    app = await getAppById(id, initOptions);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/api/auth/logout");
+    }
+    throw error;
+  }
 
   if (!app) notFound();
 
@@ -39,7 +52,7 @@ export default async function AppDetailPage({ params }: Props) {
   const hasInternalCta = app.linkType === "internal" && !!app.ctaLink;
 
   const relatedApps = await getRelatedApps(
-    app.appId,
+    getAppItemId(app),
     app.category,
     initOptions,
   );
@@ -113,7 +126,7 @@ export default async function AppDetailPage({ params }: Props) {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {app.tags.slice(0, 4).map((tag, index) => (
                     <span
-                      key={`hero-tag:${tag.tagId || tag.name}:${index}`}
+                      key={`hero-tag:${tag.id || tag.tagId || tag.name}:${index}`}
                       className="rounded-full bg-white/8 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-white/10"
                     >
                       {tag.name}
@@ -188,7 +201,7 @@ export default async function AppDetailPage({ params }: Props) {
                 <div className="mt-5 flex flex-wrap gap-2">
                   {app.tags.map((tag, index) => (
                     <span
-                      key={`about-tag:${tag.tagId || tag.name}:${index}`}
+                      key={`about-tag:${tag.id || tag.tagId || tag.name}:${index}`}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
                     >
                       {tag.name}
@@ -239,7 +252,7 @@ export default async function AppDetailPage({ params }: Props) {
                 <div className="mt-3 space-y-3">
                   {relatedApps.map((relatedApp, index) => (
                     <RelatedAppListItem
-                      key={`related:${relatedApp.appId || "app"}:${index}`}
+                      key={`related:${getAppItemId(relatedApp) || "app"}:${index}`}
                       item={relatedApp}
                     />
                   ))}

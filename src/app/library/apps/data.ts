@@ -1,4 +1,8 @@
-import type { GetAppsResponse, LibraryAppApiItem } from "@/core/interfaces/library.interface";
+import {
+    getAppItemId,
+    type GetAppsResponse,
+    type LibraryAppApiItem,
+} from "@/core/interfaces/library.interface";
 
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
@@ -13,13 +17,11 @@ export type StatusFilterKey =
     | "new";
 
 // ------------------------------------------------------------
-// 2) Data schema for API-style response (id + slug)
+// 2) Data schema for API-style response (id-first)
 // ------------------------------------------------------------
-// id: stable identifier for systems/database relations
-// slug: human-readable identifier for URLs or client-side routing
+// id: stable identifier used for routing and system references
 export type LibraryApp = {
     id: string;
-    slug: string;
     name: string;
     category: string;
     status: string;
@@ -81,14 +83,6 @@ function normalizeText(value: unknown, fallback = ""): string {
     return normalized || fallback;
 }
 
-export function slugifyAppName(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-}
-
 function stableHash(seed: string): number {
     let hash = 0;
     for (let index = 0; index < seed.length; index += 1) {
@@ -109,14 +103,12 @@ export function getAppStatus(app: LibraryAppApiItem): string {
     return app.isActive ? "Production ready" : "Planned";
 }
 
-function mapApiApp(item: LibraryAppApiItem, sectionId: string, index: number): LibraryApp {
+function mapApiApp(item: LibraryAppApiItem, sectionId: string): LibraryApp {
     const name = normalizeText(item.name, "Unknown app");
-    const slug = slugifyAppName(name) || `${sectionId}-app-${index + 1}`;
-    const id = normalizeText(item.appId, `${sectionId}:${slug}`);
+    const id = normalizeText(getAppItemId(item), `${sectionId}:${name.toLowerCase().replace(/\s+/g, "-")}`);
 
     return {
         id,
-        slug,
         name,
         category: normalizeText(item.category, "Tool"),
         status: getAppStatus(item),
@@ -140,8 +132,8 @@ export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySec
             title: toSectionLabel(groupBlock.group),
             items: [...(groupBlock.items ?? [])]
                 .sort((left, right) => left.sortOrder - right.sortOrder)
-                .map((item, index) =>
-                    mapApiApp(item, sectionId, index),
+                .map((item) =>
+                    mapApiApp(item, sectionId),
                 ),
         };
     });

@@ -5,7 +5,7 @@ import type {
     GetBannersResponse,
     LibraryAppApiItem,
 } from "@/core/interfaces/library.interface";
-import { slugifyAppName } from "@/app/library/apps/data";
+import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Library API service
@@ -208,18 +208,37 @@ export async function getApps(
 }
 
 /**
- * Fetch all apps and find the one matching the given slug.
+ * Fetch all apps and find the one matching the given app id.
  */
-export async function getAppBySlug(
-    slug: string,
+export async function getAppById(
+    appId: string,
     init?: RequestInit,
 ): Promise<LibraryAppApiItem | null> {
     try {
-        const response = await getApps({ page: 1, limit: 100 }, init);
-        const allApps = response.data.flatMap((group) => group.items);
-        return allApps.find((item) => slugifyAppName(item.name) === slug) || null;
+        const normalizedTargetId = appId.trim().toLowerCase();
+        const pageSize = 100;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        while (currentPage <= totalPages) {
+            const response = await getApps({ page: currentPage, limit: pageSize }, init);
+            const allApps = response.data.flatMap((group) => group.items);
+            const matched = allApps.find(
+                (item) => resolveAppId(item).trim().toLowerCase() === normalizedTargetId,
+            );
+
+            if (matched) return matched;
+
+            totalPages = response.meta.totalPages || 1;
+            currentPage += 1;
+        }
+
+        return null;
     } catch (error) {
-        console.error(`Failed to fetch app by slug: ${slug}`, error);
+        if (error instanceof ApiError && error.status === 401) {
+            throw error;
+        }
+        console.error(`Failed to fetch app by id: ${appId}`, error);
         return null;
     }
 }
@@ -236,7 +255,7 @@ export async function getRelatedApps(
         const response = await getApps({ page: 1, limit: 100 }, init);
         const allApps = response.data.flatMap((group) => group.items);
         return allApps
-            .filter((item) => item.appId !== appId && item.category === category)
+            .filter((item) => resolveAppId(item) !== appId && item.category === category)
             .slice(0, 3);
     } catch (error) {
         console.error(`Failed to fetch related apps for ${appId}`, error);

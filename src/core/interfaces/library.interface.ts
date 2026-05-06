@@ -22,7 +22,8 @@ export type Paginated<T> = {
 export type LibraryAppCategory = "MCP" | "Platform" | "Tool" | string;
 
 export type LibraryAppApiItem = {
-    appId: string;
+    id: string;
+    appId?: string;
     name: string;
     category: LibraryAppCategory;
     tags: AppTag[];
@@ -58,18 +59,22 @@ export type GetAppsResponse = Paginated<LibraryAppsGroupItem>;
 // ─── Banners  GET /banners ─────────────────────────────────────────────────────
 
 export type AppTag = {
-    tagId: string;
+    id: string;
+    tagId?: string;
     name: string;
     /** Hex colour string e.g. "#0F6E56" */
     color: string;
     createdAt: string;
+    updatedAt?: string;
+    userId?: string;
 };
 
 /** linkType controls where the CTA navigates */
 export type AppLinkType = "instruction" | "internal" | "external";
 
 export type BannerAppItem = {
-    appId: string;
+    id: string;
+    appId?: string;
     name: string;
     category: LibraryAppCategory;
     tags: AppTag[];
@@ -90,11 +95,12 @@ export type BannerAppItem = {
 };
 
 export type LibraryBannerItem = {
+    id?: string;
     bannerId: string;
     title: string;
     subtitle: string;
     imageId: string;
-    appId: string;
+    appId?: string;
     app: BannerAppItem;
     sortOrder: number;
     isActive: boolean;
@@ -112,3 +118,7 @@ export type GetBannersParams = {
 };
 
 export type GetBannersResponse = Paginated<LibraryBannerItem>;
+
+export function getAppItemId(item: { id?: string; appId?: string }): string {
+    return item.id ?? item.appId ?? "";
+}
