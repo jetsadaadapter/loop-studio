@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
+import { ToastProvider } from "@/components/toast-provider";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -72,19 +73,29 @@ export default async function RootLayout({
     >
       <head>
         <link rel="preconnect" href="https://library-api.adapterdigital.com" />
-        <link rel="preconnect" href="https://auth.adapterinternal.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://auth.adapterinternal.com"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://library-api.adapterdigital.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://library-api.adapterdigital.com"
+        />
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+        <ToastProvider>
+          <main className="flex-1 flex flex-col">{children}</main>
+        </ToastProvider>
       </body>
     </html>
   );
 }
-

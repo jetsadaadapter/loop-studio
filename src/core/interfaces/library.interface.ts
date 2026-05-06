@@ -56,6 +56,71 @@ export type GetAppsParams = {
 
 export type GetAppsResponse = Paginated<LibraryAppsGroupItem>;
 
+// ─── Manage Apps  /manage/apps ───────────────────────────────────────────────
+
+export type ManageApiEnvelope<T> = {
+    success: boolean;
+    message?: string;
+    data: T;
+    meta?: PaginationMeta;
+};
+
+export type ManageAppTagRef = string | { id?: string; tagId?: string; name?: string };
+
+// Exact-ish shape for /api/manage/apps list payload (based on live response).
+export type ManageAppApiItem = Omit<LibraryAppApiItem, "imageUrl"> & {
+    userId?: string;
+    imageUrl?: string;
+};
+
+export type ManageAppPayload = {
+    name: string;
+    category: LibraryAppCategory;
+    description: string;
+    imageId: string;
+    iconId: string;
+    instructions: string;
+    ctaLabel: string;
+    ctaLink: string;
+    linkType: AppLinkType;
+    isActive: boolean;
+    sortOrder: number;
+    badgeLabel: string;
+    tags: string[];
+};
+
+export type ManageAppListResponse =
+    | ManageApiEnvelope<ManageAppApiItem[]>
+    | GetAppsResponse;
+
+export type ManageAppMutationResponse = ManageApiEnvelope<ManageAppApiItem>;
+
+// ─── Manage AI Models  /manage/ai ───────────────────────────────────────────
+
+export type ManageAiModelApiItem = {
+    id: string;
+    modelSlug: string;
+    name: string;
+    provider: string;
+    isActive: boolean;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ManageAiApiListItem = ManageAiModelApiItem;
+
+export type ManageAiModelPayload = {
+    modelSlug: string;
+    name: string;
+    provider: string;
+    isActive: boolean;
+    isDefault: boolean;
+};
+
+export type ManageAiListResponse = ManageApiEnvelope<ManageAiModelApiItem[]>;
+export type ManageAiMutationResponse = ManageApiEnvelope<ManageAiModelApiItem>;
+
 // ─── Banners  GET /banners ─────────────────────────────────────────────────────
 
 export type AppTag = {

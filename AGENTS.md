@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- END:nextjs-agent-rules -->
 
-# Internal Library: Agent Rules
+## Internal Library: Agent Rules
 
 This file is the execution guide for coding agents in this repository.
 
@@ -23,10 +23,12 @@ When these files diverge, update both in the same change.
 
 - Main app routes:
   - `/apps`
-  - `/apps/[slug]`
+  - `/apps/[id]`
+  - `/manage/apps`
+  - `/manage/ai`
 - Legacy routes are redirected in `next.config.ts`:
   - `/library/apps -> /apps`
-  - `/library/apps/:slug -> /apps/:slug`
+  - `/library/apps/:id -> /apps/:id`
 - Route protection and CSP are enforced in `src/proxy.ts`
 - Primary authentication flow is Zero Trust login script + callback + `zt_token` cookie
 

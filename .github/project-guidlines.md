@@ -149,7 +149,71 @@ src/components/<component-name>/
 ก่อน merge ให้ตรวจอย่างน้อย:
 
 1. Build ผ่าน (`npm run build`)
-2. Routes สำคัญทำงาน: `/login`, `/callback`, `/apps`, `/apps/[slug]`
+2. Routes สำคัญทำงาน: `/login`, `/callback`, `/apps`, `/apps/[id]`
 3. Auth guard ทำงานถูกต้อง (redirect ตามสถานะ token)
 4. ไม่มี hard-coded secrets ใน source
 5. หากเพิ่มโดเมนภายนอก อัปเดตทั้ง image config และ CSP allowlist ครบ
+
+## 10. Manage UX Standard (Universal)
+
+ใช้กับเมนู `Manage > App` และ `AI` ทั้งหมด เพื่อให้ user เรียนรู้ครั้งเดียวและใช้ได้ทุก manager
+
+### 10.1 Information Architecture
+
+- หน้า list ทุก manager ต้องมี: search, filter, sort, quick actions
+- หน้า edit/create ต้องเป็น single-screen form และ save จุดเดียว
+- หลัง save ต้องกลับ list พร้อมแสดง success toast และ highlight row ล่าสุด
+
+### 10.2 Manage > App API Contract Rules
+
+- List: `GET /manage/apps`
+- Create: `POST /manage/apps`
+- Update: `PATCH /manage/apps/:id`
+- Delete: `DELETE /manage/apps/:id`
+- UI identity key: ใช้ `items.id` เป็นหลักเสมอ
+
+ห้ามใช้ `name` เป็น key ใน:
+
+- route params
+- edit/delete actions
+- selected row state
+- cache key
+
+### 10.3 Form UX Rules (App)
+
+ฟอร์มต้องแบ่ง 4 blocks:
+
+1. Basic (`name`, `category`, `isActive`, `badgeLabel`, `sortOrder`)
+2. Media (`imageId`, `iconId`)
+3. Action (`linkType`, `ctaLabel`, `ctaLink`)
+4. Content (`description`, `instructions`, `tags[]`)
+
+validation ตาม `linkType`:
+
+- `internal`: `ctaLink` ต้องขึ้นต้นด้วย `/`
+- `external`: `ctaLink` ต้องเป็น `https://...`
+- `instruction`: `ctaLink` ว่างได้
+
+### 10.4 AI Model Manager UX Rules
+
+ทุก model record ต้องมีอย่างน้อย:
+
+- `provider`
+- `model`
+- `taskType`
+- `temperature`
+- `maxTokens`
+- `isDefault`
+- `isActive`
+
+interaction ขั้นต่ำ:
+
+1. ตั้ง default model ได้จาก list โดยไม่ต้องเข้า edit page
+2. test prompt inline ได้ก่อน save
+3. แสดง `updatedAt` และ `updatedBy` ทุกครั้งเพื่อ auditability
+
+### 10.5 Safety and Confirmation
+
+- delete ใช้ 2-step confirmation
+- unsaved changes ต้องมี guard ก่อนออกจากหน้า
+- ถ้า API error ให้แสดง field-level error ก่อน generic error เสมอ

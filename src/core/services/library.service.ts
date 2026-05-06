@@ -4,6 +4,15 @@ import type {
     GetBannersParams,
     GetBannersResponse,
     LibraryAppApiItem,
+    ManageAppApiItem,
+    ManageAiListResponse,
+    ManageAiApiListItem,
+    ManageAiModelApiItem,
+    ManageAiModelPayload,
+    ManageAiMutationResponse,
+    ManageAppListResponse,
+    ManageAppMutationResponse,
+    ManageAppPayload,
 } from "@/core/interfaces/library.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
@@ -20,6 +29,7 @@ export class ApiError extends Error {
         public status: number,
         message: string,
         public url: string,
+        public details?: unknown,
     ) {
         super(message);
         this.name = "ApiError";
@@ -27,10 +37,11 @@ export class ApiError extends Error {
 }
 
 // On the server, prefer SERVER_API_BASE_URL (internal network).
-// On the client, always use NEXT_PUBLIC_STORE_API_BASE_URL (public URL).
+// On the client, route through same-origin proxy to avoid browser CORS/preflight issues.
 const BASE_URL =
-    (typeof window === "undefined" ? process.env.SERVER_API_BASE_URL : undefined) ||
-    process.env.NEXT_PUBLIC_STORE_API_BASE_URL;
+    typeof window === "undefined"
+        ? process.env.SERVER_API_BASE_URL || process.env.NEXT_PUBLIC_STORE_API_BASE_URL
+        : "/api/library";
 
 if (!BASE_URL) {
     throw new Error("Missing NEXT_PUBLIC_STORE_API_BASE_URL");
@@ -48,7 +59,11 @@ function buildUrl(
     path: string,
     params?: Record<string, string | number | undefined>,
 ): string {
-    const url = new URL(`${BASE_URL}${path}`);
+    const target = `${BASE_URL}${path}`;
+    const isAbsolute = /^https?:\/\//i.test(target);
+    const url = isAbsolute
+        ? new URL(target)
+        : new URL(target, "http://local");
 
     if (params) {
         for (const [key, value] of Object.entries(params)) {
@@ -58,7 +73,11 @@ function buildUrl(
         }
     }
 
-    return url.toString();
+    if (isAbsolute) {
+        return url.toString();
+    }
+
+    return `${url.pathname}${url.search}`;
 }
 
 function readBrowserCookie(name: string): string | null {
@@ -78,6 +97,11 @@ function readBrowserCookie(name: string): string | null {
 }
 
 async function getAuthToken(): Promise<string | null> {
+    // Client requests go through /api/library proxy which injects bearer on the server.
+    if (typeof window !== "undefined" && BASE_URL?.startsWith("/api/library")) {
+        return null;
+    }
+
     if (typeof window !== "undefined") {
         const token = readBrowserCookie(TOKEN_COOKIE_KEY);
         console.log(`[Library API] Browser token: ${token ? "✓ Found" : "✗ Missing"}`);
@@ -155,13 +179,24 @@ async function apiFetch<T>(
     }
 
     if (!res.ok) {
-        let body = "";
-        try { body = await res.text(); } catch { /* ignore */ }
-        console.error(`[Library API] ✗ Error body: ${body.slice(0, 500)}`);
+        let parsedBody: unknown = undefined;
+        let bodyText = "";
+        try {
+            bodyText = await res.text();
+            parsedBody = bodyText ? JSON.parse(bodyText) : undefined;
+        } catch {
+            parsedBody = bodyText || undefined;
+        }
+
+        if (bodyText) {
+            console.error(`[Library API] ✗ Error body: ${bodyText.slice(0, 500)}`);
+        }
+
         throw new ApiError(
             res.status,
             `Library API error ${res.status} ${res.statusText}`,
             url,
+            parsedBody,
         );
     }
 
@@ -282,4 +317,130 @@ export async function getBanners(
     });
 
     return apiFetch<GetBannersResponse>(url, init);
+}
+
+// ─── Manage Apps ─────────────────────────────────────────────────────────────
+
+export function normalizeManageAppsList(payload: ManageAppListResponse): ManageAppApiItem[] {
+    const maybeData = (payload as { data?: unknown }).data;
+
+    if (
+        Array.isArray(maybeData) &&
+        (maybeData.length === 0 || (typeof maybeData[0] === "object" && maybeData[0] !== null && "name" in maybeData[0]))
+    ) {
+        return maybeData as ManageAppApiItem[];
+    }
+
+    const grouped = payload as GetAppsResponse;
+    return grouped.data.flatMap((group) => group.items as ManageAppApiItem[]);
+}
+
+export async function getManageApps(init?: RequestInit): Promise<ManageAppApiItem[]> {
+    const url = buildUrl("/manage/apps");
+    const response = await apiFetch<ManageAppListResponse>(url, init);
+    return normalizeManageAppsList(response);
+}
+
+export async function createManageApp(
+    payload: ManageAppPayload,
+    init?: RequestInit,
+): Promise<ManageAppApiItem> {
+    const url = buildUrl("/manage/apps");
+    const response = await apiFetch<ManageAppMutationResponse>(url, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        ...init,
+    });
+    return response.data;
+}
+
+export async function updateManageApp(
+    id: string,
+    payload: ManageAppPayload,
+    init?: RequestInit,
+): Promise<ManageAppApiItem> {
+    const url = buildUrl(`/manage/apps/${id}`);
+    const response = await apiFetch<ManageAppMutationResponse>(url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        ...init,
+    });
+    return response.data;
+}
+
+export async function deleteManageApp(id: string, init?: RequestInit): Promise<void> {
+    const url = buildUrl(`/manage/apps/${id}`);
+    await apiFetch<{ success?: boolean; message?: string }>(url, {
+        method: "DELETE",
+        ...init,
+    });
+}
+
+// ─── Manage AI Models ────────────────────────────────────────────────────────
+
+export async function getManageAiModels(init?: RequestInit): Promise<ManageAiApiListItem[]> {
+    const url = buildUrl("/manage/models", {
+        page: 1,
+        limit: 10,
+    });
+
+    try {
+        const response = await apiFetch<ManageAiListResponse>(url, init);
+        return response.data ?? [];
+    } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+            const fallbackUrl = buildUrl("/manage/ai", {
+                page: 1,
+                limit: 10,
+            });
+            const fallbackResponse = await apiFetch<ManageAiListResponse>(fallbackUrl, init);
+            return fallbackResponse.data ?? [];
+        }
+
+        throw error;
+    }
+}
+
+export async function createManageAiModel(
+    payload: ManageAiModelPayload,
+    init?: RequestInit,
+): Promise<ManageAiModelApiItem> {
+    const url = buildUrl("/manage/models");
+    const response = await apiFetch<ManageAiMutationResponse>(url, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        ...init,
+    });
+
+    return response.data;
+}
+
+export async function updateManageAiModel(
+    id: string,
+    payload: Partial<ManageAiModelPayload>,
+    init?: RequestInit,
+): Promise<ManageAiModelApiItem> {
+    const url = buildUrl(`/manage/models/${id}`);
+    const response = await apiFetch<ManageAiMutationResponse>(url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        ...init,
+    });
+
+    return response.data;
+}
+
+export async function deleteManageAiModel(id: string, init?: RequestInit): Promise<void> {
+    const url = buildUrl(`/manage/models/${id}`);
+    await apiFetch<{ success?: boolean; message?: string }>(url, {
+        method: "DELETE",
+        ...init,
+    });
+}
+
+export async function setDefaultManageAiModel(
+    id: string,
+    init?: RequestInit,
+): Promise<ManageAiModelApiItem> {
+    return updateManageAiModel(id, { isDefault: true }, init);
 }
