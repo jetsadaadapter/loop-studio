@@ -8,7 +8,7 @@ interface ManageLogoProps {
 }
 
 export function ManageLogo({
-  src = "/images/logo/logo-black-110x30.png",
+  src = "/images/logo/logo-black-383x115.svg",
   alt = "Admin Workspace",
   width = 110,
   height = 30,

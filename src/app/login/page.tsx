@@ -17,7 +17,7 @@ export default function LoginPage() {
           className="absolute inset-0 opacity-[0.2]"
           style={{
             backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
-            backgroundSize: '32px 32px'
+            backgroundSize: "32px 32px",
           }}
         />
       </div>
@@ -26,7 +26,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center gap-2">
           <div className="mb-0">
             <Image
-              src="/images/logo/logo-black-110x30.png"
+              src="/images/logo/logo-black-383x115.svg"
               alt="Adapter Digital Group"
               width={160}
               height={48}
@@ -46,9 +46,9 @@ export default function LoginPage() {
       </div>
 
       <p className="absolute bottom-6 left-0 right-0 z-10 text-center text-xs text-neutral-400">
-        &copy; {new Date().getFullYear()} Adapter Digital Group. All rights reserved.
+        &copy; {new Date().getFullYear()} Adapter Digital Group. All rights
+        reserved.
       </p>
     </div>
   );
 }
-

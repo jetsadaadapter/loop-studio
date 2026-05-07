@@ -16,16 +16,16 @@ export const categoryTabs: Array<{
   label: string;
   description: string;
 }> = [
-  { key: "mcp", label: "MCP", description: "Model Context Protocol services" },
-  { key: "platform", label: "Platform", description: "Core platform systems" },
-  {
-    key: "tool",
-    label: "Tool",
-    description: "Operational tools and utilities",
-  },
-];
+    { key: "mcp", label: "MCP", description: "Model Context Protocol services" },
+    { key: "platform", label: "Platform", description: "Core platform systems" },
+    {
+      key: "tool",
+      label: "Tool",
+      description: "Operational tools and utilities",
+    },
+  ];
 
-export const DEFAULT_APP_IMAGE = "/images/logo/logo-black-110x30.png";
+export const DEFAULT_APP_IMAGE = "/images/logo/logo-app-1200x1200.svg";
 
 export const APP_IMAGE_BY_ID: Record<string, string> = {
   "adapter-campaign": "/images/apps/adapter-campaign.png",

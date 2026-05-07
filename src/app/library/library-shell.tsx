@@ -7,10 +7,8 @@ import {
   useContext,
   useMemo,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
 import { ProfileAvatarMenu } from "@/components/profile-avatar-menu";
 import { libraryFooterLinks, libraryShellCopy } from "./layout.data";
 
@@ -47,7 +45,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             <Link href="/apps" className="flex items-center gap-3">
               <h1 className="sr-only">Adapter Library</h1>
               <Image
-                src="/images/logo/logo-black-110x30.png"
+                src="/images/logo/logo-black-383x115.svg"
                 alt="Adapter Digital Group"
                 width={120}
                 height={36}
@@ -70,7 +68,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
               <div className="col-span-2 sm:col-span-1">
                 <Image
-                  src="/images/logo/logo-black-110x30.png"
+                  src="/images/logo/logo-black-383x115.svg"
                   alt="Adapter Digital Group"
                   width={110}
                   height={30}
