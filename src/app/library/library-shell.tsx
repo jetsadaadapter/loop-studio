@@ -23,7 +23,7 @@ import {
   SheetHeader,
 } from "@/components/ui/sheet";
 import { libraryFooterLinks, libraryShellCopy } from "./layout.data";
-import { mainTabs, type MainTabKey } from "./apps/data";
+import { type MainTabKey } from "./apps/data";
 
 type LibraryShellContextValue = {
   searchQuery: string;
@@ -83,14 +83,6 @@ export function LibraryShell({ children }: { children: ReactNode }) {
     [searchQuery, visibleCategoryKeys, activeCategory],
   );
 
-  const navItems = [
-    { label: "About us", href: "/about", isLink: true as const },
-    ...visibleCategoryKeys.map((key) => {
-      const tab = mainTabs.find((t) => t.key === key)!;
-      return { label: tab.label, key, isLink: false as const };
-    }),
-  ];
-
   return (
     <LibraryShellContext.Provider value={value}>
       <div className="min-h-screen bg-white">
@@ -116,13 +108,13 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             </Link>
 
             {/* Divider */}
-            <div className="h-5 w-px shrink-0 bg-slate-200" />
+            <div className="hidden h-5 w-px shrink-0 bg-slate-200 md:block" />
 
             {/* Desktop nav — hidden on mobile */}
-            <nav className="hidden h-full flex-1 items-stretch gap-1 md:flex">
+            <nav className="hidden h-full flex-1 items-stretch gap-0 md:flex">
               <Link
                 href="/about"
-                className={`relative inline-flex h-full items-center px-4 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
+                className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
                   pathname?.startsWith("/about")
                     ? "text-slate-900 after:scale-x-100"
                     : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
@@ -130,26 +122,6 @@ export function LibraryShell({ children }: { children: ReactNode }) {
               >
                 About us
               </Link>
-              {visibleCategoryKeys.map((key) => {
-                const tab = mainTabs.find((t) => t.key === key);
-                if (!tab) return null;
-                const isActive =
-                  activeCategory === key && !pathname?.startsWith("/about");
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setActiveCategory(isActive ? null : key)}
-                    className={`relative inline-flex h-full items-center px-4 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
-                      isActive
-                        ? "text-slate-900 after:scale-x-100"
-                        : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
             </nav>
 
             {/* Right side */}
@@ -186,30 +158,13 @@ export function LibraryShell({ children }: { children: ReactNode }) {
 
                   {/* Nav items — scrollable middle */}
                   <div className="flex-1 overflow-y-auto px-3 py-3">
-                    <nav className="space-y-1">
-                      {navItems.map((item) =>
-                        item.isLink ? (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium text-gray-900 transition hover:bg-slate-100"
-                          >
-                            {item.label}
-                          </Link>
-                        ) : (
-                          <button
-                            key={item.key}
-                            type="button"
-                            onClick={() => {
-                              const isActive = activeCategory === item.key;
-                              setActiveCategory(isActive ? null : item.key);
-                            }}
-                            className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-medium text-gray-900 transition hover:bg-slate-100"
-                          >
-                            {item.label}
-                          </button>
-                        ),
-                      )}
+                    <nav className="space-y-0">
+                      <Link
+                        href="/about"
+                        className="flex items-center gap-0 rounded-xl px-0 py-3 text-sm font-medium text-gray-900 transition hover:bg-slate-100"
+                      >
+                        About us
+                      </Link>
                     </nav>
                   </div>
 

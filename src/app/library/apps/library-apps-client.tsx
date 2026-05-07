@@ -117,7 +117,9 @@ export function LibraryAppsClient({
 
   const visibleStatusFilters = useMemo(
     () =>
-      statusFilters.filter((f) => f.key === "all" || statusCounts[f.key] > 0),
+      statusFilters.filter(
+        (f) => f.key !== "all" && f.key !== "new" && statusCounts[f.key] > 0,
+      ),
     [statusCounts],
   );
 
