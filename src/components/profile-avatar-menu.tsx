@@ -150,7 +150,7 @@ export function ProfileAvatarMenu() {
         aria-label="Open profile menu"
         aria-haspopup="menu"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]"
+        className="inline-flex size-11.5 items-center justify-center rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]"
       >
         <Avatar className="h-full w-full bg-white">
           {profileImage ? (

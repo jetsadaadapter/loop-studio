@@ -8,10 +8,10 @@ type LibraryFilterToolbarProps<
   TFilterKey extends string,
 > = {
   tabs: Array<ToolbarOption<TTabKey>>;
-  selectedTab: TTabKey;
+  selectedTab: TTabKey | null;
   onTabChange: (key: TTabKey) => void;
   filters: Array<ToolbarOption<TFilterKey>>;
-  selectedFilter: TFilterKey;
+  selectedFilter: TFilterKey | null;
   filterCounts: Record<TFilterKey, number>;
   onFilterChange: (key: TFilterKey) => void;
 };
@@ -30,39 +30,43 @@ export function LibraryFilterToolbar<
 }: LibraryFilterToolbarProps<TTabKey, TFilterKey>) {
   return (
     <section className="border-b border-slate-200 pb-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => onTabChange(tab.key)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              selectedTab === tab.key
-                ? "bg-brand/10 text-brand"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {tabs.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => onTabChange(tab.key)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                selectedTab === tab.key
+                  ? "bg-brand/10 text-brand"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {filters.map((filter) => (
-          <button
-            key={filter.key}
-            type="button"
-            onClick={() => onFilterChange(filter.key)}
-            className={`rounded-full border px-3 py-1 text-xs transition ${
-              selectedFilter === filter.key
-                ? "border-brand/30 bg-brand/10 text-brand"
-                : "border-slate-200 text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            {filter.label} ({filterCounts[filter.key]})
-          </button>
-        ))}
-      </div>
+      {filters.length > 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {filters.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              onClick={() => onFilterChange(filter.key)}
+              className={`rounded-full border px-3 py-1 text-xs transition ${
+                selectedFilter === filter.key
+                  ? "border-brand/30 bg-brand/10 text-brand"
+                  : "border-slate-200 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {filter.label} ({filterCounts[filter.key]})
+            </button>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

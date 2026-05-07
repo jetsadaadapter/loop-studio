@@ -21,9 +21,12 @@ export function LibraryAppsClient({
   sections,
   children,
 }: LibraryAppsClientProps) {
-  const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey>("tool");
-  const [selectedStatus, setSelectedStatus] =
-    useState<StatusFilterKey>("production ready");
+  const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey | null>(
+    null,
+  );
+  const [selectedStatus, setSelectedStatus] = useState<StatusFilterKey | null>(
+    null,
+  );
   const { searchQuery } = useLibraryShell();
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
@@ -33,16 +36,35 @@ export function LibraryAppsClient({
   );
   console.log("[LibraryAppsClient] Selected tab:", selectedMainTab);
 
+  const visibleMainTabs = useMemo(() => {
+    const availableSectionIds = new Set(
+      sections.filter((section) => section.items.length > 0).map((s) => s.id),
+    );
+
+    return mainTabs.filter((tab) => availableSectionIds.has(tab.key));
+  }, [sections]);
+
+  const effectiveMainTab: MainTabKey | null =
+    selectedMainTab &&
+    visibleMainTabs.some((tab) => tab.key === selectedMainTab)
+      ? selectedMainTab
+      : null;
+
   const baseSections = useMemo(() => {
-    const filtered = sections.filter((s) => s.id === selectedMainTab);
+    const filtered = effectiveMainTab
+      ? sections.filter((s) => s.id === effectiveMainTab)
+      : sections;
+
+    const nonEmpty = filtered.filter((section) => section.items.length > 0);
+
     console.log(
-      `[LibraryAppsClient] After tab filter (${selectedMainTab}):`,
-      filtered.length,
+      `[LibraryAppsClient] After tab filter (${effectiveMainTab ?? "all"}):`,
+      nonEmpty.length,
       "sections",
     );
 
-    return filtered;
-  }, [sections, selectedMainTab]);
+    return nonEmpty;
+  }, [sections, effectiveMainTab]);
 
   const searchedSections = useMemo(() => {
     const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -88,11 +110,12 @@ export function LibraryAppsClient({
     [statusCounts],
   );
 
-  const effectiveStatus: StatusFilterKey = visibleStatusFilters.some(
-    (f) => f.key === selectedStatus,
-  )
-    ? selectedStatus
-    : "all";
+  const shouldShowStatusFilters = effectiveMainTab !== null;
+
+  const effectiveStatus: StatusFilterKey =
+    selectedStatus && visibleStatusFilters.some((f) => f.key === selectedStatus)
+      ? selectedStatus
+      : "all";
 
   const filteredSections = useMemo(() => {
     if (effectiveStatus === "all") return searchedSections;
@@ -109,14 +132,17 @@ export function LibraryAppsClient({
   return (
     <>
       <LibraryFilterToolbar
-        tabs={mainTabs}
-        selectedTab={selectedMainTab}
+        tabs={visibleMainTabs}
+        selectedTab={effectiveMainTab}
         onTabChange={(tabKey) => {
-          setSelectedMainTab(tabKey);
-          setSelectedStatus("all");
+          setSelectedMainTab((prev) => {
+            const nextMainTab = prev === tabKey ? null : tabKey;
+            setSelectedStatus(nextMainTab ? "all" : null);
+            return nextMainTab;
+          });
         }}
-        filters={visibleStatusFilters}
-        selectedFilter={effectiveStatus}
+        filters={shouldShowStatusFilters ? visibleStatusFilters : []}
+        selectedFilter={selectedStatus}
         filterCounts={statusCounts}
         onFilterChange={setSelectedStatus}
       />
