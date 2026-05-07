@@ -1,4 +1,8 @@
 import type {
+    UserProfile,
+    UserProfileResponse,
+} from "@/core/interfaces/auth.interface";
+import type {
     GetAppsParams,
     GetAppsResponse,
     GetBannersParams,
@@ -433,6 +437,11 @@ async function fetchManageAiModelsPage(
 
         throw error;
     });
+}
+
+export async function getUserProfile(init?: RequestInit): Promise<UserProfile> {
+    const response = await apiFetch<UserProfileResponse>(buildUrl("/profile"), init);
+    return response.data;
 }
 
 export async function getManageDashboardStats(

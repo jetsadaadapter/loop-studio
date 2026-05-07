@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import {
   Plus,
   ShieldCheck,
 } from "lucide-react";
+import type { UserProfile } from "@/core/interfaces/auth.interface";
 import {
   MANAGE_PARENT_CRUMB,
   MANAGE_DASHBOARD_FLAGS,
@@ -22,6 +23,7 @@ import {
   getLocalizedText,
 } from "@/app/manage/config";
 import { ManageLogo } from "@/components/manage-logo";
+import { getUserProfile } from "@/core/services/library.service";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -82,6 +84,50 @@ function isActivePath(pathname: string, href: string): boolean {
 function ManageSidebarFooter() {
   const router = useRouter();
   const { isMobile } = useSidebar();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getUserProfile()
+      .then((nextProfile) => {
+        if (!cancelled) {
+          setProfile(nextProfile);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProfile(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const profileName = useMemo(() => {
+    if (!profile) return "Adapter Admin";
+    return `${profile.firstName} ${profile.lastName}`.trim();
+  }, [profile]);
+
+  const profileSubtitle = useMemo(() => {
+    if (!profile) return "Admin workspace";
+    return profile.email;
+  }, [profile]);
+
+  const profileDetails = useMemo(() => {
+    if (!profile) return "Workspace Console";
+    const position = profile.position.trim();
+    return position
+      ? `${profile.department} • ${position}`
+      : profile.department;
+  }, [profile]);
+
+  const profileInitials = useMemo(() => {
+    if (!profile) return "AD";
+    return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
+  }, [profile]);
 
   return (
     <SidebarMenu>
@@ -96,12 +142,12 @@ function ManageSidebarFooter() {
             }
           >
             <Avatar>
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarFallback>{profileInitials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate font-medium">Adapter Admin</span>
+              <span className="truncate font-medium">{profileName}</span>
               <span className="truncate text-xs text-sidebar-foreground/70">
-                Admin workspace
+                {profileSubtitle}
               </span>
             </div>
             <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
@@ -116,12 +162,12 @@ function ManageSidebarFooter() {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar>
-                    <AvatarFallback>AD</AvatarFallback>
+                    <AvatarFallback>{profileInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">Adapter Admin</span>
+                    <span className="truncate font-medium">{profileName}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      Workspace Console
+                      {profileDetails}
                     </span>
                   </div>
                 </div>

@@ -1,8 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
+import type { UserProfile } from "@/core/interfaces/auth.interface";
+import { getUserProfile } from "@/core/services/library.service";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LEGAL_LINKS } from "@/lib/legal-links";
 
 async function handleSignOut() {
@@ -46,13 +48,76 @@ function MenuSection({ items }: { items: MenuItem[] }) {
   );
 }
 
+function getProfileMonogram(profile: UserProfile | null): string {
+  if (!profile) return "UP";
+
+  const firstName = profile.firstName.trim();
+  const lastName = profile.lastName.trim();
+  const firstInitial = firstName.charAt(0);
+  const lastInitial = lastName.charAt(0);
+  const monogram = `${firstInitial}${lastInitial}`.trim().toUpperCase();
+
+  if (monogram) return monogram;
+  if (firstName) return firstName.slice(0, 2).toUpperCase();
+  if (lastName) return lastName.slice(0, 2).toUpperCase();
+
+  return "UP";
+}
+
 export function ProfileAvatarMenu() {
   const [open, setOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const menuItems: MenuItem[] = [
     { label: "Sign out", icon: LogOut, onClick: handleSignOut },
   ];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getUserProfile()
+      .then((nextProfile) => {
+        if (!cancelled) {
+          setProfile(nextProfile);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProfile(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const profileName = useMemo(() => {
+    if (!profile) return "User Profile";
+    return `${profile.firstName} ${profile.lastName}`.trim();
+  }, [profile]);
+
+  const profileEmail = useMemo(() => {
+    if (!profile) return "user@adapterdigital.com";
+    return profile.email;
+  }, [profile]);
+
+  const profileDepartment = useMemo(() => {
+    return profile?.department?.trim() || "Department";
+  }, [profile]);
+
+  const profilePosition = useMemo(() => {
+    return profile?.position?.trim() || "Position";
+  }, [profile]);
+
+  const profileImage = useMemo(() => {
+    return profile?.image?.trim() || null;
+  }, [profile]);
+
+  const profileInitials = useMemo(() => {
+    return getProfileMonogram(profile);
+  }, [profile]);
 
   useEffect(() => {
     if (!open) return;
@@ -85,35 +150,45 @@ export function ProfileAvatarMenu() {
         aria-label="Open profile menu"
         aria-haspopup="menu"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white p-0.5 shadow-sm transition hover:border-slate-300"
+        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]"
       >
-        <Image
-          src="/images/profile/avatar-jetsada.svg"
-          alt="Jetsada Saokaew"
-          width={40}
-          height={40}
-          className="h-9 w-9 rounded-full object-cover"
-        />
+        <Avatar className="h-full w-full bg-white">
+          {profileImage ? (
+            <AvatarImage src={profileImage} alt={profileName} />
+          ) : null}
+          <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-[11px] font-semibold tracking-tight text-white shadow-inner">
+            {profileInitials}
+          </AvatarFallback>
+        </Avatar>
       </button>
 
       {open ? (
         <div className="absolute right-0 top-14 z-50 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-          <div className="px-5 pb-5 pt-6">
+          <div className="bg-linear-to-br from-slate-50 via-white to-sky-50/70 px-5 pb-5 pt-6">
             <div className="flex items-center gap-4">
-              <Image
-                src="/images/profile/avatar-jetsada.svg"
-                alt="Jetsada Saokaew"
-                width={52}
-                height={52}
-                className="size-13 rounded-full object-cover"
-              />
-              <div>
+              <div className="rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-1 shadow-inner ring-1 ring-slate-200/80">
+                <Avatar className="size-13 bg-white">
+                  {profileImage ? (
+                    <AvatarImage src={profileImage} alt={profileName} />
+                  ) : null}
+                  <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-base font-semibold tracking-tight text-white shadow-inner">
+                    {profileInitials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="min-w-0">
                 <p className="text-lg font-semibold leading-tight text-slate-900">
-                  Jetsada Saokaew
+                  {profileName}
                 </p>
-                <p className="mt-1 text-xs text-slate-600">
-                  jetsada@adapterdigital.com
-                </p>
+                <p className="mt-1 text-sm text-slate-600">{profileEmail}</p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] text-slate-500">
+                  <span className="rounded-full bg-slate-100/90 px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200/80">
+                    {profileDepartment}
+                  </span>
+                  <span className="font-medium text-slate-500">
+                    {profilePosition}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

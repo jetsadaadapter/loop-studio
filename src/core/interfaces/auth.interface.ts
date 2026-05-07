@@ -11,3 +11,22 @@ export interface AuthUser {
     name?: string;
     image?: string;
 }
+
+export interface UserProfile {
+    empid: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    image?: string | null;
+    department: string;
+    position: string;
+    roles: UserRole[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserProfileResponse {
+    success: boolean;
+    message?: string;
+    data: UserProfile;
+}
