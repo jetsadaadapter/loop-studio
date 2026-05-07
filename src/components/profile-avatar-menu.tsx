@@ -64,30 +64,97 @@ function getProfileMonogram(profile: UserProfile | null): string {
   return "UP";
 }
 
-export function ProfileAvatarMenu() {
-  const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+export function MobileProfilePanel() {
+  const {
+    profile,
+    profileName,
+    profileEmail,
+    profileDepartment,
+    profilePosition,
+    profileImage,
+    profileInitials,
+  } = useProfileData();
 
-  const menuItems: MenuItem[] = [
-    { label: "Sign out", icon: LogOut, onClick: handleSignOut },
-  ];
+  return (
+    <div className="border-t border-slate-200">
+      {/* Profile card */}
+      <div className="px-5 py-5">
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-1 shadow-inner ring-1 ring-slate-200/80">
+            <Avatar className="size-14 bg-white">
+              {profileImage ? (
+                <AvatarImage src={profileImage} alt={profileName} />
+              ) : null}
+              <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-base font-semibold tracking-tight text-white shadow-inner">
+                {profileInitials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="min-w-0">
+            <p className="text-base font-semibold leading-tight text-slate-900">
+              {profileName}
+            </p>
+            <p className="mt-0.5 text-sm text-slate-500">{profileEmail}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] text-slate-500">
+              <span className="rounded-full bg-slate-100/90 px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200/80">
+                {profileDepartment}
+              </span>
+              <span className="font-medium text-slate-500">
+                {profilePosition}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sign out */}
+      <div className="border-t border-slate-200 px-3 py-2">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+        >
+          <LogOut className="size-5 text-slate-500" />
+          <span>Sign out</span>
+        </button>
+      </div>
+
+      {/* Legal links */}
+      <div className="border-t border-slate-200 px-5 py-4 text-center text-xs text-slate-500">
+        <a
+          href={LEGAL_LINKS.privacyPolicy}
+          target="_blank"
+          rel="noreferrer"
+          className="transition hover:text-slate-800"
+        >
+          Privacy Policy
+        </a>
+        <span className="px-2">·</span>
+        <a
+          href={LEGAL_LINKS.termsOfService}
+          target="_blank"
+          rel="noreferrer"
+          className="transition hover:text-slate-800"
+        >
+          Terms of Service
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function useProfileData() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-
     void getUserProfile()
-      .then((nextProfile) => {
-        if (!cancelled) {
-          setProfile(nextProfile);
-        }
+      .then((p) => {
+        if (!cancelled) setProfile(p);
       })
       .catch(() => {
-        if (!cancelled) {
-          setProfile(null);
-        }
+        if (!cancelled) setProfile(null);
       });
-
     return () => {
       cancelled = true;
     };
@@ -103,21 +170,44 @@ export function ProfileAvatarMenu() {
     return profile.email;
   }, [profile]);
 
-  const profileDepartment = useMemo(() => {
-    return profile?.department?.trim() || "Department";
-  }, [profile]);
+  const profileDepartment = useMemo(
+    () => profile?.department?.trim() || "Department",
+    [profile],
+  );
+  const profilePosition = useMemo(
+    () => profile?.position?.trim() || "Position",
+    [profile],
+  );
+  const profileImage = useMemo(() => profile?.image?.trim() || null, [profile]);
+  const profileInitials = useMemo(() => getProfileMonogram(profile), [profile]);
 
-  const profilePosition = useMemo(() => {
-    return profile?.position?.trim() || "Position";
-  }, [profile]);
+  return {
+    profile,
+    profileName,
+    profileEmail,
+    profileDepartment,
+    profilePosition,
+    profileImage,
+    profileInitials,
+  };
+}
 
-  const profileImage = useMemo(() => {
-    return profile?.image?.trim() || null;
-  }, [profile]);
+export function ProfileAvatarMenu() {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const profileInitials = useMemo(() => {
-    return getProfileMonogram(profile);
-  }, [profile]);
+  const {
+    profileName,
+    profileEmail,
+    profileDepartment,
+    profilePosition,
+    profileImage,
+    profileInitials,
+  } = useProfileData();
+
+  const menuItems: MenuItem[] = [
+    { label: "Sign out", icon: LogOut, onClick: handleSignOut },
+  ];
 
   useEffect(() => {
     if (!open) return;

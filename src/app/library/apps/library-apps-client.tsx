@@ -1,6 +1,12 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { LibraryFilterToolbar } from "@/components/library-filter-toolbar";
 import { LibraryAppSections } from "@/components/library-app-sections";
 import { useLibraryShell } from "@/app/library/library-shell";
@@ -21,20 +27,22 @@ export function LibraryAppsClient({
   sections,
   children,
 }: LibraryAppsClientProps) {
-  const [selectedMainTab, setSelectedMainTab] = useState<MainTabKey | null>(
-    null,
-  );
   const [selectedStatus, setSelectedStatus] = useState<StatusFilterKey | null>(
     null,
   );
-  const { searchQuery } = useLibraryShell();
+  const {
+    searchQuery,
+    activeCategory,
+    setActiveCategory,
+    setVisibleCategoryKeys,
+  } = useLibraryShell();
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   console.log(
     "[LibraryAppsClient] Received sections:",
     sections.map((s) => ({ id: s.id, itemCount: s.items.length })),
   );
-  console.log("[LibraryAppsClient] Selected tab:", selectedMainTab);
+  console.log("[LibraryAppsClient] Selected tab:", activeCategory);
 
   const visibleMainTabs = useMemo(() => {
     const availableSectionIds = new Set(
@@ -44,10 +52,13 @@ export function LibraryAppsClient({
     return mainTabs.filter((tab) => availableSectionIds.has(tab.key));
   }, [sections]);
 
+  useEffect(() => {
+    setVisibleCategoryKeys(visibleMainTabs.map((t) => t.key));
+  }, [visibleMainTabs, setVisibleCategoryKeys]);
+
   const effectiveMainTab: MainTabKey | null =
-    selectedMainTab &&
-    visibleMainTabs.some((tab) => tab.key === selectedMainTab)
-      ? selectedMainTab
+    activeCategory && visibleMainTabs.some((tab) => tab.key === activeCategory)
+      ? activeCategory
       : null;
 
   const baseSections = useMemo(() => {
@@ -135,11 +146,9 @@ export function LibraryAppsClient({
         tabs={visibleMainTabs}
         selectedTab={effectiveMainTab}
         onTabChange={(tabKey) => {
-          setSelectedMainTab((prev) => {
-            const nextMainTab = prev === tabKey ? null : tabKey;
-            setSelectedStatus(nextMainTab ? "all" : null);
-            return nextMainTab;
-          });
+          const next = activeCategory === tabKey ? null : tabKey;
+          setActiveCategory(next);
+          setSelectedStatus(next ? "all" : null);
         }}
         filters={shouldShowStatusFilters ? visibleStatusFilters : []}
         selectedFilter={selectedStatus}

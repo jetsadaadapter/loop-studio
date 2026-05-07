@@ -1,54 +1,28 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { CONTACT_LINKS } from "@/lib/legal-links";
-import styles from "./styles.module.css";
-
-// Badge Tailwind classes per day of week: 0 = Sun, 1 = Mon, … 6 = Sat
-const DAY_BADGE_CLASS = [
-  "border-rose-200/80 text-rose-700", // Sun
-  "border-indigo-200/80 text-indigo-700", // Mon
-  "border-teal-200/80 text-teal-700", // Tue
-  "border-violet-200/80 text-violet-700", // Wed
-  "border-orange-200/80 text-orange-700", // Thu
-  "border-sky-200/80 text-sky-700", // Fri
-  "border-fuchsia-200/80 text-fuchsia-700", // Sat
-] as const;
 
 export function LibraryGuidedCtaBlock() {
-  const day = new Date().getDay();
-
   return (
     <section
-      data-day={day}
-      className={`${styles.section} relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 overflow-hidden py-5 sm:py-7`}
+      className="relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 bg-[linear-gradient(90deg,#cdeffb_0%,#e7f7fd_14%,#ffffff_34%,#ffffff_62%,#ffefd2_84%,#fdcf8d_100%)] py-16 backdrop-blur-[200px] md:py-28"
       aria-label="Get guided app recommendations"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-2/3 bg-linear-to-b from-white via-white/95 to-transparent" />
-      <div
-        data-day={day}
-        className={`${styles.bottomOverlay} pointer-events-none absolute inset-x-0 bottom-0 h-32 sm:h-44`}
-      />
-      <div
-        data-day={day}
-        className={`${styles.blobRight} pointer-events-none absolute -right-24 bottom-0 size-72 translate-y-1/3 rounded-full blur-2xl`}
-      />
-      <div
-        data-day={day}
-        className={`${styles.blobLeft} pointer-events-none absolute -left-24 bottom-0 h-40 w-80 translate-y-1/4 rounded-full blur-2xl`}
-      />
-
-      <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
-          <div className="max-w-3xl">
-            <span
-              className={`inline-flex items-center rounded-full border bg-white/80 px-3 py-1 text-[11px] font-semibold tracking-[0.08em] ${DAY_BADGE_CLASS[day]}`}
-            >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.72)_42%,rgba(255,255,255,0)_100%)]" />
+      <div className="mx-auto w-full max-w-7xl px-6 md:px-10">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+          <div className="flex flex-col items-center gap-3">
+            {/* <span className="inline-flex items-center rounded-full border border-amber-300/70 bg-white/75 px-4 py-1.5 text-[11px] font-semibold tracking-[0.08em] text-amber-700 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.45)]">
               เก็บความต้องการใช้งาน
-            </span>
+            </span> */}
 
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem] sm:leading-tight">
-              แจ้งความต้องการ MCP, Platform หรือ Tool ใหม่
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl md:leading-[1.1]">
+              แจ้งความต้องการ
+              <span className="mt-1 block text-[0.92em] font-medium text-slate-900 md:text-[0.88em]">
+                MCP, Platform หรือ Tool ใหม่
+              </span>
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700/90 sm:text-base md:text-lg">
+
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-700 md:text-base">
               หากทีมของคุณต้องการเครื่องมือเพิ่ม สามารถกรอก requirement
               เพื่อให้เราประเมินและนำเข้าระบบให้เหมาะกับ workflow ได้เร็วขึ้น
               และตรงความต้องการมากขึ้น
@@ -57,10 +31,14 @@ export function LibraryGuidedCtaBlock() {
 
           <a
             href={CONTACT_LINKS.requestForm}
-            className="inline-flex h-12 items-center justify-center gap-3 self-start rounded-2xl border border-slate-900 bg-slate-950 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_-16px_rgba(15,23,42,0.55)] transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800/40 md:self-auto"
+            className="group relative inline-flex h-12 w-fit items-center justify-center overflow-hidden rounded-full bg-slate-950 p-1 ps-6 pe-14 text-sm font-medium text-white transition-all duration-500 hover:bg-slate-950 hover:ps-14 hover:pe-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20"
           >
-            กรอกความต้องการ
-            <ArrowRight className="size-4.5" aria-hidden="true" />
+            <span className="relative z-10 transition-all duration-500">
+              กรอกความต้องการ
+            </span>
+            <span className="absolute right-1 top-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-950 transition-all duration-500 group-hover:right-[calc(100%-44px)] group-hover:rotate-45">
+              <ArrowUpRight className="size-4" aria-hidden="true" />
+            </span>
           </a>
         </div>
       </div>
