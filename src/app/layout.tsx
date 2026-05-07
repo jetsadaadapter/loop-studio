@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Inter, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -92,9 +93,11 @@ export default async function RootLayout({
         <meta name="next-nonce" content={nonce} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ToastProvider>
-          <main className="flex-1 flex flex-col">{children}</main>
-        </ToastProvider>
+        <TooltipProvider>
+          <ToastProvider>
+            <main className="flex-1 flex flex-col">{children}</main>
+          </ToastProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

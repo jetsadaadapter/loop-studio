@@ -13,6 +13,7 @@ import type {
     ManageAppListResponse,
     ManageAppMutationResponse,
     ManageAppPayload,
+    PaginationMeta,
 } from "@/core/interfaces/library.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
@@ -374,6 +375,96 @@ export async function deleteManageApp(id: string, init?: RequestInit): Promise<v
         method: "DELETE",
         ...init,
     });
+}
+
+export type ManageDashboardStats = {
+    appCount: number;
+    activeAppCount: number;
+    aiModelCount: number;
+    activeAiModelCount: number;
+    defaultAiModelName: string | null;
+    lastUpdatedAt: string | null;
+};
+
+function getPaginatedTotal(meta?: PaginationMeta): number | null {
+    if (!meta) return null;
+    return typeof meta.total === "number" ? meta.total : null;
+}
+
+function pickLatestIsoDate(values: Array<string | null | undefined>): string | null {
+    let latestTime = 0;
+    let latestIso: string | null = null;
+
+    for (const value of values) {
+        if (!value) continue;
+        const timestamp = Date.parse(value);
+        if (Number.isNaN(timestamp)) continue;
+
+        if (timestamp > latestTime) {
+            latestTime = timestamp;
+            latestIso = new Date(timestamp).toISOString();
+        }
+    }
+
+    return latestIso;
+}
+
+async function fetchManageAiModelsPage(
+    page: number,
+    limit: number,
+    init?: RequestInit,
+): Promise<ManageAiListResponse> {
+    return apiFetch<ManageAiListResponse>(
+        buildUrl("/manage/models", {
+            page,
+            limit,
+        }),
+        init,
+    ).catch(async (error) => {
+        if (error instanceof ApiError && error.status === 404) {
+            return apiFetch<ManageAiListResponse>(
+                buildUrl("/manage/ai", {
+                    page,
+                    limit,
+                }),
+                init,
+            );
+        }
+
+        throw error;
+    });
+}
+
+export async function getManageDashboardStats(
+    init?: RequestInit,
+): Promise<ManageDashboardStats> {
+    const [apps, aiFirstPage] = await Promise.all([
+        getManageApps(init),
+        fetchManageAiModelsPage(1, 200, init),
+    ]);
+
+    const aiModels: ManageAiModelApiItem[] = [...(aiFirstPage.data ?? [])];
+    const totalPages = aiFirstPage.meta?.totalPages ?? 1;
+
+    for (let page = 2; page <= totalPages; page += 1) {
+        const response = await fetchManageAiModelsPage(page, 200, init);
+        aiModels.push(...(response.data ?? []));
+    }
+
+    const defaultModel = aiModels.find((model) => model.isDefault) ?? null;
+    const lastUpdatedAt = pickLatestIsoDate([
+        ...apps.map((app) => app.updatedAt),
+        ...aiModels.map((model) => model.updatedAt),
+    ]);
+
+    return {
+        appCount: apps.length,
+        activeAppCount: apps.filter((app) => app.isActive).length,
+        aiModelCount: getPaginatedTotal(aiFirstPage.meta) ?? aiModels.length,
+        activeAiModelCount: aiModels.filter((model) => model.isActive).length,
+        defaultAiModelName: defaultModel?.name ?? null,
+        lastUpdatedAt,
+    };
 }
 
 // ─── Manage AI Models ────────────────────────────────────────────────────────

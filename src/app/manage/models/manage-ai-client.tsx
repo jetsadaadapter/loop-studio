@@ -1,13 +1,17 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   type FormEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  startTransition,
 } from "react";
 
+import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManagerDataTable } from "@/components/manager-data-table";
@@ -106,6 +110,9 @@ function ButtonSpinner() {
 }
 
 export function ManageAiClient() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hasHandledCreateQuery = useRef(false);
   const { pushToast } = useToast();
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,13 +159,20 @@ export function ManageAiClient() {
   );
 
   useEffect(() => {
-    void loadModels();
-  }, [loadModels]);
+    startTransition(() => {
+      void loadModels();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedModel = useMemo(
     () => models.find((item) => item.id === selectedId) ?? draft,
     [models, selectedId],
   );
+
+  const pageTitle = useMemo(() => {
+    return getLocalizedText(getManageRouteMeta(pathname).title);
+  }, [pathname]);
 
   const visibleModels = useMemo(() => {
     return models
@@ -192,6 +206,15 @@ export function ManageAiClient() {
     setError("");
     setFieldErrors({});
   }
+
+  useEffect(() => {
+    if (hasHandledCreateQuery.current) return;
+    if (searchParams.get("action") !== "create") return;
+    hasHandledCreateQuery.current = true;
+    startTransition(() => {
+      openCreateForm();
+    });
+  }, [searchParams]);
 
   function clearFilters() {
     setSearch("");
@@ -351,7 +374,7 @@ export function ManageAiClient() {
 
   return (
     <ManagerShell
-      title="Manage > AI"
+      title={pageTitle}
       description="Model manager scaffold with one-click default assignment."
       actions={
         <Button

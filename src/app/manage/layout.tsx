@@ -1,26 +1,27 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-const tabs = [
-  { href: "/manage/apps", label: "App Manager" },
-  { href: "/manage/ai", label: "AI Model Manager" },
-];
+import { ManageSidebarNav } from "@/components/manage-sidebar-nav";
+import { ManageTopbar } from "@/components/manage-topbar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default function ManageLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
-      <nav className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
-      {children}
-    </div>
+    <SidebarProvider>
+      <ManageSidebarNav />
+      <SidebarInset>
+        <header className="sticky top-0 z-20 flex h-14 items-center border-b border-slate-200/80 bg-white/80 px-3 backdrop-blur sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <SidebarTrigger className="shrink-0" />
+            <div className="h-5 w-px bg-slate-200" aria-hidden="true" />
+            <ManageTopbar />
+          </div>
+        </header>
+        <div className="w-full p-3 sm:p-4">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

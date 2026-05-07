@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   type FormEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  startTransition,
 } from "react";
 
+import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManagerDataTable } from "@/components/manager-data-table";
@@ -139,6 +143,9 @@ function ButtonSpinner() {
 }
 
 export function ManageAppsClient() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hasHandledCreateQuery = useRef(false);
   const { pushToast } = useToast();
   const [apps, setApps] = useState<AppRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -184,8 +191,11 @@ export function ManageAppsClient() {
   );
 
   useEffect(() => {
-    void loadApps();
-  }, [loadApps]);
+    startTransition(() => {
+      void loadApps();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     return apps
@@ -218,12 +228,25 @@ export function ManageAppsClient() {
   const hasActiveFilter =
     search.trim() !== "" || categoryFilter !== "all" || statusFilter !== "all";
 
+  const pageTitle = useMemo(() => {
+    return getLocalizedText(getManageRouteMeta(pathname).title);
+  }, [pathname]);
+
   function openCreateForm() {
     setMode("create");
     setDraft(EMPTY_FORM);
     setError("");
     setFieldErrors({});
   }
+
+  useEffect(() => {
+    if (hasHandledCreateQuery.current) return;
+    if (searchParams.get("action") !== "create") return;
+    hasHandledCreateQuery.current = true;
+    startTransition(() => {
+      openCreateForm();
+    });
+  }, [searchParams]);
 
   function clearFilters() {
     setSearch("");
@@ -362,7 +385,7 @@ export function ManageAppsClient() {
 
   return (
     <ManagerShell
-      title="Manage > App"
+      title={pageTitle}
       description="Universal manager for app catalog (id-first)."
       actions={
         <Button

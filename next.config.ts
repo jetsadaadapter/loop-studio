@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         destination: "/apps/:slug",
         permanent: true,
       },
+      {
+        source: "/manage/ai",
+        destination: "/manage/models",
+        permanent: true,
+      },
+      {
+        source: "/manage/ai/:path*",
+        destination: "/manage/models/:path*",
+        permanent: true,
+      },
     ];
   },
   async headers() {

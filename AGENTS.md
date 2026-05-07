@@ -49,6 +49,20 @@ When these files diverge, update both in the same change.
 - Avoid unrelated refactors in focused fixes
 - Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and follow its naming/structure convention
 
+### Start-of-Task Guidelines (Required Every Time)
+
+Before writing code on any new task, follow this sequence:
+
+1. Do not jump into code immediately.
+2. Analyze requirements first.
+3. List files that will be created/updated.
+4. Break work into small verifiable steps.
+5. Before editing, state which files will change and how.
+6. After editing, summarize what changed.
+7. Do not remove existing code unless necessary.
+8. Keep code readable, beginner-friendly, and easy to maintain.
+9. Always account for security, maintainability, and best practices.
+
 ## 5. Documentation Sync Policy
 
 If code changes affect behavior or setup, update these files together:
