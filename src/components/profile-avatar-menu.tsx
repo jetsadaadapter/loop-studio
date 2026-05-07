@@ -66,7 +66,6 @@ function getProfileMonogram(profile: UserProfile | null): string {
 
 export function MobileProfilePanel() {
   const {
-    profile,
     profileName,
     profileEmail,
     profileDepartment,
@@ -80,12 +79,12 @@ export function MobileProfilePanel() {
       {/* Profile card */}
       <div className="px-5 py-5">
         <div className="flex items-center gap-4">
-          <div className="shrink-0 rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-1 shadow-inner ring-1 ring-slate-200/80">
+          <div className="shrink-0 rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
             <Avatar className="size-14 bg-white">
               {profileImage ? (
                 <AvatarImage src={profileImage} alt={profileName} />
               ) : null}
-              <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-base font-semibold tracking-tight text-white shadow-inner">
+              <AvatarFallback className="bg-brand text-base font-semibold tracking-tight text-white shadow-inner">
                 {profileInitials}
               </AvatarFallback>
             </Avatar>
@@ -240,13 +239,13 @@ export function ProfileAvatarMenu() {
         aria-label="Open profile menu"
         aria-haspopup="menu"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex size-11.5 items-center justify-center rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]"
+        className="inline-flex size-11.5 items-center justify-center rounded-full bg-brand/20 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]"
       >
         <Avatar className="h-full w-full bg-white">
           {profileImage ? (
             <AvatarImage src={profileImage} alt={profileName} />
           ) : null}
-          <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-[11px] font-semibold tracking-tight text-white shadow-inner">
+          <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
             {profileInitials}
           </AvatarFallback>
         </Avatar>
@@ -256,12 +255,12 @@ export function ProfileAvatarMenu() {
         <div className="absolute right-0 top-14 z-50 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
           <div className="bg-linear-to-br from-slate-50 via-white to-sky-50/70 px-5 pb-5 pt-6">
             <div className="flex items-center gap-4">
-              <div className="rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-1 shadow-inner ring-1 ring-slate-200/80">
+              <div className="rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
                 <Avatar className="size-13 bg-white">
                   {profileImage ? (
                     <AvatarImage src={profileImage} alt={profileName} />
                   ) : null}
-                  <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-base font-semibold tracking-tight text-white shadow-inner">
+                  <AvatarFallback className="bg-brand text-base font-semibold tracking-tight text-white shadow-inner">
                     {profileInitials}
                   </AvatarFallback>
                 </Avatar>

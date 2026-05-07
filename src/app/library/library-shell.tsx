@@ -119,13 +119,13 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             <div className="h-5 w-px shrink-0 bg-slate-200" />
 
             {/* Desktop nav — hidden on mobile */}
-            <nav className="hidden flex-1 items-center gap-1 md:flex">
+            <nav className="hidden h-full flex-1 items-stretch gap-1 md:flex">
               <Link
                 href="/about"
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                className={`relative inline-flex h-full items-center px-4 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
                   pathname?.startsWith("/about")
-                    ? "bg-slate-100 text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "text-slate-900 after:scale-x-100"
+                    : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
                 }`}
               >
                 About us
@@ -140,10 +140,10 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                     key={key}
                     type="button"
                     onClick={() => setActiveCategory(isActive ? null : key)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                    className={`relative inline-flex h-full items-center px-4 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
                       isActive
-                        ? "bg-slate-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "text-slate-900 after:scale-x-100"
+                        : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
                     }`}
                   >
                     {tab.label}
@@ -225,19 +225,19 @@ export function LibraryShell({ children }: { children: ReactNode }) {
           {children}
         </main>
 
-        <footer className="border-t border-slate-200 bg-slate-50">
+        <footer className="border-t border-white/10 bg-black">
           <div className="mx-auto w-full max-w-7xl px-4 py-10 md:px-6">
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
               <div className="col-span-2 sm:col-span-1">
                 <Image
-                  src="/images/logo/logo-black-383x115.svg"
+                  src="/images/logo/logo-white-330x99.svg"
                   alt="Adapter Digital Group"
                   width={110}
                   height={30}
                   className="h-6 w-auto"
                 />
-                <p className="mt-3 text-xs leading-relaxed text-slate-600">
-                  <span className="block font-semibold text-slate-800">
+                <p className="mt-3 text-xs leading-relaxed text-white/75">
+                  <span className="block font-semibold text-white">
                     {libraryShellCopy.tagline}
                   </span>
                   <span className="mt-1 block">
@@ -248,10 +248,10 @@ export function LibraryShell({ children }: { children: ReactNode }) {
 
               {Object.entries(libraryFooterLinks).map(([heading, links]) => (
                 <div key={heading}>
-                  <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+                  <h2 className="text-xs font-semibold uppercase tracking-wide text-white">
                     {heading}
                   </h2>
-                  <ul className="mt-3 space-y-2 text-xs text-slate-600">
+                  <ul className="mt-3 space-y-2 text-xs text-white/75">
                     {links.map((item, index) => (
                       <li key={`${heading}:${item.label}:${index}`}>
                         <a
@@ -264,7 +264,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                               ? "noreferrer"
                               : undefined
                           }
-                          className="transition hover:text-slate-900"
+                          className="transition hover:text-white"
                         >
                           {item.label}
                         </a>
@@ -275,14 +275,14 @@ export function LibraryShell({ children }: { children: ReactNode }) {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
-              <p className="text-xs text-slate-500">
+            <div className="relative mt-8 flex flex-col items-start justify-between gap-3 pt-6 before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.95),transparent)] sm:flex-row sm:items-center">
+              <p className="text-xs text-white">
                 &copy; {new Date().getFullYear()} Adapter Digital Group. All
                 rights reserved.
               </p>
               <div className="flex items-center gap-1">
                 <span className="inline-block size-2 rounded-full bg-brand" />
-                <span className="text-xs font-medium text-slate-600">
+                <span className="text-xs font-medium text-white">
                   {libraryShellCopy.title}
                 </span>
               </div>

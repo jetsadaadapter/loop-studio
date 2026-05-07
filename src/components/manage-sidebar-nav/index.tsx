@@ -156,7 +156,7 @@ function ManageSidebarFooter() {
               )
             }
           >
-            <div className="relative rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 group-data-[collapsible=icon]:p-0.5 group-data-[collapsible=icon]:shadow-[0_12px_20px_-16px_rgba(15,23,42,0.45)]">
+            <div className="relative rounded-full bg-brand/20 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 group-data-[collapsible=icon]:p-0.5 group-data-[collapsible=icon]:shadow-[0_12px_20px_-16px_rgba(15,23,42,0.45)]">
               <span
                 className="absolute right-0 top-0 hidden size-2.5 translate-x-1/5 -translate-y-1/5 rounded-full border-2 border-white bg-emerald-400 shadow-sm group-data-[collapsible=icon]:block"
                 aria-hidden="true"
@@ -165,7 +165,7 @@ function ManageSidebarFooter() {
                 {profileImage ? (
                   <AvatarImage src={profileImage} alt={profileName} />
                 ) : null}
-                <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-[11px] font-semibold tracking-tight text-white shadow-inner">
+                <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
                   {profileInitials}
                 </AvatarFallback>
               </Avatar>
@@ -192,12 +192,12 @@ function ManageSidebarFooter() {
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-3 rounded-xl bg-linear-to-br from-slate-50 via-white to-sky-50/70 px-3 py-3 text-left text-sm">
-                  <div className="rounded-full bg-linear-to-br from-sky-100 via-white to-violet-100 p-1 shadow-inner ring-1 ring-slate-200/80">
+                  <div className="rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
                     <Avatar className="size-10 bg-white">
                       {profileImage ? (
                         <AvatarImage src={profileImage} alt={profileName} />
                       ) : null}
-                      <AvatarFallback className="bg-linear-to-br from-rose-500 via-red-500 to-orange-400 text-[11px] font-semibold tracking-tight text-white shadow-inner">
+                      <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
                         {profileInitials}
                       </AvatarFallback>
                     </Avatar>

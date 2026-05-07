@@ -4,7 +4,7 @@ import { CONTACT_LINKS } from "@/lib/legal-links";
 export function LibraryGuidedCtaBlock() {
   return (
     <section
-      className="relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 bg-[linear-gradient(90deg,#cdeffb_0%,#e7f7fd_14%,#ffffff_34%,#ffffff_62%,#ffefd2_84%,#fdcf8d_100%)] py-16 backdrop-blur-[200px] md:py-28"
+      className="relative left-1/2 mt-12 mb-0 w-screen -translate-x-1/2 bg-[linear-gradient(90deg,#fcecef_0%,#fdf4f6_14%,#ffffff_34%,#ffffff_62%,#fde8ec_84%,#f3c6cf_100%)] py-16 backdrop-blur-[200px] md:py-28"
       aria-label="Get guided app recommendations"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.72)_42%,rgba(255,255,255,0)_100%)]" />
