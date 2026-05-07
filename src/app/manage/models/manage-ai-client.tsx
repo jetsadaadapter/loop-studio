@@ -2,7 +2,6 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  type FormEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -16,6 +15,7 @@ import { ManagerShell } from "@/components/manager-shell";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManagerDataTable } from "@/components/manager-data-table";
 import { ManagerForm } from "@/components/manager-form";
+import type { ManagerFormProps } from "@/components/manager-form/types";
 import { ManagerFormSection } from "@/components/manager-form-section";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { useToast } from "@/components/toast-provider";
@@ -45,6 +45,10 @@ type ModelRecord = {
   createdAt: string;
   updatedAt: string;
 };
+
+type FormSubmitHandler = ManagerFormProps["onSubmit"];
+
+type FormSubmitEvent = Parameters<FormSubmitHandler>[0];
 
 const EMPTY_MODEL: ModelRecord = {
   id: "",
@@ -240,7 +244,11 @@ export function ManageAiClient() {
     return fieldErrors[field] ?? null;
   }
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  const onSubmit: FormSubmitHandler = (event) => {
+    void handleSubmit(event);
+  };
+
+  async function handleSubmit(event: FormSubmitEvent) {
     event.preventDefault();
     setIsSubmitting(true);
     const validationError = validateModel(draft);
