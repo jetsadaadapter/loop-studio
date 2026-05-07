@@ -11,9 +11,9 @@ export function LibraryGuidedCtaBlock() {
       <div className="mx-auto w-full max-w-7xl px-6 md:px-10">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
           <div className="flex flex-col items-center gap-3">
-            {/* <span className="inline-flex items-center rounded-full border border-amber-300/70 bg-white/75 px-4 py-1.5 text-[11px] font-semibold tracking-[0.08em] text-amber-700 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.45)]">
+            <span className="inline-flex items-center rounded-full border border-brand bg-transparent px-4 py-1.5 text-[11px] font-semibold tracking-[0.08em] text-brand mb-2 shadow-[0_12px_30px_-20px_rgba(194,0,25,0.45)]">
               เก็บความต้องการใช้งาน
-            </span> */}
+            </span>
 
             <h2 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl md:leading-[1.1]">
               แจ้งความต้องการ
