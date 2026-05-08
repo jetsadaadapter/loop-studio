@@ -9,7 +9,9 @@ import {
   useRef,
   useState,
   startTransition,
+  useId,
 } from "react";
+import { CircleIcon } from "lucide-react";
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
@@ -29,6 +31,29 @@ import {
   type ManageAppApiItem,
   type ManageAppPayload,
 } from "@/core/interfaces/library.interface";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+} from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { TagInput } from "@/components/ui/tag-input";
 import {
   ApiError,
   createManageApp,
@@ -166,6 +191,34 @@ export function ManageAppsClient() {
   const [deleteTarget, setDeleteTarget] = useState<AppRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const statusId = useId();
+  const badgeId = useId();
+  const linkTypeId = useId();
+
+  const statuses = useMemo(
+    () => [
+      {
+        value: "active",
+        label: "Publish",
+        color: "text-teal-600 fill-teal-600",
+      },
+      {
+        value: "inactive",
+        label: "Inactive",
+        color: "text-gray-500 fill-gray-500",
+      },
+      {
+        value: "draft",
+        label: "Draft",
+        color: "text-amber-300 fill-amber-300",
+      },
+    ],
+    [],
+  );
+
+  const selectedStatus = statuses.find(
+    (s) => s.value === (draft.isActive ? "active" : "inactive"),
+  );
 
   const loadApps = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -602,194 +655,344 @@ export function ManageAppsClient() {
         />
       ) : null}
 
-      {mode ? (
-        <ManagerForm
-          title={mode === "create" ? "Create App" : `Edit App: ${draft.name}`}
-          description="Universal app form scaffold aligned with /manage/apps payload"
-          onSubmit={onSubmit}
-          actions={
-            <>
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <ButtonSpinner />
-                    Saving...
-                  </span>
-                ) : (
-                  "Save"
-                )}
-              </Button>
-            </>
-          }
-        >
-          <ManagerFormSection title="Basic">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="Name"
-                value={draft.name}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                placeholder="Category"
-                value={draft.category}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    category: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                placeholder="Badge label"
-                value={draft.badgeLabel}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    badgeLabel: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                type="number"
-                placeholder="Sort order"
-                value={String(draft.sortOrder)}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    sortOrder: Number(event.target.value || 0),
-                  }))
-                }
-              />
-            </div>
-          </ManagerFormSection>
+      <Sheet open={!!mode} onOpenChange={(open) => !open && resetForm()}>
+        <SheetContent side="right" className="w-[90vw] sm:!max-w-[50vw] sm:!w-[50vw] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{mode === "create" ? "Create App" : `Edit App: ${draft.name}`}</SheetTitle>
+            <SheetDescription>Universal app form scaffold aligned with /manage/apps payload</SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <ManagerForm
+              onSubmit={onSubmit}
+              hideHeader
+              className="border-none bg-transparent shadow-none"
+              actions={
+                <>
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <ButtonSpinner />
+                        Saving...
+                      </span>
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </>
+              }
+            >
+              <ManagerFormSection title="General">
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>
+                      Name <span className="text-destructive">*</span>
+                    </FieldLabel>
+                    <Input
+                      placeholder="Name"
+                      value={draft.name}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                    />
+                    <FieldDescription>
+                      A name is required and recommended to be unique.
+                    </FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.name }]} />
+                  </Field>
 
-          <ManagerFormSection title="Media">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="imageId"
-                value={draft.imageId}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    imageId: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                placeholder="iconId"
-                value={draft.iconId}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    iconId: event.target.value,
-                  }))
-                }
-              />
-            </div>
-          </ManagerFormSection>
+                  <Field>
+                    <FieldLabel>
+                      Category <span className="text-destructive">*</span>
+                    </FieldLabel>
+                    <Input
+                      placeholder="Category"
+                      value={draft.category}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          category: event.target.value,
+                        }))
+                      }
+                    />
+                    <FieldDescription>
+                      App category for grouping in the catalog.
+                    </FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.category }]} />
+                  </Field>
 
-          <ManagerFormSection title="Action">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <select
-                aria-label="Link type"
-                value={draft.linkType}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    linkType: event.target.value as AppLinkType,
-                  }))
-                }
-                className="h-8 rounded-sm border border-slate-300 px-2 text-sm"
-              >
-                <option value="internal">internal</option>
-                <option value="external">external</option>
-                <option value="instruction">instruction</option>
-              </select>
-              <Input
-                placeholder="CTA label"
-                value={draft.ctaLabel}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    ctaLabel: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                placeholder="CTA link"
-                value={draft.ctaLink}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    ctaLink: event.target.value,
-                  }))
-                }
-              />
-            </div>
-          </ManagerFormSection>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field>
+                      <FieldLabel htmlFor={statusId}>Status</FieldLabel>
+                      <Select
+                        value={draft.isActive ? "active" : "inactive"}
+                        onValueChange={(value) =>
+                          setDraft((current) => ({
+                            ...current,
+                            isActive: value === "active",
+                          }))
+                        }
+                      >
+                        <SelectTrigger
+                          id={statusId}
+                          className="w-full [&>span]:flex [&>span]:items-center [&>span]:gap-2"
+                        >
+                          {selectedStatus && (
+                            <CircleIcon
+                              className={`size-2 ${selectedStatus.color}`}
+                            />
+                          )}
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="start">
+                          {statuses.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              <div className="flex items-center gap-2">
+                                <CircleIcon
+                                  className={`size-2 ${status.color}`}
+                                />
+                                <span className="truncate">{status.label}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FieldDescription>
+                        Set the visibility of this app.
+                      </FieldDescription>
+                      <FieldError errors={[{ message: fieldErrors.isActive }]} />
+                    </Field>
 
-          <ManagerFormSection title="Content">
-            <div className="grid gap-3">
-              <Input
-                placeholder="Description"
-                value={draft.description}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-              />
-              <textarea
-                placeholder="Instructions"
-                value={draft.instructions}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    instructions: event.target.value,
-                  }))
-                }
-                className="min-h-28 rounded-sm border border-slate-300 px-2 py-1.5 text-sm"
-              />
-              <Input
-                placeholder="Tag IDs (comma separated)"
-                value={draft.tags.join(",")}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    tags: event.target.value
-                      .split(",")
-                      .map((value) => value.trim())
-                      .filter(Boolean),
-                  }))
-                }
-              />
-            </div>
-          </ManagerFormSection>
+                    <Field>
+                      <FieldLabel htmlFor={badgeId}>Badge Label</FieldLabel>
+                      <Select
+                        value={draft.badgeLabel}
+                        onValueChange={(value) =>
+                          setDraft((current) => ({
+                            ...current,
+                            badgeLabel: (value === "none" ? "" : value) || "",
+                          }))
+                        }
+                      >
+                        <SelectTrigger id={badgeId} className="w-full">
+                          <SelectValue placeholder="Select badge" />
+                        </SelectTrigger>
+                        <SelectContent align="start">
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Trending">Trending</SelectItem>
+                          <SelectItem value="Hot">Hot</SelectItem>
+                          <SelectItem value="Coming Soon">Coming Soon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FieldDescription>
+                        Small badge text on the app card.
+                      </FieldDescription>
+                      <FieldError
+                        errors={[{ message: fieldErrors.badgeLabel }]}
+                      />
+                    </Field>
+                  </div>
 
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          {Object.keys(fieldErrors).length > 0 ? (
-            <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              <p className="font-medium">Please review these fields:</p>
-              <ul className="mt-1 list-disc pl-5">
-                {Object.entries(fieldErrors).map(([field, message]) => (
-                  <li key={field}>
-                    {field}: {message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </ManagerForm>
-      ) : null}
+                  <Field>
+                    <FieldLabel>Sort Order</FieldLabel>
+                    <Input
+                      type="number"
+                      placeholder="Sort order"
+                      value={String(draft.sortOrder)}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          sortOrder: Number(event.target.value || 0),
+                        }))
+                      }
+                    />
+                    <FieldDescription>Lower values appear first.</FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.sortOrder }]} />
+                  </Field>
+                </FieldGroup>
+              </ManagerFormSection>
+
+              <ManagerFormSection title="Media">
+                <FieldGroup>
+                  <Field>
+                    <ImageUpload
+                      value={draft.imageId}
+                      onChange={(value) =>
+                        setDraft((current) => ({
+                          ...current,
+                          imageId: value,
+                        }))
+                      }
+                      placeholder="Upload banner"
+                      description="Drag or drop your files here or click to upload"
+                    />
+                    <FieldDescription>
+                      Banner image for the app header. Recommended size 1200x400.
+                    </FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.imageId }]} />
+                  </Field>
+                </FieldGroup>
+              </ManagerFormSection>
+
+              <ManagerFormSection title="Thumbnail">
+                <FieldGroup>
+                  <Field>
+                    <ImageUpload
+                      value={draft.iconId}
+                      onChange={(value) =>
+                        setDraft((current) => ({
+                          ...current,
+                          iconId: value,
+                        }))
+                      }
+                      placeholder="Drop Thumbnail here to upload"
+                      description="Set the product thumbnail image. Only *.png, *.jpg and *.jpeg image files are accepted."
+                    />
+                    <FieldError errors={[{ message: fieldErrors.iconId }]} />
+                  </Field>
+                </FieldGroup>
+              </ManagerFormSection>
+
+              <ManagerFormSection title="Action">
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor={linkTypeId}>Link Type</FieldLabel>
+                    <Select
+                      value={draft.linkType}
+                      onValueChange={(value) =>
+                        setDraft((current) => ({
+                          ...current,
+                          linkType: value as AppLinkType,
+                        }))
+                      }
+                    >
+                      <SelectTrigger id={linkTypeId} className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="internal">internal</SelectItem>
+                        <SelectItem value="external">external</SelectItem>
+                        <SelectItem value="instruction">instruction</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                      Determines how the CTA button behaves.
+                    </FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.linkType }]} />
+                  </Field>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field>
+                      <FieldLabel>CTA Label</FieldLabel>
+                      <Input
+                        placeholder="CTA label"
+                        value={draft.ctaLabel}
+                        onChange={(event) =>
+                          setDraft((current) => ({
+                            ...current,
+                            ctaLabel: event.target.value,
+                          }))
+                        }
+                      />
+                      <FieldDescription>Label for the action button.</FieldDescription>
+                      <FieldError errors={[{ message: fieldErrors.ctaLabel }]} />
+                    </Field>
+
+                    <Field>
+                      <FieldLabel>CTA Link</FieldLabel>
+                      <Input
+                        placeholder="CTA link"
+                        value={draft.ctaLink}
+                        onChange={(event) =>
+                          setDraft((current) => ({
+                            ...current,
+                            ctaLink: event.target.value,
+                          }))
+                        }
+                      />
+                      <FieldDescription>Target URL or path.</FieldDescription>
+                      <FieldError errors={[{ message: fieldErrors.ctaLink }]} />
+                    </Field>
+                  </div>
+                </FieldGroup>
+              </ManagerFormSection>
+
+              <ManagerFormSection title="Content">
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>Description</FieldLabel>
+                    <Input
+                      placeholder="Description"
+                      value={draft.description}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                    <FieldDescription>Short summary of the app.</FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.description }]} />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel>Instructions</FieldLabel>
+                    <textarea
+                      placeholder="Instructions"
+                      value={draft.instructions}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          instructions: event.target.value,
+                        }))
+                      }
+                      className="min-h-28 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-xs focus:ring-1 focus:ring-brand focus:outline-none"
+                    />
+                    <FieldDescription>Detailed steps for using the app.</FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.instructions }]} />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel>Tags</FieldLabel>
+                    <TagInput
+                      value={draft.tags}
+                      onChange={(tags) =>
+                        setDraft((current) => ({
+                          ...current,
+                          tags,
+                        }))
+                      }
+                      placeholder="Add tags..."
+                    />
+                    <FieldDescription>Add tags for products.</FieldDescription>
+                    <FieldError errors={[{ message: fieldErrors.tags }]} />
+                  </Field>
+                </FieldGroup>
+              </ManagerFormSection>
+
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              {Object.keys(fieldErrors).length > 0 ? (
+                <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                  <p className="font-medium">Please review these fields:</p>
+                  <ul className="mt-1 list-disc pl-5">
+                    {Object.entries(fieldErrors).map(([field, message]) => (
+                      <li key={field}>
+                        {field}: {message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </ManagerForm>
+          </div>
+        </SheetContent>
+      </Sheet>
     </ManagerShell>
   );
 }
