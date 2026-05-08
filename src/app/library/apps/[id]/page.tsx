@@ -188,14 +188,14 @@ export default async function AppDetailPage({ params }: Props) {
                   `${app.name} is a ${app.category.toLowerCase()} integration available on the Adapter Library.`}
               </p>
 
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <p className="text-sm font-semibold text-slate-900">
                   Updated on
                 </p>
                 <p className="mt-0.5 text-sm text-slate-600">
                   {formatDate(app.updatedAt)}
                 </p>
-              </div>
+              </div> */}
 
               {app.tags.length > 0 ? (
                 <div className="mt-5 flex flex-wrap gap-2">

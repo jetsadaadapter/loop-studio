@@ -111,13 +111,25 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             <div className="hidden h-5 w-px shrink-0 bg-slate-200 md:block" />
 
             {/* Desktop nav — hidden on mobile */}
-            <nav className="hidden h-full flex-1 items-stretch gap-0 md:flex">
+            <nav className="hidden h-full flex-1 items-stretch gap-6 md:flex">
+              {pathname !== "/apps" && pathname !== "/" && (
+                <Link
+                  href="/apps"
+                  className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors motion-enter-1 after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
+                    pathname === "/apps" || pathname === "/"
+                      ? "text-slate-900 after:scale-x-100"
+                      : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
+                  }`}
+                >
+                  Home
+                </Link>
+              )}
               <Link
                 href="/about"
                 className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
                   pathname?.startsWith("/about")
-                    ? "text-slate-900 after:scale-x-100"
-                    : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
+                    ? "text-slate-900 after:scale-x-100 motion-enter-1"
+                    : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100 motion-enter-2"
                 }`}
               >
                 About us
@@ -127,7 +139,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             {/* Right side */}
             <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
               {/* Avatar — desktop only */}
-              <div className="hidden md:block">
+              <div className="hidden motion-enter-3 md:block">
                 <ProfileAvatarMenu />
               </div>
 
@@ -141,7 +153,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                 </SheetTrigger>
                 <SheetContent
                   side="right"
-                  className="max-w-75! flex flex-col gap-0 p-0"
+                  className="max-w-75! flex flex-col gap-0 p-0 duration-500!"
                 >
                   {/* Sheet header — logo only */}
                   <SheetHeader className="shrink-0 border-b border-slate-100 px-5 py-4">
@@ -158,11 +170,33 @@ export function LibraryShell({ children }: { children: ReactNode }) {
 
                   {/* Nav items — scrollable middle */}
                   <div className="flex-1 overflow-y-auto px-3 py-3">
-                    <nav className="space-y-0">
+                    <nav className="space-y-1">
+                      {pathname !== "/apps" && pathname !== "/" && (
+                        <Link
+                          href="/apps"
+                          className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all motion-enter-1 ${
+                            pathname === "/apps" || pathname === "/"
+                              ? "font-bold text-slate-900"
+                              : "font-medium text-slate-600 hover:text-slate-900"
+                          }`}
+                        >
+                          {(pathname === "/apps" || pathname === "/") && (
+                            <span className="absolute left-0 h-4 w-1 rounded-r-full bg-brand" />
+                          )}
+                          Home
+                        </Link>
+                      )}
                       <Link
                         href="/about"
-                        className="flex items-center gap-0 rounded-xl px-0 py-3 text-sm font-medium text-gray-900 transition hover:bg-slate-100"
+                        className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all ${
+                          pathname?.startsWith("/about")
+                            ? "font-bold text-slate-900 motion-enter-1"
+                            : "font-medium text-slate-600 hover:text-slate-900 motion-enter-2"
+                        }`}
                       >
+                        {pathname?.startsWith("/about") && (
+                          <span className="absolute left-0 h-4 w-1 rounded-r-full bg-brand" />
+                        )}
                         About us
                       </Link>
                     </nav>
