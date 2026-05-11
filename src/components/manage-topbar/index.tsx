@@ -1,17 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getManageBreadcrumbItems } from "@/app/manage/config";
+import { getManageMenus } from "@/core/services/library.service";
+import { type ManageMenuItem } from "@/core/interfaces/library.interface";
 
 export function ManageTopbar() {
   const pathname = usePathname();
+  const [menus, setMenus] = useState<ManageMenuItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getManageMenus()
+      .then((data) => {
+        if (!cancelled) setMenus(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch manage menus for topbar:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const breadcrumbs = useMemo(() => {
-    return getManageBreadcrumbItems(pathname);
-  }, [pathname]);
+    return getManageBreadcrumbItems(pathname, "th", menus);
+  }, [pathname, menus]);
 
   return (
     <div className="min-w-0">

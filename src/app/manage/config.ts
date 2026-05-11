@@ -1,3 +1,5 @@
+import { type ManageMenuItem } from "@/core/interfaces/library.interface";
+
 export type Locale = "th" | "en";
 
 export const DEFAULT_LOCALE: Locale = "th";
@@ -24,7 +26,7 @@ export type ManageFutureNavItem = {
 };
 
 export const MANAGE_PARENT_CRUMB: LocalizedText = {
-    th: "จัดการ",
+    th: "Manage",
     en: "Manage",
 };
 
@@ -37,12 +39,12 @@ export function getLocalizedText(
 
 export const MANAGE_OVERVIEW_ROUTE: ManageRouteMeta = {
     href: "/manage",
-    title: { th: "แดชบอร์ด", en: "Dashboard" },
+    title: { th: "Overview", en: "Overview" },
     subtitle: {
-        th: "ภาพรวมของพื้นที่ทำงานและเครื่องมือที่กำลังจะมา",
+        th: "Overview of management workspaces and upcoming tools",
         en: "Overview of management workspaces and upcoming tools",
     },
-    crumb: { th: "ภาพรวม", en: "Overview" },
+    crumb: { th: "Overview", en: "Overview" },
 };
 
 export const MANAGE_DASHBOARD_FLAGS = {
@@ -53,30 +55,49 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
     MANAGE_OVERVIEW_ROUTE,
     {
         href: "/manage/apps",
-        title: { th: "แอป", en: "App" },
+        title: { th: "App", en: "App" },
         subtitle: {
-            th: "สร้างและจัดการรายการแอปในแคตตาล็อก",
+            th: "Create and maintain app catalog entries",
             en: "Create and maintain app catalog entries",
         },
-        crumb: { th: "แอป", en: "App" },
+        crumb: { th: "App", en: "App" },
     },
     {
         href: "/manage/models",
-        title: { th: "โมเดล AI", en: "AI Models" },
+        title: { th: "AI Models", en: "AI Models" },
         subtitle: {
-            th: "จัดการผู้ให้บริการโมเดล ค่าเริ่มต้น และการเปิดใช้งาน",
+            th: "Manage model providers, defaults, and activation",
             en: "Manage model providers, defaults, and activation",
         },
-        crumb: { th: "โมเดล", en: "Models" },
+        crumb: { th: "Models", en: "Models" },
     },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [
-    { label: { th: "การตั้งค่าระบบ", en: "System Settings" } },
-    { label: { th: "บันทึกการตรวจสอบ", en: "Audit Logs" } },
+    { label: { th: "Settings", en: "Settings" } }
 ];
 
-export function getManageRouteMeta(pathname: string): ManageRouteMeta {
+export function getManageRouteMeta(
+    pathname: string,
+    menus?: ManageMenuItem[],
+): ManageRouteMeta {
+    if (menus) {
+        // Sort menus by path length descending to match deepest first
+        const sortedMenus = [...menus].sort((a, b) => b.path.length - a.path.length);
+        const match = sortedMenus.find(
+            (m) => pathname === m.path || pathname.startsWith(`${m.path}/`),
+        );
+
+        if (match) {
+            return {
+                href: match.path,
+                title: { th: match.name, en: match.name },
+                subtitle: { th: "", en: "" },
+                crumb: { th: match.name, en: match.name },
+            };
+        }
+    }
+
     const sortedItems = [...MANAGE_NAV_ITEMS].sort(
         (left, right) => right.href.length - left.href.length,
     );
@@ -91,13 +112,14 @@ export function getManageRouteMeta(pathname: string): ManageRouteMeta {
 export function getManageBreadcrumbItems(
     pathname: string,
     locale: Locale = DEFAULT_LOCALE,
+    menus?: ManageMenuItem[],
 ): ManageBreadcrumbItem[] {
-    const current = getManageRouteMeta(pathname);
+    const current = getManageRouteMeta(pathname, menus);
 
     const extraPath = pathname.replace(current.href, "").split("/").filter(Boolean);
     const items: ManageBreadcrumbItem[] = [];
 
-    if (current.href !== MANAGE_OVERVIEW_ROUTE.href) {
+    if (current.href !== MANAGE_OVERVIEW_ROUTE.href && current.href !== "/") {
         items.push({
             label: getLocalizedText(MANAGE_PARENT_CRUMB, locale),
             href: MANAGE_OVERVIEW_ROUTE.href,

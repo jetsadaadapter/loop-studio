@@ -87,11 +87,10 @@ export function LibraryShell({ children }: { children: ReactNode }) {
     <LibraryShellContext.Provider value={value}>
       <div className="min-h-screen bg-white">
         <header
-          className={`sticky top-0 z-30 transition-all duration-200 ${
-            hasScrolled
+          className={`sticky top-0 z-30 transition-all duration-200 ${hasScrolled
               ? "border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur"
               : "border-b border-transparent bg-transparent shadow-none backdrop-blur-0"
-          }`}
+            }`}
         >
           <div className="flex h-16 w-full items-center gap-4 px-4 md:px-6">
             {/* Logo */}
@@ -115,22 +114,20 @@ export function LibraryShell({ children }: { children: ReactNode }) {
               {pathname !== "/apps" && pathname !== "/" && (
                 <Link
                   href="/apps"
-                  className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors motion-enter-1 after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
-                    pathname === "/apps" || pathname === "/"
+                  className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors motion-enter-1 after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${pathname === "/apps" || pathname === "/"
                       ? "text-slate-900 after:scale-x-100"
                       : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
-                  }`}
+                    }`}
                 >
                   Home
                 </Link>
               )}
               <Link
                 href="/about"
-                className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${
-                  pathname?.startsWith("/about")
+                className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${pathname?.startsWith("/about")
                     ? "text-slate-900 after:scale-x-100 motion-enter-1"
                     : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100 motion-enter-2"
-                }`}
+                  }`}
               >
                 About us
               </Link>
@@ -170,15 +167,14 @@ export function LibraryShell({ children }: { children: ReactNode }) {
 
                   {/* Nav items — scrollable middle */}
                   <div className="flex-1 overflow-y-auto px-3 py-3">
-                    <nav className="space-y-1">
+                    <nav className="space-y-0">
                       {pathname !== "/apps" && pathname !== "/" && (
                         <Link
                           href="/apps"
-                          className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all motion-enter-1 ${
-                            pathname === "/apps" || pathname === "/"
+                          className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all motion-enter-1 ${pathname === "/apps" || pathname === "/"
                               ? "font-bold text-slate-900"
                               : "font-medium text-slate-600 hover:text-slate-900"
-                          }`}
+                            }`}
                         >
                           {(pathname === "/apps" || pathname === "/") && (
                             <span className="absolute left-0 h-4 w-1 rounded-r-full bg-brand" />
@@ -188,11 +184,10 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                       )}
                       <Link
                         href="/about"
-                        className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all ${
-                          pathname?.startsWith("/about")
+                        className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all ${pathname?.startsWith("/about")
                             ? "font-bold text-slate-900 motion-enter-1"
                             : "font-medium text-slate-600 hover:text-slate-900 motion-enter-2"
-                        }`}
+                          }`}
                       >
                         {pathname?.startsWith("/about") && (
                           <span className="absolute left-0 h-4 w-1 rounded-r-full bg-brand" />

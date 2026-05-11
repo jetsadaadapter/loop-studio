@@ -260,7 +260,7 @@ export function ManageSidebarNav() {
 
         if (overviewItems.length > 0) {
           nextSections.push({
-            title: "ภาพรวม",
+            title: "Overview",
             href: overviewItems[0].path,
             icon: LucideIcons.Home,
             items: overviewItems.map((m) => ({
@@ -423,7 +423,7 @@ export function ManageSidebarNav() {
                         size="sm"
                         tooltip={`${label} (เร็วๆ นี้)`}
                       >
-                        <LucideIcons.Bot className="size-4" />
+                        <LucideIcons.Settings2 className="size-4" />
                         <span>{label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

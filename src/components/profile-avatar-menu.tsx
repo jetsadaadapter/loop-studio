@@ -100,24 +100,11 @@ export function MobileProfilePanel() {
 
   return (
     <div className="border-t border-slate-200">
-      {/* Admin Actions */}
-      {isAdmin && (
-        <div className="py-0">
-          <Link
-            href="/manage/apps"
-            className="flex w-full items-center gap-4 px-5 py-3.5 text-left text-sm font-medium text-brand transition hover:bg-brand/5"
-          >
-            <LayoutDashboard className="size-5 text-brand" />
-            <span>Management</span>
-          </Link>
-        </div>
-      )}
-
-      {/* Profile card */}
-      <div className="px-5 py-5">
+      {/* Profile card - Now at the top */}
+      <div className="px-5 py-2">
         <div className="flex items-center gap-4">
           <div className="shrink-0 rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
-            <Avatar className="size-14 bg-white">
+            <Avatar className="size-12 bg-white">
               {profileImage ? (
                 <AvatarImage src={profileImage} alt={profileName} />
               ) : null}
@@ -145,14 +132,27 @@ export function MobileProfilePanel() {
         </div>
       </div>
 
-      {/* Sign out */}
-      <div className="border-t border-slate-200 py-1">
+      {/* Admin Actions - After profile, with separator */}
+      {isAdmin && (
+        <div className="border-t border-slate-200 py-0">
+          <Link
+            href="/manage/apps"
+            className="flex w-full items-center gap-4 px-5 py-3.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            <LayoutDashboard className="size-4 text-slate-500" />
+            <span>Management</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Sign out - After management/profile, with separator */}
+      <div className="border-t border-slate-200 py-0">
         <button
           type="button"
           onClick={handleSignOut}
           className="flex w-full items-center gap-4 px-5 py-3.5 text-left text-sm text-slate-700 transition hover:bg-slate-100"
         >
-          <LogOut className="size-5 text-slate-500" />
+          <LogOut className="size-4 text-slate-500" />
           <span>Sign out</span>
         </button>
       </div>
