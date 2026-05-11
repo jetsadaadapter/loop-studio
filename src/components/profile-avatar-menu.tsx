@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LayoutDashboard, LogOut } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { getUserProfile } from "@/core/services/library.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +13,7 @@ async function handleSignOut() {
     .ZeroTrust;
 
   // Clear HttpOnly cookie on our server
-  await fetch("/api/auth/zt-cookie", { method: "DELETE" }).catch(() => {});
+  await fetch("/api/auth/zt-cookie", { method: "DELETE" }).catch(() => { });
 
   if (zt?.logout) {
     zt.logout("/login");
@@ -28,23 +29,61 @@ type MenuItem = {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   onClick?: () => void;
+  href?: string;
 };
 
 function MenuSection({ items }: { items: MenuItem[] }) {
   return (
-    <div className="border-t border-slate-200 px-2 py-3">
-      {items.map((item) => (
-        <button
-          key={item.label}
-          type="button"
-          onClick={item.onClick}
-          className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-xs text-slate-700 transition hover:bg-slate-100"
-        >
-          <item.icon className="size-5 text-slate-500" />
-          <span>{item.label}</span>
-        </button>
-      ))}
+    <div className="border-t border-slate-200 py-0">
+      {items.map((item) => {
+        const content = (
+          <>
+            <item.icon className="size-5 text-slate-500" />
+            <span>{item.label}</span>
+          </>
+        );
+
+        const className =
+          "flex w-full items-center gap-4 px-5 py-3.5 text-left text-xs text-slate-700 transition hover:bg-slate-100";
+
+        if (item.href) {
+          return (
+            <Link key={item.label} href={item.href} className={className}>
+              {content}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={item.label}
+            type="button"
+            onClick={item.onClick}
+            className={className}
+          >
+            {content}
+          </button>
+        );
+      })}
     </div>
+  );
+}
+
+const BADGE_COLOR_MAP: Record<string, string> = {
+  creative: "bg-rose-600 text-white ring-rose-700/10",
+  technology: "bg-indigo-600 text-white ring-indigo-700/10",
+  media: "bg-emerald-600 text-white ring-emerald-700/10",
+  strategy: "bg-amber-600 text-white ring-amber-700/10",
+  "client service": "bg-sky-600 text-white ring-sky-700/10",
+  admin: "bg-violet-600 text-white ring-violet-700/10",
+  management: "bg-orange-600 text-white ring-orange-700/10",
+  innovation: "bg-teal-600 text-white ring-teal-700/10",
+};
+
+function getBadgeStyles(text: string) {
+  const normalized = text?.trim().toLowerCase();
+  return (
+    BADGE_COLOR_MAP[normalized] || "bg-slate-600 text-white ring-slate-700/10"
   );
 }
 
@@ -72,10 +111,24 @@ export function MobileProfilePanel() {
     profilePosition,
     profileImage,
     profileInitials,
+    isAdmin,
   } = useProfileData();
 
   return (
     <div className="border-t border-slate-200">
+      {/* Admin Actions */}
+      {isAdmin && (
+        <div className="py-0">
+          <Link
+            href="/manage/apps"
+            className="flex w-full items-center gap-4 px-5 py-3.5 text-left text-sm font-medium text-brand transition hover:bg-brand/5"
+          >
+            <LayoutDashboard className="size-5 text-brand" />
+            <span>Management</span>
+          </Link>
+        </div>
+      )}
+
       {/* Profile card */}
       <div className="px-5 py-5">
         <div className="flex items-center gap-4">
@@ -94,8 +147,10 @@ export function MobileProfilePanel() {
               {profileName}
             </p>
             <p className="mt-0.5 text-sm text-slate-500">{profileEmail}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] text-slate-500">
-              <span className="rounded-full bg-slate-100/90 px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200/80">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px]">
+              <span
+                className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getBadgeStyles(profileDepartment)}`}
+              >
                 {profileDepartment}
               </span>
               <span className="font-medium text-slate-500">
@@ -107,11 +162,11 @@ export function MobileProfilePanel() {
       </div>
 
       {/* Sign out */}
-      <div className="border-t border-slate-200 px-3 py-2">
+      <div className="border-t border-slate-200 py-1">
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+          className="flex w-full items-center gap-4 px-5 py-3.5 text-left text-sm text-slate-700 transition hover:bg-slate-100"
         >
           <LogOut className="size-5 text-slate-500" />
           <span>Sign out</span>
@@ -179,6 +234,10 @@ function useProfileData() {
   );
   const profileImage = useMemo(() => profile?.image?.trim() || null, [profile]);
   const profileInitials = useMemo(() => getProfileMonogram(profile), [profile]);
+  const isAdmin = useMemo(
+    () => profile?.roles?.includes("admin") ?? false,
+    [profile],
+  );
 
   return {
     profile,
@@ -188,6 +247,7 @@ function useProfileData() {
     profilePosition,
     profileImage,
     profileInitials,
+    isAdmin,
   };
 }
 
@@ -202,11 +262,24 @@ export function ProfileAvatarMenu() {
     profilePosition,
     profileImage,
     profileInitials,
+    isAdmin,
   } = useProfileData();
 
-  const menuItems: MenuItem[] = [
-    { label: "Sign out", icon: LogOut, onClick: handleSignOut },
-  ];
+  const adminItems = useMemo<MenuItem[]>(
+    () => [
+      {
+        label: "Management",
+        icon: LayoutDashboard,
+        href: "/manage/apps",
+      },
+    ],
+    [],
+  );
+
+  const generalItems = useMemo<MenuItem[]>(
+    () => [{ label: "Sign out", icon: LogOut, onClick: handleSignOut }],
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -270,8 +343,10 @@ export function ProfileAvatarMenu() {
                   {profileName}
                 </p>
                 <p className="mt-1 text-sm text-slate-600">{profileEmail}</p>
-                <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] text-slate-500">
-                  <span className="rounded-full bg-slate-100/90 px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200/80">
+                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px]">
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getBadgeStyles(profileDepartment)}`}
+                  >
                     {profileDepartment}
                   </span>
                   <span className="font-medium text-slate-500">
@@ -282,7 +357,8 @@ export function ProfileAvatarMenu() {
             </div>
           </div>
 
-          <MenuSection items={menuItems} />
+          {isAdmin && <MenuSection items={adminItems} />}
+          <MenuSection items={generalItems} />
 
           <div className="border-t border-slate-200 px-5 py-4 text-center text-xs text-slate-500">
             <a
