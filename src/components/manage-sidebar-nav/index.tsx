@@ -261,7 +261,7 @@ export function ManageSidebarNav() {
         if (overviewItems.length > 0) {
           nextSections.push({
             title: "Overview",
-            href: overviewItems[0].path,
+            href: "/manage",
             icon: LucideIcons.Home,
             items: overviewItems.map((m) => ({
               title: m.name,
