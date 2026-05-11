@@ -41,8 +41,8 @@ export const MANAGE_OVERVIEW_ROUTE: ManageRouteMeta = {
     href: "/manage",
     title: { th: "Overview", en: "Overview" },
     subtitle: {
-        th: "Overview of management workspaces and upcoming tools",
-        en: "Overview of management workspaces and upcoming tools",
+        th: "Overview of management and upcoming tools",
+        en: "Overview of management and upcoming tools",
     },
     crumb: { th: "Overview", en: "Overview" },
 };

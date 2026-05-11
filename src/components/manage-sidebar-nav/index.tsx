@@ -99,7 +99,7 @@ function ManageSidebarFooter() {
   }, [profile]);
 
   const profileSubtitle = useMemo(() => {
-    if (!profile) return "Admin workspace";
+    if (!profile) return "Admin Console";
     return profile.email;
   }, [profile]);
 
@@ -328,9 +328,9 @@ export function ManageSidebarNav() {
               </div>
               <div className="group-data-[collapsible=icon]:hidden">
                 <ManageLogo
-                  width={120}
-                  height={34}
-                  alt="Adapter digital group"
+                  width={130}
+                  height={38}
+                  alt="Adapter Digital Group"
                 />
               </div>
             </SidebarMenuButton>
@@ -338,9 +338,11 @@ export function ManageSidebarNav() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/80">
+            Management
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sections.map((section) => {
@@ -409,30 +411,6 @@ export function ManageSidebarNav() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {MANAGE_DASHBOARD_FLAGS.showComingSoon ? (
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupLabel>Coming Soon</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {MANAGE_FUTURE_NAV_ITEMS.map((item) => {
-                  const label = getLocalizedText(item.label);
-                  return (
-                    <SidebarMenuItem key={label}>
-                      <SidebarMenuButton
-                        disabled
-                        size="sm"
-                        tooltip={`${label} (เร็วๆ นี้)`}
-                      >
-                        <LucideIcons.Settings2 className="size-4" />
-                        <span>{label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
       </SidebarContent>
 
       <SidebarFooter className={isCollapsed ? "items-center" : undefined}>
