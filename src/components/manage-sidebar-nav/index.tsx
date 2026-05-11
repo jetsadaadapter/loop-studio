@@ -4,17 +4,8 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  BadgeCheck,
-  Bell,
-  Bot,
-  ChevronRight,
-  ChevronsUpDown,
-  LayoutDashboard,
-  LayoutGrid,
-  LogOut,
-  Plus,
-} from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import {
   MANAGE_PARENT_CRUMB,
@@ -23,9 +14,13 @@ import {
   getLocalizedText,
 } from "@/app/manage/config";
 import { ManageLogo } from "@/components/manage-logo";
-import { getUserProfile } from "@/core/services/library.service";
+import {
+  getManageMenus,
+  getUserProfile,
+} from "@/core/services/library.service";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getDepartmentBadgeClass } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -59,23 +54,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const manageSections = [
-  {
-    title: "ภาพรวม",
-    href: "/manage",
-    icon: LayoutDashboard,
-    items: [{ title: "แดชบอร์ด", href: "/manage" }],
-  },
-  {
-    title: getLocalizedText(MANAGE_PARENT_CRUMB),
-    href: "/manage/apps",
-    icon: LayoutGrid,
-    items: [
-      { title: "แอป", href: "/manage/apps" },
-      { title: "โมเดล AI", href: "/manage/models" },
-    ],
-  },
-] as const;
+const ICON_MAP = LucideIcons as unknown as Record<string, LucideIcon>;
+
+
+type MenuSection = {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  items: { title: string; href: string; icon?: LucideIcon }[];
+};
 
 function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -117,11 +104,11 @@ function ManageSidebarFooter() {
   }, [profile]);
 
   const profileDetails = useMemo(() => {
-    if (!profile) return "Workspace Console";
-    const position = profile.position.trim();
-    return position
-      ? `${profile.department} • ${position}`
-      : profile.department;
+    if (!profile) return null;
+    return {
+      department: profile.department.trim(),
+      position: profile.position.trim(),
+    };
   }, [profile]);
 
   const profileImage = useMemo(() => {
@@ -178,7 +165,7 @@ function ManageSidebarFooter() {
                 {profileSubtitle}
               </span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4 text-slate-400 group-data-[collapsible=icon]:hidden" />
+            <LucideIcons.ChevronsUpDown className="ml-auto size-4 text-slate-400 group-data-[collapsible=icon]:hidden" />
             {isCollapsed ? (
               <span className="sr-only">{profileName}</span>
             ) : null}
@@ -206,31 +193,32 @@ function ManageSidebarFooter() {
                     <span className="truncate font-semibold text-slate-900">
                       {profileName}
                     </span>
-                    <span className="truncate text-xs text-slate-500">
-                      {profileDetails}
-                    </span>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px]">
+                      {profileDetails ? (
+                        <>
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDetails.department)}`}
+                          >
+                            {profileDetails.department}
+                          </span>
+                          <span className="truncate font-medium text-slate-500">
+                            {profileDetails.position}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="truncate text-slate-500">
+                          Workspace Console
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                className="rounded-xl"
-                onClick={() => router.push("/manage/apps?action=create")}
-              >
-                <Plus />
-                Create App
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="rounded-xl"
-                onClick={() => router.push("/manage/models?action=create")}
-              >
-                <BadgeCheck />
-                Create Model
-              </DropdownMenuItem>
               <DropdownMenuItem className="rounded-xl">
-                <Bell />
+                <LucideIcons.Bell />
                 Notifications
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -238,8 +226,8 @@ function ManageSidebarFooter() {
                 className="rounded-xl"
                 onClick={() => router.push("/api/auth/logout")}
               >
-                <LogOut />
-                Log out
+                <LucideIcons.LogOut />
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
@@ -252,16 +240,70 @@ function ManageSidebarFooter() {
 export function ManageSidebarNav() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(
-    () => {
-      return Object.fromEntries(
-        manageSections.map((section) => [
-          section.title,
-          section.items.some((item) => isActivePath(pathname, item.href)),
-        ]),
-      );
-    },
-  );
+  const [sections, setSections] = useState<MenuSection[]>([]);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getManageMenus()
+      .then((menus) => {
+        if (cancelled) return;
+
+        // Grouping logic:
+        // type "main" -> Overview
+        // type "manage" -> Workspace
+        const overviewItems = menus.filter((m) => m.type === "main");
+        const manageItems = menus.filter((m) => m.type === "manage");
+
+        const nextSections: MenuSection[] = [];
+
+        if (overviewItems.length > 0) {
+          nextSections.push({
+            title: "ภาพรวม",
+            href: overviewItems[0].path,
+            icon: LucideIcons.Home,
+            items: overviewItems.map((m) => ({
+              title: m.name,
+              href: m.path,
+              icon: ICON_MAP[m.icon],
+            })),
+          });
+        }
+
+        if (manageItems.length > 0) {
+          nextSections.push({
+            title: getLocalizedText(MANAGE_PARENT_CRUMB),
+            href: manageItems[0].path,
+            icon: LucideIcons.Layers,
+            items: manageItems.map((m) => ({
+              title: m.name,
+              href: m.path,
+              icon: ICON_MAP[m.icon],
+            })),
+          });
+        }
+
+        setSections(nextSections);
+
+        // Initial open state
+        const initialOpen = Object.fromEntries(
+          nextSections.map((section) => [
+            section.title,
+            section.items.some((item) => isActivePath(pathname, item.href)),
+          ]),
+        );
+        setOpenSections(initialOpen);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch manage menus:", err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
   const isCollapsed = state === "collapsed";
 
   return (
@@ -301,7 +343,7 @@ export function ManageSidebarNav() {
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {manageSections.map((section) => {
+              {sections.map((section) => {
                 const Icon = section.icon;
                 const isSectionActive = section.items.some((item) =>
                   isActivePath(pathname, item.href),
@@ -329,28 +371,37 @@ export function ManageSidebarNav() {
                       <Icon />
                       <span>{section.title}</span>
                     </SidebarMenuButton>
-                    <CollapsibleTrigger
-                      render={
-                        <SidebarMenuAction className="aria-expanded:rotate-90" />
-                      }
-                    >
-                      <ChevronRight className="size-4" />
-                      <span className="sr-only">Toggle {section.title}</span>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {section.items.map((item) => (
-                          <SidebarMenuSubItem key={item.href}>
-                            <SidebarMenuSubButton
-                              isActive={isActivePath(pathname, item.href)}
-                              render={<Link href={item.href} />}
-                            >
-                              <span>{item.title}</span>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    {section.items.length > 0 && (
+                      <>
+                        <CollapsibleTrigger
+                          render={
+                            <SidebarMenuAction className="aria-expanded:rotate-90" />
+                          }
+                        >
+                          <LucideIcons.ChevronRight className="size-4" />
+                          <span className="sr-only">
+                            Toggle {section.title}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {section.items.map((item) => (
+                              <SidebarMenuSubItem key={item.href}>
+                                <SidebarMenuSubButton
+                                  isActive={isActivePath(pathname, item.href)}
+                                  render={<Link href={item.href} />}
+                                >
+                                  {item.icon && (
+                                    <item.icon className="size-4 text-slate-500" />
+                                  )}
+                                  <span>{item.title}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </>
+                    )}
                   </Collapsible>
                 );
               })}
@@ -372,7 +423,7 @@ export function ManageSidebarNav() {
                         size="sm"
                         tooltip={`${label} (เร็วๆ นี้)`}
                       >
-                        <Bot className="size-4" />
+                        <LucideIcons.Bot className="size-4" />
                         <span>{label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

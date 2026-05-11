@@ -184,6 +184,17 @@ export type GetBannersParams = {
 
 export type GetBannersResponse = Paginated<LibraryBannerItem>;
 
+// ─── Manage Menus  GET /access/menus ─────────────────────────────────────────
+
+export type ManageMenuItem = {
+    name: string;
+    path: string;
+    icon: string;
+    type: "main" | "manage" | string;
+};
+
+export type ManageMenuResponse = ManageApiEnvelope<ManageMenuItem[]>;
+
 export function getAppItemId(item: { id?: string; appId?: string }): string {
     return item.id ?? item.appId ?? "";
 }

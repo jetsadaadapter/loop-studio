@@ -18,6 +18,8 @@ import type {
     ManageAppMutationResponse,
     ManageAppPayload,
     PaginationMeta,
+    ManageMenuItem,
+    ManageMenuResponse,
 } from "@/core/interfaces/library.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
@@ -543,4 +545,12 @@ export async function setDefaultManageAiModel(
     init?: RequestInit,
 ): Promise<ManageAiModelApiItem> {
     return updateManageAiModel(id, { isDefault: true }, init);
+}
+
+// ─── Manage Menus ────────────────────────────────────────────────────────────
+
+export async function getManageMenus(init?: RequestInit): Promise<ManageMenuItem[]> {
+    const url = buildUrl("/access/menus");
+    const response = await apiFetch<ManageMenuResponse>(url, init);
+    return response.data;
 }

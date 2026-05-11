@@ -7,6 +7,7 @@ import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { getUserProfile } from "@/core/services/library.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LEGAL_LINKS } from "@/lib/legal-links";
+import { getDepartmentBadgeClass } from "@/lib/utils";
 
 async function handleSignOut() {
   const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
@@ -69,23 +70,6 @@ function MenuSection({ items }: { items: MenuItem[] }) {
   );
 }
 
-const BADGE_COLOR_MAP: Record<string, string> = {
-  creative: "bg-rose-600 text-white ring-rose-700/10",
-  technology: "bg-indigo-600 text-white ring-indigo-700/10",
-  media: "bg-emerald-600 text-white ring-emerald-700/10",
-  strategy: "bg-amber-600 text-white ring-amber-700/10",
-  "client service": "bg-sky-600 text-white ring-sky-700/10",
-  admin: "bg-violet-600 text-white ring-violet-700/10",
-  management: "bg-orange-600 text-white ring-orange-700/10",
-  innovation: "bg-teal-600 text-white ring-teal-700/10",
-};
-
-function getBadgeStyles(text: string) {
-  const normalized = text?.trim().toLowerCase();
-  return (
-    BADGE_COLOR_MAP[normalized] || "bg-slate-600 text-white ring-slate-700/10"
-  );
-}
 
 function getProfileMonogram(profile: UserProfile | null): string {
   if (!profile) return "UP";
@@ -149,7 +133,7 @@ export function MobileProfilePanel() {
             <p className="mt-0.5 text-sm text-slate-500">{profileEmail}</p>
             <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px]">
               <span
-                className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getBadgeStyles(profileDepartment)}`}
+                className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDepartment)}`}
               >
                 {profileDepartment}
               </span>
@@ -345,7 +329,7 @@ export function ProfileAvatarMenu() {
                 <p className="mt-1 text-sm text-slate-600">{profileEmail}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px]">
                   <span
-                    className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getBadgeStyles(profileDepartment)}`}
+                    className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDepartment)}`}
                   >
                     {profileDepartment}
                   </span>
