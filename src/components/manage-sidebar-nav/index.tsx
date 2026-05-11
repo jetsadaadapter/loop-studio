@@ -386,17 +386,20 @@ export function ManageSidebarNav() {
                           </span>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <SidebarMenuSub>
+                          <SidebarMenuSub className="ml-0 border-l-0 px-1.5">
                             {section.items.map((item) => (
                               <SidebarMenuSubItem key={item.href}>
                                 <SidebarMenuSubButton
                                   isActive={isActivePath(pathname, item.href)}
+                                  className="h-9 text-slate-400 data-[active=true]:text-brand"
                                   render={<Link href={item.href} />}
                                 >
                                   {item.icon && (
-                                    <item.icon className="size-4 text-slate-500" />
+                                    <item.icon className="size-4 opacity-70" />
                                   )}
-                                  <span>{item.title}</span>
+                                  <span className="transition-colors group-data-[active=true]:text-brand!">
+                                    {item.title}
+                                  </span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                             ))}
