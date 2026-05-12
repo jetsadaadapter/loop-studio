@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -11,20 +10,26 @@ import {
   startTransition,
   useId,
 } from "react";
-import { CircleIcon } from "lucide-react";
+import { CircleIcon, Search, SlidersHorizontal } from "lucide-react";
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
-import { ManagerToolbar } from "@/components/manager-toolbar";
-import { ManagerDataTable } from "@/components/manager-data-table";
 import { ManagerForm } from "@/components/manager-form";
 import type { ManagerFormProps } from "@/components/manager-form/types";
 import { ManagerFormSection } from "@/components/manager-form-section";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
+import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
+import { ManagerPagination } from "@/components/manager-pagination";
+import { ManagerAppCard } from "@/components/manager-app-card";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   getAppItemId,
   type AppLinkType,
@@ -61,6 +66,15 @@ import {
   getManageApps,
   updateManageApp,
 } from "@/core/services/library.service";
+import {
+  applyManageAppsListQuery,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+  parseManageAppsListQuery,
+  type SortValue,
+  type StatusFilterValue,
+  type TypeFilterValue,
+} from "@/core/services/manage-apps-list-query";
 
 type AppRecord = {
   id: string;
@@ -78,6 +92,7 @@ type AppRecord = {
   badgeLabel: string;
   tags: string[];
   updatedAt: string;
+  imageUrl?: string;
 };
 
 type FormSubmitHandler = ManagerFormProps["onSubmit"];
@@ -102,6 +117,17 @@ const EMPTY_FORM: AppRecord = {
   updatedAt: "",
 };
 
+function resolveManageAppImageUrl(
+  item: Pick<ManageAppApiItem, "imageId" | "imageUrl">,
+): string | undefined {
+  console.log(item);
+  if (item.imageUrl && item.imageUrl.trim()) return item.imageUrl;
+  if (item.imageId && item.imageId.trim()) {
+    return `/images/${encodeURIComponent(item.imageId.trim())}`;
+  }
+  return undefined;
+}
+
 function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
   return {
     id: getAppItemId(item),
@@ -121,6 +147,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
       .map((tag) => tag.id || tag.tagId || "")
       .filter(Boolean),
     updatedAt: (item.updatedAt || "").slice(0, 10),
+    imageUrl: resolveManageAppImageUrl(item),
   };
 }
 
@@ -172,6 +199,8 @@ function ButtonSpinner() {
 }
 
 export function ManageAppsClient() {
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasHandledCreateQuery = useRef(false);
@@ -181,9 +210,18 @@ export function ManageAppsClient() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const listQuery = useMemo(
+    () => parseManageAppsListQuery(searchParams),
+    [searchParams],
+  );
+  const search = listQuery.q;
+  const categoryFilter = listQuery.category;
+  const statusFilter = listQuery.status;
+  const typeFilter = listQuery.type;
+  const sortBy = listQuery.sort;
+  const pageSize = listQuery.size;
+  const currentPage = listQuery.page;
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [draft, setDraft] = useState<AppRecord>(EMPTY_FORM);
   const [error, setError] = useState<string>("");
@@ -255,7 +293,7 @@ export function ManageAppsClient() {
   }, []);
 
   const filtered = useMemo(() => {
-    return apps
+    const base = apps
       .filter((item) =>
         `${item.name} ${item.category}`
           .toLowerCase()
@@ -268,8 +306,37 @@ export function ManageAppsClient() {
         if (statusFilter === "all") return true;
         return statusFilter === "active" ? item.isActive : !item.isActive;
       })
-      .sort((left, right) => left.sortOrder - right.sortOrder);
-  }, [apps, search, categoryFilter, statusFilter]);
+      .filter((item) => typeFilter === "all" || item.linkType === typeFilter);
+
+    const sorted = [...base];
+    switch (sortBy) {
+      case "newest":
+        sorted.sort((left, right) =>
+          right.updatedAt.localeCompare(left.updatedAt),
+        );
+        break;
+      case "name-asc":
+        sorted.sort((left, right) => left.name.localeCompare(right.name));
+        break;
+      case "name-desc":
+        sorted.sort((left, right) => right.name.localeCompare(left.name));
+        break;
+      case "sort-asc":
+      default:
+        sorted.sort((left, right) => left.sortOrder - right.sortOrder);
+        break;
+    }
+
+    return sorted;
+  }, [apps, search, categoryFilter, statusFilter, typeFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const pagedApps = useMemo(() => {
+    const pageStart = (safeCurrentPage - 1) * pageSize;
+    return filtered.slice(pageStart, pageStart + pageSize);
+  }, [safeCurrentPage, filtered, pageSize]);
 
   const categoryOptions = useMemo(() => {
     const categories = Array.from(
@@ -282,12 +349,144 @@ export function ManageAppsClient() {
     ];
   }, [apps]);
 
+  const statusOptions = useMemo(
+    () => [
+      { value: "all", label: "All" },
+      { value: "active", label: "Active" },
+      { value: "inactive", label: "Inactive" },
+    ],
+    [],
+  );
+
+  const typeOptions = useMemo(
+    () => [
+      { value: "all", label: "All" },
+      { value: "instruction", label: "Instruction" },
+      { value: "internal", label: "Internal" },
+      { value: "external", label: "External" },
+    ],
+    [],
+  );
+
+  const filterSections = [
+    {
+      key: "category",
+      title: "Filter By Category",
+      value: categoryFilter,
+      options: categoryOptions,
+      onChange: onCategoryFilterChange,
+    },
+    {
+      key: "status",
+      title: "By Status",
+      value: statusFilter,
+      options: statusOptions,
+      onChange: onStatusFilterChange,
+    },
+    {
+      key: "type",
+      title: "By Type",
+      value: typeFilter,
+      options: typeOptions,
+      onChange: (value: string) =>
+        onTypeFilterChange(value as "all" | AppLinkType),
+    },
+  ];
+
   const hasActiveFilter =
-    search.trim() !== "" || categoryFilter !== "all" || statusFilter !== "all";
+    search.trim() !== "" ||
+    categoryFilter !== "all" ||
+    statusFilter !== "all" ||
+    typeFilter !== "all";
+
+  const pageRange = useMemo(() => {
+    const pages = [] as number[];
+    const start = Math.max(1, safeCurrentPage - 1);
+    const end = Math.min(totalPages, start + 2);
+
+    for (let page = start; page <= end; page += 1) {
+      pages.push(page);
+    }
+
+    if (!pages.includes(1)) pages.unshift(1);
+    if (!pages.includes(totalPages)) pages.push(totalPages);
+
+    return Array.from(new Set(pages));
+  }, [safeCurrentPage, totalPages]);
+
+  const resultStart =
+    filtered.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+  const resultEnd = Math.min(safeCurrentPage * pageSize, filtered.length);
 
   const pageTitle = useMemo(() => {
     return getLocalizedText(getManageRouteMeta(pathname).title);
   }, [pathname]);
+
+  const clearSearchDebounce = useCallback(() => {
+    if (searchDebounceRef.current !== null) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearSearchDebounce();
+    };
+  }, [clearSearchDebounce]);
+
+  const syncListQuery = useCallback(
+    (next: {
+      q?: string;
+      category?: string;
+      status?: StatusFilterValue;
+      type?: TypeFilterValue;
+      sort?: SortValue;
+      size?: number;
+      page?: number;
+    }) => {
+      const values = {
+        q: next.q ?? search,
+        category: next.category ?? categoryFilter,
+        status: next.status ?? statusFilter,
+        type: next.type ?? typeFilter,
+        sort: next.sort ?? sortBy,
+        size: next.size ?? pageSize,
+        page: next.page ?? currentPage,
+      };
+
+      const params = applyManageAppsListQuery(
+        new URLSearchParams(searchParams.toString()),
+        {
+          q: values.q,
+          category: values.category,
+          status: values.status,
+          type: values.type,
+          sort: values.sort,
+          size: values.size,
+          page: values.page,
+        },
+      );
+
+      const query = params.toString();
+      if (query === searchParams.toString()) return;
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [
+      categoryFilter,
+      currentPage,
+      pageSize,
+      pathname,
+      router,
+      search,
+      searchParams,
+      sortBy,
+      statusFilter,
+      typeFilter,
+    ],
+  );
 
   function openCreateForm() {
     setMode("create");
@@ -306,9 +505,60 @@ export function ManageAppsClient() {
   }, [searchParams]);
 
   function clearFilters() {
-    setSearch("");
-    setCategoryFilter("all");
-    setStatusFilter("all");
+    clearSearchDebounce();
+    syncListQuery({
+      q: "",
+      category: "all",
+      status: "all",
+      type: "all",
+      sort: "sort-asc",
+      size: DEFAULT_PAGE_SIZE,
+      page: 1,
+    });
+  }
+
+  function onSearchChange(value: string) {
+    clearSearchDebounce();
+    searchDebounceRef.current = setTimeout(() => {
+      syncListQuery({ q: value, page: 1 });
+      searchDebounceRef.current = null;
+    }, 300);
+  }
+
+  function onCategoryFilterChange(value: string) {
+    clearSearchDebounce();
+    syncListQuery({ category: value, page: 1 });
+  }
+
+  function onStatusFilterChange(value: string) {
+    if (value !== "all" && value !== "active" && value !== "inactive") {
+      return;
+    }
+
+    clearSearchDebounce();
+    syncListQuery({ status: value, page: 1 });
+  }
+
+  function onTypeFilterChange(value: TypeFilterValue) {
+    clearSearchDebounce();
+    syncListQuery({ type: value, page: 1 });
+  }
+
+  function onSortChange(
+    value: "newest" | "name-asc" | "name-desc" | "sort-asc",
+  ) {
+    clearSearchDebounce();
+    syncListQuery({ sort: value, page: 1 });
+  }
+
+  function onPageSizeChange(value: number) {
+    clearSearchDebounce();
+    syncListQuery({ size: value, page: 1 });
+  }
+
+  function onPaginationChange(page: number) {
+    clearSearchDebounce();
+    syncListQuery({ page });
   }
 
   function resetForm() {
@@ -361,6 +611,10 @@ export function ManageAppsClient() {
       id: draft.id || `tmp-${Date.now()}`,
       tags: draft.tags,
       updatedAt: new Date().toISOString().slice(0, 10),
+      imageUrl:
+        draft.imageId && draft.imageId.trim()
+          ? `/images/${encodeURIComponent(draft.imageId.trim())}`
+          : draft.imageUrl,
     };
 
     if (mode === "edit") {
@@ -447,7 +701,7 @@ export function ManageAppsClient() {
   return (
     <ManagerShell
       title={pageTitle}
-      description="Universal manager for app catalog (id-first)."
+      description="Manage app catalog entries, media assets, and publish status."
       actions={
         <Button
           type="button"
@@ -465,146 +719,124 @@ export function ManageAppsClient() {
         </Button>
       }
     >
-      <ManagerToolbar
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search app name or category"
-        trailing={
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500">
-              {lastUpdatedAt
-                ? `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`
-                : "Not updated yet"}
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={isLoading || isRefreshing}
-              onClick={() => void loadApps({ silent: true })}
-            >
-              {isRefreshing ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <ButtonSpinner />
-                  Refreshing...
-                </span>
-              ) : (
-                "Refresh"
-              )}
-            </Button>
-          </div>
-        }
-        filters={[
-          {
-            key: "category",
-            label: "Category",
-            value: categoryFilter,
-            onChange: setCategoryFilter,
-            options: categoryOptions,
-          },
-          {
-            key: "status",
-            label: "Status",
-            value: statusFilter,
-            onChange: setStatusFilter,
-            options: [
-              { value: "all", label: "All" },
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
-            ],
-          },
-        ]}
-      />
+      <div className="overflow-hidden rounded-2xl border bg-card lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+        <aside className="hidden border-r bg-muted/20 p-5 lg:block">
+          <ManagerFilterSidebar
+            sections={filterSections}
+            onReset={clearFilters}
+            resetDisabled={!hasActiveFilter}
+          />
+        </aside>
 
-      <ManagerDataTable
-        rows={filtered}
-        isLoading={isLoading}
-        getRowId={(row) => row.id}
-        columns={[
-          {
-            key: "name",
-            header: "Name",
-            render: (row) => (
+        <div className="space-y-4 p-5 lg:p-6">
+          <div className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setIsFilterSheetOpen(true)}
+              >
+                <SlidersHorizontal className="size-4" />
+              </Button>
               <div>
-                <p className="font-medium">{row.name}</p>
-                <p className="text-xs text-slate-500">{row.id}</p>
+                <p className="text-base font-semibold text-foreground">Apps</p>
+                <p className="text-sm text-muted-foreground">
+                  {filtered.length} items found
+                </p>
               </div>
-            ),
-          },
-          {
-            key: "category",
-            header: "Category",
-            render: (row) => row.category,
-          },
-          {
-            key: "linkType",
-            header: "LinkType",
-            render: (row) => <Badge variant="outline">{row.linkType}</Badge>,
-          },
-          {
-            key: "status",
-            header: "Status",
-            render: (row) => (
-              <Badge variant={row.isActive ? "secondary" : "outline"}>
-                {row.isActive ? "Active" : "Inactive"}
-              </Badge>
-            ),
-          },
-          { key: "sortOrder", header: "Sort", render: (row) => row.sortOrder },
-          {
-            key: "updatedAt",
-            header: "Updated",
-            render: (row) => row.updatedAt,
-          },
-          {
-            key: "actions",
-            header: "Actions",
-            className: "whitespace-nowrap",
-            render: (row) => (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isSubmitting || deletingId !== null}
-                  onClick={() => {
-                    setMode("edit");
-                    setDraft(row);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  disabled={isSubmitting || deletingId !== null}
-                  onClick={() => setDeleteTarget(row)}
-                >
-                  {deletingId === row.id ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <ButtonSpinner />
-                      Deleting...
-                    </span>
-                  ) : (
-                    "Delete"
-                  )}
-                </Button>
-                <Link
-                  href={`/apps/${row.id}`}
-                  className="inline-flex h-7 items-center rounded-sm border border-slate-300 px-2.5 text-xs text-slate-700 hover:bg-slate-50"
-                >
-                  Detail
-                </Link>
+            </div>
+
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <div className="relative w-full sm:w-[320px]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  key={search}
+                  defaultValue={search}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                  placeholder="Search app name or category"
+                  className="pl-9"
+                />
               </div>
-            ),
-          },
-        ]}
-        emptyText={isLoading ? "Loading apps..." : "No apps found"}
-        emptyState={
-          isLoading ? null : (
-            <div className="flex flex-col items-center gap-3 py-2">
-              <p className="text-sm text-slate-500">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={isLoading || isRefreshing}
+                onClick={() => void loadApps({ silent: true })}
+              >
+                {isRefreshing ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <ButtonSpinner />
+                    Refreshing...
+                  </span>
+                ) : (
+                  "Refresh"
+                )}
+              </Button>
+              <Select
+                value={sortBy}
+                onValueChange={(value) => onSortChange(value as SortValue)}
+              >
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                  <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => onPageSizeChange(Number(value))}
+              >
+                <SelectTrigger className="w-full sm:w-32">
+                  <SelectValue placeholder="Per page" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((sizeOption) => (
+                    <SelectItem key={sizeOption} value={String(sizeOption)}>
+                      {sizeOption} / page
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            {lastUpdatedAt
+              ? `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`
+              : "Not updated yet"}
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: pageSize }).map((_, index) => (
+                <Card
+                  key={`skeleton-card-${index}`}
+                  className="overflow-hidden p-0"
+                >
+                  <div className="h-64 animate-pulse bg-muted" />
+                  <CardHeader className="space-y-2 px-4 pb-0 pt-4">
+                    <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+                  </CardHeader>
+                  <CardContent className="px-4">
+                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                  </CardContent>
+                  <CardFooter className="border-t bg-muted/30 px-4">
+                    <div className="h-8 w-full animate-pulse rounded bg-muted" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : pagedApps.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border bg-card py-12 text-center">
+              <p className="max-w-lg text-sm text-muted-foreground">
                 {loadError
                   ? "Unable to load app catalog right now."
                   : apps.length === 0
@@ -641,9 +873,63 @@ export function ManageAppsClient() {
                 ) : null}
               </div>
             </div>
-          )
-        }
-      />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {pagedApps.map((row) => {
+                  return (
+                    <ManagerAppCard
+                      key={row.id}
+                      item={row}
+                      isBusy={isSubmitting || deletingId !== null}
+                      isDeleting={deletingId === row.id}
+                      onEdit={() => {
+                        setMode("edit");
+                        setDraft(row);
+                      }}
+                      onDelete={() => setDeleteTarget(row)}
+                    />
+                  );
+                })}
+              </div>
+
+              <ManagerPagination
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                pageNumbers={pageRange}
+                start={resultStart}
+                end={resultEnd}
+                total={filtered.length}
+                onPageChange={onPaginationChange}
+              />
+            </>
+          )}
+        </div>
+      </div>
+
+      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+        <SheetContent
+          side="left"
+          className="w-[88vw] max-w-[320px] overflow-y-auto"
+        >
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <SlidersHorizontal className="size-4" />
+              Filters
+            </SheetTitle>
+            <SheetDescription>
+              Narrow down app list by category, status, and link type.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="pt-4">
+            <ManagerFilterSidebar
+              sections={filterSections}
+              onReset={clearFilters}
+              resetDisabled={!hasActiveFilter}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {deleteTarget ? (
         <ManagerDeleteConfirm
@@ -656,10 +942,17 @@ export function ManageAppsClient() {
       ) : null}
 
       <Sheet open={!!mode} onOpenChange={(open) => !open && resetForm()}>
-        <SheetContent side="right" className="w-[90vw] sm:!max-w-[50vw] sm:!w-[50vw] overflow-y-auto">
+        <SheetContent
+          side="right"
+          className="w-[90vw] sm:max-w-[50vw]! sm:w-[50vw]! overflow-y-auto"
+        >
           <SheetHeader>
-            <SheetTitle>{mode === "create" ? "Create App" : `Edit App: ${draft.name}`}</SheetTitle>
-            <SheetDescription>Universal app form scaffold aligned with /manage/apps payload</SheetDescription>
+            <SheetTitle>
+              {mode === "create" ? "Create App" : `Edit App: ${draft.name}`}
+            </SheetTitle>
+            <SheetDescription>
+              Universal app form scaffold aligned with /manage/apps payload
+            </SheetDescription>
           </SheetHeader>
           <div className="py-4">
             <ManagerForm
@@ -744,7 +1037,7 @@ export function ManageAppsClient() {
                         >
                           {selectedStatus && (
                             <CircleIcon
-                              className={`size-2 ${selectedStatus.color}`}
+                              className={`size-2 ${selectedStatus?.color ?? "text-muted-foreground fill-muted-foreground"}`}
                             />
                           )}
                           <SelectValue />
@@ -765,7 +1058,9 @@ export function ManageAppsClient() {
                       <FieldDescription>
                         Set the visibility of this app.
                       </FieldDescription>
-                      <FieldError errors={[{ message: fieldErrors.isActive }]} />
+                      <FieldError
+                        errors={[{ message: fieldErrors.isActive }]}
+                      />
                     </Field>
 
                     <Field>
@@ -787,7 +1082,9 @@ export function ManageAppsClient() {
                           <SelectItem value="New">New</SelectItem>
                           <SelectItem value="Trending">Trending</SelectItem>
                           <SelectItem value="Hot">Hot</SelectItem>
-                          <SelectItem value="Coming Soon">Coming Soon</SelectItem>
+                          <SelectItem value="Coming Soon">
+                            Coming Soon
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FieldDescription>
@@ -812,7 +1109,9 @@ export function ManageAppsClient() {
                         }))
                       }
                     />
-                    <FieldDescription>Lower values appear first.</FieldDescription>
+                    <FieldDescription>
+                      Lower values appear first.
+                    </FieldDescription>
                     <FieldError errors={[{ message: fieldErrors.sortOrder }]} />
                   </Field>
                 </FieldGroup>
@@ -833,7 +1132,8 @@ export function ManageAppsClient() {
                       description="Drag or drop your files here or click to upload"
                     />
                     <FieldDescription>
-                      Banner image for the app header. Recommended size 1200x400.
+                      Banner image for the app header. Recommended size
+                      1200x400.
                     </FieldDescription>
                     <FieldError errors={[{ message: fieldErrors.imageId }]} />
                   </Field>
@@ -900,8 +1200,12 @@ export function ManageAppsClient() {
                           }))
                         }
                       />
-                      <FieldDescription>Label for the action button.</FieldDescription>
-                      <FieldError errors={[{ message: fieldErrors.ctaLabel }]} />
+                      <FieldDescription>
+                        Label for the action button.
+                      </FieldDescription>
+                      <FieldError
+                        errors={[{ message: fieldErrors.ctaLabel }]}
+                      />
                     </Field>
 
                     <Field>
@@ -937,8 +1241,12 @@ export function ManageAppsClient() {
                         }))
                       }
                     />
-                    <FieldDescription>Short summary of the app.</FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.description }]} />
+                    <FieldDescription>
+                      Short summary of the app.
+                    </FieldDescription>
+                    <FieldError
+                      errors={[{ message: fieldErrors.description }]}
+                    />
                   </Field>
 
                   <Field>
@@ -954,8 +1262,12 @@ export function ManageAppsClient() {
                       }
                       className="min-h-28 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-xs focus:ring-1 focus:ring-brand focus:outline-none"
                     />
-                    <FieldDescription>Detailed steps for using the app.</FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.instructions }]} />
+                    <FieldDescription>
+                      Detailed steps for using the app.
+                    </FieldDescription>
+                    <FieldError
+                      errors={[{ message: fieldErrors.instructions }]}
+                    />
                   </Field>
 
                   <Field>
