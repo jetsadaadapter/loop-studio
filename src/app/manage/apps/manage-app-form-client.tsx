@@ -15,6 +15,7 @@ import { ManagerShell } from "@/components/manager-shell";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Field,
   FieldDescription,
@@ -679,11 +680,53 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {isLoading ? (
-          <Card className="rounded-xl border">
-            <CardContent className="p-6 text-sm text-muted-foreground">
-              Loading app details...
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-12 space-y-6 lg:col-span-8">
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-32 mb-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-24 mb-2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-40 w-full mb-2" />
+                  <Skeleton className="h-5 w-1/2" />
+                </CardContent>
+              </Card>
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-20 mb-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-24 mb-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-12 space-y-6 lg:col-span-8">
