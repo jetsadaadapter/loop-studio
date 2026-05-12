@@ -1,8 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { CircleIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, CircleIcon, Copy, Download, Eye } from "lucide-react";
+import Markdown from "react-markdown";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { ManagerShell } from "@/components/manager-shell";
 import { useToast } from "@/components/toast-provider";
@@ -243,6 +250,12 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     imageId: string;
     iconId: string;
   } | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"markdown" | "text">(
+    "markdown",
+  );
+  const [didCopy, setDidCopy] = useState(false);
+  const instructionsMdInputRef = useRef<HTMLInputElement>(null);
 
   const pageTitle = mode === "create" ? "Create App" : "Edit App";
 
@@ -285,6 +298,125 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
       ...prev,
       [field]: allErrors[field] ?? "",
     }));
+  }
+
+  function applyInstructionsContent(incomingContent: string) {
+    const normalized = incomingContent.replace(/\r\n/g, "\n").trim();
+    const merged = draft.instructions.trim()
+      ? `${draft.instructions.trimEnd()}\n\n${normalized}`
+      : normalized;
+
+    const next = {
+      ...draft,
+      instructions: merged,
+    };
+
+    setDraft(next);
+    touchAndValidate("instructions", next);
+  }
+
+  async function importMarkdownFile(file: File) {
+    const isMarkdown =
+      /\.md$/i.test(file.name) || file.type === "text/markdown";
+    if (!isMarkdown) {
+      touch("instructions");
+      setFieldErrors((current) => ({
+        ...current,
+        instructions: "Please use a .md file for Instructions.",
+      }));
+      return;
+    }
+
+    try {
+      const markdownText = await file.text();
+      if (!markdownText.trim()) {
+        touch("instructions");
+        setFieldErrors((current) => ({
+          ...current,
+          instructions: "The .md file is empty.",
+        }));
+        return;
+      }
+
+      applyInstructionsContent(markdownText);
+    } catch {
+      touch("instructions");
+      setFieldErrors((current) => ({
+        ...current,
+        instructions: "Unable to read the .md file.",
+      }));
+    }
+  }
+
+  async function handleInstructionsPaste(
+    event: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) {
+    const markdownFile = Array.from(event.clipboardData.files).find((file) =>
+      /\.md$/i.test(file.name),
+    );
+
+    if (!markdownFile) return;
+
+    event.preventDefault();
+    await importMarkdownFile(markdownFile);
+  }
+
+  async function handleInstructionsMdInputChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    await importMarkdownFile(file);
+    event.target.value = "";
+  }
+
+  async function handleCopyInstructions() {
+    const value = draft.instructions?.trim();
+    if (!value) {
+      pushToast("No instructions to copy.", "error");
+      return;
+    }
+
+    if (!navigator?.clipboard?.writeText) {
+      pushToast("Clipboard is not supported in this browser.", "error");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setDidCopy(true);
+      pushToast("Instructions copied to clipboard.", "success");
+
+      window.setTimeout(() => {
+        setDidCopy(false);
+      }, 1600);
+    } catch {
+      pushToast("Unable to copy instructions.", "error");
+    }
+  }
+
+  function handleDownloadMarkdown() {
+    const value = draft.instructions?.trim();
+    if (!value) {
+      pushToast("No instructions to download.", "error");
+      return;
+    }
+
+    try {
+      const blob = new Blob([value], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${draft.name.trim().replace(/\s+/g, "-").toLowerCase() || "instructions"}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      pushToast("Instructions downloaded as .md file.", "success");
+    } catch {
+      pushToast("Unable to download instructions.", "error");
+    }
   }
 
   useEffect(() => {
@@ -794,8 +926,19 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                     <FieldLabel>
                       Instructions <span className="text-destructive">*</span>
                     </FieldLabel>
+                    <input
+                      ref={instructionsMdInputRef}
+                      type="file"
+                      accept=".md,text/markdown"
+                      className="hidden"
+                      title="Import markdown instructions"
+                      aria-label="Import markdown instructions"
+                      onChange={(event) => {
+                        void handleInstructionsMdInputChange(event);
+                      }}
+                    />
                     <textarea
-                      placeholder="Instructions"
+                      placeholder="Instructions (supports Markdown)"
                       value={draft.instructions}
                       onChange={(event) => {
                         const next = {
@@ -806,10 +949,34 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                         if (touched.instructions)
                           revalidateField("instructions", next);
                       }}
+                      onPaste={(event) => {
+                        void handleInstructionsPaste(event);
+                      }}
                       onBlur={() => touchAndValidate("instructions", draft)}
-                      rows={5}
-                      className="min-h-28 w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      rows={12}
+                      className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
                     />
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => instructionsMdInputRef.current?.click()}
+                      >
+                        Import .md
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowPreview(true)}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Eye className="size-4" />
+                        Preview
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Paste text, upload .md file, or preview.
+                      </span>
+                    </div>
                     <FieldError
                       errors={
                         touched.instructions
@@ -988,6 +1155,120 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
           </Button>
         </div>
       </form>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-h-[80vh] max-w-4xl overflow-hidden p-0">
+          <div className="bg-linear-to-r from-slate-50 via-white to-emerald-50/50 px-5 py-4 border-b border-slate-200">
+            <DialogHeader className="mb-0 space-y-3">
+              <DialogTitle>Instructions Preview</DialogTitle>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="inline-flex items-center rounded-md border border-slate-200 bg-white p-1 shadow-xs">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={previewMode === "markdown" ? "secondary" : "ghost"}
+                    onClick={() => setPreviewMode("markdown")}
+                  >
+                    Markdown
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={previewMode === "text" ? "secondary" : "ghost"}
+                    onClick={() => setPreviewMode("text")}
+                  >
+                    Text
+                  </Button>
+                </div>
+
+                <div className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1 shadow-xs">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => void handleCopyInstructions()}
+                    disabled={!draft.instructions.trim()}
+                    className="flex items-center gap-1.5"
+                  >
+                    {didCopy ? (
+                      <Check className="size-4" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )}
+                    {didCopy ? "Copied" : "Copy"}
+                  </Button>
+
+                  <div className="h-5 w-px bg-slate-200" />
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDownloadMarkdown()}
+                    disabled={!draft.instructions.trim()}
+                    className="flex items-center gap-1.5"
+                  >
+                    <Download className="size-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+
+          <div className="max-h-[62vh] overflow-y-auto bg-white p-5">
+            {!draft.instructions.trim() ? (
+              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-xs italic text-slate-500">
+                No instructions provided yet.
+              </div>
+            ) : previewMode === "markdown" ? (
+              <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+                <div className="prose prose-xs max-w-none font-(family-name:--font-inter) text-xs leading-6 text-slate-900 [&>*+*]:mt-3 prose-headings:text-slate-900 prose-strong:text-slate-900 prose-p:my-3 prose-p:text-xs prose-li:my-2 prose-li:text-xs prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-700 prose-code:text-xs">
+                  <Markdown
+                    components={{
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      code: (props: any) => {
+                        const { inline, ...rest } = props;
+                        return inline ? (
+                          <code
+                            className="rounded border border-slate-200 bg-white px-1 py-0.5 text-[0.8em] text-slate-900"
+                            {...rest}
+                          />
+                        ) : (
+                          <code
+                            className="block overflow-x-auto rounded-md border border-slate-200 bg-white p-3 text-xs text-slate-900"
+                            {...rest}
+                          />
+                        );
+                      },
+                      pre: (props) => (
+                        <pre
+                          className="my-4 overflow-x-auto rounded-md bg-transparent p-0"
+                          {...props}
+                        />
+                      ),
+                      blockquote: (props) => (
+                        <blockquote
+                          className="border-l-4 border-emerald-500/70 bg-emerald-50 px-3 py-2 italic text-slate-700"
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
+                    {draft.instructions}
+                  </Markdown>
+                </div>
+              </article>
+            ) : (
+              <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+                <pre className="whitespace-pre-wrap wrap-break-word text-xs leading-6 text-slate-800 font-(family-name:--font-inter)">
+                  {draft.instructions}
+                </pre>
+              </article>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </ManagerShell>
   );
 }

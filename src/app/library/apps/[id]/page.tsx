@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import Markdown from "react-markdown";
 import {
   ApiError,
   getAppById,
   getRelatedApps,
 } from "@/core/services/library.service";
 import { getAppItemId } from "@/core/interfaces/library.interface";
-import { sanitizeHtml } from "@/lib/sanitize";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";
@@ -217,16 +217,82 @@ export default async function AppDetailPage({ params }: Props) {
                 <h2 className="page-section-title text-slate-900">
                   Instructions
                 </h2>
-                <div
-                  className="page-body-copy mt-4 text-slate-700 space-y-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&_a]:text-brand [&_a]:underline"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(
-                      app.instructions
-                        .replace(/\\n/g, "<br />")
-                        .replace(/\n/g, "<br />"),
-                    ),
-                  }}
-                />
+                <div className="page-body-copy mt-4 text-slate-700 space-y-4">
+                  <Markdown
+                    components={{
+                      h1: ({ node, ...props }) => (
+                        <h1
+                          className="text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
+                          {...props}
+                        />
+                      ),
+                      h2: ({ node, ...props }) => (
+                        <h2
+                          className="text-xl font-bold text-slate-900 mt-5 mb-3"
+                          {...props}
+                        />
+                      ),
+                      h3: ({ node, ...props }) => (
+                        <h3
+                          className="text-lg font-semibold text-slate-900 mt-4 mb-2"
+                          {...props}
+                        />
+                      ),
+                      p: ({ node, ...props }) => (
+                        <p className="text-slate-700 mb-3" {...props} />
+                      ),
+                      ul: ({ node, ...props }) => (
+                        <ul
+                          className="list-disc list-inside text-slate-700 mb-3 space-y-1"
+                          {...props}
+                        />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol
+                          className="list-decimal list-inside text-slate-700 mb-3 space-y-1"
+                          {...props}
+                        />
+                      ),
+                      li: ({ node, ...props }) => (
+                        <li className="text-slate-700" {...props} />
+                      ),
+                      code: (props: any) => {
+                        const { inline, ...rest } = props;
+                        return inline ? (
+                          <code
+                            className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm font-mono"
+                            {...rest}
+                          />
+                        ) : (
+                          <code
+                            className="bg-slate-100 text-slate-800 block p-3 rounded-md text-sm font-mono overflow-x-auto mb-3"
+                            {...rest}
+                          />
+                        );
+                      },
+                      pre: ({ node, ...props }) => (
+                        <pre
+                          className="bg-slate-900 text-slate-100 p-4 rounded-md text-sm font-mono overflow-x-auto mb-3"
+                          {...props}
+                        />
+                      ),
+                      blockquote: ({ node, ...props }) => (
+                        <blockquote
+                          className="border-l-4 border-slate-300 pl-4 italic text-slate-700 my-3"
+                          {...props}
+                        />
+                      ),
+                      a: ({ node, ...props }) => (
+                        <a
+                          className="text-brand underline hover:text-brand/80"
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
+                    {app.instructions}
+                  </Markdown>
+                </div>
               </section>
             ) : null}
           </div>

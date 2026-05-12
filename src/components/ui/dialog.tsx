@@ -1,0 +1,123 @@
+"use client";
+
+import {
+  useRef,
+  useState,
+  useEffect,
+  ReactNode,
+  createContext,
+  useContext,
+} from "react";
+import { cn } from "@/lib/utils";
+
+interface DialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: ReactNode;
+}
+
+interface DialogContentProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogHeaderProps {
+  className?: string;
+  children: ReactNode;
+}
+
+interface DialogTitleProps {
+  className?: string;
+  children: ReactNode;
+}
+
+function Dialog({ open = false, onOpenChange, children }: DialogProps) {
+  const [isOpen, setIsOpen] = useState(open);
+
+  useEffect(() => {
+    setIsOpen(open);
+  }, [open]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen);
+    onOpenChange?.(newOpen);
+  };
+
+  return (
+    <DialogContext.Provider
+      value={{ open: isOpen, onOpenChange: handleOpenChange }}
+    >
+      {children}
+    </DialogContext.Provider>
+  );
+}
+
+function DialogContent({ className, children }: DialogContentProps) {
+  const context = useContext(DialogContext);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!context?.open) return;
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        context.onOpenChange(false);
+      }
+    };
+
+    const handleBackdropClick = (event: MouseEvent) => {
+      if (dialogRef.current === event.target) {
+        context.onOpenChange(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    document.addEventListener("click", handleBackdropClick);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+      document.removeEventListener("click", handleBackdropClick);
+    };
+  }, [context?.open, context?.onOpenChange]);
+
+  if (!context?.open) return null;
+
+  return (
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    >
+      <div
+        className={cn(
+          "relative w-full max-w-lg rounded-lg bg-white shadow-lg p-6",
+          className,
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DialogHeader({ className, children }: DialogHeaderProps) {
+  return <div className={cn("mb-4 space-y-2", className)}>{children}</div>;
+}
+
+function DialogTitle({ className, children }: DialogTitleProps) {
+  return (
+    <h2 className={cn("text-lg font-semibold text-slate-900", className)}>
+      {children}
+    </h2>
+  );
+}
+
+// Simple context for dialog state
+interface DialogContextType {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const DialogContext = createContext<DialogContextType | undefined>(undefined);
+
+export { Dialog, DialogContent, DialogHeader, DialogTitle };
