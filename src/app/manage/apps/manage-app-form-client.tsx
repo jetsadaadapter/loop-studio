@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { ManagerShell } from "@/components/manager-shell";
-import { useToast } from "@/components/toast-provider";
+import { useDialogToast } from "@/components/ui/alert-dialog-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -237,7 +237,7 @@ function ButtonSpinner() {
 
 export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const router = useRouter();
-  const { pushToast } = useToast();
+  const { pushDialogToast } = useDialogToast();
 
   const [draft, setDraft] = useState<AppRecord>(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(mode === "edit");
@@ -375,32 +375,32 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   async function handleCopyInstructions() {
     const value = draft.instructions?.trim();
     if (!value) {
-      pushToast("No instructions to copy.", "error");
+      pushDialogToast("No instructions to copy.", "error");
       return;
     }
 
     if (!navigator?.clipboard?.writeText) {
-      pushToast("Clipboard is not supported in this browser.", "error");
+      pushDialogToast("Clipboard is not supported in this browser.", "error");
       return;
     }
 
     try {
       await navigator.clipboard.writeText(value);
       setDidCopy(true);
-      pushToast("Instructions copied to clipboard.", "success");
+      pushDialogToast("Instructions copied to clipboard.", "success");
 
       window.setTimeout(() => {
         setDidCopy(false);
       }, 1600);
     } catch {
-      pushToast("Unable to copy instructions.", "error");
+      pushDialogToast("Unable to copy instructions.", "error");
     }
   }
 
   function handleDownloadMarkdown() {
     const value = draft.instructions?.trim();
     if (!value) {
-      pushToast("No instructions to download.", "error");
+      pushDialogToast("No instructions to download.", "error");
       return;
     }
 
@@ -414,9 +414,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      pushToast("Instructions downloaded as .md file.", "success");
+      pushDialogToast("Instructions downloaded as .md file.", "success");
     } catch {
-      pushToast("Unable to download instructions.", "error");
+      pushDialogToast("Unable to download instructions.", "error");
     }
   }
 
@@ -634,10 +634,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
       if (mode === "edit" && appId) {
         await updateManageApp(appId, payload);
-        pushToast("App updated successfully.", "success");
+        pushDialogToast("App updated successfully.", "success");
       } else {
         await createManageApp(payload);
-        pushToast("App created successfully.", "success");
+        pushDialogToast("App created successfully.", "success");
       }
 
       router.push("/manage/apps");

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Inter, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
+import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -94,9 +95,11 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <TooltipProvider>
-          <ToastProvider>
-            <main className="flex-1 flex flex-col">{children}</main>
-          </ToastProvider>
+          <AlertDialogToastProvider>
+            <ToastProvider>
+              <main className="flex-1 flex flex-col">{children}</main>
+            </ToastProvider>
+          </AlertDialogToastProvider>
         </TooltipProvider>
       </body>
     </html>
