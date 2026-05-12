@@ -120,7 +120,6 @@ const EMPTY_FORM: AppRecord = {
 function resolveManageAppImageUrl(
   item: Pick<ManageAppApiItem, "imageId" | "imageUrl">,
 ): string | undefined {
-  console.log(item);
   if (item.imageUrl && item.imageUrl.trim()) return item.imageUrl;
   if (item.imageId && item.imageId.trim()) {
     return `/images/${encodeURIComponent(item.imageId.trim())}`;
