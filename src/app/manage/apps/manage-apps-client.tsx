@@ -741,7 +741,9 @@ export function ManageAppsClient() {
                 <SlidersHorizontal className="size-4" />
               </Button>
               <div>
-                <p className="text-base font-semibold text-foreground">Apps</p>
+                <p className="text-base font-semibold text-foreground">
+                  Filters
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {filtered.length} items found
                 </p>
