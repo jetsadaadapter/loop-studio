@@ -20,6 +20,8 @@ import type {
     PaginationMeta,
     ManageMenuItem,
     ManageMenuResponse,
+    ManageTagApiItem,
+    ManageTagListResponse,
 } from "@/core/interfaces/library.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
@@ -553,4 +555,21 @@ export async function getManageMenus(init?: RequestInit): Promise<ManageMenuItem
     const url = buildUrl("/access/menus");
     const response = await apiFetch<ManageMenuResponse>(url, init);
     return response.data;
+}
+
+// ─── Manage Tags ─────────────────────────────────────────────────────────────
+
+export async function getManageTagsResponse(
+    init?: RequestInit,
+): Promise<ManageTagListResponse> {
+    const url = buildUrl("/manage/tags", {
+        page: 1,
+        limit: 100,
+    });
+    return apiFetch<ManageTagListResponse>(url, init);
+}
+
+export async function getManageTags(init?: RequestInit): Promise<ManageTagApiItem[]> {
+    const response = await getManageTagsResponse(init);
+    return response.data ?? [];
 }

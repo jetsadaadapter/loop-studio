@@ -29,6 +29,7 @@ import {
   getAppItemId,
   type ManageAppApiItem,
   type ManageAppPayload,
+  type ManageTagListResponse,
 } from "@/core/interfaces/library.interface";
 import {
   ApiError,
@@ -94,7 +95,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     sortOrder: item.sortOrder,
     badgeLabel: item.badgeLabel ?? "",
     tags: (item.tags ?? [])
-      .map((tag) => tag.id || tag.tagId || "")
+      .map((tag) => tag.name || tag.id || tag.tagId || "")
       .filter(Boolean),
   };
 }
@@ -205,6 +206,8 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Partial<Record<string, boolean>>>({});
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [tagNameToId, setTagNameToId] = useState<Record<string, string>>({});
 
   const pageTitle = mode === "create" ? "Create App" : "Edit App";
 
@@ -302,6 +305,47 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     };
   }, [appId, mode]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadManageTags() {
+      try {
+        const response = await fetch("/api/manage/tags", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as ManageTagListResponse;
+        const tags = Array.isArray(payload.data) ? payload.data : [];
+
+        if (cancelled) return;
+
+        setTagSuggestions(tags.map((tag) => tag.name).filter(Boolean));
+        setTagNameToId(
+          Object.fromEntries(
+            tags
+              .filter((tag) => tag.name && tag.id)
+              .map((tag) => [tag.name.trim().toLowerCase(), tag.id]),
+          ),
+        );
+      } catch {
+        if (!cancelled) {
+          setTagSuggestions([]);
+          setTagNameToId({});
+        }
+      }
+    }
+
+    void loadManageTags();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
@@ -322,7 +366,12 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     setFieldErrors({});
 
     try {
-      const payload = mapRecordToPayload(draft);
+      const payload = {
+        ...mapRecordToPayload(draft),
+        tags: draft.tags
+          .map((tag) => tagNameToId[tag.trim().toLowerCase()] ?? tag)
+          .filter(Boolean),
+      };
 
       if (mode === "edit" && appId) {
         await updateManageApp(appId, payload);
@@ -641,6 +690,8 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                     </FieldLabel>
                     <TagInput
                       value={draft.tags}
+                      suggestions={tagSuggestions}
+                      strictSuggestions
                       onChange={(tags) => {
                         const next = { ...draft, tags };
                         setDraft(next);

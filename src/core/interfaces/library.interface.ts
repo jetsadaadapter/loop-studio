@@ -195,6 +195,19 @@ export type ManageMenuItem = {
 
 export type ManageMenuResponse = ManageApiEnvelope<ManageMenuItem[]>;
 
+// ─── Manage Tags  GET /manage/tags ──────────────────────────────────────────
+
+export type ManageTagApiItem = {
+    id: string;
+    name: string;
+    color: string;
+    userId?: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ManageTagListResponse = ManageApiEnvelope<ManageTagApiItem[]>;
+
 export function getAppItemId(item: { id?: string; appId?: string }): string {
     return item.id ?? item.appId ?? "";
 }
