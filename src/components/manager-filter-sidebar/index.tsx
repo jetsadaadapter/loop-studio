@@ -10,6 +10,7 @@ import {
 
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type FilterOption = {
   value: string;
@@ -30,6 +31,7 @@ type ManagerFilterSidebarProps = {
   onReset: () => void;
   resetDisabled?: boolean;
   resetLabel?: string;
+  className?: string;
 };
 
 function resolveCategoryIcon(label: string): ReactNode {
@@ -53,9 +55,10 @@ export function ManagerFilterSidebar({
   onReset,
   resetDisabled = false,
   resetLabel = "Reset Filter",
+  className,
 }: ManagerFilterSidebarProps) {
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", className)}>
       {sections.map((section, sectionIndex) => (
         <div key={section.key} className="space-y-3">
           {sectionIndex > 0 ? <Separator className="mb-6" /> : null}
@@ -72,11 +75,11 @@ export function ManagerFilterSidebar({
                   : null);
 
               return (
-                <li key={`${section.key}:${option.value}`} className="mx-2">
+                <li key={`${section.key}:${option.value}`} className="mx-0">
                   <button
                     type="button"
                     onClick={() => section.onChange(option.value)}
-                    className={`flex w-full items-center gap-2 rounded-md px-4 py-3 text-left text-sm transition ${
+                    className={`flex w-full items-center gap-2 rounded-md px-4 py-2 text-left text-sm transition ${
                       isActive
                         ? "bg-primary/5 font-medium text-primary"
                         : "text-muted-foreground hover:bg-primary/5 hover:text-primary"

@@ -1,16 +1,16 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { SyntheticEvent } from "react";
+import { EllipsisVertical, ExternalLink, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { AppLinkType } from "@/core/interfaces/library.interface";
 
 type ManagerAppCardItem = {
@@ -110,6 +110,55 @@ export function ManagerAppCard({
           unoptimized
           onError={onCardImageError}
         />
+
+        <div className="absolute right-3 top-3 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="flex items-center justify-center rounded-full border-0 bg-white/25 p-0 text-white shadow-none backdrop-blur-sm transition hover:bg-white/35 hover:text-white aria-expanded:bg-white/40 active:bg-white/40"
+                />
+              }
+              aria-label={`Open actions for ${item.name}`}
+            >
+              <EllipsisVertical className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom" className="w-32">
+              <DropdownMenuItem
+                onClick={onEdit}
+                disabled={isBusy}
+                className="py-1 text-xs"
+              >
+                <Pencil className="size-3.5" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onDelete}
+                disabled={isBusy}
+                variant="destructive"
+                className="py-1 text-xs"
+              >
+                <Trash2 className="size-3.5" />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="py-1 text-xs">
+                <a
+                  href={typeof item.id === "string" ? `/apps/${item.id}` : "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  tabIndex={0}
+                  className="flex items-center gap-2 w-full h-full"
+                >
+                  <ExternalLink className="size-3.5" />
+                  Detail
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <CardHeader className="px-4 pb-0 pt-0">
@@ -130,7 +179,7 @@ export function ManagerAppCard({
         <p className="text-[0.7rem] text-muted-foreground">#{item.id}</p>
       </CardHeader>
 
-      <CardContent className="space-y-2 px-4">
+      <CardContent className="space-y-2 px-4 pb-4">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Category</span>
           <span className="font-medium">{item.category}</span>
@@ -145,35 +194,6 @@ export function ManagerAppCard({
           </Badge>
         </div>
       </CardContent>
-
-      <CardFooter className="flex items-center gap-2 border-t bg-muted/40 px-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          disabled={isBusy}
-          onClick={onEdit}
-        >
-          Edit
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          className="flex-1"
-          disabled={isBusy}
-          onClick={onDelete}
-        >
-          {isDeleting ? "Deleting..." : "Delete"}
-        </Button>
-        <Link
-          href={`/apps/${item.id}`}
-          className="inline-flex h-8 flex-1 items-center justify-center rounded-md border border-border bg-secondary px-3 text-xs font-medium text-secondary-foreground transition hover:bg-secondary/80"
-        >
-          Detail
-        </Link>
-      </CardFooter>
     </Card>
   );
 }

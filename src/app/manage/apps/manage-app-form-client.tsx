@@ -994,6 +994,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       value={draft.tags}
                       suggestions={tagSuggestions}
                       strictSuggestions
+                      helperText="Add tags for app."
                       onChange={(tags) => {
                         const next = { ...draft, tags };
                         setDraft(next);

@@ -483,8 +483,8 @@ export function ManageAppsClient() {
         </aside>
 
         <div className="space-y-4 p-5 lg:p-6">
-          <div className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
               <Button
                 type="button"
                 variant="outline"
@@ -504,21 +504,21 @@ export function ManageAppsClient() {
               </div>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <div className="relative w-full sm:w-[320px]">
+            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:items-center xl:justify-end">
+              <div className="relative w-full sm:col-span-2 xl:w-[320px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   key={search}
                   defaultValue={search}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Search app name or category"
-                  className="pl-9"
+                  className="bg-background pl-9"
                 />
               </div>
               <Button
                 type="button"
-                size="sm"
                 variant="outline"
+                className="w-full border-brand/30 bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand xl:w-auto"
                 disabled={isLoading || isRefreshing}
                 onClick={() => void loadApps({ silent: true })}
               >
@@ -535,7 +535,7 @@ export function ManageAppsClient() {
                 value={sortBy}
                 onValueChange={(value) => onSortChange(value as SortValue)}
               >
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full xl:w-40">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
@@ -549,7 +549,7 @@ export function ManageAppsClient() {
                 value={String(pageSize)}
                 onValueChange={(value) => onPageSizeChange(Number(value))}
               >
-                <SelectTrigger className="w-full sm:w-32">
+                <SelectTrigger className="w-full xl:w-32">
                   <SelectValue placeholder="Per page" />
                 </SelectTrigger>
                 <SelectContent>
@@ -665,7 +665,7 @@ export function ManageAppsClient() {
           side="left"
           className="w-[88vw] max-w-[320px] overflow-y-auto"
         >
-          <SheetHeader>
+          <SheetHeader className="px-4 pb-3 pt-5">
             <SheetTitle className="flex items-center gap-2">
               <SlidersHorizontal className="size-4" />
               Filters
@@ -674,11 +674,12 @@ export function ManageAppsClient() {
               Narrow down app list by category, status, and link type.
             </SheetDescription>
           </SheetHeader>
-          <div className="pt-4">
+          <div className="px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2">
             <ManagerFilterSidebar
               sections={filterSections}
               onReset={clearFilters}
               resetDisabled={!hasActiveFilter}
+              className="px-1"
             />
           </div>
         </SheetContent>

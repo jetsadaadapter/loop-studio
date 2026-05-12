@@ -22,7 +22,7 @@ export function ManagerPagination({
   onPageChange,
 }: ManagerPaginationProps) {
   return (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-xl border bg-card p-3 text-sm sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 pt-1 text-sm sm:flex-row">
       <p className="text-muted-foreground">
         Showing {start}-{end} of {total}
       </p>

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
 interface TagInputProps {
   value: string[];
@@ -12,6 +11,7 @@ interface TagInputProps {
   strictSuggestions?: boolean;
   placeholder?: string;
   className?: string;
+  helperText?: string;
 }
 
 export function TagInput({
@@ -21,6 +21,7 @@ export function TagInput({
   strictSuggestions = false,
   placeholder = "Add tags...",
   className,
+  helperText,
 }: TagInputProps) {
   const [inputValue, setInputValue] = React.useState("");
   const [isFocused, setIsFocused] = React.useState(false);
@@ -90,18 +91,17 @@ export function TagInput({
   };
 
   return (
-    <div className="space-y-1">
+    <div className="relative space-y-1.5">
       <div
         className={cn(
-          "flex min-h-10 w-full flex-wrap gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-within:ring-1 focus-within:ring-brand focus-within:ring-offset-0",
+          "flex min-h-8 w-full flex-wrap items-center gap-1 rounded-sm border border-input bg-transparent px-2.5 py-1 text-sm focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
           className,
         )}
       >
         {value.map((tag) => (
-          <Badge
+          <span
             key={tag}
-            variant="secondary"
-            className="flex items-center gap-1 border-none bg-slate-100 px-2 py-1 text-slate-900 hover:bg-slate-200"
+            className="flex items-center rounded-full text-primary bg-primary/5 px-2 py-0.5"
           >
             {tag}
             <button
@@ -109,11 +109,11 @@ export function TagInput({
               onClick={() => removeTag(tag)}
               aria-label={`Remove tag ${tag}`}
               title={`Remove tag ${tag}`}
-              className="ml-1 rounded-full outline-none focus:ring-1 focus:ring-slate-400"
+              className="ml-1 rounded-full text-slate-500 outline-none transition hover:text-slate-700 focus:ring-1 focus:ring-slate-300"
             >
               <X className="size-3" />
             </button>
-          </Badge>
+          </span>
         ))}
         <input
           value={inputValue}
@@ -122,12 +122,16 @@ export function TagInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 100)}
           placeholder={value.length === 0 ? placeholder : ""}
-          className="flex-1 bg-transparent outline-none placeholder:text-slate-500"
+          className="min-w-30 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
       </div>
 
+      {helperText ? (
+        <small className="text-xs text-muted-foreground">{helperText}</small>
+      ) : null}
+
       {canShowSuggestions ? (
-        <div className="max-h-40 overflow-auto rounded-sm border border-slate-200 bg-white p-1">
+        <div className="max-h-40 overflow-auto rounded-md border border-input bg-background p-1 shadow-sm">
           {filteredSuggestions.map((tag) => (
             <button
               key={tag}
@@ -136,7 +140,7 @@ export function TagInput({
               onClick={() => {
                 if (addTag(tag)) setInputValue("");
               }}
-              className="block w-full rounded-sm px-2 py-1 text-left text-sm text-slate-700 hover:bg-slate-100"
+              className="block w-full rounded-sm px-2 py-1 text-left text-sm text-foreground hover:bg-muted"
             >
               {tag}
             </button>
