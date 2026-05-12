@@ -148,7 +148,7 @@ export function ImageUpload({
         onClick={handleClick}
         className={cn(
           "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-white p-6 transition-colors hover:bg-slate-50 cursor-pointer",
-          value && "border-brand bg-brand/5",
+          value && "border-emerald-500 bg-emerald-50",
           isUploading && "cursor-not-allowed opacity-70",
         )}
       >
@@ -218,7 +218,7 @@ export function ImageUpload({
 
         {value && (
           <div className="absolute top-2 right-2">
-            <div className="rounded-full bg-brand px-2 py-0.5 text-[10px] text-white">
+            <div className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] text-white">
               Selected
             </div>
           </div>

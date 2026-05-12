@@ -873,7 +873,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                           iconId: message,
                         }));
                       }}
-                      placeholder="Upload thumbnail"
+                      placeholder="Upload icon"
                       description="Supports png, jpg, jpeg, webp."
                     />
                     <FieldError
