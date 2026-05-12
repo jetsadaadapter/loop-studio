@@ -118,6 +118,37 @@ function mapRecordToPayload(record: AppRecord): ManageAppPayload {
   };
 }
 
+function hasChanged(nextValue: string, previousValue: string): boolean {
+  const next = nextValue.trim();
+  const prev = previousValue.trim();
+  return Boolean(next) && Boolean(prev) && next !== prev;
+}
+
+function buildImageRemovePayload(
+  nextMedia: { imageId: string; iconId: string },
+  previousMedia: { imageId: string; iconId: string },
+): NonNullable<ManageAppPayload["imageRemove"]> | undefined {
+  const previousImageId = previousMedia.imageId.trim();
+  const previousIconId = previousMedia.iconId.trim();
+
+  const imageChanged = hasChanged(nextMedia.imageId, previousImageId);
+  const iconChanged = hasChanged(nextMedia.iconId, previousIconId);
+
+  const imageRemove: NonNullable<ManageAppPayload["imageRemove"]> = {};
+
+  if (imageChanged && previousImageId) {
+    imageRemove.imageId = previousImageId;
+  }
+
+  if (iconChanged && previousIconId) {
+    imageRemove.iconId = previousIconId;
+    // Current backend cleanup expects coverId alongside icon replacement.
+    imageRemove.coverId = previousIconId;
+  }
+
+  return Object.keys(imageRemove).length > 0 ? imageRemove : undefined;
+}
+
 function parseApiFieldErrors(error: unknown): Record<string, string> {
   if (!(error instanceof ApiError) || !error.details) return {};
 
@@ -208,6 +239,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const [touched, setTouched] = useState<Partial<Record<string, boolean>>>({});
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [tagNameToId, setTagNameToId] = useState<Record<string, string>>({});
+  const [originalMediaIds, setOriginalMediaIds] = useState<{
+    imageId: string;
+    iconId: string;
+  } | null>(null);
 
   const pageTitle = mode === "create" ? "Create App" : "Edit App";
 
@@ -215,7 +250,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     () => [
       {
         value: "active",
-        label: "Publish",
+        label: "Active",
         color: "text-teal-600 fill-teal-600",
       },
       {
@@ -285,6 +320,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
         }
 
         setDraft(record);
+        setOriginalMediaIds({
+          imageId: record.imageId,
+          iconId: record.iconId,
+        });
       } catch (loadError) {
         if (!cancelled) {
           setError(
@@ -304,6 +343,40 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
       cancelled = true;
     };
   }, [appId, mode]);
+
+  useEffect(() => {
+    if (mode !== "create") return;
+
+    let cancelled = false;
+
+    async function loadNextSortOrder() {
+      try {
+        const apps = await getManageApps();
+        if (cancelled) return;
+
+        const maxSortOrder = apps.reduce((currentMax, item) => {
+          return Number.isInteger(item.sortOrder)
+            ? Math.max(currentMax, item.sortOrder)
+            : currentMax;
+        }, -1);
+
+        const nextSortOrder = Math.max(0, maxSortOrder + 1);
+
+        setDraft((current) => ({
+          ...current,
+          sortOrder: nextSortOrder,
+        }));
+      } catch {
+        // Keep default sort order when latest order cannot be resolved.
+      }
+    }
+
+    void loadNextSortOrder();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -366,12 +439,65 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     setFieldErrors({});
 
     try {
-      const payload = {
+      const payload: ManageAppPayload = {
         ...mapRecordToPayload(draft),
         tags: draft.tags
           .map((tag) => tagNameToId[tag.trim().toLowerCase()] ?? tag)
           .filter(Boolean),
       };
+
+      const mediaChangeDebug = originalMediaIds
+        ? {
+            banner: {
+              oldId: originalMediaIds.imageId.trim(),
+              newId: draft.imageId.trim(),
+              changed: hasChanged(draft.imageId, originalMediaIds.imageId),
+            },
+            icon: {
+              oldId: originalMediaIds.iconId.trim(),
+              newId: draft.iconId.trim(),
+              changed: hasChanged(draft.iconId, originalMediaIds.iconId),
+            },
+            // Cover cleanup currently follows icon replacement flow.
+            cover: {
+              oldId: originalMediaIds.iconId.trim(),
+              newId: draft.iconId.trim(),
+              changed: hasChanged(draft.iconId, originalMediaIds.iconId),
+            },
+          }
+        : null;
+
+      if (mode === "edit" && originalMediaIds) {
+        const imageRemove = buildImageRemovePayload(
+          {
+            imageId: draft.imageId,
+            iconId: draft.iconId,
+          },
+          originalMediaIds,
+        );
+
+        if (imageRemove) {
+          payload.imageRemove = imageRemove;
+        }
+      }
+
+      console.log("[ManageAppForm] submit payload", {
+        mode,
+        appId,
+        payload,
+      });
+
+      console.log("[ManageAppForm] imageRemove payload", {
+        mode,
+        appId,
+        imageRemove: payload.imageRemove ?? null,
+      });
+
+      console.log("[ManageAppForm] media change details", {
+        mode,
+        appId,
+        media: mediaChangeDebug,
+      });
 
       if (mode === "edit" && appId) {
         await updateManageApp(appId, payload);
@@ -431,7 +557,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
             <div className="col-span-12 space-y-6 lg:col-span-8">
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">General</h5>
+                  <h5 className="text-base font-semibold">General</h5>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Field>
@@ -459,16 +585,23 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                     <FieldLabel>
                       Category <span className="text-destructive">*</span>
                     </FieldLabel>
-                    <Input
-                      placeholder="Category"
+                    <Select
                       value={draft.category}
-                      onChange={(event) => {
-                        const next = { ...draft, category: event.target.value };
+                      onValueChange={(value) => {
+                        const next = { ...draft, category: value ?? "" };
                         setDraft(next);
-                        if (touched.category) revalidateField("category", next);
+                        touchAndValidate("category", next);
                       }}
-                      onBlur={() => touchAndValidate("category", draft)}
-                    />
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="MCP">MCP</SelectItem>
+                        <SelectItem value="Tool">Tool</SelectItem>
+                        <SelectItem value="Platform">Platform</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FieldError
                       errors={
                         touched.category
@@ -511,7 +644,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">Media</h5>
+                  <h5 className="text-base font-semibold">Banner</h5>
                 </CardHeader>
                 <CardContent>
                   <Field>
@@ -520,7 +653,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       previewSrc={
                         draft.imageId
                           ? `/images/${encodeURIComponent(draft.imageId.trim())}`
-                          : `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
+                          : mode === "edit"
+                            ? `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
+                            : undefined
                       }
                       onChange={(value) => {
                         const next = { ...draft, imageId: value };
@@ -553,7 +688,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">Action</h5>
+                  <h5 className="text-base font-semibold">Action</h5>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Field>
@@ -652,7 +787,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">Content</h5>
+                  <h5 className="text-base font-semibold">Content</h5>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Field>
@@ -712,7 +847,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
             <div className="col-span-12 space-y-6 lg:col-span-4">
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">Icon</h5>
+                  <h5 className="text-base font-semibold">Icon</h5>
                 </CardHeader>
                 <CardContent>
                   <Field>
@@ -721,7 +856,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       previewSrc={
                         draft.iconId
                           ? `/images/${encodeURIComponent(draft.iconId.trim())}`
-                          : `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
+                          : mode === "edit"
+                            ? `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
+                            : undefined
                       }
                       previewFit="contain"
                       onChange={(value) => {
@@ -750,7 +887,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-medium">Status</h5>
+                  <h5 className="text-base font-semibold">Status</h5>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Field>
@@ -816,35 +953,6 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       errors={
                         touched.badgeLabel
                           ? [{ message: fieldErrors.badgeLabel }]
-                          : []
-                      }
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>Sort Order</FieldLabel>
-                    <Input
-                      type="number"
-                      placeholder="Sort order"
-                      value={String(draft.sortOrder)}
-                      onChange={(event) => {
-                        const next = {
-                          ...draft,
-                          sortOrder: Number(event.target.value || 0),
-                        };
-                        setDraft(next);
-                        if (touched.sortOrder)
-                          revalidateField("sortOrder", next);
-                      }}
-                      onBlur={() => touchAndValidate("sortOrder", draft)}
-                    />
-                    <FieldDescription>
-                      Lower values appear first.
-                    </FieldDescription>
-                    <FieldError
-                      errors={
-                        touched.sortOrder
-                          ? [{ message: fieldErrors.sortOrder }]
                           : []
                       }
                     />

@@ -64,9 +64,11 @@ export function ImageUpload({
         : null;
 
     const candidates = [
+      root.mediaId,
       root.imageId,
       root.id,
       root.fileId,
+      data?.mediaId,
       data?.imageId,
       data?.id,
       data?.fileId,

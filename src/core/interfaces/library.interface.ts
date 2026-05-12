@@ -79,6 +79,11 @@ export type ManageAppPayload = {
     description: string;
     imageId: string;
     iconId: string;
+    imageRemove?: {
+        imageId?: string;
+        iconId?: string;
+        coverId?: string;
+    };
     instructions: string;
     ctaLabel: string;
     ctaLink: string;
