@@ -8,15 +8,11 @@ import {
   useRef,
   useState,
   startTransition,
-  useId,
 } from "react";
-import { CircleIcon, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
-import { ManagerForm } from "@/components/manager-form";
-import type { ManagerFormProps } from "@/components/manager-form/types";
-import { ManagerFormSection } from "@/components/manager-form-section";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
 import { ManagerPagination } from "@/components/manager-pagination";
@@ -34,7 +30,6 @@ import {
   getAppItemId,
   type AppLinkType,
   type ManageAppApiItem,
-  type ManageAppPayload,
 } from "@/core/interfaces/library.interface";
 import {
   Sheet,
@@ -44,27 +39,15 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-} from "@/components/ui/field";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageUpload } from "@/components/ui/image-upload";
-import { TagInput } from "@/components/ui/tag-input";
 import {
-  ApiError,
-  createManageApp,
   deleteManageApp,
   getManageApps,
-  updateManageApp,
 } from "@/core/services/library.service";
 import {
   applyManageAppsListQuery,
@@ -93,28 +76,6 @@ type AppRecord = {
   tags: string[];
   updatedAt: string;
   imageUrl?: string;
-};
-
-type FormSubmitHandler = ManagerFormProps["onSubmit"];
-
-type FormSubmitEvent = Parameters<FormSubmitHandler>[0];
-
-const EMPTY_FORM: AppRecord = {
-  id: "",
-  name: "",
-  category: "Tool",
-  description: "",
-  imageId: "",
-  iconId: "",
-  instructions: "",
-  ctaLabel: "",
-  ctaLink: "",
-  linkType: "internal",
-  isActive: true,
-  sortOrder: 0,
-  badgeLabel: "",
-  tags: [],
-  updatedAt: "",
 };
 
 function resolveManageAppImageUrl(
@@ -150,44 +111,6 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
   };
 }
 
-function mapRecordToPayload(record: AppRecord): ManageAppPayload {
-  return {
-    name: record.name.trim(),
-    category: record.category.trim(),
-    description: record.description,
-    imageId: record.imageId,
-    iconId: record.iconId,
-    instructions: record.instructions,
-    ctaLabel: record.ctaLabel,
-    ctaLink: record.ctaLink,
-    linkType: record.linkType,
-    isActive: record.isActive,
-    sortOrder: record.sortOrder,
-    badgeLabel: record.badgeLabel,
-    tags: record.tags,
-  };
-}
-
-function parseApiFieldErrors(error: unknown): Record<string, string> {
-  if (!(error instanceof ApiError) || !error.details) return {};
-
-  const details = error.details as {
-    errors?: Record<string, string | string[]>;
-    fieldErrors?: Record<string, string | string[]>;
-  };
-
-  const raw = details.fieldErrors ?? details.errors;
-  if (!raw || typeof raw !== "object") return {};
-
-  const mapped: Record<string, string> = {};
-  for (const [field, value] of Object.entries(raw)) {
-    mapped[field] = Array.isArray(value)
-      ? (value[0] ?? "Invalid value")
-      : value;
-  }
-  return mapped;
-}
-
 function ButtonSpinner() {
   return (
     <span
@@ -202,7 +125,6 @@ export function ManageAppsClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const hasHandledCreateQuery = useRef(false);
   const { pushToast } = useToast();
   const [apps, setApps] = useState<AppRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -221,41 +143,8 @@ export function ManageAppsClient() {
   const pageSize = listQuery.size;
   const currentPage = listQuery.page;
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [mode, setMode] = useState<"create" | "edit" | null>(null);
-  const [draft, setDraft] = useState<AppRecord>(EMPTY_FORM);
-  const [error, setError] = useState<string>("");
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<AppRecord | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const statusId = useId();
-  const badgeId = useId();
-  const linkTypeId = useId();
-
-  const statuses = useMemo(
-    () => [
-      {
-        value: "active",
-        label: "Publish",
-        color: "text-teal-600 fill-teal-600",
-      },
-      {
-        value: "inactive",
-        label: "Inactive",
-        color: "text-gray-500 fill-gray-500",
-      },
-      {
-        value: "draft",
-        label: "Draft",
-        color: "text-amber-300 fill-amber-300",
-      },
-    ],
-    [],
-  );
-
-  const selectedStatus = statuses.find(
-    (s) => s.value === (draft.isActive ? "active" : "inactive"),
-  );
 
   const loadApps = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -488,20 +377,8 @@ export function ManageAppsClient() {
   );
 
   function openCreateForm() {
-    setMode("create");
-    setDraft(EMPTY_FORM);
-    setError("");
-    setFieldErrors({});
+    router.push("/manage/apps/create");
   }
-
-  useEffect(() => {
-    if (hasHandledCreateQuery.current) return;
-    if (searchParams.get("action") !== "create") return;
-    hasHandledCreateQuery.current = true;
-    startTransition(() => {
-      openCreateForm();
-    });
-  }, [searchParams]);
 
   function clearFilters() {
     clearSearchDebounce();
@@ -560,121 +437,6 @@ export function ManageAppsClient() {
     syncListQuery({ page });
   }
 
-  function resetForm() {
-    setMode(null);
-    setDraft(EMPTY_FORM);
-    setError("");
-    setFieldErrors({});
-  }
-
-  function validateForm(value: AppRecord): string {
-    if (!value.name.trim()) return "Name is required.";
-    if (!value.category.trim()) return "Category is required.";
-
-    if (value.linkType === "internal" && !value.ctaLink.startsWith("/")) {
-      return "Internal link must start with /.";
-    }
-
-    if (
-      value.linkType === "external" &&
-      !value.ctaLink.startsWith("https://")
-    ) {
-      return "External link must start with https://.";
-    }
-
-    return "";
-  }
-
-  const onSubmit: FormSubmitHandler = (event) => {
-    void handleSubmit(event);
-  };
-
-  async function handleSubmit(event: FormSubmitEvent) {
-    event.preventDefault();
-    setIsSubmitting(true);
-    const validationError = validateForm(draft);
-
-    if (validationError) {
-      setError(validationError);
-      setIsSubmitting(false);
-      return;
-    }
-
-    setError("");
-    setFieldErrors({});
-
-    const payload = mapRecordToPayload(draft);
-
-    const normalized: AppRecord = {
-      ...draft,
-      id: draft.id || `tmp-${Date.now()}`,
-      tags: draft.tags,
-      updatedAt: new Date().toISOString().slice(0, 10),
-      imageUrl:
-        draft.imageId && draft.imageId.trim()
-          ? `/images/${encodeURIComponent(draft.imageId.trim())}`
-          : draft.imageUrl,
-    };
-
-    if (mode === "edit") {
-      const previous = apps.find((item) => item.id === normalized.id);
-      setApps((current) =>
-        current.map((item) => (item.id === normalized.id ? normalized : item)),
-      );
-
-      try {
-        const updated = await updateManageApp(normalized.id, payload);
-        setApps((current) =>
-          current.map((item) =>
-            item.id === normalized.id ? mapApiItemToRecord(updated) : item,
-          ),
-        );
-        pushToast("App updated successfully.", "success");
-        resetForm();
-      } catch (submitError) {
-        if (previous) {
-          setApps((current) =>
-            current.map((item) => (item.id === previous.id ? previous : item)),
-          );
-        }
-        setFieldErrors(parseApiFieldErrors(submitError));
-        setError(
-          submitError instanceof Error
-            ? submitError.message
-            : "Failed to update app.",
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
-
-      return;
-    }
-
-    setApps((current) => [normalized, ...current]);
-
-    try {
-      const created = await createManageApp(payload);
-      const createdRecord = mapApiItemToRecord(created);
-      setApps((current) =>
-        current.map((item) =>
-          item.id === normalized.id ? createdRecord : item,
-        ),
-      );
-      pushToast("App created successfully.", "success");
-      resetForm();
-    } catch (submitError) {
-      setApps((current) => current.filter((item) => item.id !== normalized.id));
-      setFieldErrors(parseApiFieldErrors(submitError));
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to create app.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   async function onDelete(target: AppRecord) {
     setDeletingId(target.id);
     const previous = apps;
@@ -704,17 +466,10 @@ export function ManageAppsClient() {
       actions={
         <Button
           type="button"
-          disabled={isSubmitting || deletingId !== null}
+          disabled={deletingId !== null}
           onClick={openCreateForm}
         >
-          {isSubmitting ? (
-            <span className="inline-flex items-center gap-1.5">
-              <ButtonSpinner />
-              Processing...
-            </span>
-          ) : (
-            "Create App"
-          )}
+          Create App
         </Button>
       }
     >
@@ -857,7 +612,7 @@ export function ManageAppsClient() {
                   <Button
                     type="button"
                     size="sm"
-                    disabled={isSubmitting || deletingId !== null}
+                    disabled={deletingId !== null}
                     onClick={openCreateForm}
                   >
                     Create App
@@ -882,12 +637,9 @@ export function ManageAppsClient() {
                     <ManagerAppCard
                       key={row.id}
                       item={row}
-                      isBusy={isSubmitting || deletingId !== null}
+                      isBusy={deletingId !== null}
                       isDeleting={deletingId === row.id}
-                      onEdit={() => {
-                        setMode("edit");
-                        setDraft(row);
-                      }}
+                      onEdit={() => router.push(`/manage/apps/${row.id}/edit`)}
                       onDelete={() => setDeleteTarget(row)}
                     />
                   );
@@ -941,371 +693,6 @@ export function ManageAppsClient() {
           onConfirm={() => void onDelete(deleteTarget)}
         />
       ) : null}
-
-      <Sheet open={!!mode} onOpenChange={(open) => !open && resetForm()}>
-        <SheetContent
-          side="right"
-          className="w-[90vw] sm:max-w-[50vw]! sm:w-[50vw]! overflow-y-auto"
-        >
-          <SheetHeader>
-            <SheetTitle>
-              {mode === "create" ? "Create App" : `Edit App: ${draft.name}`}
-            </SheetTitle>
-            <SheetDescription>
-              Universal app form scaffold aligned with /manage/apps payload
-            </SheetDescription>
-          </SheetHeader>
-          <div className="py-4">
-            <ManagerForm
-              onSubmit={onSubmit}
-              hideHeader
-              className="border-none bg-transparent shadow-none"
-              actions={
-                <>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <ButtonSpinner />
-                        Saving...
-                      </span>
-                    ) : (
-                      "Save"
-                    )}
-                  </Button>
-                </>
-              }
-            >
-              <ManagerFormSection title="General">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel>
-                      Name <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Input
-                      placeholder="Name"
-                      value={draft.name}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          name: event.target.value,
-                        }))
-                      }
-                    />
-                    <FieldDescription>
-                      A name is required and recommended to be unique.
-                    </FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.name }]} />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>
-                      Category <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Input
-                      placeholder="Category"
-                      value={draft.category}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          category: event.target.value,
-                        }))
-                      }
-                    />
-                    <FieldDescription>
-                      App category for grouping in the catalog.
-                    </FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.category }]} />
-                  </Field>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field>
-                      <FieldLabel htmlFor={statusId}>Status</FieldLabel>
-                      <Select
-                        value={draft.isActive ? "active" : "inactive"}
-                        onValueChange={(value) =>
-                          setDraft((current) => ({
-                            ...current,
-                            isActive: value === "active",
-                          }))
-                        }
-                      >
-                        <SelectTrigger
-                          id={statusId}
-                          className="w-full [&>span]:flex [&>span]:items-center [&>span]:gap-2"
-                        >
-                          {selectedStatus && (
-                            <CircleIcon
-                              className={`size-2 ${selectedStatus?.color ?? "text-muted-foreground fill-muted-foreground"}`}
-                            />
-                          )}
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent align="start">
-                          {statuses.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              <div className="flex items-center gap-2">
-                                <CircleIcon
-                                  className={`size-2 ${status.color}`}
-                                />
-                                <span className="truncate">{status.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FieldDescription>
-                        Set the visibility of this app.
-                      </FieldDescription>
-                      <FieldError
-                        errors={[{ message: fieldErrors.isActive }]}
-                      />
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor={badgeId}>Badge Label</FieldLabel>
-                      <Select
-                        value={draft.badgeLabel}
-                        onValueChange={(value) =>
-                          setDraft((current) => ({
-                            ...current,
-                            badgeLabel: (value === "none" ? "" : value) || "",
-                          }))
-                        }
-                      >
-                        <SelectTrigger id={badgeId} className="w-full">
-                          <SelectValue placeholder="Select badge" />
-                        </SelectTrigger>
-                        <SelectContent align="start">
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="New">New</SelectItem>
-                          <SelectItem value="Trending">Trending</SelectItem>
-                          <SelectItem value="Hot">Hot</SelectItem>
-                          <SelectItem value="Coming Soon">
-                            Coming Soon
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FieldDescription>
-                        Small badge text on the app card.
-                      </FieldDescription>
-                      <FieldError
-                        errors={[{ message: fieldErrors.badgeLabel }]}
-                      />
-                    </Field>
-                  </div>
-
-                  <Field>
-                    <FieldLabel>Sort Order</FieldLabel>
-                    <Input
-                      type="number"
-                      placeholder="Sort order"
-                      value={String(draft.sortOrder)}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          sortOrder: Number(event.target.value || 0),
-                        }))
-                      }
-                    />
-                    <FieldDescription>
-                      Lower values appear first.
-                    </FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.sortOrder }]} />
-                  </Field>
-                </FieldGroup>
-              </ManagerFormSection>
-
-              <ManagerFormSection title="Media">
-                <FieldGroup>
-                  <Field>
-                    <ImageUpload
-                      value={draft.imageId}
-                      onChange={(value) =>
-                        setDraft((current) => ({
-                          ...current,
-                          imageId: value,
-                        }))
-                      }
-                      placeholder="Upload banner"
-                      description="Drag or drop your files here or click to upload"
-                    />
-                    <FieldDescription>
-                      Banner image for the app header. Recommended size
-                      1200x400.
-                    </FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.imageId }]} />
-                  </Field>
-                </FieldGroup>
-              </ManagerFormSection>
-
-              <ManagerFormSection title="Thumbnail">
-                <FieldGroup>
-                  <Field>
-                    <ImageUpload
-                      value={draft.iconId}
-                      onChange={(value) =>
-                        setDraft((current) => ({
-                          ...current,
-                          iconId: value,
-                        }))
-                      }
-                      placeholder="Drop Thumbnail here to upload"
-                      description="Set the product thumbnail image. Only *.png, *.jpg and *.jpeg image files are accepted."
-                    />
-                    <FieldError errors={[{ message: fieldErrors.iconId }]} />
-                  </Field>
-                </FieldGroup>
-              </ManagerFormSection>
-
-              <ManagerFormSection title="Action">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor={linkTypeId}>Link Type</FieldLabel>
-                    <Select
-                      value={draft.linkType}
-                      onValueChange={(value) =>
-                        setDraft((current) => ({
-                          ...current,
-                          linkType: value as AppLinkType,
-                        }))
-                      }
-                    >
-                      <SelectTrigger id={linkTypeId} className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        <SelectItem value="internal">internal</SelectItem>
-                        <SelectItem value="external">external</SelectItem>
-                        <SelectItem value="instruction">instruction</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FieldDescription>
-                      Determines how the CTA button behaves.
-                    </FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.linkType }]} />
-                  </Field>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field>
-                      <FieldLabel>CTA Label</FieldLabel>
-                      <Input
-                        placeholder="CTA label"
-                        value={draft.ctaLabel}
-                        onChange={(event) =>
-                          setDraft((current) => ({
-                            ...current,
-                            ctaLabel: event.target.value,
-                          }))
-                        }
-                      />
-                      <FieldDescription>
-                        Label for the action button.
-                      </FieldDescription>
-                      <FieldError
-                        errors={[{ message: fieldErrors.ctaLabel }]}
-                      />
-                    </Field>
-
-                    <Field>
-                      <FieldLabel>CTA Link</FieldLabel>
-                      <Input
-                        placeholder="CTA link"
-                        value={draft.ctaLink}
-                        onChange={(event) =>
-                          setDraft((current) => ({
-                            ...current,
-                            ctaLink: event.target.value,
-                          }))
-                        }
-                      />
-                      <FieldDescription>Target URL or path.</FieldDescription>
-                      <FieldError errors={[{ message: fieldErrors.ctaLink }]} />
-                    </Field>
-                  </div>
-                </FieldGroup>
-              </ManagerFormSection>
-
-              <ManagerFormSection title="Content">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel>Description</FieldLabel>
-                    <Input
-                      placeholder="Description"
-                      value={draft.description}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          description: event.target.value,
-                        }))
-                      }
-                    />
-                    <FieldDescription>
-                      Short summary of the app.
-                    </FieldDescription>
-                    <FieldError
-                      errors={[{ message: fieldErrors.description }]}
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>Instructions</FieldLabel>
-                    <textarea
-                      placeholder="Instructions"
-                      value={draft.instructions}
-                      onChange={(event) =>
-                        setDraft((current) => ({
-                          ...current,
-                          instructions: event.target.value,
-                        }))
-                      }
-                      className="min-h-28 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-xs focus:ring-1 focus:ring-brand focus:outline-none"
-                    />
-                    <FieldDescription>
-                      Detailed steps for using the app.
-                    </FieldDescription>
-                    <FieldError
-                      errors={[{ message: fieldErrors.instructions }]}
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>Tags</FieldLabel>
-                    <TagInput
-                      value={draft.tags}
-                      onChange={(tags) =>
-                        setDraft((current) => ({
-                          ...current,
-                          tags,
-                        }))
-                      }
-                      placeholder="Add tags..."
-                    />
-                    <FieldDescription>Add tags for products.</FieldDescription>
-                    <FieldError errors={[{ message: fieldErrors.tags }]} />
-                  </Field>
-                </FieldGroup>
-              </ManagerFormSection>
-
-              {error ? <p className="text-sm text-red-600">{error}</p> : null}
-              {Object.keys(fieldErrors).length > 0 ? (
-                <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                  <p className="font-medium">Please review these fields:</p>
-                  <ul className="mt-1 list-disc pl-5">
-                    {Object.entries(fieldErrors).map(([field, message]) => (
-                      <li key={field}>
-                        {field}: {message}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </ManagerForm>
-          </div>
-        </SheetContent>
-      </Sheet>
     </ManagerShell>
   );
 }

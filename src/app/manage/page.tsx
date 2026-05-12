@@ -61,10 +61,7 @@ export default async function ManageOverviewPage() {
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          <Link
-            href="/manage/apps?action=create"
-            className="group block outline-none"
-          >
+          <Link href="/manage/apps/create" className="group block outline-none">
             <Card className="h-full border border-slate-200 transition hover:-translate-y-0.5 hover:ring-slate-300 focus-visible:ring-2 focus-visible:ring-slate-400">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">

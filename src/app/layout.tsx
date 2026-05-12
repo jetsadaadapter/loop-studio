@@ -69,7 +69,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="th"
+      lang="en"
       className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>

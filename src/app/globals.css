@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
+    var(--font-inter), var(--font-sukhumvit), system-ui, -apple-system,
     sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading:
@@ -181,6 +181,12 @@
   html {
     @apply font-sans;
     overflow-x: hidden;
+  }
+  /* For Thai content, prioritize Sukhumvit Set */
+  html:lang(th) {
+    --font-sans:
+      var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
+      sans-serif;
   }
 }
 
