@@ -28,7 +28,7 @@ export function ManagerForm({
         </header>
       )}
 
-      <div className="space-y-4 p-4">{children}</div>
+      <div className="space-y-4 px-4 pb-4 border-t border-slate-200">{children}</div>
 
       <footer className="flex justify-end gap-2 border-t border-slate-200 px-4 py-3">
         {actions}

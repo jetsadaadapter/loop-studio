@@ -12,7 +12,7 @@ export function ManagerFormSection({
   children,
 }: ManagerFormSectionProps) {
   return (
-    <section className="space-y-3 rounded-lg border border-slate-200 p-3">
+    <section className="space-y-3 pt-3">
       <header>
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         {description ? (

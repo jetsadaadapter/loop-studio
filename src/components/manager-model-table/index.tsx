@@ -63,9 +63,15 @@ export function ManagerModelTable({
                 data-slot="table-head"
                 className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-3 ps-6"
               >
-                {/* Checkbox column header (could add select-all logic here) */}
+                {/* Checkbox column header */}
               </th>
             )}
+            <th
+              data-slot="table-head"
+              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2 px-3"
+            >
+              #
+            </th>
             <th
               data-slot="table-head"
               className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2"
@@ -105,7 +111,7 @@ export function ManagerModelTable({
           {isLoading ? (
             <tr>
               <td
-                colSpan={hideCheckboxAll ? 5 : 6}
+                colSpan={hideCheckboxAll ? 6 : 7}
                 className="p-4 text-center text-muted-foreground"
               >
                 Loading projects...
@@ -114,7 +120,7 @@ export function ManagerModelTable({
           ) : models.length === 0 ? (
             <tr>
               <td
-                colSpan={hideCheckboxAll ? 5 : 6}
+                colSpan={hideCheckboxAll ? 6 : 7}
                 className="p-4 text-center text-muted-foreground"
               >
                 {loadError
@@ -153,7 +159,7 @@ export function ManagerModelTable({
               </td>
             </tr>
           ) : (
-            models.map((row) => (
+            models.map((row, index) => (
               <tr
                 key={row.id}
                 data-slot="table-row"
@@ -184,10 +190,16 @@ export function ManagerModelTable({
                 )}
                 <td
                   data-slot="table-cell"
+                  className="p-2 px-3 align-middle whitespace-nowrap text-xs font-medium text-muted-foreground"
+                >
+                  #{index + 1}
+                </td>
+                <td
+                  data-slot="table-cell"
                   className="p-2 align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap min-w-62.5"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="h-9 w-9 rounded-full flex items-center justify-center bg-orange-400/20">
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center bg-indigo-400/20">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="18"
@@ -198,7 +210,7 @@ export function ManagerModelTable({
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="lucide lucide-app-window-mac text-orange-400"
+                        className="lucide lucide-app-window-mac text-indigo-400"
                         aria-hidden="true"
                       >
                         <rect width="20" height="16" x="2" y="4" rx="2"></rect>

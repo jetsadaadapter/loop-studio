@@ -20,7 +20,12 @@ export function validateModelForm(
 }
 import { Input } from "@/components/ui/input";
 import { ManagerFormSection } from "@/components/manager-form-section";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from "@/components/ui/field";
 import React from "react";
 
 export interface ModelFormFieldsDraft {
@@ -54,10 +59,19 @@ export function ModelFormFields({
               Model Slug <span className="text-destructive">*</span>
             </FieldLabel>
             <Input
-              placeholder="Model Slug"
+              placeholder="e.g. gpt-4o"
               value={draft.modelSlug}
-              onChange={(e) => onChange("modelSlug", e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]/g, "");
+                onChange("modelSlug", val);
+              }}
             />
+            <FieldDescription>
+              Unique identifier for the model. Use lowercase and kebab-case
+              (e.g., gpt-4o).
+            </FieldDescription>
             <FieldError
               errors={
                 fieldErrors.modelSlug
@@ -73,10 +87,13 @@ export function ModelFormFields({
               Name <span className="text-destructive">*</span>
             </FieldLabel>
             <Input
-              placeholder="Name"
+              placeholder="e.g. GPT-4o"
               value={draft.name}
               onChange={(e) => onChange("name", e.target.value)}
             />
+            <FieldDescription>
+              Display name for the model (e.g., GPT-4o).
+            </FieldDescription>
             <FieldError
               errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []}
             />
@@ -88,10 +105,13 @@ export function ModelFormFields({
               Provider <span className="text-destructive">*</span>
             </FieldLabel>
             <Input
-              placeholder="Provider"
+              placeholder="e.g. OpenAI"
               value={draft.provider}
               onChange={(e) => onChange("provider", e.target.value)}
             />
+            <FieldDescription>
+              AI service provider (e.g. OpenAI, Anthropic, Google).
+            </FieldDescription>
             <FieldError
               errors={
                 fieldErrors.provider ? [{ message: fieldErrors.provider }] : []

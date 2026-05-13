@@ -21,6 +21,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { ModelFormFields, validateModelForm } from "./ModelFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
@@ -207,7 +208,7 @@ export function ManageAiClient() {
   }, [pathname]);
 
   const visibleModels = useMemo(() => {
-    return models
+    const filtered = models
       .filter((item) =>
         `${item.name} ${item.modelSlug} ${item.provider}`
           .toLowerCase()
@@ -216,7 +217,24 @@ export function ManageAiClient() {
       .filter(
         (item) => providerFilter === "all" || item.provider === providerFilter,
       );
-  }, [models, providerFilter, search]);
+
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest": {
+          const timeA = new Date(a.createdAt).getTime() || 0;
+          const timeB = new Date(b.createdAt).getTime() || 0;
+          return timeB - timeA;
+        }
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "sort-asc":
+        default:
+          return (a.modelSlug || a.id).localeCompare(b.modelSlug || b.id);
+      }
+    });
+  }, [models, providerFilter, search, sortBy]);
 
   const providerOptions = useMemo(() => {
     const providers = Array.from(
@@ -290,15 +308,20 @@ export function ManageAiClient() {
     if (mode === "edit") {
       const previous = models.find((item) => item.id === optimistic.id);
       setModels((current) =>
-        current.map((item) => (item.id === optimistic.id ? optimistic : item)),
+        current.map((item) => {
+          if (item.id === optimistic.id) return optimistic;
+          return optimistic.isDefault ? { ...item, isDefault: false } : item;
+        }),
       );
 
       try {
         const updated = await updateManageAiModel(optimistic.id, payload);
+        const updatedRecord = mapApiModel(updated);
         setModels((current) =>
-          current.map((item) =>
-            item.id === optimistic.id ? mapApiModel(updated) : item,
-          ),
+          current.map((item) => {
+            if (item.id === optimistic.id) return updatedRecord;
+            return updatedRecord.isDefault ? { ...item, isDefault: false } : item;
+          }),
         );
         pushDialogToast("AI model updated.", "success");
         resetForm();
@@ -320,14 +343,26 @@ export function ManageAiClient() {
       return;
     }
 
-    setModels((current) => [optimistic, ...current]);
+    setModels((current) => {
+      const base = [optimistic, ...current];
+      if (!optimistic.isDefault) return base;
+      return base.map((item) =>
+        item.id === optimistic.id ? item : { ...item, isDefault: false },
+      );
+    });
+
     try {
       const created = await createManageAiModel(payload);
-      setModels((current) =>
-        current.map((item) =>
-          item.id === optimistic.id ? mapApiModel(created) : item,
-        ),
-      );
+      const createdRecord = mapApiModel(created);
+      setModels((current) => {
+        const base = current.map((item) =>
+          item.id === optimistic.id ? createdRecord : item,
+        );
+        if (!createdRecord.isDefault) return base;
+        return base.map((item) =>
+          item.id === createdRecord.id ? item : { ...item, isDefault: false },
+        );
+      });
       pushDialogToast("AI model created.", "success");
       resetForm();
     } catch (submitError) {
@@ -563,10 +598,11 @@ export function ManageAiClient() {
         <SheetContent side="right" className="max-w-xl w-full">
           <SheetHeader>
             <SheetTitle>
-              {mode === "create"
-                ? "Add AI Model"
-                : `Edit Model: ${selectedModel.name}`}
+              {mode === "create" ? "Add Model" : "Edit Model"}
             </SheetTitle>
+            {mode === "edit" && (
+              <SheetDescription>{selectedModel.name}</SheetDescription>
+            )}
           </SheetHeader>
           <ManagerForm
             hideHeader
@@ -598,18 +634,6 @@ export function ManageAiClient() {
               }
             />
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            {Object.keys(fieldErrors).length > 0 ? (
-              <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                <p className="font-medium">Please review these fields:</p>
-                <ul className="mt-1 list-disc pl-5">
-                  {Object.entries(fieldErrors).map(([field, message]) => (
-                    <li key={field}>
-                      {field}: {message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
           </ManagerForm>
         </SheetContent>
       </Sheet>
