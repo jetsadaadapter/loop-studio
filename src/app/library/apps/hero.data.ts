@@ -79,7 +79,12 @@ function getStableHash(seed: string): number {
 }
 
 function getMoodFromBanner(item: LibraryBannerItem): HeroMood {
-    const category = item.app.category.toLowerCase();
+    let category: string = "";
+    if (typeof item.app.category === "string") {
+        category = item.app.category.toLowerCase();
+    } else if (item.app.category && typeof item.app.category === "object" && "name" in item.app.category) {
+        category = String(item.app.category.name).toLowerCase();
+    }
     const tags = item.app.tags.map((tag) => tag.name.toLowerCase());
 
     if (

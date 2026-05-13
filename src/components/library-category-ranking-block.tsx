@@ -54,7 +54,10 @@ function mapToRankedApps(items: LibraryAppApiItem[]): RankedApp[] {
         id: getAppItemId(item),
         rank: index + 1,
         name: item.name,
-        category: item.category,
+        category:
+          typeof item.category === "string"
+            ? item.category
+            : item.category?.name || "",
         meta: getAppStatus(item),
         imageUrl: item.imageUrl || item.iconUrl || "",
         actionType: action.actionType,

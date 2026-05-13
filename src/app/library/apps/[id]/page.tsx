@@ -53,7 +53,7 @@ export default async function AppDetailPage({ params }: Props) {
 
   const relatedApps = await getRelatedApps(
     getAppItemId(app),
-    app.category,
+    typeof app.category === "string" ? app.category : app.category?.name,
     initOptions,
   );
   const coverAccentColor = app.tags.find((tag) => tag.color)?.color;
@@ -113,7 +113,9 @@ export default async function AppDetailPage({ params }: Props) {
                       </span>
                     ) : null}
                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-white/10">
-                      {app.category}
+                      {typeof app.category === "string"
+                        ? app.category
+                        : app.category?.name}
                     </span>
                   </div>
                   <h1 className="page-hero-title mt-1 text-white">
@@ -185,7 +187,7 @@ export default async function AppDetailPage({ params }: Props) {
 
               <p className="page-body-copy mt-4 text-slate-700">
                 {app.description ||
-                  `${app.name} is a ${app.category.toLowerCase()} integration available on the Adapter Library.`}
+                  `${app.name} is a ${typeof app.category === "string" ? app.category.toLowerCase() : app.category?.name?.toLowerCase() || "tool"} integration available on the Adapter Library.`}
               </p>
 
               {/* <div className="mt-6">
@@ -220,43 +222,47 @@ export default async function AppDetailPage({ params }: Props) {
                 <div className="page-body-copy mt-4 text-slate-700 space-y-4">
                   <Markdown
                     components={{
-                      h1: ({ node, ...props }) => (
+                      h1: (props) => (
                         <h1
                           className="text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
                           {...props}
                         />
                       ),
-                      h2: ({ node, ...props }) => (
+                      h2: (props) => (
                         <h2
                           className="text-xl font-bold text-slate-900 mt-5 mb-3"
                           {...props}
                         />
                       ),
-                      h3: ({ node, ...props }) => (
+                      h3: (props) => (
                         <h3
                           className="text-lg font-semibold text-slate-900 mt-4 mb-2"
                           {...props}
                         />
                       ),
-                      p: ({ node, ...props }) => (
+                      p: (props) => (
                         <p className="text-slate-700 mb-3" {...props} />
                       ),
-                      ul: ({ node, ...props }) => (
+                      ul: (props) => (
                         <ul
                           className="list-disc list-inside text-slate-700 mb-3 space-y-1"
                           {...props}
                         />
                       ),
-                      ol: ({ node, ...props }) => (
+                      ol: (props) => (
                         <ol
                           className="list-decimal list-inside text-slate-700 mb-3 space-y-1"
                           {...props}
                         />
                       ),
-                      li: ({ node, ...props }) => (
+                      li: (props) => (
                         <li className="text-slate-700" {...props} />
                       ),
-                      code: (props: any) => {
+                      code: (
+                        props: React.HTMLAttributes<HTMLElement> & {
+                          inline?: boolean;
+                        },
+                      ) => {
                         const { inline, ...rest } = props;
                         return inline ? (
                           <code
@@ -270,19 +276,19 @@ export default async function AppDetailPage({ params }: Props) {
                           />
                         );
                       },
-                      pre: ({ node, ...props }) => (
+                      pre: (props) => (
                         <pre
                           className="bg-slate-900 text-slate-100 p-4 rounded-md text-sm font-mono overflow-x-auto mb-3"
                           {...props}
                         />
                       ),
-                      blockquote: ({ node, ...props }) => (
+                      blockquote: (props) => (
                         <blockquote
                           className="border-l-4 border-slate-300 pl-4 italic text-slate-700 my-3"
                           {...props}
                         />
                       ),
-                      a: ({ node, ...props }) => (
+                      a: (props) => (
                         <a
                           className="text-brand underline hover:text-brand/80"
                           {...props}
@@ -302,7 +308,14 @@ export default async function AppDetailPage({ params }: Props) {
             {/* Metadata */}
             <div className="py-7 lg:pt-0">
               <div className="space-y-4 text-sm">
-                <MetadataItem label="Category" value={app.category} />
+                <MetadataItem
+                  label="Category"
+                  value={
+                    typeof app.category === "string"
+                      ? app.category
+                      : app.category?.name || ""
+                  }
+                />
                 <MetadataItem
                   label="Updated"
                   value={formatDate(app.updatedAt)}

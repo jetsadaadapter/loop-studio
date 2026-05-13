@@ -43,11 +43,26 @@ When these files diverge, update both in the same change.
 
 ## 4. Code Change Rules
 
+**AI/LLM Token Efficiency Best Practices:**
+
+- Minimize unnecessary AI/LLM calls—prefer local computation, caching, and static analysis when possible.
+- Batch requests and avoid repeated queries for the same data.
+- Use concise prompts and context—send only what is needed for the task.
+- Cache and reuse AI results where safe and appropriate.
+- Avoid sending large files, logs, or full documents unless absolutely required.
+- Always review and optimize prompt/code to reduce token usage before submitting to LLM.
+
 - Default to Server Components; use `"use client"` only when required
 - Keep business logic in `src/core/services` and `src/core/adapters`, not in UI
 - Validate external data with strict Zod schemas at boundaries
 - Avoid unrelated refactors in focused fixes
 - Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and follow its naming/structure convention
+
+**Normalize all UI fields:** Before rendering any field that may be an object or string (e.g., `category`), always normalize to string:
+
+- Example: `{typeof category === "string" ? category : category?.name || ""}`
+
+**Error checks after every change:** After every code change, always run lint, type check, and build. If any error/warning or build fails, you must fix it before proceeding to the next task.
 
 ### Start-of-Task Guidelines (Required Every Time)
 

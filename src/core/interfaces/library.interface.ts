@@ -158,27 +158,30 @@ export type BannerAppItem = {
     id: string;
     appId?: string;
     name: string;
-    category: LibraryAppCategory;
+    category: LibraryAppCategory | CategoryInfo; // รองรับ object หรือ string
+    categoryId?: string;
     tags: AppTag[];
     description: string;
+    coverId?: string;
     imageId: string;
     iconId: string;
     instructions: string;
-    ctaLabel: string;
+    ctaLabel: string | null;
     ctaLink: string | null;
     linkType: AppLinkType;
     isActive: boolean;
     sortOrder: number;
-    badgeLabel: string | null;
+    badgeLabel?: string | null;
+    userId?: string;
     createdAt: string;
     updatedAt: string;
     imageUrl: string;
-    iconUrl: string;
+    iconUrl?: string;
 };
 
 export type LibraryBannerItem = {
     id?: string;
-    bannerId: string;
+    bannerId?: string; // บาง response ใช้ id แทน bannerId
     title: string;
     subtitle: string;
     imageId: string;
@@ -186,9 +189,10 @@ export type LibraryBannerItem = {
     app: BannerAppItem;
     sortOrder: number;
     isActive: boolean;
-    startsAt: string;
+    startsAt?: string | null;
     /** null = no expiry */
-    endsAt: string | null;
+    endsAt?: string | null;
+    userId?: string;
     createdAt: string;
     updatedAt: string;
     imageUrl: string;

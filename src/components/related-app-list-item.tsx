@@ -33,7 +33,9 @@ export function RelatedAppListItem({ item }: RelatedAppListItemProps) {
           {item.name}
         </p>
         <p className="mt-0.5 truncate text-xs text-slate-500">
-          {item.category}
+          {typeof item.category === "string"
+            ? item.category
+            : item.category?.name || ""}
         </p>
       </div>
     </Link>
