@@ -12,16 +12,28 @@ import {
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
-import { ManagerToolbar } from "@/components/manager-toolbar";
+
 import { ManagerDataTable } from "@/components/manager-data-table";
 import { ManagerForm } from "@/components/manager-form";
 import type { ManagerFormProps } from "@/components/manager-form/types";
-import { ManagerFormSection } from "@/components/manager-form-section";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ModelFormFields, validateModelForm } from "./ModelFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
-import { useToast } from "@/components/toast-provider";
+import { useDialogToast } from "@/components/ui/alert-dialog-toast";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import type {
   ManageAiModelApiItem,
   ManageAiModelPayload,
@@ -117,14 +129,17 @@ export function ManageAiClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasHandledCreateQuery = useRef(false);
-  const { pushToast } = useToast();
+  const { pushDialogToast } = useDialogToast();
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [lastUpdatedString, setLastUpdatedString] = useState<string>("");
+  const lastUpdatedStringRef = useRef("");
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [providerFilter, setProviderFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("sort-asc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [draft, setDraft] = useState<ModelRecord>(EMPTY_MODEL);
@@ -150,7 +165,7 @@ export function ManageAiClient() {
         setLastUpdatedAt(new Date());
       } catch {
         setLoadError("Failed to load AI models.");
-        pushToast("Failed to load AI models.", "error");
+        pushDialogToast("Failed to load AI models.", "error");
       } finally {
         if (silent) {
           setIsRefreshing(false);
@@ -159,7 +174,7 @@ export function ManageAiClient() {
         }
       }
     },
-    [pushToast],
+    [pushDialogToast],
   );
 
   useEffect(() => {
@@ -169,9 +184,22 @@ export function ManageAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Avoid hydration mismatch: format date string only on client
+  useEffect(() => {
+    let formatted = "Not updated yet";
+    if (lastUpdatedAt) {
+      formatted = `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`;
+    }
+    if (lastUpdatedStringRef.current !== formatted) {
+      setLastUpdatedString(formatted);
+      lastUpdatedStringRef.current = formatted;
+    }
+    // Only update state if value actually changes to avoid cascading renders
+  }, [lastUpdatedAt]);
+
   const selectedModel = useMemo(
     () => models.find((item) => item.id === selectedId) ?? draft,
-    [models, selectedId],
+    [models, selectedId, draft],
   );
 
   const pageTitle = useMemo(() => {
@@ -233,17 +261,6 @@ export function ManageAiClient() {
     setFieldErrors({});
   }
 
-  function validateModel(value: ModelRecord): string {
-    if (!value.modelSlug.trim()) return "Model slug is required.";
-    if (!value.name.trim()) return "Name is required.";
-    if (!value.provider.trim()) return "Provider is required.";
-    return "";
-  }
-
-  function getInputError(field: string): string | null {
-    return fieldErrors[field] ?? null;
-  }
-
   const onSubmit: FormSubmitHandler = (event) => {
     void handleSubmit(event);
   };
@@ -251,9 +268,10 @@ export function ManageAiClient() {
   async function handleSubmit(event: FormSubmitEvent) {
     event.preventDefault();
     setIsSubmitting(true);
-    const validationError = validateModel(draft);
-    if (validationError) {
-      setError(validationError);
+    const errors = validateModelForm(draft);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("Please review the highlighted fields.");
       setIsSubmitting(false);
       return;
     }
@@ -282,7 +300,7 @@ export function ManageAiClient() {
             item.id === optimistic.id ? mapApiModel(updated) : item,
           ),
         );
-        pushToast("AI model updated.", "success");
+        pushDialogToast("AI model updated.", "success");
         resetForm();
       } catch (submitError) {
         if (previous) {
@@ -310,7 +328,7 @@ export function ManageAiClient() {
           item.id === optimistic.id ? mapApiModel(created) : item,
         ),
       );
-      pushToast("AI model created.", "success");
+      pushDialogToast("AI model created.", "success");
       resetForm();
     } catch (submitError) {
       setModels((current) =>
@@ -346,10 +364,10 @@ export function ManageAiClient() {
             : item,
         ),
       );
-      pushToast("Default model updated.", "success");
+      pushDialogToast("Default model updated.", "success");
     } catch (error) {
       setModels(previous);
-      pushToast(
+      pushDialogToast(
         error instanceof Error ? error.message : "Failed to set default model.",
         "error",
       );
@@ -366,10 +384,10 @@ export function ManageAiClient() {
 
     try {
       await deleteManageAiModel(target.id);
-      pushToast("AI model deleted.", "success");
+      pushDialogToast("AI model deleted.", "success");
     } catch (deleteError) {
       setModels(previous);
-      pushToast(
+      pushDialogToast(
         deleteError instanceof Error
           ? deleteError.message
           : "Failed to delete model.",
@@ -403,45 +421,100 @@ export function ManageAiClient() {
         </Button>
       }
     >
-      <ManagerToolbar
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search name, slug, provider"
-        trailing={
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500">
-              {lastUpdatedAt
-                ? `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`
-                : "Not updated yet"}
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={isLoading || isRefreshing}
-              onClick={() => void loadModels({ silent: true })}
-            >
-              {isRefreshing ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <ButtonSpinner />
-                  Refreshing...
-                </span>
-              ) : (
-                "Refresh"
-              )}
-            </Button>
+      <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between mb-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div>
+            <p className="text-base font-semibold text-foreground">Filters</p>
+            <p className="text-sm text-muted-foreground">
+              {visibleModels.length} items found
+            </p>
           </div>
-        }
-        filters={[
-          {
-            key: "provider",
-            label: "Provider",
-            value: providerFilter,
-            onChange: setProviderFilter,
-            options: providerOptions,
-          },
-        ]}
-      />
+        </div>
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:items-center xl:justify-end">
+          {/* Search input */}
+          <div className="relative w-full sm:col-span-2 xl:w-[320px]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-search pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            >
+              <path d="m21 21-4.34-4.34"></path>
+              <circle cx="11" cy="11" r="8"></circle>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search model name, slug, or provider"
+              className="h-8 w-full min-w-0 rounded-sm border border-input px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 bg-background pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {/* Refresh button */}
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            disabled={isLoading || isRefreshing}
+            onClick={() => void loadModels({ silent: true })}
+            className="h-8 gap-1.5 px-2.5 w-full border-brand/30 bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand xl:w-auto rounded-sm"
+          >
+            {isRefreshing ? (
+              <span className="inline-flex items-center gap-1.5">
+                <ButtonSpinner />
+                Refreshing...
+              </span>
+            ) : (
+              "Refresh"
+            )}
+          </Button>
+          {/* Sort select (shadcn/ui) */}
+          <div className="w-full xl:w-40">
+            <Select
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value ?? "sort-asc")}
+            >
+              <SelectTrigger className="w-full xl:w-40 h-8 rounded-sm border border-input bg-background px-2.5 py-1 text-sm">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                <SelectItem value="name-desc">Name: Z-A</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Provider filter select (shadcn/ui) */}
+          <div className="w-full xl:w-40">
+            <Select
+              value={providerFilter}
+              onValueChange={(value) => setProviderFilter(value ?? "all")}
+            >
+              <SelectTrigger className="w-full xl:w-40 h-8 rounded-sm border border-input bg-background px-2.5 py-1 text-sm">
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {providerOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      <span className="text-xs text-slate-500 mt-1 block">
+        {lastUpdatedString}
+      </span>
 
       <ManagerDataTable
         rows={visibleModels}
@@ -454,7 +527,7 @@ export function ManageAiClient() {
             key: "modelSlug",
             header: "Slug",
             render: (row) => (
-              <span className="font-mono text-xs text-slate-600">
+              <span className="text-xs text-slate-600">
                 {row.modelSlug || "-"}
               </span>
             ),
@@ -605,130 +678,65 @@ export function ManageAiClient() {
         />
       ) : null}
 
-      {mode ? (
-        <ManagerForm
-          title={
-            mode === "create"
-              ? "Add AI Model"
-              : `Edit Model: ${selectedModel.name}`
-          }
-          description="AI model manager backed by /manage/models APIs"
-          onSubmit={onSubmit}
-          actions={
-            <>
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <ButtonSpinner />
-                    Saving...
-                  </span>
-                ) : (
-                  "Save"
-                )}
-              </Button>
-            </>
-          }
-        >
-          <ManagerFormSection title="Model">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="grid gap-1">
-                <Input
-                  placeholder="Model Slug"
-                  value={draft.modelSlug}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      modelSlug: event.target.value,
-                    }))
-                  }
-                />
-                {getInputError("modelSlug") ? (
-                  <p className="text-xs text-red-600">
-                    {getInputError("modelSlug")}
-                  </p>
-                ) : null}
+      <Sheet
+        open={!!mode}
+        onOpenChange={(open) => {
+          if (!open) resetForm();
+        }}
+      >
+        <SheetContent side="right" className="max-w-xl w-full">
+          <SheetHeader>
+            <SheetTitle>
+              {mode === "create"
+                ? "Add AI Model"
+                : `Edit Model: ${selectedModel.name}`}
+            </SheetTitle>
+          </SheetHeader>
+          <ManagerForm
+            hideHeader
+            onSubmit={onSubmit}
+            actions={
+              <>
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <ButtonSpinner />
+                      Saving...
+                    </span>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              </>
+            }
+            className="shadow-none border-0 p-0"
+          >
+            <ModelFormFields
+              draft={draft}
+              fieldErrors={fieldErrors}
+              onChange={(field, value) =>
+                setDraft((current) => ({ ...current, [field]: value }))
+              }
+            />
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {Object.keys(fieldErrors).length > 0 ? (
+              <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                <p className="font-medium">Please review these fields:</p>
+                <ul className="mt-1 list-disc pl-5">
+                  {Object.entries(fieldErrors).map(([field, message]) => (
+                    <li key={field}>
+                      {field}: {message}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="grid gap-1">
-                <Input
-                  placeholder="Name"
-                  value={draft.name}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
-                  }
-                />
-                {getInputError("name") ? (
-                  <p className="text-xs text-red-600">
-                    {getInputError("name")}
-                  </p>
-                ) : null}
-              </div>
-              <div className="grid gap-1">
-                <Input
-                  placeholder="Provider"
-                  value={draft.provider}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      provider: event.target.value,
-                    }))
-                  }
-                />
-                {getInputError("provider") ? (
-                  <p className="text-xs text-red-600">
-                    {getInputError("provider")}
-                  </p>
-                ) : null}
-              </div>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={draft.isActive}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      isActive: event.target.checked,
-                    }))
-                  }
-                />
-                Active
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={draft.isDefault}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      isDefault: event.target.checked,
-                    }))
-                  }
-                />
-                Default
-              </label>
-            </div>
-          </ManagerFormSection>
-
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          {Object.keys(fieldErrors).length > 0 ? (
-            <div className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              <p className="font-medium">Please review these fields:</p>
-              <ul className="mt-1 list-disc pl-5">
-                {Object.entries(fieldErrors).map(([field, message]) => (
-                  <li key={field}>
-                    {field}: {message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </ManagerForm>
-      ) : null}
+            ) : null}
+          </ManagerForm>
+        </SheetContent>
+      </Sheet>
     </ManagerShell>
   );
 }

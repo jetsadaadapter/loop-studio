@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-
 import { Input } from "@/components/ui/input";
 import type { ManagerFilter } from "./types";
 
@@ -9,6 +8,8 @@ type ManagerToolbarProps = {
   searchPlaceholder?: string;
   filters?: ManagerFilter[];
   trailing?: ReactNode;
+  className?: string;
+  layout?: "horizontal" | "vertical";
 };
 
 export function ManagerToolbar({
@@ -17,38 +18,60 @@ export function ManagerToolbar({
   searchPlaceholder = "Search",
   filters = [],
   trailing,
+  className = "",
+  layout = "horizontal",
 }: ManagerToolbarProps) {
+  // Responsive layout: horizontal (default) or vertical
+  const isHorizontal = layout === "horizontal";
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <Input
-          value={searchValue}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder={searchPlaceholder}
-          className="w-full lg:max-w-sm"
-        />
-
-        {filters.map((filter) => (
-          <label key={filter.key} className="flex items-center gap-2 text-sm">
-            <span className="text-slate-600">{filter.label}</span>
-            <select
-              value={filter.value}
-              onChange={(event) => filter.onChange(event.target.value)}
-              className="h-8 rounded-sm border border-slate-300 px-2 text-sm"
-            >
-              {filter.options.map((option) => (
-                <option
-                  key={`${filter.key}:${option.value}`}
-                  value={option.value}
+    <div
+      className={`rounded-xl border border-slate-200 bg-white px-4 py-3 ${className}`}
+      style={{ minHeight: 64 }}
+    >
+      <div
+        className={`flex w-full items-center gap-3 ${
+          isHorizontal ? "flex-col md:flex-row md:gap-4" : "flex-col gap-3"
+        }`}
+      >
+        <div className="flex w-full max-w-md flex-1 items-center">
+          <Input
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full"
+          />
+        </div>
+        {filters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            {filters.map((filter) => (
+              <label
+                key={filter.key}
+                className="flex items-center gap-2 text-sm"
+              >
+                <span className="text-slate-600">{filter.label}</span>
+                <select
+                  value={filter.value}
+                  onChange={(event) => filter.onChange(event.target.value)}
+                  className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white"
                 >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        ))}
-
-        {trailing ? <div className="lg:ml-auto">{trailing}</div> : null}
+                  {filter.options.map((option) => (
+                    <option
+                      key={`${filter.key}:${option.value}`}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        )}
+        {trailing ? (
+          <div className="flex flex-1 justify-end items-center min-w-fit md:ml-auto">
+            {trailing}
+          </div>
+        ) : null}
       </div>
     </div>
   );
