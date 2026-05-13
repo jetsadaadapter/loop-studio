@@ -1,6 +1,7 @@
 import { Button } from "../ui/button";
 // import { Badge } from "../ui/badge"; // Badge is not used
 import React from "react";
+import { Brain } from "lucide-react";
 
 export interface ManagerModelTableProps {
   models: Array<{
@@ -200,24 +201,10 @@ export function ManagerModelTable({
                 >
                   <div className="flex items-center gap-2">
                     <div className="h-9 w-9 rounded-full flex items-center justify-center bg-indigo-400/20">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-app-window-mac text-indigo-400"
+                      <Brain
+                        className="size-4.5 text-indigo-400"
                         aria-hidden="true"
-                      >
-                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                        <path d="M6 8h.01"></path>
-                        <path d="M10 8h.01"></path>
-                        <path d="M14 8h.01"></path>
-                      </svg>
+                      />
                     </div>
                     <div className="">
                       <h6 className="text-sm font-medium">{row.name}</h6>
