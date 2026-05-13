@@ -19,15 +19,25 @@ export type Paginated<T> = {
 
 // ─── Apps  GET /apps ───────────────────────────────────────────────────────────
 
-export type LibraryAppCategory = "MCP" | "Platform" | "Tool" | string;
+export type CategoryInfo = {
+    id: string;
+    name: string;
+    userId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+};
+
+export type LibraryAppCategory = CategoryInfo | string;
 
 export type LibraryAppApiItem = {
     id: string;
     appId?: string;
     name: string;
     category: LibraryAppCategory;
+    categoryId?: string;
     tags: AppTag[];
     description: string;
+    coverId?: string;
     imageId: string;
     iconId: string;
     instructions: string;
@@ -37,6 +47,7 @@ export type LibraryAppApiItem = {
     isActive: boolean;
     sortOrder: number;
     badgeLabel: string | null;
+    userId?: string;
     createdAt: string;
     updatedAt: string;
     imageUrl: string;
@@ -71,11 +82,12 @@ export type ManageAppTagRef = string | { id?: string; tagId?: string; name?: str
 export type ManageAppApiItem = Omit<LibraryAppApiItem, "imageUrl"> & {
     userId?: string;
     imageUrl?: string;
+    categoryId?: string;
 };
 
 export type ManageAppPayload = {
     name: string;
-    category: LibraryAppCategory;
+    categoryId: string;
     description: string;
     imageId: string;
     iconId: string;
@@ -212,6 +224,9 @@ export type ManageTagApiItem = {
 };
 
 export type ManageTagListResponse = ManageApiEnvelope<ManageTagApiItem[]>;
+
+// ─── Manage Categories  GET /manage/categories ──────────────────────────
+export type ManageCategoryListResponse = ManageApiEnvelope<CategoryInfo[]>;
 
 export function getAppItemId(item: { id?: string; appId?: string }): string {
     return item.id ?? item.appId ?? "";

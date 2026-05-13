@@ -92,7 +92,10 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
   return {
     id: getAppItemId(item),
     name: item.name,
-    category: item.category,
+    category:
+      typeof item.category === "object"
+        ? item.category.name
+        : (item.category ?? ""),
     description: item.description,
     imageId: item.imageId,
     iconId: item.iconId,

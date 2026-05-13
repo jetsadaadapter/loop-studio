@@ -182,7 +182,9 @@ export function ManagerAppCard({
       <CardContent className="space-y-2 px-4 pb-4">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Category</span>
-          <span className="font-medium">{item.category}</span>
+          <Badge variant="outline" className="font-medium text-[0.7rem] px-2 py-0">
+            {item.category}
+          </Badge>
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Type</span>

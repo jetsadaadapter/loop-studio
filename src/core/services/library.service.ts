@@ -22,6 +22,8 @@ import type {
     ManageMenuResponse,
     ManageTagApiItem,
     ManageTagListResponse,
+    CategoryInfo,
+    ManageCategoryListResponse,
 } from "@/core/interfaces/library.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
@@ -237,7 +239,7 @@ export async function getApps(
     const url = buildUrl("/apps", {
         page: params.page,
         limit: params.limit,
-        category: params.category,
+        // category: params.category,
     });
 
     console.log(`[Library API] Fetching apps from: ${url}`);
@@ -571,5 +573,22 @@ export async function getManageTagsResponse(
 
 export async function getManageTags(init?: RequestInit): Promise<ManageTagApiItem[]> {
     const response = await getManageTagsResponse(init);
+    return response.data ?? [];
+}
+
+// ─── Manage Categories ────────────────────────────────────────────────────────
+
+export async function getManageCategoriesResponse(
+    init?: RequestInit,
+): Promise<ManageCategoryListResponse> {
+    const url = buildUrl("/manage/categories", {
+        page: 1,
+        limit: 100,
+    });
+    return apiFetch<ManageCategoryListResponse>(url, init);
+}
+
+export async function getManageCategories(init?: RequestInit): Promise<CategoryInfo[]> {
+    const response = await getManageCategoriesResponse(init);
     return response.data ?? [];
 }

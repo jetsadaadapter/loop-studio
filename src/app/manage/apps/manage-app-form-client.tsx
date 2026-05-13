@@ -54,7 +54,7 @@ type ManageAppFormClientProps = {
 type AppRecord = {
   id: string;
   name: string;
-  category: string;
+  categoryId: string;
   description: string;
   imageId: string;
   iconId: string;
@@ -73,7 +73,7 @@ const DEFAULT_IMAGE_PREVIEW_ID = "01KPT44CNPSK9J86V2SZHVJ3V6";
 const EMPTY_FORM: AppRecord = {
   id: "",
   name: "",
-  category: "Tool",
+  categoryId: "",
   description: "",
   imageId: "",
   iconId: "",
@@ -91,7 +91,9 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
   return {
     id: getAppItemId(item),
     name: item.name,
-    category: item.category,
+    categoryId:
+      item.categoryId ||
+      (typeof item.category === "object" ? item.category.id : ""),
     description: item.description,
     imageId: item.imageId,
     iconId: item.iconId,
@@ -111,7 +113,8 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
 function mapRecordToPayload(record: AppRecord): ManageAppPayload {
   return {
     name: record.name.trim(),
-    category: record.category.trim(),
+    // Always send categoryId as string (id only)
+    categoryId: String(record.categoryId).trim(),
     description: record.description.trim(),
     imageId: record.imageId.trim(),
     iconId: record.iconId.trim(),
@@ -181,7 +184,7 @@ function validateAppForm(value: AppRecord): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (!value.name.trim()) errors.name = "App name is required.";
-  if (!value.category.trim()) errors.category = "Category is required.";
+  if (!value.categoryId.trim()) errors.categoryId = "Category is required.";
   if (!value.description.trim())
     errors.description = "Description is required.";
   if (value.description.trim() && value.description.trim().length < 10) {
@@ -236,6 +239,7 @@ function ButtonSpinner() {
 }
 
 export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
+  // ...existing code...
   const router = useRouter();
   const { pushDialogToast } = useDialogToast();
 
@@ -247,6 +251,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const [touched, setTouched] = useState<Partial<Record<string, boolean>>>({});
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [tagNameToId, setTagNameToId] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [originalMediaIds, setOriginalMediaIds] = useState<{
     imageId: string;
     iconId: string;
@@ -552,6 +559,37 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        const response = await fetch("/api/manage/categories", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        const data = Array.isArray(payload.data) ? payload.data : [];
+
+        if (!cancelled) {
+          setCategories(data);
+        }
+      } catch {
+        if (!cancelled) setCategories([]);
+      }
+    }
+
+    void loadCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
@@ -761,26 +799,31 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       Category <span className="text-destructive">*</span>
                     </FieldLabel>
                     <Select
-                      value={draft.category}
+                      value={draft.categoryId}
                       onValueChange={(value) => {
-                        const next = { ...draft, category: value ?? "" };
+                        const next = { ...draft, categoryId: value ?? "" };
                         setDraft(next);
-                        touchAndValidate("category", next);
+                        touchAndValidate("categoryId", next);
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder="Select category">
+                          {categories.find((cat) => cat.id === draft.categoryId)
+                            ?.name || ""}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent align="start">
-                        <SelectItem value="MCP">MCP</SelectItem>
-                        <SelectItem value="Tool">Tool</SelectItem>
-                        <SelectItem value="Platform">Platform</SelectItem>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FieldError
                       errors={
-                        touched.category
-                          ? [{ message: fieldErrors.category }]
+                        touched.categoryId
+                          ? [{ message: fieldErrors.categoryId }]
                           : []
                       }
                     />
