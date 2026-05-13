@@ -13,7 +13,7 @@ import {
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 
-import { ManagerDataTable } from "@/components/manager-data-table";
+import { ManagerModelTable } from "@/components/manager-model-table";
 import { ManagerForm } from "@/components/manager-form";
 import type { ManagerFormProps } from "@/components/manager-form/types";
 import {
@@ -33,7 +33,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+
 import type {
   ManageAiModelApiItem,
   ManageAiModelPayload,
@@ -516,155 +516,31 @@ export function ManageAiClient() {
         {lastUpdatedString}
       </span>
 
-      <ManagerDataTable
-        rows={visibleModels}
+      <ManagerModelTable
+        models={visibleModels}
         isLoading={isLoading}
-        getRowId={(row) => row.id}
-        emptyText={isLoading ? "Loading models..." : "No models found"}
-        columns={[
-          { key: "name", header: "Name", render: (row) => row.name },
-          {
-            key: "modelSlug",
-            header: "Slug",
-            render: (row) => (
-              <span className="text-xs text-slate-600">
-                {row.modelSlug || "-"}
-              </span>
-            ),
-          },
-          {
-            key: "provider",
-            header: "Provider",
-            render: (row) => row.provider,
-          },
-          {
-            key: "createdAt",
-            header: "Created",
-            render: (row) => row.createdAt || "-",
-          },
-          {
-            key: "updatedAt",
-            header: "Updated",
-            render: (row) => row.updatedAt || "-",
-          },
-          {
-            key: "default",
-            header: "Default",
-            render: (row) =>
-              row.isDefault ? <Badge variant="secondary">Default</Badge> : "-",
-          },
-          {
-            key: "status",
-            header: "Status",
-            render: (row) => (row.isActive ? "Active" : "Inactive"),
-          },
-          {
-            key: "actions",
-            header: "Actions",
-            className: "whitespace-nowrap",
-            render: (row) => (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={
-                    isSubmitting ||
-                    settingDefaultId !== null ||
-                    deletingId !== null
-                  }
-                  onClick={() => {
-                    setMode("edit");
-                    setSelectedId(row.id);
-                    setDraft(row);
-                  }}
-                >
-                  Edit
-                </Button>
-                {row.isDefault ? null : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={
-                      isSubmitting ||
-                      settingDefaultId !== null ||
-                      deletingId !== null
-                    }
-                    onClick={() => void onSetDefault(row.id)}
-                  >
-                    {settingDefaultId === row.id ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <ButtonSpinner />
-                        Setting...
-                      </span>
-                    ) : (
-                      "Set Default"
-                    )}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="destructive"
-                  disabled={
-                    isSubmitting ||
-                    settingDefaultId !== null ||
-                    deletingId !== null
-                  }
-                  onClick={() => setDeleteTarget(row)}
-                >
-                  {deletingId === row.id ? "Deleting..." : "Delete"}
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-        emptyState={
-          isLoading ? null : (
-            <div className="flex flex-col items-center gap-3 py-2">
-              <p className="text-sm text-slate-500">
-                {loadError
-                  ? "Unable to load AI models right now."
-                  : models.length === 0
-                    ? "No AI models configured yet. Add one to begin testing and assignment."
-                    : "No results for the current search or provider filter."}
-              </p>
-              <div className="flex gap-2">
-                {loadError ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => void loadModels()}
-                  >
-                    Retry
-                  </Button>
-                ) : models.length === 0 ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={
-                      isSubmitting ||
-                      settingDefaultId !== null ||
-                      deletingId !== null
-                    }
-                    onClick={openCreateForm}
-                  >
-                    Add Model
-                  </Button>
-                ) : hasActiveFilter ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={clearFilters}
-                  >
-                    Clear Filters
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          )
-        }
+        isSubmitting={isSubmitting}
+        settingDefaultId={settingDefaultId}
+        deletingId={deletingId}
+        loadError={!!loadError}
+        hasActiveFilter={hasActiveFilter}
+        hideCheckboxAll
+        onEdit={(id) => {
+          const row = visibleModels.find((m) => m.id === id);
+          if (row) {
+            setMode("edit");
+            setSelectedId(row.id);
+            setDraft(row);
+          }
+        }}
+        onSetDefault={onSetDefault}
+        onDelete={(id) => {
+          const row = visibleModels.find((m) => m.id === id);
+          if (row) setDeleteTarget(row);
+        }}
+        onRetry={() => void loadModels()}
+        onAdd={openCreateForm}
+        onClearFilters={clearFilters}
       />
 
       {deleteTarget ? (
