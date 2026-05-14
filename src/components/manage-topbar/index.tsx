@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getManageBreadcrumbItems } from "@/app/manage/config";
-import { getManageMenus } from "@/core/services/library.service";
+import { getManageMenus } from "@/core/services/menus.service";
 import { type ManageMenuItem } from "@/core/interfaces/library.interface";
 
 export function ManageTopbar() {

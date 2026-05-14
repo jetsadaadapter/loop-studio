@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
-import { getUserProfile } from "@/core/services/library.service";
+import { getUserProfile } from "@/core/services/users.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LEGAL_LINKS } from "@/lib/legal-links";
 import { getDepartmentBadgeClass } from "@/lib/utils";

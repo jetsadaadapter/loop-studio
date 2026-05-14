@@ -38,7 +38,7 @@ import {
 import {
   getManageBanners,
   deleteManageBanner,
-} from "@/core/services/library.service";
+} from "@/core/services/banners.service";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import type {
   GetBannersResponse,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { getBanners } from "@/core/services/library.service";
+import { getBanners } from "@/core/services/banners.service";
 import {
   heroBannerMock,
   mapBannerToHeroSlide,

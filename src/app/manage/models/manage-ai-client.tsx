@@ -40,13 +40,13 @@ import type {
   ManageAiModelPayload,
 } from "@/core/interfaces/library.interface";
 import {
-  ApiError,
   createManageAiModel,
   deleteManageAiModel,
   getManageAiModels,
   setDefaultManageAiModel,
   updateManageAiModel,
-} from "@/core/services/library.service";
+} from "@/core/services/models.service";
+import { ApiError } from "@/core/services/api";
 
 type ModelRecord = {
   id: string;

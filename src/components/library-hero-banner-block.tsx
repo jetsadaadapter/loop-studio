@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/error-boundaries */
 import { redirect } from "next/navigation";
 import { HeroBannerSlider } from "@/components/hero-banner-slider";
-import { getBanners, ApiError } from "@/core/services/library.service";
+import { getBanners } from "@/core/services/banners.service";
+import { ApiError } from "@/core/services/api";
 import {
   heroBannerMock,
   mapBannerToHeroSlide,

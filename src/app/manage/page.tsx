@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getManageDashboardStats } from "@/core/services/library.service";
+import { getManageDashboardStats } from "@/core/services/apps.service";
 
 export const dynamic = "force-dynamic";
 

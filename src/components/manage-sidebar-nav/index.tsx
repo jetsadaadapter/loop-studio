@@ -14,10 +14,8 @@ import {
   getLocalizedText,
 } from "@/app/manage/config";
 import { ManageLogo } from "@/components/manage-logo";
-import {
-  getManageMenus,
-  getUserProfile,
-} from "@/core/services/library.service";
+import { getManageMenus } from "@/core/services/menus.service";
+import { getUserProfile } from "@/core/services/users.service";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";

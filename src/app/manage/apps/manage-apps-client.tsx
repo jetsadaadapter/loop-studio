@@ -48,7 +48,7 @@ import {
 import {
   deleteManageApp,
   getManageApps,
-} from "@/core/services/library.service";
+} from "@/core/services/apps.service";
 import {
   applyManageAppsListQuery,
   DEFAULT_PAGE_SIZE,

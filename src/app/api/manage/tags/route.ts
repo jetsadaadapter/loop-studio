@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { ApiError, getManageTagsResponse } from "@/core/services/library.service";
+import { getManageTagsResponse } from "@/core/services/tags.service";
+import { ApiError } from "@/core/services/api";
 
 export async function GET() {
     try {

@@ -40,11 +40,11 @@ import {
   type ManageTagListResponse,
 } from "@/core/interfaces/library.interface";
 import {
-  ApiError,
   createManageApp,
   getManageApps,
   updateManageApp,
-} from "@/core/services/library.service";
+} from "@/core/services/apps.service";
+import { ApiError } from "@/core/services/api";
 
 type ManageAppFormClientProps = {
   mode: "create" | "edit";

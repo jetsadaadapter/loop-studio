@@ -6,7 +6,8 @@ import {
   type RankedApp,
 } from "@/components/app-category-ranking";
 import { getAppStatus } from "@/app/library/apps/data";
-import { getApps, ApiError } from "@/core/services/library.service";
+import { getApps } from "@/core/services/apps.service";
+import { ApiError } from "@/core/services/api";
 import {
   getAppItemId,
   type LibraryAppApiItem,

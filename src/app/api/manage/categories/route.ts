@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { ApiError, getManageCategoriesResponse } from "@/core/services/library.service";
+import { getManageCategoriesResponse } from "@/core/services/categories.service";
+import { ApiError } from "@/core/services/api";
 
 export async function GET() {
     try {

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Markdown from "react-markdown";
 import {
-  ApiError,
   getAppById,
   getRelatedApps,
-} from "@/core/services/library.service";
+} from "@/core/services/apps.service";
+import { ApiError } from "@/core/services/api";
 import { getAppItemId } from "@/core/interfaces/library.interface";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
