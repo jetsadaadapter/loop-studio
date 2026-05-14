@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 // import { Badge } from "../ui/badge"; // Badge is not used
 import React from "react";
 import { Brain } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 export interface ManagerModelTableProps {
   models: Array<{
@@ -110,14 +111,46 @@ export function ManagerModelTable({
           className="[&_tr:last-child]:border-0 divide-y divide-border dark:divide-darkborder"
         >
           {isLoading ? (
-            <tr>
-              <td
-                colSpan={hideCheckboxAll ? 6 : 7}
-                className="p-4 text-center text-muted-foreground"
-              >
-                Loading projects...
-              </td>
-            </tr>
+            Array.from({ length: 5 }).map((_, i) => (
+              <tr key={i} className="border-b transition-colors hover:bg-transparent!">
+                {!hideCheckboxAll && (
+                  <td className="p-3 ps-6">
+                    <Skeleton className="h-4 w-4 rounded" />
+                  </td>
+                )}
+                <td className="p-2 px-3">
+                  <Skeleton className="h-4 w-8" />
+                </td>
+                <td className="p-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-9 w-9 rounded-full" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                </td>
+                <td className="p-2">
+                  <Skeleton className="h-4 w-20" />
+                </td>
+                <td className="p-2">
+                  <Skeleton className="h-4 w-24" />
+                </td>
+                <td className="p-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-2 w-2 rounded-full" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </td>
+                <td className="p-3 pe-6">
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-16 rounded-sm" />
+                    <Skeleton className="h-8 w-24 rounded-sm" />
+                    <Skeleton className="h-8 w-20 rounded-sm" />
+                  </div>
+                </td>
+              </tr>
+            ))
           ) : models.length === 0 ? (
             <tr>
               <td
