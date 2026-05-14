@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { SyntheticEvent } from "react";
-import { EllipsisVertical, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Copy, Ellipsis, ExternalLink, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { AppLinkType } from "@/core/interfaces/library.interface";
@@ -124,37 +125,53 @@ export function ManagerAppCard({
               }
               aria-label={`Open actions for ${item.name}`}
             >
-              <EllipsisVertical className="size-4" />
+              <Ellipsis className="size-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="bottom" className="w-32">
+            <DropdownMenuContent align="end" side="bottom" className="w-48">
               <DropdownMenuItem
                 onClick={onEdit}
                 disabled={isBusy}
-                className="py-1 text-xs"
+                className="py-2 text-sm cursor-pointer"
               >
-                <Pencil className="size-3.5" />
-                Edit
+                <Pencil className="size-4" />
+                Edit app
               </DropdownMenuItem>
+              
               <DropdownMenuItem
-                onClick={onDelete}
-                disabled={isBusy}
-                variant="destructive"
-                className="py-1 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
+                  navigator.clipboard.writeText(url);
+                }}
+                className="py-2 text-sm cursor-pointer"
               >
-                <Trash2 className="size-3.5" />
-                {isDeleting ? "Deleting..." : "Delete"}
+                <Copy className="size-4" />
+                Copy link
               </DropdownMenuItem>
-              <DropdownMenuItem className="py-1 text-xs">
+
+              <DropdownMenuItem className="py-2 text-sm cursor-pointer">
                 <a
                   href={typeof item.id === "string" ? `/apps/${item.id}` : "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   tabIndex={0}
-                  className="flex items-center gap-2 w-full h-full"
+                  className="flex items-center gap-1.5 w-full h-full"
                 >
-                  <ExternalLink className="size-3.5" />
+                  <ExternalLink className="size-4" />
                   Detail
                 </a>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem
+                onClick={onDelete}
+                disabled={isBusy}
+                variant="destructive"
+                className="py-2 text-sm cursor-pointer"
+              >
+                <Trash2 className="size-4" />
+                {isDeleting ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
