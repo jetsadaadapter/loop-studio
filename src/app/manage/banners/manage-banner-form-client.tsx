@@ -264,6 +264,12 @@ export function ManageBannerFormClient({
         endsAt: draft.endsAt,
       };
 
+      console.log("[ManageBannerForm] submit payload", {
+        mode,
+        bannerId,
+        payload,
+      });
+
       if (mode === "edit" && bannerId) {
         await updateManageBanner(bannerId, payload);
         pushDialogToast("Banner updated successfully.", "success");
