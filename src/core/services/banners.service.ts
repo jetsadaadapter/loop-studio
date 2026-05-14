@@ -45,16 +45,23 @@ export async function getManageBanners(
     return apiFetch<GetBannersResponse>(url, init);
 }
 
+export async function getManageBanner(id: string, init?: RequestInit): Promise<LibraryBannerItem> {
+    const url = buildUrl(`/manage/banners/${id}`);
+    const response = await apiFetch<{ data: LibraryBannerItem }>(url, init);
+    return response.data;
+}
+
 export async function createManageBanner(
     payload: ManageBannerPayload,
     init?: RequestInit,
 ): Promise<LibraryBannerItem> {
     const url = buildUrl("/manage/banners");
-    return apiFetch<LibraryBannerItem>(url, {
+    const response = await apiFetch<{ data: LibraryBannerItem }>(url, {
         method: "POST",
         body: JSON.stringify(payload),
         ...init,
     });
+    return response.data;
 }
 
 export async function updateManageBanner(
@@ -63,9 +70,10 @@ export async function updateManageBanner(
     init?: RequestInit,
 ): Promise<LibraryBannerItem> {
     const url = buildUrl(`/manage/banners/${id}`);
-    return apiFetch<LibraryBannerItem>(url, {
+    const response = await apiFetch<{ data: LibraryBannerItem }>(url, {
         method: "PATCH",
         body: JSON.stringify(payload),
         ...init,
     });
+    return response.data;
 }

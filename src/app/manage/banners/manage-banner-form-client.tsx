@@ -22,15 +22,19 @@ import {
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
+import { useDialogToast } from "@/components/ui/alert-dialog-toast";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import {
   createManageBanner,
+  getManageBanner,
   getManageBanners,
   updateManageBanner,
 } from "@/core/services/banners.service";
 import { getManageApps } from "@/core/services/apps.service";
+import { getAppItemId } from "@/core/interfaces/apps.interface";
 import type { ManageAppApiItem } from "@/core/interfaces/apps.interface";
 import type { ManageBannerPayload } from "@/core/interfaces/banners.interface";
 import { cn } from "@/lib/utils";
@@ -62,10 +66,10 @@ const EMPTY_BANNER: BannerRecord = {
 function validateBannerForm(value: BannerRecord): Record<string, string> {
   const errors: Record<string, string> = {};
 
-  if (!value.title.trim()) errors.title = "Title is required.";
-  if (!value.subtitle.trim()) errors.subtitle = "Subtitle is required.";
-  if (!value.imageId.trim()) errors.imageId = "Banner image is required.";
-  if (!value.appId.trim()) errors.appId = "Selecting an app is required.";
+  if (!(value.title || "").trim()) errors.title = "Title is required.";
+  if (!(value.subtitle || "").trim()) errors.subtitle = "Subtitle is required.";
+  if (!(value.imageId || "").trim()) errors.imageId = "Banner image is required.";
+  if (!(value.appId || "").trim()) errors.appId = "Selecting an app is required.";
 
   if (!Number.isInteger(value.sortOrder) || value.sortOrder < 0) {
     errors.sortOrder = "Sort order must be a non-negative integer.";
@@ -91,17 +95,21 @@ function ButtonSpinner() {
 
 export function ManageBannerFormClient({
   mode,
+  bannerId,
   initialData,
   placeholders,
 }: {
   mode: "create" | "edit";
+  bannerId?: string;
   initialData?: Partial<BannerRecord>;
   placeholders?: Partial<BannerRecord>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { pushDialogToast } = useDialogToast();
   const draftState = { ...EMPTY_BANNER, ...initialData };
   const [draft, setDraft] = useState<BannerRecord>(draftState);
+  const [isLoading, setIsLoading] = useState(mode === "edit");
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     if (draftState.startsAt && draftState.endsAt) {
@@ -148,9 +156,42 @@ export function ManageBannerFormClient({
       }
     }
 
+    async function loadEditData() {
+      if (mode !== "edit" || !bannerId) return;
+
+      setIsLoading(true);
+      try {
+        const banner = await getManageBanner(bannerId);
+        const mapped: BannerRecord = {
+          id: banner.id || banner.bannerId || "",
+          title: banner.title || "",
+          subtitle: banner.subtitle || "",
+          imageId: banner.imageId || "",
+          appId: banner.appId || (banner.app ? getAppItemId(banner.app) : ""),
+          sortOrder: banner.sortOrder ?? 0,
+          isActive: banner.isActive ?? true,
+          startsAt: banner.startsAt || null,
+          endsAt: banner.endsAt || null,
+        };
+        setDraft(mapped);
+        if (mapped.startsAt && mapped.endsAt) {
+          setDateRange({
+            from: new Date(mapped.startsAt),
+            to: new Date(mapped.endsAt),
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load banner data.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     loadApps();
     loadBanners();
-  }, [mode]);
+    loadEditData();
+  }, [mode, bannerId]);
 
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     setDateRange(range);
@@ -223,12 +264,16 @@ export function ManageBannerFormClient({
         endsAt: draft.endsAt,
       };
 
-      if (mode === "create") {
-        await createManageBanner(payload);
+      if (mode === "edit" && bannerId) {
+        await updateManageBanner(bannerId, payload);
+        pushDialogToast("Banner updated successfully.", "success");
       } else {
-        await updateManageBanner(draft.id, payload);
+        await createManageBanner(payload);
+        pushDialogToast("Banner created successfully.", "success");
       }
+
       router.push("/manage/banners");
+      router.refresh();
     } catch (err) {
       console.error(err);
       setError("Failed to save banner. Please try again.");
@@ -241,9 +286,47 @@ export function ManageBannerFormClient({
     <ManagerShell
       title={pageTitle}
       description={pageSubtitle}
+      actions={<Button onClick={() => router.push("/manage/banners")} variant="outline">Back to List</Button>}
     >
       <form onSubmit={handleSubmit} className="space-y-8 pb-20">
-        <div className="grid grid-cols-12 gap-6">
+        {isLoading ? (
+          <div className="grid grid-cols-12 gap-6">
+            {/* Main Column Skeleton */}
+            <div className="col-span-12 lg:col-span-8 space-y-6">
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-32 mb-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-24 mb-2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            </div>
+            {/* Sidebar Skeleton */}
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <Skeleton className="h-6 w-24 mb-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-48 w-full rounded-lg" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-12 gap-6">
           {/* Main Column */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
             <Card className="rounded-xl border-0">
@@ -288,14 +371,15 @@ export function ManageBannerFormClient({
                     </div>
                   ) : (
                     apps.map((app) => {
-                      const isSelected = draft.appId === app.id;
+                      const appId = getAppItemId(app);
+                      const isSelected = draft.appId === appId;
                       const iconUrl = app.iconId ? `/images/${encodeURIComponent(app.iconId.trim())}` : null;
 
                       return (
                         <button
-                          key={app.id}
+                          key={appId}
                           type="button"
-                          onClick={() => setDraft({ ...draft, appId: app.id })}
+                          onClick={() => setDraft({ ...draft, appId })}
                           className={cn(
                             "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
                             isSelected
@@ -498,25 +582,28 @@ export function ManageBannerFormClient({
             </Card>
           </div>
         </div>
+      )}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <ButtonSpinner /> Saving...
-              </span>
-            ) : mode === "create" ? "Create Banner" : "Save Changes"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/manage/banners")}
-          >
-            Cancel
-          </Button>
-        </div>
+        {!isLoading && (
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <ButtonSpinner /> Saving...
+                </span>
+              ) : mode === "create" ? "Create Banner" : "Save Changes"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/manage/banners")}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
       </form>
     </ManagerShell>
   );
