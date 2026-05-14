@@ -1,3 +1,7 @@
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Imports
+// ─────────────────────────────────────────────────────────────────────────────
 import type {
     UserProfile,
     UserProfileResponse,
@@ -28,9 +32,13 @@ import type {
 import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Constants & Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Library API service
 // Base URL: https://library-api.adapterdigital.com/api
-//
 // All functions are thin fetch wrappers — no caching strategy is assumed here.
 // Callers control revalidation via Next.js fetch options or SWR/React Query.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,7 +68,10 @@ if (!BASE_URL) {
 
 const TOKEN_COOKIE_KEY = "zt_token";
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Build URL with type-safe query params.
@@ -214,7 +225,10 @@ async function apiFetch<T>(
     return res.json() as Promise<T>;
 }
 
-// ─── Apps ─────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Apps
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * GET /apps
@@ -309,7 +323,10 @@ export async function getRelatedApps(
     }
 }
 
-// ─── Banners ──────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Banners
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * GET /banners
@@ -330,7 +347,44 @@ export async function getBanners(
     return apiFetch<GetBannersResponse>(url, init);
 }
 
-// ─── Manage Apps ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Banners
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * DELETE /manage/banners/:id
+ * @param id banner id
+ */
+export async function deleteManageBanner(id: string, init?: RequestInit): Promise<void> {
+    const url = buildUrl(`/manage/banners/${id}`);
+    await apiFetch<{ success?: boolean; message?: string }>(url, {
+        method: "DELETE",
+        ...init,
+    });
+}
+
+/**
+ * GET /manage/banners
+ *
+ * @example
+ * getManageBanners({ page: 1, limit: 10 })
+ */
+export async function getManageBanners(
+    params: GetBannersParams = {},
+    init?: RequestInit,
+): Promise<GetBannersResponse> {
+    const url = buildUrl("/manage/banners", {
+        page: params.page,
+        limit: params.limit,
+    });
+    return apiFetch<GetBannersResponse>(url, init);
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Apps
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function normalizeManageAppsList(payload: ManageAppListResponse): ManageAppApiItem[] {
     const maybeData = (payload as { data?: unknown }).data;
@@ -482,7 +536,10 @@ export async function getManageDashboardStats(
     };
 }
 
-// ─── Manage AI Models ────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage AI Models
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getManageAiModels(init?: RequestInit): Promise<ManageAiApiListItem[]> {
     const url = buildUrl("/manage/models", {
@@ -551,7 +608,10 @@ export async function setDefaultManageAiModel(
     return updateManageAiModel(id, { isDefault: true }, init);
 }
 
-// ─── Manage Menus ────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Menus
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getManageMenus(init?: RequestInit): Promise<ManageMenuItem[]> {
     const url = buildUrl("/access/menus");
@@ -559,7 +619,10 @@ export async function getManageMenus(init?: RequestInit): Promise<ManageMenuItem
     return response.data;
 }
 
-// ─── Manage Tags ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Tags
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getManageTagsResponse(
     init?: RequestInit,
@@ -576,7 +639,10 @@ export async function getManageTags(init?: RequestInit): Promise<ManageTagApiIte
     return response.data ?? [];
 }
 
-// ─── Manage Categories ────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manage Categories
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getManageCategoriesResponse(
     init?: RequestInit,

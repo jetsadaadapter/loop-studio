@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
@@ -44,9 +44,32 @@ const sukhumvitSet = localFont({
   ],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const geist = localFont({
+  variable: "--font-geist",
+  display: "swap",
+  src: [
+    {
+      path: "../../public/fonts/Geist/static/Geist-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    // เพิ่มน้ำหนักอื่นๆ ตามที่มีใน static
+  ],
 });
 
 const geistMono = Geist_Mono({
@@ -71,7 +94,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://library-api.adapterdigital.com" />
