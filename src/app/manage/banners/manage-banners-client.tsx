@@ -13,6 +13,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
 import { ManagerPagination } from "@/components/manager-pagination";
+import AppBannerCard from "@/components/app-banner-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,6 +55,14 @@ type BannerRecord = {
   isActive: boolean;
   sortOrder: number;
   updatedAt: string;
+  imageId?: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  instructions: string;
+  ctaLabel: string;
+  badgeLabel?: string | null;
+  tags: string[];
+  iconId?: string | null;
 };
 
 function mapApiItemToRecord(item: LibraryBannerItem): BannerRecord {
@@ -69,6 +78,15 @@ function mapApiItemToRecord(item: LibraryBannerItem): BannerRecord {
     isActive: item.isActive,
     sortOrder: item.sortOrder,
     updatedAt: (item.updatedAt || "").slice(0, 10),
+    imageId: item.imageId,
+    startsAt: item.startsAt,
+    endsAt: item.endsAt,
+    instructions: item.app?.instructions || "",
+    ctaLabel: item.app?.ctaLabel || "Get Started",
+    badgeLabel: item.app?.badgeLabel || null,
+    iconId: item.app?.iconId || null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tags: item.app?.tags?.map((t: any) => typeof t === "string" ? t : t.name) || [],
   };
 }
 
@@ -108,7 +126,20 @@ export function ManageBannersClient() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [mockDates, setMockDates] = useState<{startsAt: string, endsAt: string} | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const toggleMockDates = () => {
+    if (!mockDates) {
+      const now = Date.now();
+      setMockDates({
+        startsAt: new Date(now).toISOString(),
+        endsAt: new Date(now + 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000).toISOString()
+      });
+    } else {
+      setMockDates(null);
+    }
+  };
 
   const loadBanners = useCallback(async (options?: { silent?: boolean }) => {
     const silent = options?.silent ?? false;
@@ -333,6 +364,14 @@ export function ManageBannersClient() {
               >
                 {isRefreshing ? "Refreshing..." : "Refresh"}
               </Button>
+              <Button
+                type="button"
+                variant={mockDates ? "default" : "outline"}
+                className="w-full xl:w-auto"
+                onClick={toggleMockDates}
+              >
+                Mock Dates: {mockDates ? "ON" : "OFF"}
+              </Button>
               <Select
                 value={sortBy}
                 onValueChange={(v) => v && onSortChange(v)}
@@ -431,59 +470,36 @@ export function ManageBannersClient() {
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {pagedBanners.map((row) => (
-                  <Card key={row.id} className="overflow-hidden p-0">
-                    <CardHeader className="space-y-2 px-4 pb-0 pt-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="font-semibold text-base truncate"
-                          title={row.title}
-                        >
-                          {row.title}
+                  <div key={row.id} className="flex flex-col gap-3">
+                    <AppBannerCard
+                      banner={{
+                        id: row.id,
+                        title: row.title,
+                        subtitle: row.subtitle,
+                        imageId: row.imageId,
+                        startsAt: mockDates ? mockDates.startsAt : row.startsAt,
+                        endsAt: mockDates ? mockDates.endsAt : row.endsAt,
+                        app: {
+                          name: row.appName,
+                          category: { name: row.category },
+                          tags: row.tags,
+                          instructions: row.instructions,
+                          ctaLabel: row.ctaLabel,
+                          badgeLabel: row.badgeLabel,
+                          iconId: row.iconId,
+                        },
+                      }}
+                      onEdit={() => router.push(`/manage/banners/${row.id}/edit`)}
+                      onDelete={() => setDeleteTarget(row)}
+                    />
+                    {!row.isActive && (
+                      <div className="px-2 flex justify-start">
+                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground font-medium border border-border">
+                          Inactive
                         </span>
-                        {!row.isActive && (
-                          <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                            Inactive
-                          </span>
-                        )}
                       </div>
-                      <div
-                        className="text-xs text-muted-foreground truncate"
-                        title={row.appName}
-                      >
-                        {row.appName}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-4">
-                      <div
-                        className="text-sm line-clamp-2"
-                        title={row.subtitle}
-                      >
-                        {row.subtitle}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="border-t bg-muted/30 px-4 flex gap-2 justify-end">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={deletingId !== null}
-                        onClick={() =>
-                          router.push(`/manage/banners/${row.id}/edit`)
-                        }
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={deletingId !== null}
-                        onClick={() => setDeleteTarget(row)}
-                      >
-                        Delete
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                    )}
+                  </div>
                 ))}
               </div>
 
