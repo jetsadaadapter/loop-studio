@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -10,6 +10,7 @@ import {
   startTransition,
 } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
 import { ManagerPagination } from "@/components/manager-pagination";
@@ -30,12 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+
 import {
   getManageBanners,
   deleteManageBanner,
@@ -119,15 +115,21 @@ export function ManageBannersClient() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("sort-asc");
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const pathname = usePathname();
   const [currentPage, setCurrentPage] = useState(1);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
-  const [mockDates, setMockDates] = useState<{startsAt: string, endsAt: string} | null>(null);
+  const [mockDates, setMockDates] = useState<{ startsAt: string, endsAt: string } | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
+  const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
+  const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
 
   const toggleMockDates = () => {
     if (!mockDates) {
@@ -140,6 +142,17 @@ export function ManageBannersClient() {
       setMockDates(null);
     }
   };
+
+  const clearSearchDebounce = useCallback(() => {
+    if (searchDebounceRef.current !== null) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => clearSearchDebounce();
+  }, [clearSearchDebounce]);
 
   const loadBanners = useCallback(async (options?: { silent?: boolean }) => {
     const silent = options?.silent ?? false;
@@ -259,7 +272,9 @@ export function ManageBannersClient() {
     setCategoryFilter("all");
     setStatusFilter("all");
     setSearch("");
+    setSearchInput("");
     setCurrentPage(1);
+    clearSearchDebounce();
   }
   function onSortChange(value: string) {
     setSortBy(value);
@@ -281,14 +296,19 @@ export function ManageBannersClient() {
     setCurrentPage(page);
   }
   function onSearchChange(value: string) {
-    setSearch(value);
-    setCurrentPage(1);
+    setSearchInput(value);
+    clearSearchDebounce();
+
+    searchDebounceRef.current = setTimeout(() => {
+      setSearch(value);
+      setCurrentPage(1);
+    }, 300);
   }
 
   return (
     <ManagerShell
-      title="Manage Banners"
-      description="Manage banner entries, media assets, and publish status."
+      title={pageTitle}
+      description={pageSubtitle}
       actions={
         <Button
           type="button"
@@ -348,8 +368,7 @@ export function ManageBannersClient() {
               <div className="relative w-full sm:col-span-2 xl:w-[320px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  key={search}
-                  defaultValue={search}
+                  value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Search banner title, app, or category"
                   className="bg-background pl-9"
@@ -367,7 +386,7 @@ export function ManageBannersClient() {
               <Button
                 type="button"
                 variant={mockDates ? "default" : "outline"}
-                className="w-full xl:w-auto"
+                className="w-full xl:w-auto hidden"
                 onClick={toggleMockDates}
               >
                 Mock Dates: {mockDates ? "ON" : "OFF"}
@@ -413,22 +432,45 @@ export function ManageBannersClient() {
           {isLoading ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: pageSize }).map((_, index) => (
-                <Card
+                <div
                   key={`skeleton-card-${index}`}
-                  className="overflow-hidden p-0"
+                  className="w-full bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-zinc-100 overflow-hidden flex flex-col"
                 >
-                  <div className="h-40 animate-pulse bg-muted" />
-                  <CardHeader className="space-y-2 px-4 pb-0 pt-4">
-                    <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-                  </CardHeader>
-                  <CardContent className="px-4">
-                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                  </CardContent>
-                  <CardFooter className="border-t bg-muted/30 px-4">
-                    <div className="h-8 w-full animate-pulse rounded bg-muted" />
-                  </CardFooter>
-                </Card>
+                  {/* Header Skeleton */}
+                  <div className="flex items-center justify-between p-4 pb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-zinc-100 animate-pulse" />
+                      <div className="h-4 w-24 bg-zinc-100 rounded animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Text Skeleton */}
+                  <div className="px-4 pb-3 space-y-2">
+                    <div className="h-3 w-full bg-zinc-50 rounded animate-pulse" />
+                    <div className="h-3 w-2/3 bg-zinc-50 rounded animate-pulse" />
+                  </div>
+
+                  {/* Image Skeleton */}
+                  <div className="px-4">
+                    <div className="w-full aspect-[16/10] bg-zinc-100 rounded-xl animate-pulse" />
+                  </div>
+
+                  {/* Lines Skeleton */}
+                  <div className="mt-6 border-t border-zinc-100">
+                    <div className="flex justify-between px-4 py-3 border-b border-zinc-100">
+                      <div className="h-3 w-16 bg-zinc-50 rounded animate-pulse" />
+                      <div className="h-3 w-20 bg-zinc-100 rounded animate-pulse" />
+                    </div>
+                    <div className="flex justify-between px-4 py-3 border-b border-zinc-100">
+                      <div className="h-3 w-12 bg-zinc-50 rounded animate-pulse" />
+                      <div className="h-3 w-32 bg-zinc-100 rounded animate-pulse" />
+                    </div>
+                    <div className="flex justify-between px-4 py-3">
+                      <div className="h-3 w-14 bg-zinc-50 rounded animate-pulse" />
+                      <div className="h-3 w-16 bg-zinc-100 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           ) : pagedBanners.length === 0 ? (

@@ -139,7 +139,9 @@ export function ManageAiClient() {
   const lastUpdatedStringRef = useRef("");
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [providerFilter, setProviderFilter] = useState("all");
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sortBy, setSortBy] = useState("sort-asc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
@@ -203,9 +205,9 @@ export function ManageAiClient() {
     [models, selectedId, draft],
   );
 
-  const pageTitle = useMemo(() => {
-    return getLocalizedText(getManageRouteMeta(pathname).title);
-  }, [pathname]);
+  const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
+  const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
+  const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
 
   const visibleModels = useMemo(() => {
     const filtered = models
@@ -268,7 +270,23 @@ export function ManageAiClient() {
 
   function clearFilters() {
     setSearch("");
+    setSearchInput("");
     setProviderFilter("all");
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+  }
+
+  function onSearchChange(value: string) {
+    setSearchInput(value);
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      setSearch(value);
+      searchDebounceRef.current = null;
+    }, 300);
   }
 
   function resetForm() {
@@ -436,7 +454,7 @@ export function ManageAiClient() {
   return (
     <ManagerShell
       title={pageTitle}
-      description="Model manager scaffold with one-click default assignment."
+      description={pageSubtitle}
       actions={
         <Button
           type="button"
@@ -488,8 +506,8 @@ export function ManageAiClient() {
               type="text"
               placeholder="Search model name, slug, or provider"
               className="h-8 w-full min-w-0 rounded-sm border border-input px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 bg-background pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
           {/* Refresh button */}

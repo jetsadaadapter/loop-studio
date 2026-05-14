@@ -71,6 +71,15 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
         },
         crumb: { th: "Models", en: "Models" },
     },
+    {
+        href: "/manage/banners",
+        title: { th: "Banner Library", en: "Banner Library" },
+        subtitle: {
+            th: "Manage banners and promotions",
+            en: "Manage banners and promotions",
+        },
+        crumb: { th: "Banners", en: "Banners" },
+    },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [

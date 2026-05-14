@@ -139,6 +139,15 @@ export function ManageAppsClient() {
     [searchParams],
   );
   const search = listQuery.q;
+  const [searchInput, setSearchInput] = useState(search);
+
+  // Sync searchInput when URL search changes (e.g. back button or clear filters)
+  const [prevSearch, setPrevSearch] = useState(search);
+  if (search !== prevSearch) {
+    setPrevSearch(search);
+    setSearchInput(search);
+  }
+
   const categoryFilter = listQuery.category;
   const statusFilter = listQuery.status;
   const typeFilter = listQuery.type;
@@ -309,9 +318,9 @@ export function ManageAppsClient() {
     filtered.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
   const resultEnd = Math.min(safeCurrentPage * pageSize, filtered.length);
 
-  const pageTitle = useMemo(() => {
-    return getLocalizedText(getManageRouteMeta(pathname).title);
-  }, [pathname]);
+  const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
+  const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
+  const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
 
   const clearSearchDebounce = useCallback(() => {
     if (searchDebounceRef.current !== null) {
@@ -385,6 +394,7 @@ export function ManageAppsClient() {
 
   function clearFilters() {
     clearSearchDebounce();
+    setSearchInput("");
     syncListQuery({
       q: "",
       category: "all",
@@ -397,6 +407,7 @@ export function ManageAppsClient() {
   }
 
   function onSearchChange(value: string) {
+    setSearchInput(value);
     clearSearchDebounce();
     searchDebounceRef.current = setTimeout(() => {
       syncListQuery({ q: value, page: 1 });
@@ -465,7 +476,7 @@ export function ManageAppsClient() {
   return (
     <ManagerShell
       title={pageTitle}
-      description="Manage app catalog entries, media assets, and publish status."
+      description={pageSubtitle}
       actions={
         <Button
           type="button"
@@ -511,8 +522,7 @@ export function ManageAppsClient() {
               <div className="relative w-full sm:col-span-2 xl:w-[320px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  key={search}
-                  defaultValue={search}
+                  value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Search app name or category"
                   className="bg-background pl-9"
