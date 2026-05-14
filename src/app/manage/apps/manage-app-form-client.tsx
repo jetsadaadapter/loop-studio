@@ -32,13 +32,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TagInput } from "@/components/ui/tag-input";
-import {
-  type AppLinkType,
-  getAppItemId,
-  type ManageAppApiItem,
-  type ManageAppPayload,
-  type ManageTagListResponse,
-} from "@/core/interfaces/library.interface";
+import type {
+  AppLinkType,
+  ManageAppApiItem,
+  ManageAppPayload,
+} from "@/core/interfaces/apps.interface";
+import { getAppItemId } from "@/core/interfaces/apps.interface";
+import type { ManageTagListResponse } from "@/core/interfaces/tags.interface";
 import {
   createManageApp,
   getManageApps,

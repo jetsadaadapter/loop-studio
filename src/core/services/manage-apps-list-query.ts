@@ -1,4 +1,4 @@
-import type { AppLinkType } from "@/core/interfaces/library.interface";
+import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 export const DEFAULT_PAGE_SIZE = 9;
 export const PAGE_SIZE_OPTIONS = [6, 9, 12, 18] as const;

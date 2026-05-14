@@ -11,7 +11,7 @@ import { ApiError } from "@/core/services/api";
 import {
   getAppItemId,
   type LibraryAppApiItem,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/apps.interface";
 
 type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
 

@@ -1,7 +1,7 @@
 import type {
     ManageTagApiItem,
     ManageTagListResponse,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/tags.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
 export async function getManageTagsResponse(

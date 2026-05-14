@@ -1,7 +1,7 @@
 import type {
     ManageMenuItem,
     ManageMenuResponse,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/menus.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
 export async function getManageMenus(init?: RequestInit): Promise<ManageMenuItem[]> {

@@ -43,7 +43,7 @@ import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import type {
   GetBannersResponse,
   LibraryBannerItem,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/banners.interface";
 
 type BannerRecord = {
   id: string;

@@ -3,7 +3,7 @@ import { AppIcon } from "@/components/app-icon";
 import {
   getAppItemId,
   type LibraryAppApiItem,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/apps.interface";
 
 type RelatedAppListItemProps = {
   item: LibraryAppApiItem;

@@ -1,7 +1,5 @@
-import {
-    getAppItemId,
-    type LibraryBannerItem,
-} from "@/core/interfaces/library.interface";
+import { getAppItemId } from "@/core/interfaces/apps.interface";
+import type { LibraryBannerItem } from "@/core/interfaces/banners.interface";
 
 export type HeroMood = "cool" | "warm" | "neutral" | "premium";
 

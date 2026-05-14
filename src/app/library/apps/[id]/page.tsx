@@ -6,7 +6,7 @@ import {
   getRelatedApps,
 } from "@/core/services/apps.service";
 import { ApiError } from "@/core/services/api";
-import { getAppItemId } from "@/core/interfaces/library.interface";
+import { getAppItemId } from "@/core/interfaces/apps.interface";
 import { AppIcon } from "@/components/app-icon";
 import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";

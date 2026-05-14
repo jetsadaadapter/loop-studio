@@ -1,4 +1,4 @@
-import { type ManageMenuItem } from "@/core/interfaces/library.interface";
+import { type ManageMenuItem } from "@/core/interfaces/menus.interface";
 
 export type Locale = "th" | "en";
 

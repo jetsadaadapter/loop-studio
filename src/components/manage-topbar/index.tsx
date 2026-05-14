@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { getManageBreadcrumbItems } from "@/app/manage/config";
 import { getManageMenus } from "@/core/services/menus.service";
-import { type ManageMenuItem } from "@/core/interfaces/library.interface";
+import { type ManageMenuItem } from "@/core/interfaces/menus.interface";
 
 export function ManageTopbar() {
   const pathname = usePathname();

@@ -30,7 +30,7 @@ import {
   getAppItemId,
   type AppLinkType,
   type ManageAppApiItem,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/apps.interface";
 import {
   Sheet,
   SheetContent,

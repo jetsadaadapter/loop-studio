@@ -1,7 +1,7 @@
 import type {
     GetBannersParams,
     GetBannersResponse,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/banners.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import type {
     CategoryInfo,
     ManageCategoryListResponse,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/categories.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
 export async function getManageCategoriesResponse(

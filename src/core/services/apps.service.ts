@@ -6,9 +6,9 @@ import type {
     ManageAppListResponse,
     ManageAppMutationResponse,
     ManageAppPayload,
-    PaginationMeta,
-} from "@/core/interfaces/library.interface";
-import { getAppItemId as resolveAppId } from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/apps.interface";
+import type { PaginationMeta } from "@/core/interfaces/common.interface";
+import { getAppItemId as resolveAppId } from "@/core/interfaces/apps.interface";
 import { ApiError, apiFetch, buildUrl } from "@/core/services/api";
 
 // ─────────────────────────────────────────────────────────────────────────────

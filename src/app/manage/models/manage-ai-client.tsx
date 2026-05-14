@@ -38,7 +38,7 @@ import {
 import type {
   ManageAiModelApiItem,
   ManageAiModelPayload,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/models.interface";
 import {
   createManageAiModel,
   deleteManageAiModel,

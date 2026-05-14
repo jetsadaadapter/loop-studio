@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { AppLinkType } from "@/core/interfaces/library.interface";
+import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 type ManagerAppCardItem = {
   id: string;

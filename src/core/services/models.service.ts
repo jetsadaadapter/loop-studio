@@ -5,7 +5,7 @@ import type {
     ManageAiModelApiItem,
     ManageAiModelPayload,
     ManageAiMutationResponse,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/models.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
 // ─────────────────────────────────────────────────────────────────────────────

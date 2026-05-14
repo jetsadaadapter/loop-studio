@@ -2,7 +2,7 @@ import {
     getAppItemId,
     type GetAppsResponse,
     type LibraryAppApiItem,
-} from "@/core/interfaces/library.interface";
+} from "@/core/interfaces/apps.interface";
 
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
