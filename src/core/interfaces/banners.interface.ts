@@ -52,3 +52,14 @@ export type GetBannersParams = {
 };
 
 export type GetBannersResponse = Paginated<LibraryBannerItem>;
+
+export type ManageBannerPayload = {
+    title: string;
+    subtitle: string;
+    imageId: string;
+    appId: string;
+    sortOrder: number;
+    isActive: boolean;
+    startsAt?: string | null;
+    endsAt?: string | null;
+};

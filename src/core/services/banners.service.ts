@@ -1,6 +1,8 @@
 import type {
     GetBannersParams,
     GetBannersResponse,
+    LibraryBannerItem,
+    ManageBannerPayload,
 } from "@/core/interfaces/banners.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
@@ -41,4 +43,29 @@ export async function getManageBanners(
         limit: params.limit,
     });
     return apiFetch<GetBannersResponse>(url, init);
+}
+
+export async function createManageBanner(
+    payload: ManageBannerPayload,
+    init?: RequestInit,
+): Promise<LibraryBannerItem> {
+    const url = buildUrl("/manage/banners");
+    return apiFetch<LibraryBannerItem>(url, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        ...init,
+    });
+}
+
+export async function updateManageBanner(
+    id: string,
+    payload: ManageBannerPayload,
+    init?: RequestInit,
+): Promise<LibraryBannerItem> {
+    const url = buildUrl(`/manage/banners/${id}`);
+    return apiFetch<LibraryBannerItem>(url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+        ...init,
+    });
 }
