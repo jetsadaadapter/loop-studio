@@ -155,17 +155,19 @@ function JobResultItem({ item, idx, job }: {
                     </a>
                 )}
             </div>
-            <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div className="lg:col-span-5 space-y-3">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Source Content</span>
+                    <div className="flex items-center h-4">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Source Content</span>
+                    </div>
                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                         {sourceText
                             ? <p className="text-xs text-slate-600 line-clamp-6 leading-relaxed italic">&quot;{sourceText}&quot;</p>
                             : <p className="text-xs text-slate-400 italic">No source content available.</p>}
                     </div>
                 </div>
-                <div className="lg:col-span-7 space-y-4">
-                    <div className="flex items-center justify-between">
+                <div className="lg:col-span-7 space-y-3">
+                    <div className="flex items-center justify-between h-4">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Analysis</span>
                         <div className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase",
                             analysis.sentiment === 'positive' ? "bg-teal-100 text-teal-700" :

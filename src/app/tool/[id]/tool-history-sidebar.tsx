@@ -37,19 +37,21 @@ export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshin
                         <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
                     </button>
                 </div>
-                {/* Dynamic tabs from actual job states */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                {/* Filter group from actual job states */}
+                <div className="flex flex-wrap items-center gap-2">
                     {tabs.map((tab) => (
                         <button key={tab} onClick={() => onTabChange(tab)}
-                            className={cn("flex-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all",
-                                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700")}>
+                            className={cn("px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all",
+                                activeTab === tab
+                                    ? "bg-brand border-brand text-white shadow-sm"
+                                    : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50")}>
                             {tab}
                         </button>
                     ))}
                 </div>
             </CardHeader>
             <CardContent className="px-0">
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
                     {filtered.length === 0 ? (
                         <div className="py-10 text-center space-y-2">
                             <Clock className="size-8 text-slate-200 mx-auto" />
@@ -65,7 +67,12 @@ export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshin
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2">
                                             <p className="text-xs font-bold text-slate-900 truncate">{job.jobId.split('-')[0]}...</p>
-                                            <span className="text-[10px] text-slate-400">
+                                            {job.plugin && (
+                                                <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[9px] uppercase font-bold tracking-widest">
+                                                    {job.plugin}
+                                                </span>
+                                            )}
+                                            <span className="text-[10px] text-slate-400 ml-auto">
                                                 {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
                                             </span>
                                         </div>

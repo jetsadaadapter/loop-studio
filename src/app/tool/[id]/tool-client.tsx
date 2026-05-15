@@ -130,7 +130,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                         <ToolFormSection params={tool.params} formData={formData} errors={errors}
                             isRunning={isRunning} onChange={handleFormChange} onRun={handleRun} />
                     </div>
-                    <div className="space-y-6">
+                    <div className="space-y-6 lg:sticky lg:top-24">
                         <ToolHistorySidebar jobs={jobs} activeTab={activeTab} selectedJobId={selectedJob?.jobId}
                             onTabChange={setActiveTab} onViewJob={handleViewJob}
                             onRefresh={refreshJobs} isRefreshing={isRefreshing} />

@@ -22,6 +22,8 @@ import {
   FieldError,
   FieldDescription,
 } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import React from "react";
 
 export interface ModelFormFieldsDraft {
@@ -46,6 +48,7 @@ export function ModelFormFields({
   fieldErrors = {},
   onChange,
 }: ModelFormFieldsProps) {
+
   return (
     <ManagerFormSection title="Model">
       <div className="grid grid-cols-12 gap-4">
@@ -117,80 +120,26 @@ export function ModelFormFields({
         </div>
         <div className="col-span-12">
           <Field orientation="horizontal">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={draft.isActive}
-                onChange={(e) => onChange("isActive", e.target.checked)}
-                className="sr-only peer"
-                // aria-checked removed: not needed for native input
-                tabIndex={0}
-                title="Active"
+            <div className="flex items-center space-x-3">
+              <Switch 
+                id="model-active-switch"
+                checked={draft.isActive} 
+                onCheckedChange={(val) => onChange("isActive", val)} 
               />
-              <span
-                aria-hidden="true"
-                className={
-                  "inline-flex h-4 w-4 items-center justify-center rounded border border-input transition-colors " +
-                  (draft.isActive
-                    ? "bg-black border-black"
-                    : "bg-background border-input text-muted-foreground")
-                }
-              >
-                {draft.isActive ? (
-                  <svg
-                    className="h-3 w-3"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="4 8.5 7 11.5 12 6.5" />
-                  </svg>
-                ) : null}
-              </span>
-              <span className="text-sm">Active</span>
-            </label>
+              <Label htmlFor="model-active-switch" className="cursor-pointer">Active</Label>
+            </div>
           </Field>
         </div>
         <div className="col-span-12">
           <Field orientation="horizontal">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={draft.isDefault}
-                onChange={(e) => onChange("isDefault", e.target.checked)}
-                className="sr-only peer"
-                // aria-checked removed: not needed for native input
-                tabIndex={0}
-                title="Default"
+            <div className="flex items-center space-x-3">
+              <Switch 
+                id="model-default-switch"
+                checked={draft.isDefault} 
+                onCheckedChange={(val) => onChange("isDefault", val)} 
               />
-              <span
-                aria-hidden="true"
-                className={
-                  "inline-flex h-4 w-4 items-center justify-center rounded border border-input transition-colors " +
-                  (draft.isDefault
-                    ? "bg-black border-black"
-                    : "bg-background border-input text-muted-foreground")
-                }
-              >
-                {draft.isDefault ? (
-                  <svg
-                    className="h-3 w-3"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="4 8.5 7 11.5 12 6.5" />
-                  </svg>
-                ) : null}
-              </span>
-              <span className="text-sm">Default</span>
-            </label>
+              <Label htmlFor="model-default-switch" className="cursor-pointer">Default</Label>
+            </div>
           </Field>
         </div>
       </div>
