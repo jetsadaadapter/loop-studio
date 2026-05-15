@@ -23,7 +23,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ModelFormFields, validateModelForm } from "./ModelFormFields";
+import {
+  ModelFormFields,
+  validateModelForm,
+  type ModelFormFieldsDraft,
+} from "./ModelFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { useDialogToast } from "@/components/ui/alert-dialog-toast";
 import { Button } from "@/components/ui/button";
@@ -297,6 +301,20 @@ export function ManageAiClient() {
     setFieldErrors({});
   }
 
+  const handleDraftChange = <K extends keyof ModelFormFieldsDraft>(
+    field: K,
+    value: ModelFormFieldsDraft[K],
+  ) => {
+    setDraft((current) => ({ ...current, [field]: value }));
+    if (fieldErrors[field as string]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field as string];
+        return next;
+      });
+    }
+  };
+
   const onSubmit: FormSubmitHandler = (event) => {
     void handleSubmit(event);
   };
@@ -307,7 +325,6 @@ export function ManageAiClient() {
     const errors = validateModelForm(draft);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setError("Please review the highlighted fields.");
       setIsSubmitting(false);
       return;
     }
@@ -647,9 +664,7 @@ export function ManageAiClient() {
             <ModelFormFields
               draft={draft}
               fieldErrors={fieldErrors}
-              onChange={(field, value) =>
-                setDraft((current) => ({ ...current, [field]: value }))
-              }
+              onChange={handleDraftChange}
             />
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
           </ManagerForm>

@@ -32,15 +32,17 @@ export function createToolExecutionSchema(params: ToolParam[]) {
                 }
                 break;
             case "url":
-                schema = z.string().url(`${param.label} must be a valid URL`);
+                schema = z.string({ message: `${param.label} is required` }).url(`${param.label} must be a valid URL`);
                 break;
             default:
-                schema = z.string();
+                schema = z.string({ message: `${param.label} is required` });
         }
 
         // Apply transformations/special types
         if (param.transform === "urlArray") {
-            schema = z.array(z.string().url("Must be a valid URL")).min(param.required ? 1 : 0, "At least one URL is required");
+            schema = z.array(z.string().url("Must be a valid URL"), {
+                message: `${param.label} is required`,
+            }).min(param.required ? 1 : 0, `At least one ${param.label.toLowerCase()} is required`);
         }
 
         // Apply requirement
