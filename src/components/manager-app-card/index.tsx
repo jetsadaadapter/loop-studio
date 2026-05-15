@@ -164,17 +164,16 @@ export function ManagerAppCard({
                   {copiedLink ? "Copied!" : "Copy link"}
                 </DropdownMenuItem>
 
-                <DropdownMenuItem className="py-2 text-sm cursor-pointer">
-                  <a
-                    href={typeof item.id === "string" ? `/apps/${item.id}` : "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    tabIndex={0}
-                    className="flex items-center w-full h-full"
-                  >
-                    <ExternalLink className="size-4 mr-2" />
-                    Detail
-                  </a>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
+                    window.open(url, "_blank");
+                  }}
+                  className="py-2 text-sm cursor-pointer"
+                >
+                  <ExternalLink className="size-4 mr-2" />
+                  Detail
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />

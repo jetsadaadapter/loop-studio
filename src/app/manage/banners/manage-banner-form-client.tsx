@@ -405,32 +405,41 @@ export function ManageBannerFormClient({
                           type="button"
                           onClick={() => handleDraftChange("appId", appId)}
                           className={cn(
-                            "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
+                            "flex flex-col p-4 rounded-xl border text-left transition-all relative overflow-hidden",
                             isSelected
-                              ? "bg-blue-50 border-blue-600 ring-1 ring-blue-600"
-                              : "bg-white border-zinc-200 hover:border-zinc-300"
+                              ? "bg-white border-zinc-900 ring-1 ring-zinc-900"
+                              : "bg-white border-zinc-200 hover:border-zinc-300 shadow-sm"
                           )}
                         >
-                          <div className="relative size-10 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0">
-                            {iconUrl ? (
-                              <Image
-                                src={iconUrl}
-                                alt={app.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            ) : (
-                              <LayoutGrid className="size-5 text-zinc-400 m-auto" />
-                            )}
+                          <div className="flex items-start justify-between w-full mb-3">
+                            <div className="relative size-10 rounded-lg overflow-hidden flex-shrink-0 border border-zinc-100 bg-zinc-50 flex items-center justify-center">
+                              {iconUrl ? (
+                                <Image
+                                  src={iconUrl}
+                                  alt={app.name}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              ) : (
+                                <LayoutGrid className="size-4 text-zinc-400" />
+                              )}
+                            </div>
+                            <div className={cn(
+                              "flex size-6 shrink-0 items-center justify-center rounded-full transition-colors",
+                              isSelected 
+                                ? "bg-zinc-900 border border-zinc-900 text-white" 
+                                : "border border-zinc-200 bg-white"
+                            )}>
+                              <Check className={cn("size-3.5", isSelected ? "text-white" : "text-zinc-300")} />
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate">{app.name}</p>
-                            <p className="text-[10px] text-zinc-500 truncate">
-                              {typeof app.category === 'object' ? app.category.name : app.category}
+                          <div className="w-full">
+                            <p className="text-[14px] font-bold text-zinc-900 truncate mb-1">{app.name}</p>
+                            <p className="text-[12px] text-zinc-500 line-clamp-2 leading-relaxed">
+                              {app.description || "No description provided."}
                             </p>
                           </div>
-                          {isSelected && <Check className="size-4 text-blue-600 flex-shrink-0" />}
                         </button>
                       );
                     })
