@@ -74,9 +74,12 @@ export interface ToolJob {
         }>;
     };
     processed: string | null;
+    status?: 'running' | 'completed' | 'failed' | 'queued';
+    state?: string;
+    error?: string | null | Record<string, unknown>;
     createdAt: string;
     updatedAt: string;
-    __v: number;
+    __v?: number;
 }
 
 export type GetToolJobsResponse = Paginated<ToolJob>;

@@ -114,6 +114,19 @@ function DialogTitle({ className, children }: DialogTitleProps) {
   );
 }
 
+interface DialogDescriptionProps {
+  className?: string;
+  children: ReactNode;
+}
+
+function DialogDescription({ className, children }: DialogDescriptionProps) {
+  return (
+    <p className={cn("text-sm text-slate-500", className)}>
+      {children}
+    </p>
+  );
+}
+
 // Simple context for dialog state
 interface DialogContextType {
   open: boolean;
@@ -122,4 +135,4 @@ interface DialogContextType {
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
-export { Dialog, DialogContent, DialogHeader, DialogTitle };
+export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription };

@@ -23,7 +23,8 @@ import {
     List,
     CheckCircle2,
     Clock,
-    ExternalLink
+    ExternalLink,
+    AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -46,12 +47,71 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { LibraryFooter } from "@/components/library-footer";
 
 interface ToolClientProps {
     tool: Tool;
     initialJobs: GetToolJobsResponse;
 }
+
+type JobStatus = string;
+
+interface AnalysisResult {
+    sentiment?: string;
+    summary?: string;
+    keywords?: string[];
+}
+
+interface SourceItem {
+    postId?: string;
+    id?: string;
+    _id?: string;
+    pageName?: string;
+    url?: string;
+    text?: string;
+    message?: string;
+    caption?: string;
+    content?: string;
+    [key: string]: unknown;
+}
+
+const getJobStatus = (job: ToolJob) => {
+    if (job.status) return job.status;
+    if (job.error) return 'failed';
+    if (job.state) return job.state.toLowerCase() as JobStatus;
+    if (job.processed) return 'completed';
+    return 'running';
+};
+
+const getItemCount = (job: ToolJob) => {
+    // 1. Priority: Use explicit itemCount from results
+    if (job.result?.itemCount && job.result.itemCount > 0) return job.result.itemCount;
+
+    // 2. Secondary: Count actual result items array
+    if (Array.isArray(job.result?.items) && job.result.items.length > 0) return job.result.items.length;
+
+    // 3. Fallback: Extract from input (common in list view)
+    const input = job.input || {};
+    if (Array.isArray(input.startUrls)) return input.startUrls.length;
+    if (Array.isArray(input.items)) return input.items.length;
+
+    // 4. Fallback for chained jobs (check for previousResults)
+    const prevResults = input.previousResults as { itemCount?: number; items?: unknown[] } | undefined;
+    if (prevResults) {
+        if (typeof prevResults.itemCount === 'number' && prevResults.itemCount > 0) return prevResults.itemCount;
+        if (Array.isArray(prevResults.items)) return prevResults.items.length;
+    }
+
+    return 0;
+};
 
 function UrlArrayInput({
     id,
@@ -192,6 +252,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         return initialData;
     });
     const [selectedJob, setSelectedJob] = useState<ToolJob | null>(null);
+    const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+    const [isJobLoading, setIsJobLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<JobStatus>('all');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const { pushDialogToast } = useDialogToast();
 
@@ -216,9 +279,16 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             await runTool(tool.id, formData);
             pushDialogToast("Job started successfully!", "success");
 
-            // Refresh jobs list
-            const updatedJobs = await getToolJobs(tool.id);
-            setJobs(updatedJobs.data);
+            const fetchJobs = async () => {
+                try {
+                    const response = await getToolJobs(tool.id);
+                    console.log("[ToolClient] Fetched jobs list:", response.data);
+                    setJobs(response.data);
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+            fetchJobs();
         } catch (error) {
             console.error(error);
             pushDialogToast("Failed to start job.", "error");
@@ -228,12 +298,22 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     };
 
     const handleViewJob = async (jobId: string) => {
+        console.log(`[ToolClient] handleViewJob: Fetching details for Job ID: ${jobId}`);
+        setIsJobModalOpen(true);
+        setIsJobLoading(true);
+        setSelectedJob(null);
         try {
             const job = await getToolJob(tool.id, jobId);
+            console.log(`[ToolClient] handleViewJob: Successfully fetched job:`, job);
             setSelectedJob(job);
+            // Merge fetched detail (including result.itemCount) back into jobs list
+            setJobs(prev => prev.map(j => j.jobId === jobId ? { ...j, result: job.result } : j));
         } catch (error) {
-            console.error(error);
+            console.error(`[ToolClient] handleViewJob: Error fetching job details:`, error);
             pushDialogToast("Failed to fetch job details.", "error");
+            setIsJobModalOpen(false);
+        } finally {
+            setIsJobLoading(false);
         }
     };
 
@@ -276,7 +356,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                     </AppCover>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Form Section */}
                     <div className="lg:col-span-2 space-y-6">
                         <Card className="shadow-sm border-slate-200">
@@ -407,139 +487,82 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Result View */}
-                        {selectedJob && (
-                            <Card className="shadow-md border-slate-200 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-                                <CardHeader className="bg-slate-900 text-white border-b-0">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <CardTitle className="text-lg">Job Result</CardTitle>
-                                            <CardDescription className="text-slate-400">ID: {selectedJob.jobId}</CardDescription>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-teal-500/20 text-teal-400 rounded-full border border-teal-500/30 text-xs font-bold">
-                                            <CheckCircle2 className="size-4" />
-                                            COMPLETED
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="divide-y divide-slate-100">
-                                        {selectedJob.result.items.map((item, idx) => (
-                                            <div key={`item-${item.id || item.sourceKey || idx}`} className="p-6 space-y-4 hover:bg-slate-50/50 transition-colors">
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div className="flex-1">
-                                                        <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
-                                                            {String(item.pageName || item.sourceKeyValue || `Item ${idx + 1}`)}
-                                                        </h4>
-                                                        <p className="text-xs text-slate-500 mt-1">{String(item.facebookUrl || item.url || "")}</p>
-                                                    </div>
-                                                    {!!(item.url) && (
-                                                        <a href={String(item.url)} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-brand transition-colors rounded-lg hover:bg-white shadow-xs border border-transparent hover:border-slate-200">
-                                                            <ExternalLink className="size-4" />
-                                                        </a>
-                                                    )}
-                                                </div>
-
-                                                {item.analysis && (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-4 rounded-xl border border-slate-100 shadow-xs">
-                                                        <div className="space-y-3">
-                                                            <div>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sentiment</span>
-                                                                <div className={cn(
-                                                                    "mt-1 px-2.5 py-1 rounded-full text-xs font-bold inline-block",
-                                                                    (item.analysis as Record<string, unknown> | undefined)?.sentiment === 'positive' ? "bg-teal-50 text-teal-600 border border-teal-100" :
-                                                                        (item.analysis as Record<string, unknown> | undefined)?.sentiment === 'negative' ? "bg-red-50 text-red-600 border border-red-100" :
-                                                                            "bg-slate-50 text-slate-600 border border-slate-100"
-                                                                )}>
-                                                                    {String((item.analysis as Record<string, unknown> | undefined)?.sentiment || 'unknown').toUpperCase()}
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Summary</span>
-                                                                <p className="mt-1 text-xs text-slate-700 leading-relaxed italic line-clamp-4">
-                                                                    &quot;{String((item.analysis as Record<string, unknown> | undefined)?.summary || '')}&quot;
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-3">
-                                                            <div>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Keywords</span>
-                                                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                    {Array.isArray((item.analysis as Record<string, unknown> | undefined)?.keywords) &&
-                                                                        ((item.analysis as Record<string, unknown> | undefined)?.keywords as string[]).map((kw, i) => (
-                                                                            <span key={`kw-${kw}-${i}`} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium border border-slate-200">
-                                                                                {kw}
-                                                                            </span>
-                                                                        ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {!!(item.text) && (
-                                                    <div className="bg-slate-50 rounded-lg p-3">
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Extracted Text</span>
-                                                        <p className="mt-1 text-[11px] text-slate-600 line-clamp-3 leading-relaxed">
-                                                            {typeof item.text === 'string' ? item.text : JSON.stringify(item.text)}
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </div>
 
                     {/* History Section */}
                     <div className="space-y-6">
                         <Card className="shadow-sm border-slate-200">
-                            <CardHeader className="pb-3">
+                            <CardHeader className="pb-3 space-y-4">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <History className="size-5 text-slate-400" />
                                     Job History
                                 </CardTitle>
+
+                                {/* Tabs — derived from actual job states in the list */}
+                                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                                    {['all', ...Array.from(new Set(jobs.map(j => getJobStatus(j))))].map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveTab(tab)}
+                                            className={cn(
+                                                "flex-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all",
+                                                activeTab === tab
+                                                    ? "bg-white text-slate-900 shadow-sm"
+                                                    : "text-slate-500 hover:text-slate-700"
+                                            )}
+                                        >
+                                            {tab}
+                                        </button>
+                                    ))}
+                                </div>
                             </CardHeader>
                             <CardContent className="px-0">
                                 <div className="divide-y divide-slate-100">
-                                    {jobs.length === 0 ? (
+                                    {jobs.filter(job => activeTab === 'all' || getJobStatus(job) === activeTab).length === 0 ? (
                                         <div className="py-10 text-center space-y-2">
                                             <Clock className="size-8 text-slate-200 mx-auto" />
-                                            <p className="text-xs text-slate-400">No jobs run yet.</p>
+                                            <p className="text-xs text-slate-400">No {activeTab !== 'all' ? activeTab : ''} jobs found.</p>
                                         </div>
                                     ) : (
-                                        jobs.map(job => (
-                                            <button
-                                                key={job.jobId}
-                                                onClick={() => handleViewJob(job.jobId)}
-                                                className={cn(
-                                                    "w-full text-left p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group",
-                                                    selectedJob?.jobId === job.jobId && "bg-brand/5 border-l-4 border-l-brand"
-                                                )}
-                                            >
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-xs font-bold text-slate-900 truncate">
-                                                            {job.jobId.split('-')[0]}...
-                                                        </p>
-                                                        <span className="text-[10px] text-slate-400">
-                                                            {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <div className="flex items-center gap-1">
-                                                            <Circle className="size-2 fill-teal-400 text-teal-400" />
-                                                            <span className="text-[10px] font-bold text-slate-500 uppercase">Completed</span>
+                                        jobs
+                                            .filter(job => activeTab === 'all' || getJobStatus(job) === activeTab)
+                                            .map(job => (
+                                                <button
+                                                    key={job.jobId}
+                                                    onClick={() => handleViewJob(job.jobId)}
+                                                    className={cn(
+                                                        "w-full text-left p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group",
+                                                        selectedJob?.jobId === job.jobId && "bg-brand/5 border-l-4 border-l-brand"
+                                                    )}
+                                                >
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-bold text-slate-900 truncate">
+                                                                {job.jobId.split('-')[0]}...
+                                                            </p>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+                                                            </span>
                                                         </div>
-                                                        <span className="text-[10px] text-slate-400">•</span>
-                                                        <span className="text-[10px] text-slate-400 font-medium">{(job.result?.itemCount ?? 0)} items</span>
+                                                        <div className="flex items-center gap-3 mt-1">
+                                                            <div className="flex items-center gap-1">
+                                                                <Circle className={cn(
+                                                                    "size-2 fill-current",
+                                                                    getJobStatus(job) === 'completed' ? "text-teal-400" :
+                                                                        getJobStatus(job) === 'running' ? "text-amber-400 animate-pulse" :
+                                                                            getJobStatus(job) === 'failed' ? "text-red-400" : "text-slate-300"
+                                                                )} />
+                                                                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                                                    {getJobStatus(job)}
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-[10px] text-slate-400">•</span>
+                                                            <span className="text-[10px] text-slate-400 font-medium">{getItemCount(job)} items</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-400 group-hover:translate-x-1 transition-all" />
-                                            </button>
-                                        ))
+                                                    <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-400 group-hover:translate-x-1 transition-all" />
+                                                </button>
+                                            ))
                                     )}
                                 </div>
                             </CardContent>
@@ -547,6 +570,208 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                     </div>
                 </div>
             </div>
+            {/* Modal for Job Detail */}
+            <Dialog open={isJobModalOpen} onOpenChange={setIsJobModalOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none bg-slate-50">
+                    {isJobLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                            <Loader2 className="size-10 text-brand animate-spin" />
+                            <p className="text-sm text-slate-500 font-medium">Loading job details...</p>
+                        </div>
+                    ) : selectedJob ? (
+                        <>
+                            <DialogHeader className="p-6 bg-slate-900 text-white shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                            <FileText className="size-5" />
+                                            Job Result Detail
+                                        </DialogTitle>
+                                        <DialogDescription className="text-slate-400 font-mono text-xs">
+                                            ID: {selectedJob.jobId}
+                                        </DialogDescription>
+                                    </div>
+                                    <Badge
+                                        variant="outline"
+                                        className={cn(
+                                            "font-bold px-3 py-1",
+                                            getJobStatus(selectedJob) === 'completed' ? "bg-teal-500/20 text-teal-400 border-teal-500/30" :
+                                                getJobStatus(selectedJob) === 'running' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                                                    "bg-red-500/20 text-red-400 border-red-500/30"
+                                        )}
+                                    >
+                                        {getJobStatus(selectedJob) === 'completed' && <CheckCircle2 className="size-3 mr-1" />}
+                                        {getJobStatus(selectedJob) === 'running' && <Loader2 className="size-3 mr-1 animate-spin" />}
+                                        {(getJobStatus(selectedJob)).toUpperCase()}
+                                    </Badge>
+                                </div>
+                            </DialogHeader>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                                {/* Configuration Summary */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Model Configuration</span>
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                            <div className="size-2 rounded-full bg-brand" />
+                                            {String(selectedJob.config?.model || 'Default Model')}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Processed Time</span>
+                                        <div className="text-sm font-semibold text-slate-700">
+                                            {selectedJob.createdAt ? new Date(selectedJob.createdAt).toLocaleString() : 'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Error Display */}
+                                {selectedJob.error && (
+                                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                                        <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-bold text-red-800">Job Failed</p>
+                                            <p className="text-xs text-red-600 leading-relaxed">
+                                                {typeof selectedJob.error === 'string'
+                                                    ? selectedJob.error
+                                                    : JSON.stringify(selectedJob.error)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Result Items */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                        <List className="size-4 text-brand" />
+                                        Processed Items ({getItemCount(selectedJob)})
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        {(selectedJob.result?.items || []).length === 0 ? (
+                                            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
+                                                <div className="size-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                                                    <List className="size-6 text-slate-300" />
+                                                </div>
+                                                <p className="text-sm text-slate-500">No result items found for this job.</p>
+                                            </div>
+                                        ) : (
+                                            selectedJob.result?.items.map((item, idx) => {
+                                                // 1. Read text directly from result item
+                                                const itemText = typeof item.text === 'string' ? item.text : '';
+
+                                                // 2. Fallback: find matching source from previousResults
+                                                const inputItems = (selectedJob.input?.previousResults as { items?: SourceItem[] })?.items || [];
+                                                const sourceItem: SourceItem = inputItems.find((ii) =>
+                                                    ii.postId === item.sourceKeyValue ||
+                                                    ii.id === item.sourceKeyValue ||
+                                                    ii._id === item.sourceKeyValue ||
+                                                    ii.url === item.sourceKeyValue
+                                                ) || {};
+
+                                                const sourceText =
+                                                    itemText ||
+                                                    sourceItem.text ||
+                                                    sourceItem.message ||
+                                                    sourceItem.caption ||
+                                                    sourceItem.content ||
+                                                    '';
+                                                const analysis = (item.analysis as AnalysisResult) || {};
+
+                                                return (
+                                                    <div key={`modal-item-${idx}`} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                                                        <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-bold border border-brand/20">
+                                                                    {idx + 1}
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-xs font-bold text-slate-900 truncate max-w-[200px] block">
+                                                                        {String(
+                                                                            (typeof item.pageName === 'string' ? item.pageName : '') ||
+                                                                            sourceItem.pageName ||
+                                                                            item.postId ||
+                                                                            item.sourceKeyValue ||
+                                                                            `Item ${idx + 1}`
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400">ID: {String(item.postId || item.sourceKeyValue || '—')}</span>
+                                                                </div>
+                                                            </div>
+                                                            {sourceItem.url && (
+                                                                <a
+                                                                    href={sourceItem.url}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="p-1.5 text-slate-400 hover:text-brand hover:bg-white rounded-md transition-all border border-transparent hover:border-slate-100"
+                                                                >
+                                                                    <ExternalLink className="size-4" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                                            {/* Source Content */}
+                                                            <div className="lg:col-span-5 space-y-3">
+                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Source Content</span>
+                                                                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                                                    {sourceText ? (
+                                                                        <p className="text-xs text-slate-600 line-clamp-6 leading-relaxed italic">
+                                                                            &quot;{sourceText}&quot;
+                                                                        </p>
+                                                                    ) : (
+                                                                        <p className="text-xs text-slate-400 italic">No source content available.</p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Analysis Result */}
+                                                            <div className="lg:col-span-7 space-y-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Analysis</span>
+                                                                    <div className={cn(
+                                                                        "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                                                                        analysis.sentiment === 'positive' ? "bg-teal-100 text-teal-700" :
+                                                                            analysis.sentiment === 'negative' ? "bg-red-100 text-red-700" :
+                                                                                "bg-slate-100 text-slate-700"
+                                                                    )}>
+                                                                        {analysis.sentiment || 'Neutral'}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="space-y-3">
+                                                                    <div className="bg-brand/5 border border-brand/10 p-3 rounded-xl">
+                                                                        <p className="text-[11px] text-slate-800 leading-relaxed font-medium">
+                                                                            {analysis.summary || 'No summary available.'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex flex-wrap gap-1.5">
+                                                                        {Array.isArray(analysis.keywords) && analysis.keywords.length > 0 ? (
+                                                                            analysis.keywords.map((kw: string, i: number) => (
+                                                                                <span key={i} className="px-2 py-0.5 bg-white border border-slate-200 text-slate-500 rounded-md text-[10px] font-semibold hover:border-brand/30 hover:text-brand transition-colors">
+                                                                                    #{kw}
+                                                                                </span>
+                                                                            ))
+                                                                        ) : (
+                                                                            <span className="text-[10px] text-slate-400 italic">No keywords</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                            <p className="text-sm text-slate-500">No job data available.</p>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
             <LibraryFooter />
         </div>
     );

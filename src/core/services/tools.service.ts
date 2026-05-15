@@ -41,6 +41,11 @@ export async function getToolJob(
     init?: RequestInit
 ): Promise<ToolJob> {
     const url = buildUrl(`/tools/${toolId}/jobs/${jobId}`);
-    const response = await apiFetch<GetToolJobDetailResponse>(url, init);
-    return response.data;
+    const response = await apiFetch<ToolJob | GetToolJobDetailResponse>(url, init);
+    
+    // Flexible handling: check if it's the wrapped response or the job object directly
+    if ('data' in response && response.data) {
+        return response.data;
+    }
+    return response as ToolJob;
 }

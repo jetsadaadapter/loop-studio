@@ -104,7 +104,7 @@ export async function apiFetch<T>(
 
     const hasAuth = incomingHeaders.has("Authorization");
     console.log(`[Library API] → ${init?.method ?? "GET"} ${url}`);
-    console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING"}`);
+    console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING (Handled by Proxy)"}`);
 
     const t0 = Date.now();
     let res: Response;
