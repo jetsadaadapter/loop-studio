@@ -1,10 +1,11 @@
+"use client";
+
 import Image from "next/image";
-import type { SyntheticEvent } from "react";
-import { Copy, Ellipsis, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { useState, type SyntheticEvent } from "react";
+import { Check, Copy, Ellipsis, ExternalLink, Pencil, Trash2, Folder, Link as LinkIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,15 +40,13 @@ function getStatusPresentation(isActive: boolean) {
   if (isActive) {
     return {
       label: "Active",
-      badgeVariant: "secondary" as const,
-      dotClassName: "bg-emerald-500",
+      className: "bg-emerald-50 text-emerald-600",
     };
   }
 
   return {
     label: "Inactive",
-    badgeVariant: "outline" as const,
-    dotClassName: "bg-zinc-400",
+    className: "bg-slate-100 text-slate-500",
   };
 }
 
@@ -56,18 +55,18 @@ function getTypePresentation(linkType: AppLinkType) {
     case "instruction":
       return {
         label: "Instruction",
-        className: "border-transparent bg-slate-700 text-white",
+        className: "bg-amber-50 text-amber-600",
       };
     case "external":
       return {
         label: "External",
-        className: "border-transparent bg-rose-700 text-white",
+        className: "bg-rose-50 text-rose-600",
       };
     case "internal":
     default:
       return {
         label: "Internal",
-        className: "border-transparent bg-indigo-700 text-white",
+        className: "bg-indigo-50 text-indigo-600",
       };
   }
 }
@@ -95,124 +94,160 @@ export function ManagerAppCard({
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const status = getStatusPresentation(item.isActive);
   const type = getTypePresentation(item.linkType);
 
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(item.id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   return (
-    <Card className="group overflow-hidden p-0">
-      <div className="relative h-64 w-full overflow-hidden">
-        <div className="absolute inset-0 animate-pulse bg-muted" />
-        <Image
-          src={getCardImageSource(item)}
-          alt={item.name}
-          fill
-          className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-          unoptimized
-          onError={onCardImageError}
-        />
+    <Card className="group flex flex-col overflow-hidden p-0 ring-0 border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white rounded-2xl">
+      {/* Image Container with inner padding */}
+      <div className="p-2 pb-0 shrink-0">
+        <div className="relative h-40 sm:h-44 w-full overflow-hidden rounded-xl">
+          <div className="absolute inset-0 animate-pulse bg-muted" />
+          <Image
+            src={getCardImageSource(item)}
+            alt={item.name}
+            fill
+            className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            unoptimized
+            onError={onCardImageError}
+          />
 
-        <div className="absolute right-3 top-3 z-20">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="flex items-center justify-center rounded-full border-0 bg-white/25 p-0 text-white shadow-none backdrop-blur-sm transition hover:bg-white/35 hover:text-white aria-expanded:bg-white/40 active:bg-white/40"
-                />
-              }
-              aria-label={`Open actions for ${item.name}`}
-            >
-              <Ellipsis className="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="bottom" className="w-48">
-              <DropdownMenuItem
-                onClick={onEdit}
-                disabled={isBusy}
-                className="py-2 text-sm cursor-pointer"
+          <div className="absolute right-2 top-2 z-20">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="flex size-8 items-center justify-center rounded-full border-0 bg-black/40 p-0 text-white shadow-none backdrop-blur-md transition hover:bg-black/60 hover:text-white aria-expanded:bg-black/60 active:bg-black/60"
+                  />
+                }
+                aria-label={`Open actions for ${item.name}`}
               >
-                <Pencil className="size-4" />
-                Edit app
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
-                  navigator.clipboard.writeText(url);
-                }}
-                className="py-2 text-sm cursor-pointer"
-              >
-                <Copy className="size-4" />
-                Copy link
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className="py-2 text-sm cursor-pointer">
-                <a
-                  href={typeof item.id === "string" ? `/apps/${item.id}` : "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  tabIndex={0}
-                  className="flex items-center gap-1.5 w-full h-full"
+                <Ellipsis className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="bottom" className="w-48">
+                <DropdownMenuItem
+                  onClick={onEdit}
+                  disabled={isBusy}
+                  className="py-2 text-sm cursor-pointer"
                 >
-                  <ExternalLink className="size-4" />
-                  Detail
-                </a>
-              </DropdownMenuItem>
+                  <Pencil className="size-4 mr-2" />
+                  Edit app
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleCopyLink}
+                  className="py-2 text-sm cursor-pointer"
+                >
+                  {copiedLink ? <Check className="size-4 mr-2 text-emerald-500" /> : <Copy className="size-4 mr-2" />}
+                  {copiedLink ? "Copied!" : "Copy link"}
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={onDelete}
-                disabled={isBusy}
-                variant="destructive"
-                className="py-2 text-sm cursor-pointer"
-              >
-                <Trash2 className="size-4" />
-                {isDeleting ? "Deleting..." : "Delete"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem className="py-2 text-sm cursor-pointer">
+                  <a
+                    href={typeof item.id === "string" ? `/apps/${item.id}` : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabIndex={0}
+                    className="flex items-center w-full h-full"
+                  >
+                    <ExternalLink className="size-4 mr-2" />
+                    Detail
+                  </a>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  disabled={isBusy}
+                  variant="destructive"
+                  className="py-2 text-sm cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-600"
+                >
+                  <Trash2 className="size-4 mr-2" />
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
-      <CardHeader className="px-4 pb-0 pt-0">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="line-clamp-1 text-sm font-semibold">
+      {/* Content Area */}
+      <div className="flex flex-col flex-1 px-4 pb-3 pt-0 sm:px-5 sm:pb-4 sm:pt-0">
+        <div className="mb-2">
+          <h3 className="text-md font-bold tracking-tight text-slate-900 line-clamp-1">
             {item.name}
-          </CardTitle>
-          <Badge
-            variant={status.badgeVariant}
-            className="shrink-0 text-[0.7rem]!"
-          >
-            <span
-              className={`mr-1.5 inline-block size-2 rounded-full ${status.dotClassName}`}
-            />
-            {status.label}
-          </Badge>
-        </div>
-        <p className="text-[0.7rem] text-muted-foreground">#{item.id}</p>
-      </CardHeader>
+          </h3>
 
-      <CardContent className="space-y-2 px-4 pb-4">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Category</span>
-          <Badge variant="outline" className="font-medium text-[0.7rem] px-2 py-0">
+          <div className="flex items-center gap-4 mt-2 text-xs font-medium text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <Folder className="size-3.5" />
+              {item.category}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <LinkIcon className="size-3.5" />
+              {type.label}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed mb-3">
+          {item.description || "No description provided."}
+        </p>
+
+        {/* Tags / Badges */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-3 mt-auto">
+          <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide ${status.className}`}>
+            {status.label}
+          </span>
+          <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide ${type.className}`}>
+            {type.label} App
+          </span>
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide bg-sky-50 text-sky-600 truncate max-w-[120px]">
             {item.category}
-          </Badge>
+          </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Type</span>
-          <Badge
-            variant="outline"
-            className={`min-w-24 justify-center text-[0.7rem]! ${type.className}`}
+
+        {/* Divider */}
+        <div className="h-px w-full bg-slate-100 mb-3" />
+
+        {/* Footer Code Block */}
+        <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+          <span className="text-xs font-mono text-slate-600 truncate mr-2">
+            ID: {item.id}
+          </span>
+          <button
+            type="button"
+            className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-sm transition"
+            onClick={handleCopyId}
+            title="Copy ID"
           >
-            {type.label}
-          </Badge>
+            {copiedId ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+          </button>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
