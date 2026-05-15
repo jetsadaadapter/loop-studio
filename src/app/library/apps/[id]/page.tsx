@@ -65,8 +65,8 @@ export default async function AppDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:pb-10">
-      <div className="-mt-5 space-y-6">
+    <div className="mx-auto max-w-6xl px-0 pb-8 sm:px-0 lg:pb-10">
+      <div className="space-y-6">
         <AppCover
           src={app.imageUrl}
           alt={`${app.name} cover image`}

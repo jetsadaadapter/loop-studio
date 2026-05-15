@@ -88,11 +88,11 @@ export function LibraryShell({ children }: { children: ReactNode }) {
       <div className="min-h-screen bg-white">
         <header
           className={`sticky top-0 z-30 transition-all duration-200 ${hasScrolled
-              ? "border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur"
-              : "border-b border-transparent bg-transparent shadow-none backdrop-blur-0"
+            ? "border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur"
+            : "border-b border-transparent bg-transparent shadow-none backdrop-blur-0"
             }`}
         >
-          <div className="flex h-16 w-full items-center gap-4 px-4 md:px-6">
+          <div className="flex h-16 w-full items-center gap-4 px-4 sm:px-4">
             {/* Logo */}
             <Link href="/apps" className="flex shrink-0 items-center">
               <h1 className="sr-only">Adapter Library</h1>
@@ -115,8 +115,8 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                 <Link
                   href="/apps"
                   className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors motion-enter-1 after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${pathname === "/apps" || pathname === "/"
-                      ? "text-slate-900 after:scale-x-100"
-                      : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
+                    ? "text-slate-900 after:scale-x-100"
+                    : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100"
                     }`}
                 >
                   Home
@@ -125,8 +125,8 @@ export function LibraryShell({ children }: { children: ReactNode }) {
               <Link
                 href="/about"
                 className={`relative inline-flex h-full items-center px-0 text-sm font-semibold transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-8 after:-translate-x-1/2 after:rounded-t-full after:bg-brand after:origin-center after:transition-transform after:duration-300 ${pathname?.startsWith("/about")
-                    ? "text-slate-900 after:scale-x-100 motion-enter-1"
-                    : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100 motion-enter-2"
+                  ? "text-slate-900 after:scale-x-100 motion-enter-1"
+                  : "text-slate-500 after:scale-x-0 hover:text-slate-900 hover:after:scale-x-100 motion-enter-2"
                   }`}
               >
                 About us
@@ -172,8 +172,8 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                         <Link
                           href="/apps"
                           className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all motion-enter-1 ${pathname === "/apps" || pathname === "/"
-                              ? "font-bold text-slate-900"
-                              : "font-medium text-slate-600 hover:text-slate-900"
+                            ? "font-bold text-slate-900"
+                            : "font-medium text-slate-600 hover:text-slate-900"
                             }`}
                         >
                           {(pathname === "/apps" || pathname === "/") && (
@@ -185,8 +185,8 @@ export function LibraryShell({ children }: { children: ReactNode }) {
                       <Link
                         href="/about"
                         className={`relative flex items-center gap-0 rounded-xl px-5 py-3 text-sm transition-all ${pathname?.startsWith("/about")
-                            ? "font-bold text-slate-900 motion-enter-1"
-                            : "font-medium text-slate-600 hover:text-slate-900 motion-enter-2"
+                          ? "font-bold text-slate-900 motion-enter-1"
+                          : "font-medium text-slate-600 hover:text-slate-900 motion-enter-2"
                           }`}
                       >
                         {pathname?.startsWith("/about") && (
@@ -205,7 +205,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 md:px-6">
+        <main className="mx-auto w-full max-w-6xl px-4 sm:px-4">
           {children}
         </main>
 

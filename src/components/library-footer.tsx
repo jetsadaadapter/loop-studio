@@ -6,7 +6,7 @@ import { libraryFooterLinks, libraryShellCopy } from "@/app/library/layout.data"
 export function LibraryFooter() {
   return (
     <footer className="border-t border-white/10 bg-black">
-      <div className="mx-auto w-full max-w-6xl px-4 py-10 md:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-4 py-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <Image

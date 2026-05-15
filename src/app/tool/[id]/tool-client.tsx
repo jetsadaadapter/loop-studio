@@ -6,7 +6,6 @@ import { runTool, getToolJobs, getToolJob } from "@/core/services/tools.service"
 import { useDialogToast } from "@/components/ui/alert-dialog-toast";
 import { AppCover } from "@/components/app-cover";
 import Link from "next/link";
-import { LibraryFooter } from "@/components/library-footer";
 import { createToolExecutionSchema } from "@/core/validators/tools.validator";
 import { ToolFormSection } from "./tool-form-section";
 import { ToolHistorySidebar } from "./tool-history-sidebar";
@@ -99,7 +98,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
 
     return (
         <div className="flex-1 flex flex-col">
-            <div className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6 flex-1">
+            <div className="mx-auto w-full max-w-6xl pb-6 flex-1">
                 <div className="mb-6">
                     <AppCover src={null} alt={`${tool.name} cover`} accentColor="#0ea5e9">
                         <div className="pt-5 sm:pt-8">
@@ -139,7 +138,6 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             </div>
 
             <ToolJobModal open={isJobModalOpen} isLoading={isJobLoading} job={selectedJob} onOpenChange={setIsJobModalOpen} />
-            <LibraryFooter />
         </div>
     );
 }
