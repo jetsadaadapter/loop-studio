@@ -1,20 +1,16 @@
-// Validate all fields for the model form, similar to manage apps
+import { AIModelSchema } from "@/core/validators/models.validator";
+
 export function validateModelForm(
   value: ModelFormFieldsDraft,
 ): Record<string, string> {
+  const result = AIModelSchema.safeParse(value);
+  if (result.success) return {};
+
   const errors: Record<string, string> = {};
-
-  if (!value.modelSlug.trim()) errors.modelSlug = "Model slug is required.";
-  if (!value.name.trim()) errors.name = "Name is required.";
-  if (!value.provider.trim()) errors.provider = "Provider is required.";
-
-  // Example: add more rules as needed
-  if (value.modelSlug && value.modelSlug.length < 3) {
-    errors.modelSlug = "Model slug must be at least 3 characters.";
-  }
-  if (value.name && value.name.length < 3) {
-    errors.name = "Name must be at least 3 characters.";
-  }
+  result.error.issues.forEach((issue) => {
+    const path = issue.path[0] as string;
+    errors[path] = issue.message;
+  });
 
   return errors;
 }

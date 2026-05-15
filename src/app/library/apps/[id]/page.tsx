@@ -47,9 +47,12 @@ export default async function AppDetailPage({ params }: Props) {
 
   if (!app) notFound();
 
-  const primaryCtaLabel = app.ctaLabel ?? "View Guide";
-  const hasExternalCta = app.linkType === "external" && !!app.ctaLink;
-  const hasInternalCta = app.linkType === "internal" && !!app.ctaLink;
+  const hasToolCta = !!app.appTool?.tool?.id || !!app.appTool?.toolId;
+  const primaryCtaLabel = app.ctaLabel ?? (hasToolCta ? "Run Tool" : "View Guide");
+  const hasExternalCta = app.linkType === "external" && !!app.ctaLink && !hasToolCta;
+  const hasInternalCta = (app.linkType === "internal" || hasToolCta) && (!!app.ctaLink || hasToolCta);
+  const ctaId = app.appTool?.tool?.id || app.appTool?.toolId;
+  const ctaLink = hasToolCta ? `/tool/${ctaId}` : app.ctaLink;
 
   const relatedApps = await getRelatedApps(
     getAppItemId(app),
@@ -140,7 +143,7 @@ export default async function AppDetailPage({ params }: Props) {
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
                 <PrimaryCta
                   label={primaryCtaLabel}
-                  ctaLink={app.ctaLink}
+                  ctaLink={ctaLink}
                   isExternal={hasExternalCta}
                   isInternal={hasInternalCta}
                 />

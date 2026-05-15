@@ -33,10 +33,12 @@ interface DialogTitleProps {
 
 function Dialog({ open = false, onOpenChange, children }: DialogProps) {
   const [isOpen, setIsOpen] = useState(open);
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  if (open !== prevOpen) {
     setIsOpen(open);
-  }, [open]);
+    setPrevOpen(open);
+  }
 
   const handleOpenChange = (newOpen: boolean) => {
     setIsOpen(newOpen);
@@ -78,7 +80,7 @@ function DialogContent({ className, children }: DialogContentProps) {
       document.removeEventListener("keydown", handleEscapeKey);
       document.removeEventListener("click", handleBackdropClick);
     };
-  }, [context?.open, context?.onOpenChange]);
+  }, [context?.open, context?.onOpenChange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!context?.open) return null;
 

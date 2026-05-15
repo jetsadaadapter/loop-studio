@@ -1,0 +1,92 @@
+import type { Paginated } from "./common.interface";
+
+export type ToolParamType = "string" | "number" | "boolean" | "url" | "select" | "array";
+
+export interface ToolParam {
+    id: string;
+    toolId: string;
+    key: string;
+    label: string;
+    type: ToolParamType;
+    defaultValue: string | null;
+    transform: string | null;
+    placeholder: string | null;
+    options: string[] | null;
+    required: boolean;
+    sortOrder: number;
+}
+
+export interface ToolScript {
+    id: string;
+    toolId: string;
+    plugin: string;
+    config: {
+        model?: string;
+        prompt?: string;
+        itemKey?: string;
+        useInput?: boolean;
+        actorId?: string;
+        [key: string]: unknown;
+    };
+    label: string;
+    description: string | null;
+    sortOrder: number;
+}
+
+export interface Tool {
+    id: string;
+    name: string;
+    description: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    userId: string;
+    params: ToolParam[];
+    scripts: ToolScript[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AppTool {
+    id: string;
+    appId: string;
+    toolId: string;
+    tool: Tool;
+    sortOrder: number;
+    createdAt: string;
+}
+
+export interface ToolJob {
+    _id: string;
+    jobId: string;
+    plugin: string;
+    toolId: string;
+    userId: string;
+    config: Record<string, unknown>;
+    input: Record<string, unknown>;
+    result: {
+        itemCount: number;
+        items: Array<{
+            sourceIndex: number;
+            sourceKey: string;
+            sourceKeyValue: string;
+            analysis: Record<string, unknown>;
+            [key: string]: unknown;
+        }>;
+    };
+    processed: string | null;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export type GetToolJobsResponse = Paginated<ToolJob>;
+export interface GetToolJobDetailResponse {
+    success: boolean;
+    message: string;
+    data: ToolJob;
+}
+export interface GetToolDetailResponse {
+    success: boolean;
+    message: string;
+    data: Tool;
+}

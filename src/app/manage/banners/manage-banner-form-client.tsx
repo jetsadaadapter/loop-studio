@@ -36,8 +36,8 @@ import {
 import { getManageApps } from "@/core/services/apps.service";
 import { getAppItemId } from "@/core/interfaces/apps.interface";
 import type { ManageAppApiItem } from "@/core/interfaces/apps.interface";
-import type { ManageBannerPayload } from "@/core/interfaces/banners.interface";
 import { cn } from "@/lib/utils";
+import { ManageBannerSchema } from "@/core/validators/banners.validator";
 
 type BannerRecord = {
   id: string;
@@ -63,26 +63,6 @@ const EMPTY_BANNER: BannerRecord = {
   endsAt: null,
 };
 
-function validateBannerForm(value: BannerRecord): Record<string, string> {
-  const errors: Record<string, string> = {};
-
-  if (!(value.title || "").trim()) errors.title = "Title is required.";
-  if (!(value.subtitle || "").trim()) errors.subtitle = "Subtitle is required.";
-  if (!(value.imageId || "").trim()) errors.imageId = "Banner image is required.";
-  if (!(value.appId || "").trim()) errors.appId = "Selecting an app is required.";
-
-  if (!Number.isInteger(value.sortOrder) || value.sortOrder < 0) {
-    errors.sortOrder = "Sort order must be a non-negative integer.";
-  }
-
-  if (value.startsAt && value.endsAt) {
-    if (new Date(value.startsAt) > new Date(value.endsAt)) {
-      errors.endsAt = "End date must be after start date.";
-    }
-  }
-
-  return errors;
-}
 
 function ButtonSpinner() {
   return (
@@ -218,6 +198,14 @@ export function ManageBannerFormClient({
       startsAt: newStartsAt,
       endsAt: newEndsAt,
     }));
+    
+    // Clear errors for date fields
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.startsAt;
+      delete next.endsAt;
+      return next;
+    });
   };
 
   const handleTimeChange = (type: "start" | "end", timeValue: string) => {
@@ -235,6 +223,24 @@ export function ManageBannerFormClient({
         [type === "start" ? "startsAt" : "endsAt"]: newDate.toISOString(),
       };
     });
+
+    // Clear error for the specific field
+    const field = type === "start" ? "startsAt" : "endsAt";
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+    // Also clear endsAt error if start time changes (as it affects range validity)
+    if (type === "start" && fieldErrors.endsAt) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.endsAt;
+        return next;
+      });
+    }
   };
 
   const getTimeValue = (isoString: string | null) => {
@@ -243,26 +249,38 @@ export function ManageBannerFormClient({
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleDraftChange = <K extends keyof BannerRecord>(field: K, value: BannerRecord[K]) => {
+    setDraft((prev) => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errors = validateBannerForm(draft);
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+    
+    const result = ManageBannerSchema.safeParse({
+      ...draft,
+      sortOrder: mode === "create" ? maxSortOrder + 1 : draft.sortOrder,
+    });
+
+    if (!result.success) {
+      const newErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0] as string;
+        newErrors[path] = issue.message;
+      });
+      setFieldErrors(newErrors);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const payload: ManageBannerPayload = {
-        title: draft.title.trim(),
-        subtitle: draft.subtitle.trim(),
-        imageId: draft.imageId,
-        appId: draft.appId,
-        sortOrder: mode === "create" ? maxSortOrder + 1 : draft.sortOrder,
-        isActive: draft.isActive,
-        startsAt: draft.startsAt,
-        endsAt: draft.endsAt,
-      };
+      const payload = result.data;
 
       console.log("[ManageBannerForm] submit payload", {
         mode,
@@ -344,7 +362,7 @@ export function ManageBannerFormClient({
                   <FieldLabel>Title <span className="text-destructive">*</span></FieldLabel>
                   <Input
                     value={draft.title}
-                    onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                    onChange={(e) => handleDraftChange("title", e.target.value)}
                     placeholder={placeholders?.title || "Banner Title"}
                   />
                   <FieldDescription>The main headline displayed on the banner.</FieldDescription>
@@ -355,7 +373,7 @@ export function ManageBannerFormClient({
                   <FieldLabel>Subtitle <span className="text-destructive">*</span></FieldLabel>
                   <Input
                     value={draft.subtitle}
-                    onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+                    onChange={(e) => handleDraftChange("subtitle", e.target.value)}
                     placeholder={placeholders?.subtitle || "Banner Subtitle"}
                   />
                   <FieldDescription>Additional context or call-to-action text below the title.</FieldDescription>
@@ -385,7 +403,7 @@ export function ManageBannerFormClient({
                         <button
                           key={appId}
                           type="button"
-                          onClick={() => setDraft({ ...draft, appId })}
+                          onClick={() => handleDraftChange("appId", appId)}
                           className={cn(
                             "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
                             isSelected
@@ -434,7 +452,7 @@ export function ManageBannerFormClient({
                   <ImageUpload
                     value={draft.imageId}
                     previewSrc={draft.imageId ? `/images/${encodeURIComponent(draft.imageId.trim())}` : undefined}
-                    onChange={(id) => setDraft({ ...draft, imageId: id })}
+                    onChange={(id) => handleDraftChange("imageId", id)}
                     placeholder="Upload banner image"
                     description="Recommended 16:10 ratio."
                   />
@@ -452,7 +470,7 @@ export function ManageBannerFormClient({
                   <FieldLabel>Publish Status</FieldLabel>
                   <Select
                     value={draft.isActive ? "active" : "inactive"}
-                    onValueChange={(val) => setDraft({ ...draft, isActive: val === "active" })}
+                    onValueChange={(val) => handleDraftChange("isActive", val === "active")}
                   >
                     <SelectTrigger className="w-full [&>span]:flex [&>span]:items-center [&>span]:gap-2">
                       <div className={cn("size-2 rounded-full", draft.isActive ? "bg-emerald-500" : "bg-zinc-300")} />

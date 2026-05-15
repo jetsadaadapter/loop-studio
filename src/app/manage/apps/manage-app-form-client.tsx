@@ -45,6 +45,7 @@ import {
   updateManageApp,
 } from "@/core/services/apps.service";
 import { ApiError } from "@/core/services/api";
+import { ManageAppSchema } from "@/core/validators/apps.validator";
 
 type ManageAppFormClientProps = {
   mode: "create" | "edit";
@@ -181,50 +182,14 @@ function parseApiFieldErrors(error: unknown): Record<string, string> {
 }
 
 function validateAppForm(value: AppRecord): Record<string, string> {
+  const result = ManageAppSchema.safeParse(value);
+  if (result.success) return {};
+
   const errors: Record<string, string> = {};
-
-  if (!value.name.trim()) errors.name = "App name is required.";
-  if (!value.categoryId.trim()) errors.categoryId = "Category is required.";
-  if (!value.description.trim())
-    errors.description = "Description is required.";
-  if (value.description.trim() && value.description.trim().length < 10) {
-    errors.description = "Description must be at least 10 characters.";
-  }
-
-  if (!value.imageId.trim()) errors.imageId = "Banner image is required.";
-  if (!value.iconId.trim()) errors.iconId = "Thumbnail image is required.";
-
-  if (!value.instructions.trim()) {
-    errors.instructions = "Instructions are required.";
-  } else if (value.instructions.trim().length < 10) {
-    errors.instructions = "Instructions must be at least 10 characters.";
-  }
-
-  if (!value.ctaLabel.trim()) errors.ctaLabel = "CTA label is required.";
-  if (!value.ctaLink.trim()) errors.ctaLink = "CTA link is required.";
-
-  if (value.linkType === "internal" && !value.ctaLink.trim().startsWith("/")) {
-    errors.ctaLink = "Internal link must start with /.";
-  }
-
-  if (
-    value.linkType === "external" &&
-    !value.ctaLink.trim().startsWith("https://")
-  ) {
-    errors.ctaLink = "External link must start with https://.";
-  }
-
-  if (!Number.isInteger(value.sortOrder) || value.sortOrder < 0) {
-    errors.sortOrder = "Sort order must be a non-negative integer.";
-  }
-
-  if (value.badgeLabel.length > 40) {
-    errors.badgeLabel = "Badge label must be 40 characters or fewer.";
-  }
-
-  if (value.tags.length === 0) {
-    errors.tags = "At least one tag is required.";
-  }
+  result.error.issues.forEach((issue) => {
+    const path = issue.path[0] as string;
+    errors[path] = issue.message;
+  });
 
   return errors;
 }

@@ -1,10 +1,11 @@
 import type { Paginated, ManageApiEnvelope } from "./common.interface";
 import type { CategoryInfo } from "./categories.interface";
 import type { AppTag } from "./tags.interface";
+import type { AppTool } from "./tools.interface";
 
 export type LibraryAppCategory = CategoryInfo | string;
 
-export type AppLinkType = "instruction" | "internal" | "external";
+export type AppLinkType = "instruction" | "internal" | "external" | "tool";
 
 export type LibraryAppApiItem = {
     id: string;
@@ -29,6 +30,7 @@ export type LibraryAppApiItem = {
     updatedAt: string;
     imageUrl: string;
     iconUrl?: string;
+    appTool?: AppTool;
 };
 
 export type LibraryAppsGroupItem = {

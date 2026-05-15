@@ -9,8 +9,6 @@ import { type LucideIcon } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import {
   MANAGE_PARENT_CRUMB,
-  MANAGE_DASHBOARD_FLAGS,
-  MANAGE_FUTURE_NAV_ITEMS,
   getLocalizedText,
 } from "@/app/manage/config";
 import { ManageLogo } from "@/components/manage-logo";
