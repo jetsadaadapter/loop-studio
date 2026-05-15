@@ -12,7 +12,7 @@
     sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading:
-    var(--font-sukhumvit), var(--font-geist), system-ui, -apple-system,
+    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
     sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

@@ -108,7 +108,9 @@ export function AppCover({ src, alt, accentColor, children }: AppCoverProps) {
         <div className="absolute inset-0 opacity-30 bg-[repeating-linear-gradient(0deg,rgba(255,255,255,0.03)_0px,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_3px)]" />
         <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-size-[4px_4px]" />
       </div>
-      {children}
+      <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
+        {children}
+      </div>
     </section>
   );
 }

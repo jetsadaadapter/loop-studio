@@ -72,7 +72,7 @@ export default async function AppDetailPage({ params }: Props) {
           alt={`${app.name} cover image`}
           accentColor={coverAccentColor}
         >
-          <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
+          <div className="pt-5 sm:pt-8">
             <Link
               href="/apps"
               className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-black/70"
@@ -94,7 +94,7 @@ export default async function AppDetailPage({ params }: Props) {
             </Link>
           </div>
 
-          <div className="relative z-10 flex min-h-80 flex-col justify-end p-5 pt-20 text-white sm:min-h-104 sm:p-8 sm:pt-24 lg:min-h-124 lg:p-10 lg:pt-28">
+          <div className="relative z-10 flex min-h-64 flex-col justify-end py-5 pt-10 text-white sm:min-h-80 sm:py-8 sm:pt-16 lg:min-h-96 lg:py-10 lg:pt-20">
             <div className="max-w-3xl">
               <div className="flex items-end gap-4">
                 <AppIcon

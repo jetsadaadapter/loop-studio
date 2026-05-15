@@ -246,7 +246,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                         alt={`${tool.name} cover`}
                         accentColor="#0ea5e9"
                     >
-                        <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
+                        <div className="pt-5 sm:pt-8">
                             <Link
                                 href="/apps"
                                 className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-black/70"
@@ -258,14 +258,14 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                             </Link>
                         </div>
 
-                        <div className="relative z-10 flex min-h-64 flex-col justify-end p-5 pt-20 text-white sm:min-h-80 sm:p-8 sm:pt-24 lg:min-h-96 lg:p-10 lg:pt-28">
+                        <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-64 sm:py-8 sm:pt-16 lg:min-h-80 lg:py-10 lg:pt-20">
                             <div className="max-w-3xl">
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-white/10">
                                         AI Tool
                                     </span>
                                 </div>
-                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                                <h1 className="page-hero-title text-white">
                                     {tool.name}
                                 </h1>
                                 <p className="mt-4 text-lg text-slate-300 max-w-2xl leading-relaxed">
