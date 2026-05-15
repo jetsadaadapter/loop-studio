@@ -29,7 +29,7 @@ import {
   type ModelFormFieldsDraft,
 } from "./ModelFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
-import { useDialogToast } from "@/components/ui/alert-dialog-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -134,7 +134,6 @@ export function ManageAiClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasHandledCreateQuery = useRef(false);
-  const { pushDialogToast } = useDialogToast();
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -172,7 +171,7 @@ export function ManageAiClient() {
         setLastUpdatedAt(new Date());
       } catch {
         setLoadError("Failed to load AI models.");
-        pushDialogToast("Failed to load AI models.", "error");
+        toast.error("Failed to load AI models.");
       } finally {
         if (silent) {
           setIsRefreshing(false);
@@ -181,7 +180,7 @@ export function ManageAiClient() {
         }
       }
     },
-    [pushDialogToast],
+    [],
   );
 
   useEffect(() => {
@@ -349,32 +348,42 @@ export function ManageAiClient() {
         }),
       );
 
-      try {
-        const updated = await updateManageAiModel(optimistic.id, payload);
-        const updatedRecord = mapApiModel(updated);
-        setModels((current) =>
-          current.map((item) => {
-            if (item.id === optimistic.id) return updatedRecord;
-            return updatedRecord.isDefault ? { ...item, isDefault: false } : item;
-          }),
-        );
-        pushDialogToast("AI model updated.", "success");
-        resetForm();
-      } catch (submitError) {
-        if (previous) {
+      const updatePromise = async () => {
+        try {
+          const updated = await updateManageAiModel(optimistic.id, payload);
+          const updatedRecord = mapApiModel(updated);
           setModels((current) =>
-            current.map((item) => (item.id === previous.id ? previous : item)),
+            current.map((item) => {
+              if (item.id === optimistic.id) return updatedRecord;
+              return updatedRecord.isDefault ? { ...item, isDefault: false } : item;
+            }),
           );
+          resetForm();
+          return updated;
+        } catch (submitError) {
+          if (previous) {
+            setModels((current) =>
+              current.map((item) => (item.id === previous.id ? previous : item)),
+            );
+          }
+          setFieldErrors(parseApiFieldErrors(submitError));
+          setError(
+            submitError instanceof Error
+              ? submitError.message
+              : "Failed to update model.",
+          );
+          throw submitError;
+        } finally {
+          setIsSubmitting(false);
         }
-        setFieldErrors(parseApiFieldErrors(submitError));
-        setError(
-          submitError instanceof Error
-            ? submitError.message
-            : "Failed to update model.",
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
+      };
+
+      toast.promise(updatePromise(), {
+        loading: "Updating AI model...",
+        success: "AI model updated.",
+        error: "Failed to update AI model.",
+      });
+
       return;
     }
 
@@ -386,33 +395,42 @@ export function ManageAiClient() {
       );
     });
 
-    try {
-      const created = await createManageAiModel(payload);
-      const createdRecord = mapApiModel(created);
-      setModels((current) => {
-        const base = current.map((item) =>
-          item.id === optimistic.id ? createdRecord : item,
+    const createPromise = async () => {
+      try {
+        const created = await createManageAiModel(payload);
+        const createdRecord = mapApiModel(created);
+        setModels((current) => {
+          const base = current.map((item) =>
+            item.id === optimistic.id ? createdRecord : item,
+          );
+          if (!createdRecord.isDefault) return base;
+          return base.map((item) =>
+            item.id === createdRecord.id ? item : { ...item, isDefault: false },
+          );
+        });
+        resetForm();
+        return created;
+      } catch (submitError) {
+        setModels((current) =>
+          current.filter((item) => item.id !== optimistic.id),
         );
-        if (!createdRecord.isDefault) return base;
-        return base.map((item) =>
-          item.id === createdRecord.id ? item : { ...item, isDefault: false },
+        setFieldErrors(parseApiFieldErrors(submitError));
+        setError(
+          submitError instanceof Error
+            ? submitError.message
+            : "Failed to create model.",
         );
-      });
-      pushDialogToast("AI model created.", "success");
-      resetForm();
-    } catch (submitError) {
-      setModels((current) =>
-        current.filter((item) => item.id !== optimistic.id),
-      );
-      setFieldErrors(parseApiFieldErrors(submitError));
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to create model.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+        throw submitError;
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    toast.promise(createPromise(), {
+      loading: "Creating AI model...",
+      success: "AI model created.",
+      error: "Failed to create AI model.",
+    });
   }
 
   async function onSetDefault(modelId: string) {
@@ -425,25 +443,30 @@ export function ManageAiClient() {
       })),
     );
 
-    try {
-      const updated = await setDefaultManageAiModel(modelId);
-      setModels((current) =>
-        current.map((item) =>
-          item.id === modelId
-            ? { ...item, ...mapApiModel(updated), isDefault: true }
-            : item,
-        ),
-      );
-      pushDialogToast("Default model updated.", "success");
-    } catch (error) {
-      setModels(previous);
-      pushDialogToast(
-        error instanceof Error ? error.message : "Failed to set default model.",
-        "error",
-      );
-    } finally {
-      setSettingDefaultId(null);
-    }
+    const setDefaultPromise = async () => {
+      try {
+        const updated = await setDefaultManageAiModel(modelId);
+        setModels((current) =>
+          current.map((item) =>
+            item.id === modelId
+              ? { ...item, ...mapApiModel(updated), isDefault: true }
+              : item,
+          ),
+        );
+        return updated;
+      } catch (error) {
+        setModels(previous);
+        throw error;
+      } finally {
+        setSettingDefaultId(null);
+      }
+    };
+
+    toast.promise(setDefaultPromise(), {
+      loading: "Updating default model...",
+      success: "Default model updated.",
+      error: (err) => err instanceof Error ? err.message : "Failed to set default model.",
+    });
   }
 
   async function onDelete(target: ModelRecord) {
@@ -452,20 +475,23 @@ export function ManageAiClient() {
     const previous = models;
     setModels((current) => current.filter((item) => item.id !== target.id));
 
-    try {
-      await deleteManageAiModel(target.id);
-      pushDialogToast("AI model deleted.", "success");
-    } catch (deleteError) {
-      setModels(previous);
-      pushDialogToast(
-        deleteError instanceof Error
-          ? deleteError.message
-          : "Failed to delete model.",
-        "error",
-      );
-    } finally {
-      setDeletingId(null);
-    }
+    const deletePromise = async () => {
+      try {
+        await deleteManageAiModel(target.id);
+        return true;
+      } catch (deleteError) {
+        setModels(previous);
+        throw deleteError;
+      } finally {
+        setDeletingId(null);
+      }
+    };
+
+    toast.promise(deletePromise(), {
+      loading: "Deleting AI model...",
+      success: "AI model deleted.",
+      error: (err) => err instanceof Error ? err.message : "Failed to delete model.",
+    });
   }
 
   return (

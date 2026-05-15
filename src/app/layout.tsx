@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -124,6 +125,7 @@ export default async function RootLayout({
             </ToastProvider>
           </AlertDialogToastProvider>
         </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );
