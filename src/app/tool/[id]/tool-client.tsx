@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { 
-    Tool, 
-    ToolJob, 
-    GetToolJobsResponse 
+import {
+    Tool,
+    ToolJob,
+    GetToolJobsResponse
 } from "@/core/interfaces/tools.interface";
 import { runTool, getToolJobs, getToolJob } from "@/core/services/tools.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-    Play, 
-    Loader2, 
-    History, 
-    Circle, 
-    ChevronRight, 
-    Plus, 
-    Trash2, 
-    FileText, 
+import {
+    Play,
+    Loader2,
+    History,
+    Circle,
+    ChevronRight,
+    Plus,
+    Trash2,
+    FileText,
     List,
     CheckCircle2,
     Clock,
@@ -33,11 +33,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { AppCover } from "@/components/app-cover";
 import Link from "next/link";
 import { createToolExecutionSchema } from "@/core/validators/tools.validator";
-import { 
-    Field, 
-    FieldLabel, 
-    FieldDescription, 
-    FieldError 
+import {
+    Field,
+    FieldLabel,
+    FieldDescription,
+    FieldError
 } from "@/components/ui/field";
 import {
     Select,
@@ -52,16 +52,16 @@ interface ToolClientProps {
     initialJobs: GetToolJobsResponse;
 }
 
-function UrlArrayInput({ 
+function UrlArrayInput({
     id,
-    value, 
-    onChange, 
+    value,
+    onChange,
     placeholder,
     hasError
-}: { 
+}: {
     id: string;
-    value: string[]; 
-    onChange: (val: string[]) => void; 
+    value: string[];
+    onChange: (val: string[]) => void;
     placeholder?: string | null;
     hasError?: boolean;
 }) {
@@ -96,9 +96,9 @@ function UrlArrayInput({
                 <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
                     {value.length} items added
                 </p>
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 px-2 text-[10px] text-slate-500 hover:text-brand"
                     onClick={() => {
                         if (isBulk) {
@@ -119,7 +119,7 @@ function UrlArrayInput({
 
             {isBulk ? (
                 <div className="space-y-3">
-                    <Textarea 
+                    <Textarea
                         value={bulkValue}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkValue(e.target.value)}
                         placeholder="Paste your URLs here (one per line or comma-separated)..."
@@ -141,7 +141,7 @@ function UrlArrayInput({
                 <div className="space-y-2">
                     {value.map((item, index) => (
                         <div key={`url-input-${id}-${index}`} className="flex gap-2">
-                            <Input 
+                            <Input
                                 value={item}
                                 onChange={(e) => handleItemChange(index, e.target.value)}
                                 placeholder={placeholder || "https://..."}
@@ -150,9 +150,9 @@ function UrlArrayInput({
                                     hasError && "border-red-500 bg-red-50/30"
                                 )}
                             />
-                            <Button 
-                                variant="outline" 
-                                size="icon" 
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 className="size-9 shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100"
                                 onClick={() => handleRemove(index)}
                             >
@@ -160,9 +160,9 @@ function UrlArrayInput({
                             </Button>
                         </div>
                     ))}
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         className="w-full h-9 border-dashed border-slate-200 text-slate-500 hover:text-brand hover:border-brand hover:bg-brand/5"
                         onClick={handleAdd}
                     >
@@ -214,7 +214,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         try {
             await runTool(tool.id, formData);
             pushDialogToast("Job started successfully!", "success");
-            
+
             // Refresh jobs list
             const updatedJobs = await getToolJobs(tool.id);
             setJobs(updatedJobs.data);
@@ -292,16 +292,16 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                         {param.label}
                                         {param.required && <span className="text-destructive ml-1">*</span>}
                                     </FieldLabel>
-                                    
+
                                     {param.type === 'boolean' ? (
                                         <div className="flex items-center py-1">
                                             <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                <Checkbox 
+                                                <Checkbox
                                                     id={param.key}
                                                     checked={!!formData[param.key]}
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                         const checked = e.target.checked;
-                                                        setFormData({...formData, [param.key]: !!checked});
+                                                        setFormData({ ...formData, [param.key]: !!checked });
                                                         if (errors[param.key]) {
                                                             const next = { ...errors };
                                                             delete next[param.key];
@@ -315,10 +315,10 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                             </label>
                                         </div>
                                     ) : param.type === 'select' ? (
-                                        <Select 
+                                        <Select
                                             value={String(formData[param.key] || "")}
                                             onValueChange={(val) => {
-                                                setFormData({...formData, [param.key]: val});
+                                                setFormData({ ...formData, [param.key]: val });
                                                 if (errors[param.key]) {
                                                     const next = { ...errors };
                                                     delete next[param.key];
@@ -341,11 +341,11 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                             </SelectContent>
                                         </Select>
                                     ) : param.transform === 'urlArray' ? (
-                                        <UrlArrayInput 
+                                        <UrlArrayInput
                                             id={param.key}
                                             value={(formData[param.key] as string[]) || []}
                                             onChange={(val) => {
-                                                setFormData({...formData, [param.key]: val});
+                                                setFormData({ ...formData, [param.key]: val });
                                                 if (errors[param.key]) {
                                                     const next = { ...errors };
                                                     delete next[param.key];
@@ -356,12 +356,12 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                             hasError={!!errors[param.key]}
                                         />
                                     ) : (
-                                        <Input 
+                                        <Input
                                             id={param.key}
                                             placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
                                             value={String(formData[param.key] || "")}
                                             onChange={(e) => {
-                                                setFormData({...formData, [param.key]: e.target.value});
+                                                setFormData({ ...formData, [param.key]: e.target.value });
                                                 if (errors[param.key]) {
                                                     const next = { ...errors };
                                                     delete next[param.key];
@@ -374,17 +374,17 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                             )}
                                         />
                                     )}
-                                    
+
                                     {param.placeholder && param.type !== 'select' && param.transform !== 'urlArray' && (
                                         <FieldDescription>{param.placeholder}</FieldDescription>
                                     )}
-                                    
+
                                     <FieldError errors={errors[param.key] ? [{ message: errors[param.key] }] : []} />
                                 </Field>
                             ))}
 
                             <div className="pt-4">
-                                <Button 
+                                <Button
                                     className="w-full sm:w-auto min-w-40 bg-brand hover:bg-brand/90 text-white font-semibold rounded-xl py-6"
                                     onClick={handleRun}
                                     disabled={isRunning}
@@ -446,8 +446,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                                             <div className={cn(
                                                                 "mt-1 px-2.5 py-1 rounded-full text-xs font-bold inline-block",
                                                                 (item.analysis as Record<string, unknown> | undefined)?.sentiment === 'positive' ? "bg-teal-50 text-teal-600 border border-teal-100" :
-                                                                (item.analysis as Record<string, unknown> | undefined)?.sentiment === 'negative' ? "bg-red-50 text-red-600 border border-red-100" :
-                                                                "bg-slate-50 text-slate-600 border border-slate-100"
+                                                                    (item.analysis as Record<string, unknown> | undefined)?.sentiment === 'negative' ? "bg-red-50 text-red-600 border border-red-100" :
+                                                                        "bg-slate-50 text-slate-600 border border-slate-100"
                                                             )}>
                                                                 {String((item.analysis as Record<string, unknown> | undefined)?.sentiment || 'unknown').toUpperCase()}
                                                             </div>
@@ -463,12 +463,12 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                                         <div>
                                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Keywords</span>
                                                             <div className="mt-2 flex flex-wrap gap-1.5">
-                                                                {Array.isArray((item.analysis as Record<string, unknown> | undefined)?.keywords) && 
+                                                                {Array.isArray((item.analysis as Record<string, unknown> | undefined)?.keywords) &&
                                                                     ((item.analysis as Record<string, unknown> | undefined)?.keywords as string[]).map((kw, i) => (
-                                                                    <span key={`kw-${kw}-${i}`} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium border border-slate-200">
-                                                                        {kw}
-                                                                    </span>
-                                                                ))}
+                                                                        <span key={`kw-${kw}-${i}`} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium border border-slate-200">
+                                                                            {kw}
+                                                                        </span>
+                                                                    ))}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -509,8 +509,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                                     </div>
                                 ) : (
                                     jobs.map(job => (
-                                        <button 
-                                            key={job._id}
+                                        <button
+                                            key={job.jobId}
                                             onClick={() => handleViewJob(job.jobId)}
                                             className={cn(
                                                 "w-full text-left p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group",
