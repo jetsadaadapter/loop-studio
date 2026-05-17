@@ -71,13 +71,13 @@ export default function AppBannerCard({
     ? `/images/${encodeURIComponent(imageId.trim())}`
     : "/images/media-mix-abstract.png";
 
-  const tagsList = app.tags && app.tags.length > 0
-    ? app.tags.map((t) => (typeof t === "string" ? t : t.name)).join(", ")
-    : "-";
-  
   const iconSrc = app.iconId
     ? `/images/${encodeURIComponent(app.iconId.trim())}`
     : null;
+
+  const tagsList = app.tags && app.tags.length > 0
+    ? app.tags.map((t) => (typeof t === "string" ? t : t.name)).join(", ")
+    : "-";
 
   return (
     <div className="w-full bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-zinc-100 overflow-hidden relative flex flex-col font-sans">
@@ -176,22 +176,22 @@ export default function AppBannerCard({
       </div>
 
       {/* Bottom Lines Section */}
-      <div className="mt-2 border-t border-zinc-100 bg-white">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-          <span className="text-zinc-900 text-[13px] font-bold">Category</span>
-          <span className="text-zinc-900 text-[13px] font-bold">
+      <div className="mt-2 border-t-2 border-t border-zinc-100 bg-white px-4">
+        <div className="flex items-center justify-between px-0 py-2 border-b border-zinc-100">
+          <span className="text-zinc-900 text-xs font-bold tracking-tight">Category</span>
+          <span className="text-zinc-900 text-xs font-semibold">
             {app.category?.name || "-"}
           </span>
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-          <span className="text-zinc-500 text-[13px] font-medium">Tags</span>
-          <span className="text-zinc-900 text-[13px] font-bold line-clamp-1 text-right ml-4">
+        <div className="flex items-center justify-between px-0 py-2 border-b border-zinc-100">
+          <span className="text-zinc-500 text-xs font-medium tracking-tight">Tags</span>
+          <span className="text-zinc-900 text-xs font-semibold line-clamp-1 text-right ml-4">
             {tagsList}
           </span>
         </div>
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-zinc-500 text-[13px] font-medium">Highlight</span>
-          <span className="text-zinc-900 text-[13px] font-bold">
+        <div className="flex items-center justify-between px-0 pt-2 pb-3.5">
+          <span className="text-zinc-500 text-xs font-medium tracking-tight">Highlight</span>
+          <span className="text-zinc-900 text-xs font-bold">
             {app.badgeLabel ? (
               <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium leading-tight ${getAppBadgeClass(app.badgeLabel)}`}>
                 {app.badgeLabel}
