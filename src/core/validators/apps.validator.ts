@@ -6,6 +6,7 @@ export const ManageAppSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters."),
   imageId: z.string().min(1, "Banner image is required."),
   iconId: z.string().min(1, "Thumbnail image is required."),
+  coverId: z.string().optional(),
   instructions: z.string().min(10, "Instructions must be at least 10 characters."),
   ctaLabel: z.string().min(1, "CTA label is required."),
   ctaLink: z.string().min(1, "CTA link is required."),

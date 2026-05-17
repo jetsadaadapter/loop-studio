@@ -127,6 +127,7 @@ export function ManagerAppCard({
             fill
             className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            priority
             unoptimized
             onError={onCardImageError}
           />
@@ -212,7 +213,7 @@ export function ManagerAppCard({
           </div>
         </div>
 
-        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed mb-3">
+        <p className="text-xs text-slate-600 line-clamp-2 leading-tight mb-3">
           {item.description || "No description provided."}
         </p>
 
@@ -233,7 +234,7 @@ export function ManagerAppCard({
         <div className="h-px w-full bg-slate-100 mb-3" />
 
         {/* Footer Code Block */}
-        <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+        <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-1">
           <span className="text-xs font-mono text-slate-600 truncate mr-2">
             ID: {item.id}
           </span>

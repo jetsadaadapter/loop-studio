@@ -25,6 +25,7 @@ const TRUSTED_CONNECT_SRCS = [
 const TRUSTED_IMG_SRCS = [
     "'self'",
     "data:",
+    "blob:",
     "https://library-api.adapterdigital.com",
     "https://play-lh.googleusercontent.com",
     "https://images.unsplash.com",

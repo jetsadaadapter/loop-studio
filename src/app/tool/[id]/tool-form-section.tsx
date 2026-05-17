@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ToolParam } from "@/core/interfaces/tools.interface";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,36 +38,36 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{value.length} items added</p>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] text-slate-500 hover:text-brand"
+                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{value.length} items added</p>
+                <Button variant="ghost" size="sm" className="h-8 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-brand hover:bg-brand/5 transition-colors"
                     onClick={() => isBulk ? handleBulkCancel() : (setBulkValue(value.join('\n')), setIsBulk(true))}>
-                    {isBulk ? <><List className="mr-1 size-3" /> List View</> : <><FileText className="mr-1 size-3" /> Bulk Edit</>}
+                    {isBulk ? <><List className="mr-1.5 size-3.5" /> List View</> : <><FileText className="mr-1.5 size-3.5" /> Bulk Edit</>}
                 </Button>
             </div>
             {isBulk ? (
-                <div className="space-y-3">
+                <div className="space-y-3 p-4 rounded-sm bg-slate-50/50 border border-slate-100">
                     <Textarea value={bulkValue}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkValue(e.target.value)}
                         placeholder="Paste your URLs here (one per line or comma-separated)..."
-                        className={cn("min-h-40 bg-slate-50 border-slate-200 focus:bg-white transition-all text-xs font-mono", hasError && "border-red-500 bg-red-50/30")} />
+                        className={cn("min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm font-mono rounded-sm resize-y", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
                     <div className="flex gap-2">
-                        <Button size="sm" className="h-8 bg-brand text-white text-xs px-4" onClick={handleBulkSave}>Apply Bulk Changes</Button>
-                        <Button size="sm" variant="outline" className="h-8 text-xs px-4" onClick={handleBulkCancel}>Cancel</Button>
+                        <Button size="sm" className="h-9 rounded-lg bg-brand hover:bg-brand/90 text-white text-xs px-5 shadow-sm" onClick={handleBulkSave}>Apply Bulk Changes</Button>
+                        <Button size="sm" variant="outline" className="h-9 rounded-lg text-xs px-5 border-slate-200" onClick={handleBulkCancel}>Cancel</Button>
                     </div>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                     {value.map((item, index) => (
-                        <div key={`url-input-${id}-${index}`} className="flex gap-2">
+                        <div key={`url-input-${id}-${index}`} className="flex gap-2 items-center">
                             <Input value={item} onChange={(e) => handleItemChange(index, e.target.value)}
                                 placeholder={placeholder || "https://..."}
-                                className={cn("h-9 bg-slate-50 border-slate-200 focus:bg-white transition-all text-xs", hasError && "border-red-500 bg-red-50/30")} />
-                            <Button variant="outline" size="icon" className="size-9 shrink-0 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100"
-                                onClick={() => handleRemove(index)}><Trash2 className="size-4" /></Button>
+                                className={cn("h-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
+                            <Button variant="ghost" size="icon" className="size-10 rounded-sm shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                onClick={() => handleRemove(index)}><Trash2 className="size-4.5" /></Button>
                         </div>
                     ))}
-                    <Button variant="outline" size="sm" className="w-full h-9 border-dashed border-slate-200 text-slate-500 hover:text-brand hover:border-brand hover:bg-brand/5"
-                        onClick={handleAdd}><Plus className="mr-1 size-4" /> Add Another URL</Button>
+                    <Button variant="outline" size="sm" className="w-full h-10 rounded-sm border-dashed border-slate-300 text-slate-500 hover:text-brand hover:border-brand hover:bg-brand/5 transition-all shadow-none"
+                        onClick={handleAdd}><Plus className="mr-1.5 size-4" /> Add Another URL</Button>
                 </div>
             )}
         </div>
@@ -87,35 +87,39 @@ export function ToolFormSection({ params, formData, errors, isRunning, onChange,
     const clearError = (key: string, value: unknown) => onChange(key, value);
 
     return (
-        <Card className="shadow-sm border-slate-200">
-            <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+        <Card className="shadow-[0_2px_12px_rgba(0,0,0,0.04)] border-zinc-100 rounded-2xl overflow-hidden bg-white">
+            <div className="bg-slate-50/50 border-b border-zinc-100 px-6 py-5">
+                <CardTitle className="text-xl flex items-center gap-2 font-bold tracking-tight text-slate-900">
                     <Play className="size-5 text-brand" /> Run Configuration
                 </CardTitle>
-                <CardDescription>Configure the parameters for this run.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+                <CardDescription className="mt-1.5 text-sm text-slate-500">Configure the required parameters to start processing.</CardDescription>
+            </div>
+            <CardContent className="space-y-7 p-6 sm:p-4">
                 {params.map(param => (
-                    <Field key={param.id}>
-                        <FieldLabel htmlFor={param.key} className="cursor-pointer">
-                            {param.label}{param.required && <span className="text-destructive ml-1">*</span>}
+                    <Field key={param.id} className="space-y-2.5">
+                        <FieldLabel htmlFor={param.key} className="text-sm font-semibold text-slate-800 cursor-pointer">
+                            {param.label}{param.required && <span className="text-red-500 ml-1">*</span>}
                         </FieldLabel>
                         {param.type === 'boolean' ? (
-                            <div className="flex items-center py-1">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                    <Checkbox id={param.key} checked={!!formData[param.key]}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => clearError(param.key, !!e.target.checked)} />
-                                    <span className="text-sm text-slate-600">Enabled</span>
+                            <div className="flex items-center py-2 px-1">
+                                <label className="flex items-center gap-3 cursor-pointer select-none group">
+                                    <div className="relative flex items-center justify-center">
+                                        <Checkbox id={param.key} checked={!!formData[param.key]}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => clearError(param.key, !!e.target.checked)}
+                                            className="size-5 rounded border-slate-300 data-[state=checked]:bg-brand data-[state=checked]:border-brand"
+                                        />
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">Enabled</span>
                                 </label>
                             </div>
                         ) : param.type === 'select' ? (
                             <Select value={String(formData[param.key] || "")} onValueChange={(val) => clearError(param.key, val)}>
-                                <SelectTrigger id={param.key} className={cn("bg-slate-50 border-slate-200 focus:bg-white transition-all", errors[param.key] && "border-destructive bg-destructive/5")}>
+                                <SelectTrigger id={param.key} className={cn("h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm", errors[param.key] && "border-red-500 focus:ring-red-500/20 bg-red-50/30")}>
                                     <SelectValue placeholder={param.placeholder || "Select an option..."} />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-sm shadow-lg border-slate-100">
                                     {param.options?.map((option, idx) => (
-                                        <SelectItem key={`${option}-${idx}`} value={option}>{option}</SelectItem>
+                                        <SelectItem key={`${option}-${idx}`} value={option} className="py-2.5 cursor-pointer rounded-lg">{option}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -125,18 +129,18 @@ export function ToolFormSection({ params, formData, errors, isRunning, onChange,
                         ) : (
                             <Input id={param.key} placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
                                 value={String(formData[param.key] || "")} onChange={(e) => clearError(param.key, e.target.value)}
-                                className={cn("bg-slate-50 border-slate-200 focus:bg-white transition-all", errors[param.key] && "border-destructive bg-destructive/5")} />
+                                className={cn("h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm px-4", errors[param.key] && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
                         )}
                         {param.placeholder && param.type !== 'select' && param.transform !== 'urlArray' && (
-                            <FieldDescription>{param.placeholder}</FieldDescription>
+                            <FieldDescription className="text-xs text-slate-500 mt-1.5">{param.placeholder}</FieldDescription>
                         )}
-                        <FieldError errors={errors[param.key] ? [{ message: errors[param.key] }] : []} />
+                        <FieldError errors={errors[param.key] ? [{ message: errors[param.key] }] : []} className="text-xs mt-1.5 font-medium" />
                     </Field>
                 ))}
-                <div className="pt-4">
-                    <Button className="w-full sm:w-auto min-w-40 bg-brand hover:bg-brand/90 text-white font-semibold rounded-xl py-6"
+                <div className="pt-6 mt-6 border-t border-slate-100 flex justify-end">
+                    <Button className="h-9 bg-brand hover:bg-brand/90 text-white text-sm font-medium rounded-sm px-6 shadow-sm transition-all"
                         onClick={onRun} disabled={isRunning}>
-                        {isRunning ? <><Loader2 className="mr-2 size-5 animate-spin" /> Running...</> : <><Play className="mr-2 size-5 fill-current" /> Start Job</>}
+                        {isRunning ? <><Loader2 className="mr-2 size-4 animate-spin" /> Processing...</> : <><Play className="mr-2 size-4 fill-current" /> Start</>}
                     </Button>
                 </div>
             </CardContent>

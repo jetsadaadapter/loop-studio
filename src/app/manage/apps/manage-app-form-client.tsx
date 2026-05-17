@@ -59,6 +59,7 @@ type AppRecord = {
   description: string;
   imageId: string;
   iconId: string;
+  coverId: string;
   instructions: string;
   ctaLabel: string;
   ctaLink: string;
@@ -78,6 +79,7 @@ const EMPTY_FORM: AppRecord = {
   description: "",
   imageId: "",
   iconId: "",
+  coverId: "",
   instructions: "",
   ctaLabel: "",
   ctaLink: "",
@@ -98,6 +100,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     description: item.description,
     imageId: item.imageId,
     iconId: item.iconId,
+    coverId: item.coverId ?? "",
     instructions: item.instructions,
     ctaLabel: item.ctaLabel ?? "",
     ctaLink: item.ctaLink ?? "",
@@ -119,6 +122,7 @@ function mapRecordToPayload(record: AppRecord): ManageAppPayload {
     description: record.description.trim(),
     imageId: record.imageId.trim(),
     iconId: record.iconId.trim(),
+    coverId: record.coverId.trim(),
     instructions: record.instructions.trim(),
     ctaLabel: record.ctaLabel.trim(),
     ctaLink: record.ctaLink.trim(),
@@ -137,14 +141,16 @@ function hasChanged(nextValue: string, previousValue: string): boolean {
 }
 
 function buildImageRemovePayload(
-  nextMedia: { imageId: string; iconId: string },
-  previousMedia: { imageId: string; iconId: string },
+  nextMedia: { imageId: string; iconId: string; coverId: string },
+  previousMedia: { imageId: string; iconId: string; coverId: string },
 ): NonNullable<ManageAppPayload["imageRemove"]> | undefined {
   const previousImageId = previousMedia.imageId.trim();
   const previousIconId = previousMedia.iconId.trim();
+  const previousCoverId = previousMedia.coverId.trim();
 
   const imageChanged = hasChanged(nextMedia.imageId, previousImageId);
   const iconChanged = hasChanged(nextMedia.iconId, previousIconId);
+  const coverChanged = hasChanged(nextMedia.coverId, previousCoverId);
 
   const imageRemove: NonNullable<ManageAppPayload["imageRemove"]> = {};
 
@@ -154,8 +160,10 @@ function buildImageRemovePayload(
 
   if (iconChanged && previousIconId) {
     imageRemove.iconId = previousIconId;
-    // Current backend cleanup expects coverId alongside icon replacement.
-    imageRemove.coverId = previousIconId;
+  }
+
+  if (coverChanged && previousCoverId) {
+    imageRemove.coverId = previousCoverId;
   }
 
   return Object.keys(imageRemove).length > 0 ? imageRemove : undefined;
@@ -222,6 +230,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const [originalMediaIds, setOriginalMediaIds] = useState<{
     imageId: string;
     iconId: string;
+    coverId: string;
   } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<"markdown" | "text">(
@@ -428,6 +437,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
         setOriginalMediaIds({
           imageId: record.imageId,
           iconId: record.iconId,
+          coverId: record.coverId,
         });
       } catch (loadError) {
         if (!cancelled) {
@@ -594,11 +604,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
               newId: draft.iconId.trim(),
               changed: hasChanged(draft.iconId, originalMediaIds.iconId),
             },
-            // Cover cleanup currently follows icon replacement flow.
             cover: {
-              oldId: originalMediaIds.iconId.trim(),
-              newId: draft.iconId.trim(),
-              changed: hasChanged(draft.iconId, originalMediaIds.iconId),
+              oldId: originalMediaIds.coverId.trim(),
+              newId: draft.coverId.trim(),
+              changed: hasChanged(draft.coverId, originalMediaIds.coverId),
             },
           }
         : null;
@@ -608,6 +617,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
           {
             imageId: draft.imageId,
             iconId: draft.iconId,
+            coverId: draft.coverId,
           },
           originalMediaIds,
         );
@@ -1098,6 +1108,46 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                     <FieldError
                       errors={
                         touched.iconId ? [{ message: fieldErrors.iconId }] : []
+                      }
+                    />
+                  </Field>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-xl border-0">
+                <CardHeader>
+                  <h5 className="text-base font-semibold">Cover Image</h5>
+                </CardHeader>
+                <CardContent>
+                  <Field>
+                    <ImageUpload
+                      value={draft.coverId}
+                      previewSrc={
+                        draft.coverId
+                          ? `/images/${encodeURIComponent(draft.coverId.trim())}`
+                          : undefined
+                      }
+                      previewFit="cover"
+                      expectedWidth={1200}
+                      expectedHeight={630}
+                      onChange={(value) => {
+                        const next = { ...draft, coverId: value };
+                        setDraft(next);
+                        touchAndValidate("coverId", next);
+                      }}
+                      onError={(message) => {
+                        touch("coverId");
+                        setFieldErrors((current) => ({
+                          ...current,
+                          coverId: message,
+                        }));
+                      }}
+                      placeholder="Upload cover"
+                      description="Recommended size: 1200x630 px. Supports png, jpg, jpeg, webp."
+                    />
+                    <FieldError
+                      errors={
+                        touched.coverId ? [{ message: fieldErrors.coverId }] : []
                       }
                     />
                   </Field>

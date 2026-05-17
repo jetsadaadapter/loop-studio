@@ -60,6 +60,7 @@ export type ManageAppPayload = {
     description: string;
     imageId: string;
     iconId: string;
+    coverId?: string;
     imageRemove?: {
         imageId?: string;
         iconId?: string;

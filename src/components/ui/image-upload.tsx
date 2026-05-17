@@ -17,6 +17,8 @@ interface ImageUploadProps {
   previewFit?: "cover" | "contain";
   maxFileSizeMb?: number;
   acceptedMimeTypes?: string[];
+  expectedWidth?: number;
+  expectedHeight?: number;
 }
 
 export function ImageUpload({
@@ -31,6 +33,8 @@ export function ImageUpload({
   previewFit = "cover",
   maxFileSizeMb = 5,
   acceptedMimeTypes = ["image/png", "image/jpeg", "image/webp"],
+  expectedWidth,
+  expectedHeight,
 }: ImageUploadProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -104,6 +108,35 @@ export function ImageUpload({
       onError?.(message);
       e.target.value = "";
       return;
+    }
+
+    if (expectedWidth || expectedHeight) {
+      const isValid = await new Promise<boolean>((resolve) => {
+        const img = new globalThis.Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          const widthMatch = !expectedWidth || img.width === expectedWidth;
+          const heightMatch = !expectedHeight || img.height === expectedHeight;
+          resolve(widthMatch && heightMatch);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve(false); // Can't read dimensions, deny
+        };
+        img.src = objectUrl;
+      });
+
+      if (!isValid) {
+        const dimensions = [];
+        if (expectedWidth) dimensions.push(`width ${expectedWidth}px`);
+        if (expectedHeight) dimensions.push(`height ${expectedHeight}px`);
+        const message = `Image dimensions must be exactly ${dimensions.join(" and ")}.`;
+        setUploadError(message);
+        onError?.(message);
+        e.target.value = "";
+        return;
+      }
     }
 
     setIsUploading(true);
