@@ -73,3 +73,17 @@ A task or feature is considered "Done" when:
 - [ ] UI Components follow the designated structure (`kebab-case` folder, `index.tsx`).
 - [ ] No secrets or sensitive keys are hardcoded or added to the repository.
 - [ ] Auth paths and CSP rules remain intact and secure.
+
+## 6. UX, Validation, & Spacing Standards
+
+- **App Form Validation & Limits**:
+  - **App Name**: 3 to 50 characters, with a conditional helper description.
+  - **Description**: 10 to 500 characters, with a conditional helper description.
+  - **CTA Label**: Max 30 characters, with a conditional helper description.
+  - **CTA Link**: Immediately validated on `onChange` to prevent React state race conditions. Internal path must match a whitelist of root segments (`about`, `apps`, `callback`, `dashboard`, `images`, `library`, `login`, `manage`, `tool`, `tools`). Typoed tool paths (e.g. `/toool/`) are blocked; dynamic Tool IDs must be length >= 8 and cannot contain hyphens.
+  - **Clean UI**: Always hide form helper descriptions when field validation errors are shown to prevent redundancy.
+- **Detail Layout & Screenshots**:
+  - **Screenshot Hide**: If `imageUrl` is empty, completely hide the Screenshot container.
+  - **About Spacing**: When screenshots are hidden, dynamically remove the About section's top border (`border-t`) and top padding (`pt-0`), and apply `pb-8` to ensure tags have adequate breathing room above subsequent sections.
+- **End-User Tool Execution Use Case**:
+  - ขั้นตอนการใช้งานของ End User ตั้งแต่การกรอกพารามิเตอร์, การคลิกส่งรัน, การเฝ้าติดตามผลสถานะงานบน Sidebar จนถึงการคลิกเปิดดูผลลัพธ์ใน Modal จะต้องสอดคล้องตามลำดับความต้องการในการใช้งาน (Use Case Flow) ที่ระบุไว้ในแผนภาพ Mermaid ของ `README.md` (หัวข้อ 3.1) อย่างเคร่งครัด เพื่อสร้างประสบการณ์ใช้งานที่ลื่นไหลและไร้รอยต่อ

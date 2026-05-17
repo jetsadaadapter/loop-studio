@@ -138,7 +138,7 @@ export function ToolFormSection({ params, formData, errors, isRunning, onChange,
                     </Field>
                 ))}
                 <div className="pt-6 mt-6 border-t border-slate-100 flex justify-end">
-                    <Button className="h-9 bg-brand hover:bg-brand/90 text-white text-sm font-medium rounded-sm px-6 shadow-sm transition-all"
+                    <Button className="h-9 rounded-lg bg-brand hover:bg-brand/90 text-white text-xs px-5 shadow-sm transition-all"
                         onClick={onRun} disabled={isRunning}>
                         {isRunning ? <><Loader2 className="mr-2 size-4 animate-spin" /> Processing...</> : <><Play className="mr-2 size-4 fill-current" /> Start</>}
                     </Button>

@@ -114,6 +114,13 @@ Behavior บังคับ:
 - ขนาดขั้นต่ำที่ยอมรับได้: 1920x1080 px
 - แนะนำ export เป็น WebP (หรือ AVIF) เพื่อคุมคุณภาพและขนาดไฟล์
 
+### App Detail Layout & Spacing Guideline (Screenshots & Spacing)
+
+- **Screenshot Display**: หากแอปพลิเคชันไม่มีรูปภาพ Screenshot อัปโหลดไว้ (`imageUrl` ว่าง) ให้ทำการ**ซ่อน (Skip) บล็อกแสดงรูปภาพ Screenshot ทั้งหมดออกไปจากหน้าจอทันที** แทนที่จะแสดงกรอบสี่เหลี่ยมสีเทาหรือข้อความบอกว่าไม่มีรูปภาพ
+- **About Spacing Dynamic**:
+  - เมื่อแอปพลิเคชันไม่มีรูปภาพ Screenshot ให้**นำเส้นคั่นด้านบน (`border-t`) ออก** และปรับระยะห่างด้านบนเป็น `pt-0`
+  - ให้กำหนดความห่างด้านล่างของ About Section เป็น `pb-8` เสมอ เพื่อให้มั่นใจว่าป้าย Tag (เช่น MCP) มีระยะห่างที่พอเหมาะเหนือเซกชันถัดไป (เช่น Instructions) และไม่ดูชิดกับเส้นคั่นมากเกินไป
+
 ## 8. Coding Rules for Contributors and AI Agents
 
 - ตั้งชื่อไฟล์ตาม convention:
@@ -202,11 +209,20 @@ src/components/<component-name>/
 3. Action (`linkType`, `ctaLabel`, `ctaLink`)
 4. Content (`description`, `instructions`, `tags[]`)
 
-validation ตาม `linkType`:
+#### 10.3.1 Character Limits & Validation:
+- **App Name**: ต้องอยู่ระหว่าง 3 ถึง 50 ตัวอักษร
+- **Description**: ต้องอยู่ระหว่าง 10 ถึง 500 ตัวอักษร
+- **CTA Label**: ต้องยาวไม่เกิน 30 ตัวอักษร (เฉพาะกรณี `linkType !== "instruction"`)
+- **CTA Link**:
+  - `internal`: ต้องขึ้นต้นด้วย `/` และมีโครงสร้าง path ที่ถูกต้อง (Whitelist: `about`, `apps`, `callback`, `dashboard`, `images`, `library`, `login`, `manage`, `tool`, `tools`)
+  - `external`: ต้องเป็น `https://...`
+  - `instruction`: ว่างได้
+  - **Tool Link Typo Checking**: หากกรอกลิงก์ประเภท Tool (เช่น ขึ้นต้นด้วย `/to`) จะต้องอยู่ในรูปแบบ `/tool/[toolId]` หรือ `/tools/[toolId]` โดยห้ามกรอกเป็น Slug (ห้ามมีขีดกลาง `-`) และตัว ID (Dynamic Tool ID) ต้องยาวอย่างน้อย 8 ตัวอักษรขึ้นไป
 
-- `internal`: `ctaLink` ต้องขึ้นต้นด้วย `/`
-- `external`: `ctaLink` ต้องเป็น `https://...`
-- `instruction`: `ctaLink` ว่างได้
+#### 10.3.2 Form Spacing & Warning Displays:
+- **Field Description (Helper Label)**: ทุกฟิลด์ที่มีเงื่อนไขจำกัดความยาว (Name, Description, CTA Label, CTA Link) ต้องแสดงคำอธิบายช่วยกรอก (Helper Label) เสมอ
+- **Clean UI Principle**: **เมื่อฟิลด์ใดแสดง Error (สีกรอบหรือสีแดง) ให้ซ่อน Helper Label ทันที** เพื่อความสะอาดตาในการใช้งานและไม่เกิดความซ้ำซ้อนของข้อมูลบนหน้าจอ
+- **Validation Responsiveness**: ฟิลด์อย่าง `ctaLink` ต้องบังคับอัปเดตสถานะ `touched` และเรียก `revalidateField` ทันทีเมื่อเกิดการเปลี่ยนแปลง (`onChange`) เพื่อแก้ไขและป้องกันสถานะ UI ตกหล่นจาก React state race conditions
 
 ### 10.4 AI Model Manager UX Rules
 

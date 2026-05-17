@@ -125,6 +125,29 @@ graph TD
     J -->|Refresh| D
 ```
 
+### 3.1 End-User Tool Execution Use Case Flow
+
+```mermaid
+graph TD
+    Start[User Accesses Tool Page] --> ViewInterface[User Views Tool Information & Configuration Form]
+    ViewInterface --> FillParams[User Fills/Inputs Parameters e.g., Prompts, Options]
+    
+    FillParams -->|Clicks 'Run Tool'| SubmitJob{Is Input Valid?}
+    SubmitJob -->|No| ShowError[User Sees Visual Validation Errors]
+    ShowError --> CorrectInput[User Corrects Input Fields]
+    CorrectInput --> FillParams
+    
+    SubmitJob -->|Yes| StartExecution[Job Submits & Toast Notification Confirms Success]
+    StartExecution --> MonitorStatus[User Monitors Job Progress in History Sidebar]
+    
+    MonitorStatus -->|Job Running| Wait[User Waits or Runs Another Job]
+    MonitorStatus -->|Job Finished| ClickHistory[User Clicks Completed Job in History]
+    
+    ClickHistory --> OpenModal[Job Result Modal Opens]
+    OpenModal --> ViewResults[User Inspects Analysis Results / Generated Outputs]
+    ViewResults --> Done[User Successfully Obtains Analysis/Artifact]
+```
+
 ### 4. UI/Wireframe Concept: อธิบายองค์ประกอบหน้าจอที่สำคัญ
 *   **Library Shell**: ส่วน Header ที่คงที่ ประกอบด้วยช่อง Search Global, เมนูนำทาง (Home, About) และส่วน Profile
 *   **App Catalog**: การจัดวางแบบ Grid Layout ที่แสดงการ์ดแอปพลิเคชัน แยกตามหมวดหมู่ชัดเจน
