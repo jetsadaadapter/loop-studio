@@ -170,34 +170,34 @@ export default async function AppDetailPage({ params }: Props) {
           {/* ── Main content ─────────────────────────────────────── */}
           <div className="min-w-0">
             {/* Screenshots */}
-            <div className="motion-enter-1 -mx-4 sm:-mx-6 lg:mx-0">
-              <div className="flex gap-3 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {(screenshotUrls.length > 0 ? screenshotUrls : [""]).map(
-                  (src, index) => (
+            {screenshotUrls.length > 0 && (
+              <div className="motion-enter-1 -mx-4 sm:-mx-6 lg:mx-0">
+                <div className="flex gap-3 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {screenshotUrls.map((src, index) => (
                     <div
                       key={`${src}-${index}`}
                       className="w-64 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:w-72"
                     >
-                      {src ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={src}
-                          alt={`${app.name} screenshot ${index + 1}`}
-                          className="aspect-video w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex aspect-video items-center justify-center text-sm text-slate-400">
-                          No screenshot
-                        </div>
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt={`${app.name} screenshot ${index + 1}`}
+                        className="aspect-video w-full object-cover"
+                      />
                     </div>
-                  ),
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* About */}
-            <section className="motion-enter-2 border-t border-slate-200 py-7">
+            <section
+              className={`motion-enter-2 ${
+                screenshotUrls.length > 0
+                  ? "border-t border-slate-200 py-7"
+                  : "pt-0 pb-8"
+              }`}
+            >
               <h2 className="page-section-title flex items-center gap-2 text-slate-900">
                 About this app
               </h2>
