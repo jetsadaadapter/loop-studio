@@ -40,25 +40,9 @@ export async function getAppById(
     init?: RequestInit,
 ): Promise<LibraryAppApiItem | null> {
     try {
-        const normalizedTargetId = appId.trim().toLowerCase();
-        const pageSize = 100;
-        let currentPage = 1;
-        let totalPages = 1;
-
-        while (currentPage <= totalPages) {
-            const response = await getApps({ page: currentPage, limit: pageSize }, init);
-            const allApps = response.data.flatMap((group) => group.items);
-            const matched = allApps.find(
-                (item) => resolveAppId(item).trim().toLowerCase() === normalizedTargetId,
-            );
-
-            if (matched) return matched;
-
-            totalPages = response.meta.totalPages || 1;
-            currentPage += 1;
-        }
-
-        return null;
+        const url = buildUrl(`/apps/${appId}`);
+        const response = await apiFetch<{ data: LibraryAppApiItem }>(url, init);
+        return response.data;
     } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
             throw error;
