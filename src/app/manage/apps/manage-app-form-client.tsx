@@ -918,66 +918,68 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                     />
                   </Field>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field>
-                      <FieldLabel>
-                        CTA Label <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        placeholder="CTA label"
-                        value={draft.ctaLabel}
-                        onChange={(event) => {
-                          const next = {
-                            ...draft,
-                            ctaLabel: event.target.value,
-                          };
-                          setDraft(next);
-                          if (touched.ctaLabel)
-                            revalidateField("ctaLabel", next);
-                        }}
-                        onBlur={() => touchAndValidate("ctaLabel", draft)}
-                      />
-                      <FieldError
-                        errors={
-                          touched.ctaLabel
-                            ? [{ message: fieldErrors.ctaLabel }]
-                            : []
-                        }
-                      />
-                    </Field>
+                  {draft.linkType !== "instruction" && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field>
+                        <FieldLabel>
+                          CTA Label <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          placeholder="CTA label"
+                          value={draft.ctaLabel}
+                          onChange={(event) => {
+                            const next = {
+                              ...draft,
+                              ctaLabel: event.target.value,
+                            };
+                            setDraft(next);
+                            if (touched.ctaLabel)
+                              revalidateField("ctaLabel", next);
+                          }}
+                          onBlur={() => touchAndValidate("ctaLabel", draft)}
+                        />
+                        <FieldError
+                          errors={
+                            touched.ctaLabel
+                              ? [{ message: fieldErrors.ctaLabel }]
+                              : []
+                          }
+                        />
+                      </Field>
 
-                    <Field>
-                      <FieldLabel>
-                        CTA Link <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        placeholder="CTA link"
-                        value={draft.ctaLink}
-                        onChange={(event) => {
-                          const next = {
-                            ...draft,
-                            ctaLink: event.target.value,
-                          };
-                          setDraft(next);
-                          if (touched.ctaLink) revalidateField("ctaLink", next);
-                        }}
-                        onBlur={() => touchAndValidate("ctaLink", draft)}
-                      />
-                      <FieldDescription>
-                        Internal should start with /, external with https://.<br/>
-                        <span className="text-amber-600 font-medium mt-1 inline-block">
-                          ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
-                        </span>
-                      </FieldDescription>
-                      <FieldError
-                        errors={
-                          touched.ctaLink
-                            ? [{ message: fieldErrors.ctaLink }]
-                            : []
-                        }
-                      />
-                    </Field>
-                  </div>
+                      <Field>
+                        <FieldLabel>
+                          CTA Link <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          placeholder="CTA link"
+                          value={draft.ctaLink}
+                          onChange={(event) => {
+                            const next = {
+                              ...draft,
+                              ctaLink: event.target.value,
+                            };
+                            setDraft(next);
+                            if (touched.ctaLink) revalidateField("ctaLink", next);
+                          }}
+                          onBlur={() => touchAndValidate("ctaLink", draft)}
+                        />
+                        <FieldDescription>
+                          Internal should start with /, external with https://.<br/>
+                          <span className="text-amber-600 font-medium mt-1 inline-block">
+                            ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
+                          </span>
+                        </FieldDescription>
+                        <FieldError
+                          errors={
+                            touched.ctaLink
+                              ? [{ message: fieldErrors.ctaLink }]
+                              : []
+                          }
+                        />
+                      </Field>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1215,10 +1217,18 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       </SelectTrigger>
                       <SelectContent align="start">
                         <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="New">New</SelectItem>
-                        <SelectItem value="Trending">Trending</SelectItem>
-                        <SelectItem value="Hot">Hot</SelectItem>
-                        <SelectItem value="Coming Soon">Coming Soon</SelectItem>
+                        <SelectItem value="New">
+                          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700">New</span>
+                        </SelectItem>
+                        <SelectItem value="Trending">
+                          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">Trending</span>
+                        </SelectItem>
+                        <SelectItem value="Hot">
+                          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-rose-100 text-rose-700">Hot</span>
+                        </SelectItem>
+                        <SelectItem value="Coming Soon">
+                          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-700">Coming Soon</span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FieldError

@@ -1,6 +1,6 @@
 import { type LibraryApp } from "@/app/library/apps/data";
 import { AppIcon } from "@/components/app-icon";
-import { statusBadgeClass } from "@/lib/utils";
+import { getAppBadgeClass } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -48,11 +48,13 @@ export function AppTile({ app }: { app: LibraryApp }) {
             <p className="line-clamp-1 text-sm text-slate-500">
               {app.category}
             </p>
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusBadgeClass(app.status)}`}
-            >
-              {app.status}
-            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {app.badge ? (
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${getAppBadgeClass(app.badge)}`}>
+                  {app.badge}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </article>

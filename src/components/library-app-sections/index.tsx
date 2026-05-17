@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppTile } from "@/components/app-tile";
-import { statusFilters, type LibrarySection } from "@/app/library/apps/data";
+import { badgeFilters, type LibrarySection } from "@/app/library/apps/data";
 import styles from "./styles.module.css";
 
 type LibraryAppSectionsProps = {
@@ -11,7 +11,7 @@ type LibraryAppSectionsProps = {
 
 export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
   const [visibleCards, setVisibleCards] = useState<Record<string, true>>({});
-  const [sectionStatusFilter, setSectionStatusFilter] = useState<
+  const [sectionBadgeFilter, setSectionBadgeFilter] = useState<
     Record<string, string>
   >({});
   const cardElementsRef = useRef<Record<string, HTMLDivElement | null>>({});
@@ -69,25 +69,25 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
   return (
     <section className="mt-8 space-y-6">
       {sections.map((section) => {
-        const visibleStatusFilters = statusFilters.filter(
-          (statusFilter) =>
-            statusFilter.key === "all" ||
+        const visibleBadgeFilters = badgeFilters.filter(
+          (badgeFilter) =>
+            badgeFilter.key === "all" ||
             section.items.some(
-              (app) => app.status.toLowerCase() === statusFilter.key,
+              (app) => app.badge?.toLowerCase() === badgeFilter.key,
             ),
         );
-        const activeStatus = sectionStatusFilter[section.id] ?? "all";
-        const effectiveStatus = visibleStatusFilters.some(
-          (statusFilter) => statusFilter.key === activeStatus,
+        const activeBadge = sectionBadgeFilter[section.id] ?? "all";
+        const effectiveBadge = visibleBadgeFilters.some(
+          (badgeFilter) => badgeFilter.key === activeBadge,
         )
-          ? activeStatus
+          ? activeBadge
           : "all";
 
         const displayedItems =
-          effectiveStatus === "all"
+          effectiveBadge === "all"
             ? section.items
             : section.items.filter(
-                (app) => app.status.toLowerCase() === effectiveStatus,
+                (app) => app.badge?.toLowerCase() === effectiveBadge,
               );
 
         return (
@@ -107,26 +107,26 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              {visibleStatusFilters.map((statusFilter) => (
+              {visibleBadgeFilters.map((badgeFilter) => (
                 <button
-                  key={statusFilter.key}
+                  key={badgeFilter.key}
                   type="button"
                   onClick={() =>
-                    setSectionStatusFilter((prev) => ({
+                    setSectionBadgeFilter((prev) => ({
                       ...prev,
                       [section.id]:
-                        prev[section.id] === statusFilter.key
+                        prev[section.id] === badgeFilter.key
                           ? "all"
-                          : statusFilter.key,
+                          : badgeFilter.key,
                     }))
                   }
                   className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-all duration-200 ${
-                    effectiveStatus === statusFilter.key
+                    effectiveBadge === badgeFilter.key
                       ? "border-brand bg-brand text-white"
                       : "border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900"
                   }`}
                 >
-                  {statusFilter.label}
+                  {badgeFilter.label}
                 </button>
               ))}
             </div>

@@ -12,10 +12,10 @@ import { LibraryAppSections } from "@/components/library-app-sections";
 import { useLibraryShell } from "@/app/library/library-shell";
 import {
   mainTabs,
-  statusFilters,
+  badgeFilters,
   type LibrarySection,
   type MainTabKey,
-  type StatusFilterKey,
+  type BadgeFilterKey,
 } from "./data";
 
 type LibraryAppsClientProps = {
@@ -27,7 +27,7 @@ export function LibraryAppsClient({
   sections,
   children,
 }: LibraryAppsClientProps) {
-  const [selectedStatus, setSelectedStatus] = useState<StatusFilterKey | null>(
+  const [selectedBadge, setSelectedBadge] = useState<BadgeFilterKey | null>(
     null,
   );
   const {
@@ -93,54 +93,53 @@ export function LibraryAppsClient({
       .filter((section) => section.items.length > 0);
   }, [baseSections, deferredSearchQuery]);
 
-  const statusCounts = useMemo(() => {
+  const badgeCounts = useMemo(() => {
     const allApps = searchedSections.flatMap((s) => s.items);
-    return statusFilters.reduce<Record<StatusFilterKey, number>>(
+    return badgeFilters.reduce<Record<BadgeFilterKey, number>>(
       (acc, filter) => {
         acc[filter.key] =
           filter.key === "all"
             ? allApps.length
-            : allApps.filter((app) => app.status.toLowerCase() === filter.key)
+            : allApps.filter((app) => app.badge?.toLowerCase() === filter.key)
                 .length;
         return acc;
       },
       {
         all: 0,
-        "production ready": 0,
-        "in rollout": 0,
-        beta: 0,
-        planned: 0,
         new: 0,
+        trending: 0,
+        hot: 0,
+        "coming soon": 0,
       },
     );
   }, [searchedSections]);
 
-  const visibleStatusFilters = useMemo(
+  const visibleBadgeFilters = useMemo(
     () =>
-      statusFilters.filter(
-        (f) => f.key !== "all" && f.key !== "new" && statusCounts[f.key] > 0,
+      badgeFilters.filter(
+        (f) => f.key !== "all" && badgeCounts[f.key] > 0,
       ),
-    [statusCounts],
+    [badgeCounts],
   );
 
-  const shouldShowStatusFilters = effectiveMainTab !== null;
+  const shouldShowBadgeFilters = effectiveMainTab !== null;
 
-  const effectiveStatus: StatusFilterKey =
-    selectedStatus && visibleStatusFilters.some((f) => f.key === selectedStatus)
-      ? selectedStatus
+  const effectiveBadge: BadgeFilterKey =
+    selectedBadge && visibleBadgeFilters.some((f) => f.key === selectedBadge)
+      ? selectedBadge
       : "all";
 
   const filteredSections = useMemo(() => {
-    if (effectiveStatus === "all") return searchedSections;
+    if (effectiveBadge === "all") return searchedSections;
     return searchedSections
       .map((s) => ({
         ...s,
         items: s.items.filter(
-          (app) => app.status.toLowerCase() === effectiveStatus,
+          (app) => app.badge?.toLowerCase() === effectiveBadge,
         ),
       }))
       .filter((s) => s.items.length > 0);
-  }, [searchedSections, effectiveStatus]);
+  }, [searchedSections, effectiveBadge]);
 
   return (
     <>
@@ -150,12 +149,12 @@ export function LibraryAppsClient({
         onTabChange={(tabKey) => {
           const next = activeCategory === tabKey ? null : tabKey;
           setActiveCategory(next);
-          setSelectedStatus(next ? "all" : null);
+          setSelectedBadge(next ? "all" : null);
         }}
-        filters={shouldShowStatusFilters ? visibleStatusFilters : []}
-        selectedFilter={selectedStatus}
-        filterCounts={statusCounts}
-        onFilterChange={setSelectedStatus}
+        filters={shouldShowBadgeFilters ? visibleBadgeFilters : []}
+        selectedFilter={selectedBadge}
+        filterCounts={badgeCounts}
+        onFilterChange={setSelectedBadge}
       />
 
       {children}

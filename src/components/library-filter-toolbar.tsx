@@ -86,9 +86,9 @@ export function LibraryFilterToolbar<
               key={filter.key}
               type="button"
               onClick={() => onFilterChange(filter.key)}
-              className={`rounded-full border px-3 py-1 text-xs transition ${selectedFilter === filter.key
-                ? "border-brand/35 bg-brand/10 text-brand"
-                : "border-slate-200 text-slate-600 hover:border-brand/30 hover:text-brand"
+              className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-all duration-200 ${selectedFilter === filter.key
+                ? "border-brand bg-brand text-white"
+                : "border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900"
                 }`}
             >
               {filter.label} ({filterCounts[filter.key]})

@@ -12,7 +12,7 @@ import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";
 import { RelatedAppListItem } from "@/components/related-app-list-item";
 import { AppCover } from "@/components/app-cover";
-import { isValidActionLink } from "@/lib/utils";
+import { isValidActionLink, getAppBadgeClass } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -123,7 +123,7 @@ export default async function AppDetailPage({ params }: Props) {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {app.badgeLabel ? (
-                      <span className="rounded-full bg-[#75e68f]/20 px-2.5 py-0.5 text-xs font-semibold text-[#84e6a0] ring-1 ring-[#75e68f]/30">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${getAppBadgeClass(app.badgeLabel)}`}>
                         {app.badgeLabel}
                       </span>
                     ) : null}

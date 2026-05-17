@@ -16,6 +16,18 @@ export function statusBadgeClass(status: string): string {
   return STATUS_BADGE[status.toLowerCase()] ?? "bg-slate-100 text-slate-700"
 }
 
+const APP_BADGE_LABEL_MAP: Record<string, string> = {
+  new: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20",
+  trending: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20",
+  hot: "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20",
+  "coming soon": "bg-violet-100 text-violet-700 ring-1 ring-violet-500/20",
+}
+
+export function getAppBadgeClass(badgeLabel: string): string {
+  if (!badgeLabel) return "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+  return APP_BADGE_LABEL_MAP[badgeLabel.trim().toLowerCase()] ?? "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+}
+
 const DEPARTMENT_BADGE_MAP: Record<string, string> = {
   creative: "bg-rose-600 text-white ring-rose-700/10",
   technology: "bg-indigo-600 text-white ring-indigo-700/10",

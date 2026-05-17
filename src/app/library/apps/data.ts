@@ -8,13 +8,12 @@ import {
 // 1) Domain keys used by tab/status controls on the store page
 // ------------------------------------------------------------
 export type MainTabKey = "mcp" | "platform" | "tool";
-export type StatusFilterKey =
+export type BadgeFilterKey =
     | "all"
-    | "production ready"
-    | "in rollout"
-    | "beta"
-    | "planned"
-    | "new";
+    | "new"
+    | "trending"
+    | "hot"
+    | "coming soon";
 
 // ------------------------------------------------------------
 // 2) Data schema for API-style response (id-first)
@@ -51,13 +50,12 @@ export const mainTabs: Array<{ key: MainTabKey; label: string }> = [
     { key: "tool", label: "Tool" },
 ];
 
-export const statusFilters: Array<{ key: StatusFilterKey; label: string }> = [
+export const badgeFilters: Array<{ key: BadgeFilterKey; label: string }> = [
     { key: "all", label: "All" },
-    { key: "production ready", label: "Production ready" },
-    { key: "in rollout", label: "In rollout" },
-    { key: "beta", label: "Beta" },
-    { key: "planned", label: "Planned" },
     { key: "new", label: "New" },
+    { key: "trending", label: "Trending" },
+    { key: "hot", label: "Hot" },
+    { key: "coming soon", label: "Coming Soon" },
 ];
 
 const ICON_BG_PRESETS = [
@@ -99,7 +97,6 @@ export function getStableIconBg(seed: string): string {
 }
 
 export function getAppStatus(app: LibraryAppApiItem): string {
-    if (app.badgeLabel?.toLowerCase() === "new") return "New";
     return app.isActive ? "Production ready" : "Planned";
 }
 

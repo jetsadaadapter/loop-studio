@@ -12,7 +12,7 @@ import {
   Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { getAppBadgeClass } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,22 +64,8 @@ export default function AppBannerCard({
     };
   };
 
-  const getBadgePresentation = (label: string | null | undefined) => {
-    if (!label) return null;
-
-    const lowerLabel = label.toLowerCase();
-    if (lowerLabel === "new") return { variant: "default" as const, className: "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm" };
-    if (lowerLabel === "featured") return { variant: "default" as const, className: "bg-blue-500 hover:bg-blue-600 text-white shadow-sm" };
-    if (lowerLabel === "hot" || lowerLabel === "trending") return { variant: "default" as const, className: "bg-rose-500 hover:bg-rose-600 text-white shadow-sm" };
-    if (lowerLabel === "update") return { variant: "default" as const, className: "bg-amber-500 hover:bg-amber-600 text-white shadow-sm" };
-
-    // Default fallback
-    return { variant: "secondary" as const, className: "shadow-sm" };
-  };
-
   const status = getStatusPresentation();
   const StatusIcon = status.icon;
-  const badgeProps = getBadgePresentation(app.badgeLabel);
 
   const imageSrc = imageId
     ? `/images/${encodeURIComponent(imageId.trim())}`
@@ -206,10 +192,10 @@ export default function AppBannerCard({
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-zinc-500 text-[13px] font-medium">Highlight</span>
           <span className="text-zinc-900 text-[13px] font-bold">
-            {app.badgeLabel && badgeProps ? (
-              <Badge variant={badgeProps.variant} className={`${badgeProps.className} text-[10px]!`}>
+            {app.badgeLabel ? (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium leading-tight ${getAppBadgeClass(app.badgeLabel)}`}>
                 {app.badgeLabel}
-              </Badge>
+              </span>
             ) : (
               "-"
             )}

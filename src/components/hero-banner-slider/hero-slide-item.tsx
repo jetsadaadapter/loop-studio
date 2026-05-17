@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type HeroSlide, type HeroTheme } from "@/app/library/apps/hero.data";
-import { isValidActionLink } from "@/lib/utils";
+import { isValidActionLink, getAppBadgeClass } from "@/lib/utils";
 import styles from "./styles.module.css";
 
 const cardThemeClass: Record<HeroTheme, string> = {
@@ -68,7 +68,7 @@ export function HeroSlideItem({
     >
       <div className="relative aspect-648/364">
         {slide.badge ? (
-          <span className="absolute left-4 top-4 z-20 rounded-xl bg-white/85 px-3 py-1 text-sm font-medium text-slate-800">
+          <span className={`absolute left-4 top-4 z-20 rounded-xl px-3 py-1 text-sm font-medium ${getAppBadgeClass(slide.badge)}`}>
             {slide.badge}
           </span>
         ) : null}
