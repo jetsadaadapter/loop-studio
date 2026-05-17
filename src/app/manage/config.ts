@@ -48,7 +48,7 @@ export const MANAGE_OVERVIEW_ROUTE: ManageRouteMeta = {
 };
 
 export const MANAGE_DASHBOARD_FLAGS = {
-    showComingSoon: true,
+    showComingSoon: false,
 } as const;
 
 export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [

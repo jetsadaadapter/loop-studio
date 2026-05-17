@@ -133,6 +133,8 @@ export type ManageDashboardStats = {
     activeAppCount: number;
     aiModelCount: number;
     activeAiModelCount: number;
+    bannerCount: number;
+    activeBannerCount: number;
     defaultAiModelName: string | null;
     lastUpdatedAt: string | null;
 };
@@ -163,13 +165,17 @@ function pickLatestIsoDate(values: Array<string | null | undefined>): string | n
 export async function getManageDashboardStats(
     init?: RequestInit,
 ): Promise<ManageDashboardStats> {
-    // We import getManageAiModels dynamically to avoid circular dependencies if any,
-    // or we can import it from models.service.ts
+    // We import getManageAiModels and getManageBanners dynamically to avoid circular dependencies if any
     const { getManageAiModelsResponse } = await import("@/core/services/models.service");
+    const { getManageBanners } = await import("@/core/services/banners.service");
 
-    const [apps, aiFirstPage] = await Promise.all([
+    const [apps, aiFirstPage, bannerResponse] = await Promise.all([
         getManageApps(init),
         getManageAiModelsResponse(1, 200, init),
+        getManageBanners({ page: 1, limit: 200 }, init).catch(() => ({
+            data: [],
+            meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
+        })),
     ]);
 
     const aiModels = [...(aiFirstPage.data ?? [])];
@@ -184,6 +190,7 @@ export async function getManageDashboardStats(
     const lastUpdatedAt = pickLatestIsoDate([
         ...apps.map((app) => app.updatedAt),
         ...aiModels.map((model) => model.updatedAt),
+        ...bannerResponse.data.map((banner) => banner.updatedAt),
     ]);
 
     return {
@@ -191,6 +198,8 @@ export async function getManageDashboardStats(
         activeAppCount: apps.filter((app) => app.isActive).length,
         aiModelCount: getPaginatedTotal(aiFirstPage.meta) ?? aiModels.length,
         activeAiModelCount: aiModels.filter((model) => model.isActive).length,
+        bannerCount: getPaginatedTotal(bannerResponse.meta) ?? bannerResponse.data.length,
+        activeBannerCount: bannerResponse.data.filter((b) => b.isActive).length,
         defaultAiModelName: defaultModel?.name ?? null,
         lastUpdatedAt,
     };
