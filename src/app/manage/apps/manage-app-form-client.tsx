@@ -964,7 +964,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                         onBlur={() => touchAndValidate("ctaLink", draft)}
                       />
                       <FieldDescription>
-                        Internal should start with /, external with https://.
+                        Internal should start with /, external with https://.<br/>
+                        <span className="text-amber-600 font-medium mt-1 inline-block">
+                          ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
+                        </span>
                       </FieldDescription>
                       <FieldError
                         errors={

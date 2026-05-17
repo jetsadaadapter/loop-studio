@@ -33,3 +33,28 @@ export function getDepartmentBadgeClass(dept: string): string {
     DEPARTMENT_BADGE_MAP[normalized] || "bg-slate-600 text-white ring-slate-700/10"
   )
 }
+
+/**
+ * Validates if an action link points to an invalid or malformed tool route (e.g. slug instead of ULID).
+ */
+export function isInvalidToolSlug(link: string): boolean {
+  if (!link) return false;
+  if (link.startsWith("/tool/") || link.startsWith("/tools/")) {
+    const idPart = link.split("/").pop() || "";
+    // ULIDs/ObjectIds are at least 20 chars long and contain no hyphens.
+    // If it's short or contains hyphens, it's a slug, which will result in 404.
+    if (idPart.length < 20 || idPart.includes("-")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Validates if a CTA/Action link is safe and valid to click.
+ */
+export function isValidActionLink(link: string | null | undefined): boolean {
+  if (!link) return false;
+  const trimmed = link.trim();
+  return trimmed.length > 0 && trimmed !== "#" && !isInvalidToolSlug(trimmed);
+}

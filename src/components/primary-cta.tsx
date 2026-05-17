@@ -38,7 +38,11 @@ export function PrimaryCta({
   }
 
   return (
-    <button type="button" className={PRIMARY_CTA_CLASS}>
+    <button 
+      type="button" 
+      disabled
+      className={`${PRIMARY_CTA_CLASS} opacity-50 cursor-not-allowed hover:bg-brand`}
+    >
       {label}
     </button>
   );

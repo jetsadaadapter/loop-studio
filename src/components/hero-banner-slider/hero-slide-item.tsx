@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type HeroSlide, type HeroTheme } from "@/app/library/apps/hero.data";
+import { isValidActionLink } from "@/lib/utils";
 import styles from "./styles.module.css";
 
 const cardThemeClass: Record<HeroTheme, string> = {
@@ -55,6 +56,8 @@ export function HeroSlideItem({
   isPriority,
   isSingleSlide,
 }: HeroSlideItemProps) {
+  const isLinkValid = isValidActionLink(slide.actionUrl);
+
   return (
     <article
       className={`relative overflow-hidden rounded-2xl border border-slate-200 ${cardThemeClass[slide.theme]} ${
@@ -129,14 +132,23 @@ export function HeroSlideItem({
         </div>
 
         <div className="text-right">
-          <Link
-            href={slide.actionUrl}
-            target={slide.actionType === "linkout" ? "_blank" : undefined}
-            rel={slide.actionType === "linkout" ? "noreferrer" : undefined}
-            className="inline-flex h-8 items-center justify-center rounded-sm bg-white/22 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm transition hover:bg-white/30"
-          >
-            {slide.ctaLabel}
-          </Link>
+          {isLinkValid ? (
+            <Link
+              href={slide.actionUrl}
+              target={slide.actionType === "linkout" ? "_blank" : undefined}
+              rel={slide.actionType === "linkout" ? "noreferrer" : undefined}
+              className="inline-flex h-8 items-center justify-center rounded-sm bg-white/22 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm transition hover:bg-white/30"
+            >
+              {slide.ctaLabel}
+            </Link>
+          ) : (
+            <button
+              disabled
+              className="inline-flex h-8 items-center justify-center rounded-sm bg-white/10 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm opacity-50 cursor-not-allowed"
+            >
+              Not Available
+            </button>
+          )}
         </div>
       </div>
     </article>

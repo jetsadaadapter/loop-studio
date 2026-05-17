@@ -12,6 +12,7 @@ import { PrimaryCta } from "@/components/primary-cta";
 import { MetadataItem } from "@/components/metadata-item";
 import { RelatedAppListItem } from "@/components/related-app-list-item";
 import { AppCover } from "@/components/app-cover";
+import { isValidActionLink } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -47,12 +48,23 @@ export default async function AppDetailPage({ params }: Props) {
 
   if (!app) notFound();
 
-  const hasToolCta = !!app.appTool?.tool?.id || !!app.appTool?.toolId;
-  const primaryCtaLabel = app.ctaLabel ?? (hasToolCta ? "Run Tool" : "View Guide");
-  const hasExternalCta = app.linkType === "external" && !!app.ctaLink && !hasToolCta;
-  const hasInternalCta = (app.linkType === "internal" || hasToolCta) && (!!app.ctaLink || hasToolCta);
-  const ctaId = app.appTool?.tool?.id || app.appTool?.toolId;
-  const ctaLink = hasToolCta ? `/tool/${ctaId}` : app.ctaLink;
+  // If API returns appTool, it strictly becomes a Tool CTA routing to /tool/[toolId]
+  const hasTool = !!app.appTool && !!app.appTool.toolId;
+  
+  // Link Sanitization & Validation
+  let finalCtaLink = hasTool ? `/tool/${app.appTool!.toolId}` : (app.ctaLink || "");
+  if (!hasTool && app.linkType === "internal" && finalCtaLink && !finalCtaLink.startsWith("/")) {
+    finalCtaLink = `/${finalCtaLink}`;
+  }
+
+  const isLinkValid = isValidActionLink(finalCtaLink);
+  const isExternal = !hasTool && app.linkType === "external" && isLinkValid;
+  const isInternal = (hasTool || app.linkType === "internal") && isLinkValid;
+
+  // Fallback label if link is broken
+  const primaryCtaLabel = !isLinkValid
+    ? "Not Available"
+    : (app.ctaLabel || (hasTool ? "Run Tool" : "View Guide"));
 
   const relatedApps = await getRelatedApps(
     getAppItemId(app),
@@ -143,9 +155,9 @@ export default async function AppDetailPage({ params }: Props) {
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
                 <PrimaryCta
                   label={primaryCtaLabel}
-                  ctaLink={ctaLink}
-                  isExternal={hasExternalCta}
-                  isInternal={hasInternalCta}
+                  ctaLink={finalCtaLink}
+                  isExternal={isExternal}
+                  isInternal={isInternal}
                 />
               </div>
             </div>
