@@ -34,8 +34,6 @@ type ManagerAppCardProps = {
   onDelete: () => void;
 };
 
-const FALLBACK_IMAGE_SRC = "/images/mock/hero/campaign.png";
-
 function getStatusPresentation(isActive: boolean) {
   if (isActive) {
     return {
@@ -73,18 +71,12 @@ function getTypePresentation(linkType: AppLinkType) {
 
 function getCardImageSource(record: ManagerAppCardItem) {
   if (record.imageUrl && record.imageUrl.trim()) return record.imageUrl;
-  return FALLBACK_IMAGE_SRC;
+  return null;
 }
 
 function onCardImageError(event: SyntheticEvent<HTMLImageElement>) {
   const target = event.currentTarget;
-
-  if (target.dataset.fallbackApplied === "true") {
-    return;
-  }
-
-  target.dataset.fallbackApplied = "true";
-  target.src = FALLBACK_IMAGE_SRC;
+  target.style.display = "none";
 }
 
 export function ManagerAppCard({
@@ -121,16 +113,24 @@ export function ManagerAppCard({
       <div className="p-2 pb-0 shrink-0">
         <div className="relative h-40 sm:h-44 w-full overflow-hidden rounded-xl">
           <div className="absolute inset-0 animate-pulse bg-muted" />
-          <Image
-            src={getCardImageSource(item)}
-            alt={item.name}
-            fill
-            className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            priority
-            unoptimized
-            onError={onCardImageError}
-          />
+          {getCardImageSource(item) ? (
+            <Image
+              src={getCardImageSource(item)!}
+              alt={item.name}
+              fill
+              className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              priority
+              unoptimized
+              onError={onCardImageError}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 p-4 z-10">
+              <span className="text-center text-sm font-bold tracking-widest text-slate-400/30 uppercase">
+                No image available
+              </span>
+            </div>
+          )}
 
           <div className="absolute right-2 top-2 z-20">
             <DropdownMenu>

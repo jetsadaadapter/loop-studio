@@ -51,15 +51,52 @@ export function getDepartmentBadgeClass(dept: string): string {
  */
 export function isInvalidToolSlug(link: string): boolean {
   if (!link) return false;
+
+  // Any internal link starting with /to must be a valid tool path (/tool/ or /tools/)
+  if (link.startsWith("/to")) {
+    if (!link.startsWith("/tool/") && !link.startsWith("/tools/")) {
+      return true;
+    }
+  }
+
   if (link.startsWith("/tool/") || link.startsWith("/tools/")) {
     const idPart = link.split("/").pop() || "";
-    // ULIDs/ObjectIds are at least 20 chars long and contain no hyphens.
+    // ULIDs/ObjectIds/Tool IDs are at least 8 chars long and contain no hyphens.
     // If it's short or contains hyphens, it's a slug, which will result in 404.
-    if (idPart.length < 20 || idPart.includes("-")) {
+    if (idPart.length < 8 || idPart.includes("-")) {
       return true;
     }
   }
   return false;
+}
+
+/**
+ * Validates if an internal link is potentially pointing to a non-existent base path (gibberish/random).
+ */
+export function isInvalidInternalPath(link: string): boolean {
+  if (!link) return false;
+  if (!link.startsWith("/")) return true;
+
+  const pathWithoutQuery = link.split("?")[0].split("#")[0];
+  const segments = pathWithoutQuery.split("/").filter(Boolean);
+
+  if (segments.length === 0) return false;
+
+  const WHITELISTED_BASE_PATHS = [
+    "about",
+    "apps",
+    "callback",
+    "dashboard",
+    "images",
+    "library",
+    "login",
+    "manage",
+    "tool",
+    "tools"
+  ];
+
+  const firstSegment = segments[0];
+  return !WHITELISTED_BASE_PATHS.includes(firstSegment);
 }
 
 /**

@@ -38,7 +38,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
-  const [uploadError, setUploadError] = React.useState("");
 
   const resolvedPreviewSrc = React.useMemo(() => {
     if (previewSrc) return previewSrc;
@@ -54,7 +53,6 @@ export function ImageUpload({
   const clearSelection = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (isUploading) return;
-    setUploadError("");
     onChange?.("");
   };
 
@@ -91,11 +89,8 @@ export function ImageUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadError("");
-
     if (!acceptedMimeTypes.includes(file.type)) {
       const message = `Invalid file type. Allowed: ${acceptedMimeTypes.join(", ")}`;
-      setUploadError(message);
       onError?.(message);
       e.target.value = "";
       return;
@@ -104,7 +99,6 @@ export function ImageUpload({
     const maxBytes = maxFileSizeMb * 1024 * 1024;
     if (file.size > maxBytes) {
       const message = `File size must be ${maxFileSizeMb}MB or less.`;
-      setUploadError(message);
       onError?.(message);
       e.target.value = "";
       return;
@@ -132,7 +126,6 @@ export function ImageUpload({
         if (expectedWidth) dimensions.push(`width ${expectedWidth}px`);
         if (expectedHeight) dimensions.push(`height ${expectedHeight}px`);
         const message = `Image dimensions must be exactly ${dimensions.join(" and ")}.`;
-        setUploadError(message);
         onError?.(message);
         e.target.value = "";
         return;
@@ -166,7 +159,6 @@ export function ImageUpload({
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to upload image.";
-      setUploadError(message);
       onError?.(message);
     } finally {
       setIsUploading(false);
@@ -230,9 +222,6 @@ export function ImageUpload({
             {isUploading ? "Uploading..." : value || placeholder}
           </p>
           <p className="max-w-50 text-xs text-slate-500">{description}</p>
-          {uploadError ? (
-            <p className="text-xs text-destructive">{uploadError}</p>
-          ) : null}
           {value ? (
             <div className="mt-2 flex items-center gap-2">
               <button

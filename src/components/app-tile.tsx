@@ -8,9 +8,9 @@ export function AppTile({ app }: { app: LibraryApp }) {
   return (
     <Link
       href={`/apps/${app.id}`}
-      className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
+      className="group block h-full w-full rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
     >
-      <article className="relative w-64 shrink-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] transition duration-200 group-hover:-translate-y-0.5 group-hover:border-slate-300 group-hover:shadow-[0_18px_34px_-22px_rgba(15,23,42,0.35)] sm:w-68">
+      <article className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] transition duration-200 group-hover:-translate-y-0.5 group-hover:border-slate-300 group-hover:shadow-[0_18px_34px_-22px_rgba(15,23,42,0.35)]">
         <div className="relative aspect-4/3 overflow-hidden rounded-t-3xl bg-slate-100">
           {app.imageUrl ? (
             <Image
@@ -21,7 +21,13 @@ export function AppTile({ app }: { app: LibraryApp }) {
               className="object-cover transition duration-500 group-hover:scale-105"
               unoptimized
             />
-          ) : null}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 p-4">
+              <span className="text-center text-xl font-bold tracking-widest text-slate-400/30 uppercase">
+                No image available
+              </span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-linear-to-b from-white/5 via-slate-900/6 to-slate-900/28" />
           <div className="absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-white via-white/80 to-transparent" />
         </div>
@@ -42,10 +48,10 @@ export function AppTile({ app }: { app: LibraryApp }) {
           </div>
 
           <div className="mt-3 space-y-1.5">
-            <h3 className="line-clamp-1 text-base font-semibold tracking-tight text-slate-900">
+            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight text-slate-900">
               {app.name}
             </h3>
-            <p className="line-clamp-1 text-sm text-slate-500">
+            <p className="line-clamp-1 text-xs text-slate-500">
               {app.category}
             </p>
             <div className="flex flex-wrap items-center gap-1.5">

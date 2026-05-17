@@ -87,8 +87,8 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
           effectiveBadge === "all"
             ? section.items
             : section.items.filter(
-                (app) => app.badge?.toLowerCase() === effectiveBadge,
-              );
+              (app) => app.badge?.toLowerCase() === effectiveBadge,
+            );
 
         return (
           <div key={section.id} className="px-1 py-1 sm:px-0">
@@ -120,11 +120,10 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
                           : badgeFilter.key,
                     }))
                   }
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-all duration-200 ${
-                    effectiveBadge === badgeFilter.key
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-all duration-200 ${effectiveBadge === badgeFilter.key
                       ? "border-brand bg-brand text-white"
                       : "border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900"
-                  }`}
+                    }`}
                 >
                   {badgeFilter.label}
                 </button>
@@ -143,11 +142,10 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
                     ref={(element) => {
                       cardElementsRef.current[cardKey] = element;
                     }}
-                    className={`snap-start transition-all duration-500 ease-out ${
-                      isVisible
+                    className={`shrink-0 w-[86vw] sm:w-[44vw] md:w-[30vw] lg:w-[23%] xl:w-[22%] max-w-[280px] snap-start transition-all duration-500 ease-out ${isVisible
                         ? "translate-y-0 scale-100 opacity-100"
                         : "translate-y-3 scale-[0.985] opacity-0"
-                    } ${revealDelayClasses[Math.min(index, 6)]}`}
+                      } ${revealDelayClasses[Math.min(index, 6)]}`}
                   >
                     <AppTile app={app} />
                   </div>

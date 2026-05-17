@@ -76,11 +76,13 @@ export default async function AppDetailPage({ params }: Props) {
     Boolean(value),
   );
 
+  const coverSrc = app.coverId ? `/images/${app.coverId}` : app.imageUrl;
+
   return (
     <div className="mx-auto max-w-6xl px-0 pb-8 sm:px-0 lg:pb-10">
       <div className="space-y-6">
         <AppCover
-          src={app.imageUrl}
+          src={coverSrc}
           alt={`${app.name} cover image`}
           accentColor={coverAccentColor}
         >

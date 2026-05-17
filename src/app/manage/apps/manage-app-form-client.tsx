@@ -762,6 +762,11 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       }}
                       onBlur={() => touchAndValidate("name", draft)}
                     />
+                    {!(touched.name && fieldErrors.name) && (
+                      <FieldDescription>
+                        Must be between 3 and 50 characters.
+                      </FieldDescription>
+                    )}
                     <FieldError
                       errors={
                         touched.name ? [{ message: fieldErrors.name }] : []
@@ -824,6 +829,11 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       rows={5}
                       className="min-h-24 w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     />
+                    {!(touched.description && fieldErrors.description) && (
+                      <FieldDescription>
+                        Must be between 10 and 500 characters.
+                      </FieldDescription>
+                    )}
                     <FieldError
                       errors={
                         touched.description
@@ -837,7 +847,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <Card className="rounded-xl border-0">
                 <CardHeader>
-                  <h5 className="text-base font-semibold">Banner</h5>
+                  <h5 className="text-base font-semibold">Featured Image</h5>
                 </CardHeader>
                 <CardContent>
                   <Field>
@@ -846,9 +856,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       previewSrc={
                         draft.imageId
                           ? `/images/${encodeURIComponent(draft.imageId.trim())}`
-                          : mode === "edit"
-                            ? `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
-                            : undefined
+                          : undefined
                       }
                       onChange={(value) => {
                         const next = { ...draft, imageId: value };
@@ -862,12 +870,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                           imageId: message,
                         }));
                       }}
-                      placeholder="Upload banner"
-                      description="Upload banner via /images/upload and preview instantly."
+                      placeholder="Upload featured image"
+                      description="Recommended size: 1200x400 px. Supports png, jpg, jpeg, webp."
                     />
-                    <FieldDescription>
-                      Recommended banner size: 1200x400.
-                    </FieldDescription>
                     <FieldError
                       errors={
                         touched.imageId
@@ -938,6 +943,11 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                           }}
                           onBlur={() => touchAndValidate("ctaLabel", draft)}
                         />
+                        {!(touched.ctaLabel && fieldErrors.ctaLabel) && (
+                          <FieldDescription>
+                            The text displayed on the CTA button (maximum 30 characters).
+                          </FieldDescription>
+                        )}
                         <FieldError
                           errors={
                             touched.ctaLabel
@@ -960,15 +970,21 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                               ctaLink: event.target.value,
                             };
                             setDraft(next);
-                            if (touched.ctaLink) revalidateField("ctaLink", next);
+                            setTouched((prev) => ({ ...prev, ctaLink: true }));
+                            revalidateField("ctaLink", next);
                           }}
-                          onBlur={() => touchAndValidate("ctaLink", draft)}
+                          onBlur={() => setTouched((prev) => ({ ...prev, ctaLink: true }))}
                         />
                         <FieldDescription>
-                          Internal should start with /, external with https://.<br/>
-                          <span className="text-amber-600 font-medium mt-1 inline-block">
-                            ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
-                          </span>
+                          Internal should start with /, external with https://.
+                          {!(touched.ctaLink && fieldErrors.ctaLink) && (
+                            <>
+                              <br />
+                              <span className="text-amber-600 font-medium flex gap-1 mt-1">
+                                ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
+                              </span>
+                            </>
+                          )}
                         </FieldDescription>
                         <FieldError
                           errors={
@@ -1090,9 +1106,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                       previewSrc={
                         draft.iconId
                           ? `/images/${encodeURIComponent(draft.iconId.trim())}`
-                          : mode === "edit"
-                            ? `/images/${DEFAULT_IMAGE_PREVIEW_ID}`
-                            : undefined
+                          : undefined
                       }
                       previewFit="contain"
                       onChange={(value) => {
@@ -1108,7 +1122,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                         }));
                       }}
                       placeholder="Upload icon"
-                      description="Supports png, jpg, jpeg, webp."
+                      description="Recommended size: 512x512 px. Supports png, jpg, jpeg, webp."
                     />
                     <FieldError
                       errors={

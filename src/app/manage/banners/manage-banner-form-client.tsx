@@ -384,7 +384,7 @@ export function ManageBannerFormClient({
 
             <Card className="rounded-xl border-0">
               <CardHeader>
-                <h5 className="text-base font-semibold">App Selection</h5>
+                <h5 className="text-base font-semibold">App Selection <span className="text-destructive">*</span></h5>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto p-1">
@@ -454,14 +454,18 @@ export function ManageBannerFormClient({
           <div className="col-span-12 lg:col-span-4 space-y-6">
             <Card className="rounded-xl border-0">
               <CardHeader>
-                <h5 className="text-base font-semibold">Banner Image</h5>
+                <h5 className="text-base font-semibold">Banner Image <span className="text-destructive">*</span></h5>
               </CardHeader>
               <CardContent>
                 <Field>
                   <ImageUpload
                     value={draft.imageId}
                     previewSrc={draft.imageId ? `/images/${encodeURIComponent(draft.imageId.trim())}` : undefined}
-                    onChange={(id) => handleDraftChange("imageId", id)}
+                    onChange={(id) => {
+                      handleDraftChange("imageId", id);
+                      setFieldErrors((prev) => ({ ...prev, imageId: "" }));
+                    }}
+                    onError={(msg) => setFieldErrors((prev) => ({ ...prev, imageId: msg }))}
                     placeholder="Upload banner image"
                     description="Recommended 16:10 ratio."
                   />

@@ -1,14 +1,15 @@
 import { z } from "zod";
+import { isInvalidToolSlug, isInvalidInternalPath } from "@/lib/utils";
 
 export const ManageAppSchema = z.object({
-  name: z.string().min(1, "App name is required."),
+  name: z.string().min(3, "App name must be at least 3 characters.").max(50, "App name must be 50 characters or fewer."),
   categoryId: z.string().min(1, "Category is required."),
-  description: z.string().min(10, "Description must be at least 10 characters."),
-  imageId: z.string().min(1, "Banner image is required."),
-  iconId: z.string().min(1, "Thumbnail image is required."),
-  coverId: z.string().optional(),
+  description: z.string().min(10, "Description must be at least 10 characters.").max(500, "Description must be 500 characters or fewer."),
+  imageId: z.string().optional().or(z.literal("")),
+  iconId: z.string().optional().or(z.literal("")),
+  coverId: z.string().optional().or(z.literal("")),
   instructions: z.string().min(10, "Instructions must be at least 10 characters."),
-  ctaLabel: z.string().optional().or(z.literal("")),
+  ctaLabel: z.string().max(30, "CTA label must be 30 characters or fewer.").optional().or(z.literal("")),
   ctaLink: z.string().optional().or(z.literal("")),
   linkType: z.enum(["internal", "external", "instruction"]),
   isActive: z.boolean().default(true),
@@ -22,6 +23,22 @@ export const ManageAppSchema = z.object({
   return true;
 }, {
   message: "Internal link must start with /.",
+  path: ["ctaLink"],
+}).refine((data) => {
+  if (data.linkType === "internal" && data.ctaLink) {
+    return !isInvalidInternalPath(data.ctaLink);
+  }
+  return true;
+}, {
+  message: "Invalid internal link format or non-existent path.",
+  path: ["ctaLink"],
+}).refine((data) => {
+  if (data.linkType === "internal" && data.ctaLink) {
+    return !isInvalidToolSlug(data.ctaLink);
+  }
+  return true;
+}, {
+  message: "If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug.",
   path: ["ctaLink"],
 }).refine((data) => {
   if (data.linkType === "external" && data.ctaLink) {
