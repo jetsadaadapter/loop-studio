@@ -6,6 +6,47 @@ export interface AnalysisResult {
     sentiment?: string;
     summary?: string;
     keywords?: string[];
+    intentRatios?: {
+        buyIntent: number;
+        notInterested: number;
+        negative: number;
+    };
+    postType?: string;
+    multiLabels?: string[];
+    politicians?: string[];
+    commentThemes?: Array<{
+        theme: string;
+        count: number;
+        percentage: number;
+    }>;
+}
+
+export interface ScrapedComment {
+    authorName?: string;
+    text: string;
+    mentions?: string[];
+}
+
+export interface ScrapedJobItem {
+    url?: string;
+    facebookUrl?: string;
+    postId?: string;
+    pageName?: string;
+    text?: string;
+    likes?: number;
+    shares?: number;
+    viewsCount?: number;
+    commentsCount?: number;
+    user?: {
+        profilePic?: string;
+        name?: string;
+    };
+    media?: Array<{
+        thumbnail?: string;
+    }>;
+    comments?: ScrapedComment[];
+    analysis?: AnalysisResult;
+    sourceKeyValue?: string;
 }
 
 export interface SourceItem {

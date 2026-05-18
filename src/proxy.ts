@@ -32,6 +32,9 @@ const TRUSTED_IMG_SRCS = [
     "https://source.unsplash.com",
     "https://ui-avatars.com",
     "https://placehold.co",
+    "https://*.fbcdn.net",
+    "https://*.facebook.com",
+    "https://*.akamaihd.net",
 ].join(" ");
 
 /**

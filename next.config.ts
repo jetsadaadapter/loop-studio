@@ -75,6 +75,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.fbcdn.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.facebook.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.akamaihd.net",
+      },
+      {
+        protocol: "https",
         hostname: "library-api.adapterdigital.com",
         pathname: "/api/images/**",
       },

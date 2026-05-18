@@ -123,12 +123,16 @@ export function ToolFormSection({ params, formData, errors, isRunning, onChange,
                         ) : param.transform === 'urlArray' ? (
                             <UrlArrayInput id={param.key} value={(formData[param.key] as string[]) || []}
                                 onChange={(val) => clearError(param.key, val)} placeholder={param.placeholder} hasError={!!errors[param.key]} />
+                        ) : (param.key === 'rawInput' || param.key === 'text' || (param as ToolParam & { multiline?: boolean }).multiline) ? (
+                            <Textarea id={param.key} placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
+                                value={String(formData[param.key] || "")} onChange={(e) => clearError(param.key, e.target.value)}
+                                className={cn("min-h-[120px] py-3 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm px-4 resize-none", errors[param.key] && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
                         ) : (
                             <Input id={param.key} placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
                                 value={String(formData[param.key] || "")} onChange={(e) => clearError(param.key, e.target.value)}
                                 className={cn("h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm px-4", errors[param.key] && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
                         )}
-                        {param.placeholder && param.type !== 'select' && param.transform !== 'urlArray' && (
+                        {param.placeholder && param.type !== 'select' && param.transform !== 'urlArray' && !errors[param.key] && (
                             <FieldDescription className="text-xs text-slate-500 mt-1.5">{param.placeholder}</FieldDescription>
                         )}
                         <FieldError errors={errors[param.key] ? [{ message: errors[param.key] }] : []} className="text-xs mt-1.5 font-medium" />
