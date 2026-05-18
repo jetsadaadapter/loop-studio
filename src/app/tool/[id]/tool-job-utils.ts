@@ -47,6 +47,8 @@ export interface ScrapedJobItem {
     comments?: ScrapedComment[];
     analysis?: AnalysisResult;
     sourceKeyValue?: string;
+    time?: string;
+    timestamp?: number;
 }
 
 export interface SourceItem {

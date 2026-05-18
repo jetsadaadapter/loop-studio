@@ -283,19 +283,19 @@ export default async function AppDetailPage({ params }: Props) {
                         const { inline, ...rest } = props;
                         return inline ? (
                           <code
-                            className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm font-mono"
+                            className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
                             {...rest}
                           />
                         ) : (
                           <code
-                            className="bg-slate-100 text-slate-800 block p-3 rounded-md text-sm font-mono overflow-x-auto mb-3"
+                            className="bg-slate-100 text-slate-800 block p-3 rounded-md text-sm overflow-x-auto mb-3"
                             {...rest}
                           />
                         );
                       },
                       pre: (props) => (
                         <pre
-                          className="bg-slate-900 text-slate-100 p-4 rounded-md text-sm font-mono overflow-x-auto mb-3"
+                          className="bg-slate-900 text-slate-100 p-4 rounded-md text-sm overflow-x-auto mb-3"
                           {...props}
                         />
                       ),

@@ -86,18 +86,10 @@ export function ManagerAppCard({
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
-  const [copiedId, setCopiedId] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const status = getStatusPresentation(item.isActive);
   const type = getTypePresentation(item.linkType);
-
-  const handleCopyId = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(item.id);
-    setCopiedId(true);
-    setTimeout(() => setCopiedId(false), 2000);
-  };
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -157,13 +149,6 @@ export function ManagerAppCard({
                   Edit app
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={handleCopyLink}
-                  className="py-2 text-sm cursor-pointer"
-                >
-                  {copiedLink ? <Check className="size-4 mr-2 text-emerald-500" /> : <Copy className="size-4 mr-2" />}
-                  {copiedLink ? "Copied!" : "Copy link"}
-                </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -235,16 +220,16 @@ export function ManagerAppCard({
 
         {/* Footer Code Block */}
         <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-1">
-          <span className="text-xs font-mono text-slate-600 truncate mr-2">
-            ID: {item.id}
+          <span className="text-xs text-slate-600 truncate mr-2">
+            /apps/{item.id}
           </span>
           <button
             type="button"
             className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-sm transition"
-            onClick={handleCopyId}
-            title="Copy ID"
+            onClick={handleCopyLink}
+            title="Copy Link"
           >
-            {copiedId ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            {copiedLink ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
           </button>
         </div>
       </div>

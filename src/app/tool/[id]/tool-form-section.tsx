@@ -49,7 +49,7 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
                     <Textarea value={bulkValue}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkValue(e.target.value)}
                         placeholder="Paste your URLs here (one per line or comma-separated)..."
-                        className={cn("min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm font-mono rounded-sm resize-y", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
+                        className={cn("min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-sm resize-y", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
                     <div className="flex gap-2">
                         <Button size="sm" className="h-9 rounded-lg bg-brand hover:bg-brand/90 text-white text-xs px-5 shadow-sm" onClick={handleBulkSave}>Apply Bulk Changes</Button>
                         <Button size="sm" variant="outline" className="h-9 rounded-lg text-xs px-5 border-slate-200" onClick={handleBulkCancel}>Cancel</Button>

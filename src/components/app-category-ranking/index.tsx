@@ -113,7 +113,7 @@ export function AppCategoryRanking({
             return (
               <div key={tab.key}>
                 <div className="flex flex-col gap-1">
-                  <div className="font-mono text-xs uppercase tracking-widest text-slate-400">
+                  <div className="text-xs uppercase tracking-widest text-slate-400">
                     {tab.label}
                   </div>
                   <button
@@ -183,7 +183,7 @@ export function AppCategoryRanking({
                     />
                   </div>
                   <div className="px-5 py-5">
-                    <div className="font-mono text-xs uppercase tracking-widest text-slate-400">
+                    <div className="text-xs uppercase tracking-widest text-slate-400">
                       {app.category}
                     </div>
                     <h3 className="mt-1.5 text-sm font-semibold leading-snug text-slate-950 sm:text-base">
