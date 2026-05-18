@@ -298,13 +298,10 @@ export function AboutPageClient() {
         <Reveal delay={80} className="relative z-10 mt-18">
           <div className="relative left-1/2 w-screen -translate-x-1/2 px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-310">
-              <div className="flex flex-col items-center justify-between gap-8 rounded-2xl bg-linear-to-r from-[#ddeeff] to-[#fef9e7] p-8 lg:flex-row lg:gap-12">
+              <div className="flex flex-col items-center justify-between gap-8 rounded-2xl bg-linear-to-r from-[#ddeeff] to-[#fef9e7] p-8 lg:flex-row lg:gap-12 w-full">
                 <div className="text-center lg:text-start">
                   <p className="text-2xl font-semibold text-slate-900">
                     {copy.cta.primary.label}
-                  </p>
-                  <p className="text-2xl font-semibold text-slate-900">
-                    {copy.cta.secondary.label}
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-4 sm:flex-row">
@@ -314,15 +311,6 @@ export function AboutPageClient() {
                   >
                     <span>{copy.cta.primary.action}</span>
                     <div className="rounded-full bg-white p-3 text-black transition-transform duration-300 group-hover:rotate-45">
-                      <ArrowUpRight size={16} />
-                    </div>
-                  </Link>
-                  <Link
-                    href={copy.cta.secondary.href}
-                    className="group inline-flex h-12 w-fit items-center gap-4 rounded-full border border-slate-300 bg-white/60 py-1 pl-5 pr-1 text-sm font-medium text-slate-900 transition hover:border-slate-400 hover:bg-white/80"
-                  >
-                    <span>{copy.cta.secondary.action}</span>
-                    <div className="rounded-full bg-slate-900 p-3 text-white transition-transform duration-300 group-hover:rotate-45">
                       <ArrowUpRight size={16} />
                     </div>
                   </Link>
