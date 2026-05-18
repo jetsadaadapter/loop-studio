@@ -42,10 +42,16 @@ function JobDetailSkeleton() {
     return (
         <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
             {/* Header Skeleton */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4.5 shrink-0 flex items-center justify-between">
-                <div className="space-y-2 animate-pulse w-full">
-                    <div className="h-5 bg-slate-200 rounded-full w-2/5" />
-                    <div className="h-3.5 bg-slate-100 rounded-full w-3/5" />
+            <div className="p-4 md:p-5 bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-200 shrink-0 relative pr-16">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 bg-slate-200/50 border border-slate-200/20 rounded-xl shrink-0 shadow-xs w-8 h-8 animate-pulse" />
+                    <div className="space-y-2 flex-1 min-w-0 animate-pulse">
+                        <div className="flex items-center gap-2">
+                            <div className="h-3.5 bg-slate-200 rounded-full w-24" />
+                            <div className="h-4.5 bg-slate-200/80 rounded-full w-16" />
+                        </div>
+                        <div className="h-2.5 bg-slate-100 rounded-full w-40" />
+                    </div>
                 </div>
             </div>
 
@@ -73,7 +79,7 @@ function JobDetailSkeleton() {
                     </div>
 
                     {/* Edge-to-Edge Media Block */}
-                    <div className="-mx-6 bg-slate-200 h-[280px] animate-pulse relative" />
+                    <div className="-mx-6 bg-slate-200 h-[220px] animate-pulse relative" />
 
                     {/* Flat social stats */}
                     <div className="flex items-center gap-4 py-2 border-b border-slate-100 animate-pulse">
@@ -83,23 +89,47 @@ function JobDetailSkeleton() {
                         <div className="h-5 bg-slate-100 rounded-full w-12" />
                     </div>
 
-                    {/* Dashed summary widget skeleton */}
-                    <div className="border-2 border-dashed border-slate-200 bg-white rounded-2xl p-4 space-y-3 animate-pulse">
+                    {/* Unified Premium AI Digest Card Skeleton */}
+                    <div className="bg-gradient-to-br from-slate-50/50 via-white to-slate-50/20 border border-slate-150 rounded-xl p-3.5 space-y-3.5 shadow-xs animate-pulse">
                         <div className="flex items-center justify-between">
-                            <div className="h-4 bg-slate-200 rounded-full w-1/4" />
-                            <div className="size-6 bg-slate-200 rounded-full" />
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-slate-200 rounded-lg size-7" />
+                                <div className="h-4 bg-slate-200 rounded-full w-28" />
+                            </div>
+                            <div className="h-5 bg-slate-100 rounded-full w-16" />
                         </div>
                         <div className="space-y-2">
-                            <div className="h-3 bg-slate-100 rounded-full w-full" />
-                            <div className="h-3 bg-slate-100 rounded-full w-5/6" />
+                            <div className="h-3 bg-slate-150 rounded-full w-full" />
+                            <div className="h-3 bg-slate-150 rounded-full w-5/6" />
                             <div className="h-3 bg-slate-100 rounded-full w-4/5" />
                         </div>
+                        
+                        {/* Segmented Progress Ratio Bars Skeleton */}
+                        <div className="space-y-2.5 pt-3 border-t border-slate-100/60">
+                            <div className="flex justify-between items-center">
+                                <div className="h-3 bg-slate-150 rounded-full w-20" />
+                                <div className="h-3 bg-slate-100 rounded-full w-12" />
+                            </div>
+                            <div className="h-3.5 bg-slate-200 rounded-full w-full" />
+                        </div>
                     </div>
+                </div>
 
-                    {/* Visualizer stacks */}
-                    <div className="space-y-3 pt-2 animate-pulse">
-                        <div className="h-10 bg-slate-100 rounded-xl w-full" />
-                        <div className="h-10 bg-slate-100 rounded-xl w-full" />
+                {/* Double Accordion Inspection Panels Skeletons (Prevents vertical CLS jumping!) */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden animate-pulse">
+                    <div className="h-11 bg-slate-50/50 px-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="size-3.5 bg-slate-200 rounded-md" />
+                            <div className="h-3 bg-slate-200 rounded-full w-32" />
+                        </div>
+                        <div className="size-3.5 bg-slate-200 rounded-full" />
+                    </div>
+                    <div className="h-11 bg-slate-50/50 px-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="size-3.5 bg-slate-200 rounded-md" />
+                            <div className="h-3 bg-slate-200 rounded-full w-32" />
+                        </div>
+                        <div className="size-3.5 bg-slate-200 rounded-full" />
                     </div>
                 </div>
             </div>
@@ -859,8 +889,8 @@ function JobResultItem({ item, idx, job }: {
                             </span>
                         )}
                         {shares !== undefined && (
-                            <span className="flex items-center gap-1.5 transition-all hover:text-indigo-650 cursor-default">
-                                <Repeat className="size-4 text-indigo-400" /> {shares.toLocaleString()}
+                            <span className="flex items-center gap-1.5 transition-all hover:text-brand cursor-default text-slate-500">
+                                <Repeat className="size-4 text-slate-400 group-hover:text-brand" /> {shares.toLocaleString()}
                             </span>
                         )}
                     </div>
