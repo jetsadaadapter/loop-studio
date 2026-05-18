@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Play, Loader2, Plus, Trash2, FileText, List, Link2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UrlArrayInputProps {
@@ -52,7 +52,7 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkValue(e.target.value)}
                         placeholder="Paste your URLs here (one per line or comma-separated)..."
                         className={cn("min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
-                    
+
                     {/* Premium inline technical formatting advisor */}
                     <div className="flex items-center gap-1.5 px-3 py-2 bg-brand/5 border border-brand/10 rounded-xl text-[10px] text-slate-600 font-bold select-none">
                         <Sparkles className="size-3.5 text-brand shrink-0 animate-pulse" />
@@ -67,16 +67,16 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
             ) : value.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-6 text-center bg-slate-50/30 rounded-2xl border border-dashed border-slate-200 shadow-xs relative overflow-hidden select-none group min-h-[140px] transition-all duration-300 hover:border-brand/40">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand/5 rounded-full blur-3xl opacity-60 pointer-events-none" />
-                    
+
                     <div className="p-3 bg-white border border-slate-100 rounded-xl shadow-xs text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all duration-300 relative z-10 shrink-0 mb-3">
                         <Link2 className="size-5 transition-transform duration-500 group-hover:rotate-45" />
                     </div>
-                    
+
                     <h5 className="text-xs font-bold text-slate-700 relative z-10 leading-normal">No Source URLs Added</h5>
                     <p className="text-[10px] text-slate-400/90 font-medium max-w-[280px] mt-1 relative z-10 leading-normal">
                         Add a direct Facebook post URL or switch to Bulk Edit to paste multiple links.
                     </p>
-                    
+
                     <div className="mt-4 flex gap-2 w-full max-w-[280px] relative z-10 justify-center">
                         <Button variant="outline" size="sm" className="h-8.5 px-3 rounded-lg border-slate-200 text-[10.5px] font-bold text-slate-600 hover:bg-slate-100/50 transition-colors shadow-none cursor-pointer"
                             onClick={handleAdd}>
@@ -96,13 +96,13 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
                             <div className="flex items-center justify-center size-8 bg-slate-100/80 text-slate-500 text-[10.5px] font-bold rounded-lg shrink-0 select-none group-hover/row:bg-brand/10 group-hover/row:text-brand transition-all duration-300">
                                 {index + 1}
                             </div>
-                            
+
                             {/* Inner absolute trash containment */}
                             <div className="flex-1 relative flex items-center min-w-0">
                                 <Input value={item} onChange={(e) => handleItemChange(index, e.target.value)}
                                     placeholder={placeholder || "https://..."}
                                     className={cn("h-10 pr-10 bg-slate-50/50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl", hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30")} />
-                                
+
                                 <Button variant="ghost" size="icon" className="absolute right-1 size-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all opacity-0 group-hover/row:opacity-100 focus:opacity-100 cursor-pointer"
                                     onClick={() => handleRemove(index)}>
                                     <Trash2 className="size-4" />
@@ -110,7 +110,7 @@ function UrlArrayInput({ id, value, onChange, placeholder, hasError }: UrlArrayI
                             </div>
                         </div>
                     ))}
-                    
+
                     <Button variant="outline" size="sm" className="w-full h-10 rounded-xl border-dashed border-slate-200/80 bg-slate-50/20 text-slate-500 hover:text-brand hover:border-brand hover:bg-brand/5 transition-all duration-300 shadow-none font-bold cursor-pointer hover:-translate-y-0.5 active:scale-[0.99] active:translate-y-0 flex items-center justify-center gap-1.5"
                         onClick={handleAdd}>
                         <Plus className="size-4 shrink-0" /> Add Another URL
@@ -131,12 +131,12 @@ const PARAM_HELPERS: Record<string, string> = {
 
 function getHelperText(param: ToolParam): string {
     const key = param.key.toLowerCase();
-    
+
     // Check curated dictionary first
     if (PARAM_HELPERS[key]) {
         return PARAM_HELPERS[key];
     }
-    
+
     // Fallback keyword parsing for smart helper text extraction
     if (key.includes("url")) {
         return "Enter a valid Facebook page URL, e.g. https://www.facebook.com/senatorWong/. Note that you can only scrape public pages with this Actor, not personal profiles.";
@@ -156,12 +156,12 @@ function getHelperText(param: ToolParam): string {
     if (key.includes("comment")) {
         return "Specify the count threshold of comments to pull and analyze per social post.";
     }
-    
+
     // Use param placeholder if descriptive, otherwise default key message
     if (param.placeholder && param.placeholder.length > 5 && !param.placeholder.includes("https://")) {
         return param.placeholder;
     }
-    
+
     return `Configure the parameter settings for ${param.label}.`;
 }
 
