@@ -1,5 +1,47 @@
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 
+export interface PreviousResultsItem {
+    facebookUrl?: string;
+    permalink_url?: string;
+    url?: string;
+    [key: string]: unknown;
+}
+
+export interface PreviousResults {
+    resultId?: string;
+    actorId?: string;
+    runId?: string;
+    itemCount?: number;
+    items?: PreviousResultsItem[];
+}
+
+export interface StartUrlItem {
+    url?: string;
+    [key: string]: unknown;
+}
+
+export interface ExtendedToolJobResult {
+    itemCount: number;
+    items: Array<{
+        sourceIndex: number;
+        sourceKey: string;
+        sourceKeyValue: string;
+        analysis: Record<string, unknown>;
+        [key: string]: unknown;
+    }>;
+    config?: Record<string, unknown> | string;
+    prompt?: string;
+    actorId?: string;
+}
+
+export interface ExtendedToolJob extends Omit<ToolJob, 'result'> {
+    result: ExtendedToolJobResult;
+    model?: string;
+    itemKey?: string;
+    prompt?: string;
+    actorId?: string;
+}
+
 export type JobStatus = string;
 
 export interface AnalysisResult {
@@ -37,6 +79,11 @@ export interface ScrapedJobItem {
     shares?: number;
     viewsCount?: number;
     commentsCount?: number;
+    reactionLikeCount?: number;
+    reactionLoveCount?: number;
+    reactionCareCount?: number;
+    reactionHahaCount?: number;
+    reactionWowCount?: number;
     user?: {
         profilePic?: string;
         name?: string;

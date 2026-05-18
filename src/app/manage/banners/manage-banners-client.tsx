@@ -81,8 +81,7 @@ function mapApiItemToRecord(item: LibraryBannerItem): BannerRecord {
     ctaLabel: item.app?.ctaLabel || "Get Started",
     badgeLabel: item.app?.badgeLabel || null,
     iconId: item.app?.iconId || null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tags: item.app?.tags?.map((t: any) => typeof t === "string" ? t : t.name) || [],
+    tags: item.app?.tags?.map((t: string | { name: string }) => typeof t === "string" ? t : t.name) || [],
   };
 }
 

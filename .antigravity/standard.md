@@ -46,6 +46,7 @@ src/
 - **Component Pattern**: All new components MUST follow: `src/components/<component-name>/index.tsx`. Include `styles.module.css`, `data.ts`, `types.ts` only when necessary.
 - **Server vs Client**: Default to Server Components. Use `"use client"` *only* when interactivity or React hooks are strictly required.
 - **Data Normalization**: Normalize all UI fields that may be objects or strings before rendering. (e.g., `{typeof category === "string" ? category : category?.name || ""}`).
+- **File Length Limits (300 Lines Rule)**: To maintain modularity, readability, and high developer efficiency, keep code files concise. Under ordinary circumstances, code files **must not exceed 300 lines**. If component rendering or service business logic exceeds this threshold, actively refactor by splitting them into smaller, focused sub-components (under a matching kebab-case folder structure), standalone hooks, or isolated utility/service helpers.
 - **Security**: Do not weaken CSP or remove nonce-based CSP flow (`src/proxy.ts`). Maintain the `zt_token` flow.
 
 ## 4. AI Agent Protocol

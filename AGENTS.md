@@ -57,6 +57,7 @@ When these files diverge, update both in the same change.
 - Validate external data with strict Zod schemas at boundaries
 - Avoid unrelated refactors in focused fixes
 - Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and follow its naming/structure convention
+- **File Length Limits (300 Lines Rule)**: Keep files modular, clean, and highly maintainable. Under ordinary circumstances, code files **must not exceed 300 lines**. Actively refactor code by splitting long components or services into focused sub-components or standalone helpers.
 
 **Normalize all UI fields:** Before rendering any field that may be an object or string (e.g., `category`), always normalize to string:
 
