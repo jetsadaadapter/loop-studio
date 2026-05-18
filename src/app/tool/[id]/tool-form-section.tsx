@@ -5,7 +5,7 @@ import type { ToolParam } from "@/core/interfaces/tools.interface";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Play, Loader2, Plus, Trash2, FileText, List } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -103,12 +103,9 @@ export function ToolFormSection({ params, formData, errors, isRunning, onChange,
                         {param.type === 'boolean' ? (
                             <div className="flex items-center py-2 px-1">
                                 <label className="flex items-center gap-3 cursor-pointer select-none group">
-                                    <div className="relative flex items-center justify-center">
-                                        <Checkbox id={param.key} checked={!!formData[param.key]}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => clearError(param.key, !!e.target.checked)}
-                                            className="size-5 rounded border-slate-300 data-[state=checked]:bg-brand data-[state=checked]:border-brand"
-                                        />
-                                    </div>
+                                    <Switch id={param.key} checked={!!formData[param.key]}
+                                        onCheckedChange={(val) => clearError(param.key, val)}
+                                    />
                                     <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">Enabled</span>
                                 </label>
                             </div>
