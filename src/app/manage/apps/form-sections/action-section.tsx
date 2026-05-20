@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
+import { useRef, useEffect } from "react";
 
 type ActionSectionProps = {
   linkType: AppLinkType;
@@ -37,6 +38,23 @@ export function ActionSection({
   onChange,
   onBlur,
 }: ActionSectionProps) {
+  // Track previous linkType to detect changes
+  const prevLinkType = useRef<AppLinkType | undefined>(linkType);
+
+  useEffect(() => {
+    if (prevLinkType.current !== linkType) {
+      // If switching between external/internal/instruction, clear CTA link
+      if (
+        (prevLinkType.current === "external" && linkType !== "external") ||
+        (prevLinkType.current !== "external" && linkType === "external")
+      ) {
+        onChange("ctaLink", "");
+      }
+      prevLinkType.current = linkType;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkType]);
+
   return (
     <Card className="rounded-xl border-0">
       <CardHeader>
@@ -108,15 +126,22 @@ export function ActionSection({
                   onBlur={() => onBlur("ctaLink")}
                 />
                 <FieldDescription>
-                  Internal should start with /, external with https://.
-                  {!(touched.ctaLink && fieldErrors.ctaLink) && (
+                  {linkType === "external" ? (
+                    "External links must start with https:// (e.g., https://yourdomain.com/page)."
+                  ) : (
                     <>
-                      <br />
-                      <span className="text-amber-600 font-medium flex gap-1 mt-1">
-                        ⚠️ If linking to a Tool, please use the exact Tool ID
-                        (e.g., /tool/01KRG...) instead of a slug to prevent 404
-                        errors.
-                      </span>
+                      Internal should start with / (e.g., /about, /apps,
+                      /tool/01KRG...).
+                      {!(touched.ctaLink && fieldErrors.ctaLink) && (
+                        <>
+                          <br />
+                          <span className="text-amber-600 font-medium flex gap-1 mt-1">
+                            ⚠️ If linking to a Tool, please use the exact Tool
+                            ID (e.g., /tool/01KRG...) instead of a slug to
+                            prevent 404 errors.
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
                 </FieldDescription>

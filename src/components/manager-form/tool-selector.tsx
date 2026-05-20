@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { getManageTools } from "@/core/services/manage-tools.service";
 import { ManageToolApiItem } from "@/core/interfaces/tool";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError, FieldDescription } from "@/components/ui/field";
 
 interface ToolSelectorProps {
   value: string;
@@ -38,7 +38,7 @@ export function ToolSelector({
   return (
     <Field>
       <FieldLabel>
-        Select Tool <span className="text-destructive">*</span>
+        CTA Link <span className="text-destructive">*</span>
       </FieldLabel>
       <Select
         value={value}
@@ -63,6 +63,11 @@ export function ToolSelector({
           ))}
         </SelectContent>
       </Select>
+      {!(touched && error) && (
+        <FieldDescription>
+          เลือก Tool ที่ต้องการลิงก์ไป (ระบบจะสร้างลิงก์เป็น /tool/รหัสเครื่องมืออัตโนมัติ)
+        </FieldDescription>
+      )}
       <FieldError errors={touched ? [{ message: error }] : []} />
     </Field>
   );

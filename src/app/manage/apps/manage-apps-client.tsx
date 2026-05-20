@@ -45,10 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  deleteManageApp,
-  getManageApps,
-} from "@/core/services/apps.service";
+import { deleteManageApp, getManageApps } from "@/core/services/apps.service";
 import {
   applyManageAppsListQuery,
   DEFAULT_PAGE_SIZE,
@@ -319,8 +316,14 @@ export function ManageAppsClient() {
   const resultEnd = Math.min(safeCurrentPage * pageSize, filtered.length);
 
   const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
-  const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
-  const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
+  const pageTitle = useMemo(
+    () => getLocalizedText(routeMeta.title),
+    [routeMeta],
+  );
+  const pageSubtitle = useMemo(
+    () => getLocalizedText(routeMeta.subtitle),
+    [routeMeta],
+  );
 
   const clearSearchDebounce = useCallback(() => {
     if (searchDebounceRef.current !== null) {
@@ -583,7 +586,7 @@ export function ManageAppsClient() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
               {Array.from({ length: pageSize }).map((_, index) => (
                 <Card
                   key={`skeleton-card-${index}`}
@@ -644,7 +647,7 @@ export function ManageAppsClient() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
                 {pagedApps.map((row) => {
                   return (
                     <ManagerAppCard
