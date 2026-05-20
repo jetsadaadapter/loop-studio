@@ -98,6 +98,7 @@ export async function createManageApp(
     init?: RequestInit,
 ): Promise<ManageAppApiItem> {
     const url = buildUrl("/manage/apps");
+    console.log("[ManageApp] Creating app with payload:", payload);
     const response = await apiFetch<ManageAppMutationResponse>(url, {
         method: "POST",
         body: JSON.stringify(payload),
@@ -112,6 +113,7 @@ export async function updateManageApp(
     init?: RequestInit,
 ): Promise<ManageAppApiItem> {
     const url = buildUrl(`/manage/apps/${id}`);
+    console.log(`[ManageApp] Updating app ${id} with payload:`, payload);
     const response = await apiFetch<ManageAppMutationResponse>(url, {
         method: "PATCH",
         body: JSON.stringify(payload),

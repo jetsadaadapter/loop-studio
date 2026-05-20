@@ -8,6 +8,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { ToolSelector } from "@/components/manager-form/tool-selector";
 import {
   Select,
   SelectContent,
@@ -60,9 +61,7 @@ export function ActionSection({
             </SelectContent>
           </Select>
           <FieldError
-            errors={
-              touched.linkType ? [{ message: fieldErrors.linkType }] : []
-            }
+            errors={touched.linkType ? [{ message: fieldErrors.linkType }] : []}
           />
         </Field>
 
@@ -90,33 +89,44 @@ export function ActionSection({
               />
             </Field>
 
-            <Field>
-              <FieldLabel>
-                CTA Link <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                placeholder="CTA link"
-                value={ctaLink}
-                onChange={(e) => onChange("ctaLink", e.target.value)}
-                onBlur={() => onBlur("ctaLink")}
+            {linkType === "internal" ? (
+              <ToolSelector
+                value={ctaLink.replace("/tool/", "")}
+                onChange={(toolId) => onChange("ctaLink", `/tool/${toolId}`)}
+                touched={touched.ctaLink}
+                error={fieldErrors.ctaLink}
               />
-              <FieldDescription>
-                Internal should start with /, external with https://.
-                {!(touched.ctaLink && fieldErrors.ctaLink) && (
-                  <>
-                    <br />
-                    <span className="text-amber-600 font-medium flex gap-1 mt-1">
-                      ⚠️ If linking to a Tool, please use the exact Tool ID (e.g., /tool/01KRG...) instead of a slug to prevent 404 errors.
-                    </span>
-                  </>
-                )}
-              </FieldDescription>
-              <FieldError
-                errors={
-                  touched.ctaLink ? [{ message: fieldErrors.ctaLink }] : []
-                }
-              />
-            </Field>
+            ) : (
+              <Field>
+                <FieldLabel>
+                  CTA Link <span className="text-destructive">*</span>
+                </FieldLabel>
+                <Input
+                  placeholder="CTA link"
+                  value={ctaLink}
+                  onChange={(e) => onChange("ctaLink", e.target.value)}
+                  onBlur={() => onBlur("ctaLink")}
+                />
+                <FieldDescription>
+                  Internal should start with /, external with https://.
+                  {!(touched.ctaLink && fieldErrors.ctaLink) && (
+                    <>
+                      <br />
+                      <span className="text-amber-600 font-medium flex gap-1 mt-1">
+                        ⚠️ If linking to a Tool, please use the exact Tool ID
+                        (e.g., /tool/01KRG...) instead of a slug to prevent 404
+                        errors.
+                      </span>
+                    </>
+                  )}
+                </FieldDescription>
+                <FieldError
+                  errors={
+                    touched.ctaLink ? [{ message: fieldErrors.ctaLink }] : []
+                  }
+                />
+              </Field>
+            )}
           </div>
         )}
       </CardContent>
