@@ -131,6 +131,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       formData["prompt"] || formData["rawInput"] || formData["text"];
     if (!prompt || typeof prompt !== "string") {
       setTestResult({ error: "No prompt input." });
+      // setErrors((prev) => ({ ...prev, prompt: "No prompt input." }));
       return;
     }
     setIsTesting(true);
