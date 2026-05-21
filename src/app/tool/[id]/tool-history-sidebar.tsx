@@ -2,7 +2,7 @@
 
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, ChevronRight, Clock, RefreshCw } from "lucide-react";
+import { History, ChevronRight, Clock, RefreshCw, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount, type JobStatus } from "./tool-job-utils";
@@ -14,10 +14,11 @@ interface ToolHistorySidebarProps {
     isRefreshing?: boolean;
     onTabChange: (tab: JobStatus) => void;
     onViewJob: (jobId: string) => void;
+    onViewVisualizer: (jobId: string) => void;
     onRefresh: () => void;
 }
 
-export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshing, onTabChange, onViewJob, onRefresh }: ToolHistorySidebarProps) {
+export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshing, onTabChange, onViewJob, onViewVisualizer, onRefresh }: ToolHistorySidebarProps) {
     const tabs = ['all', ...Array.from(new Set(jobs.map(j => getJobStatus(j))))];
     const filtered = jobs.filter(job => activeTab === 'all' || getJobStatus(job) === activeTab);
 
@@ -99,9 +100,16 @@ export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshin
                                 const slicedId = `#${job.jobId.split('-')[0] || ''}`;
 
                                 return (
-                                    <button key={job.jobId} onClick={() => onViewJob(job.jobId)}
+                                    <div key={job.jobId} onClick={() => onViewJob(job.jobId)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                onViewJob(job.jobId);
+                                            }
+                                        }}
                                         className={cn(
-                                            "w-full text-left p-3.5 rounded-2xl border transition-all duration-300 flex items-center justify-between group cursor-pointer relative overflow-hidden select-none",
+                                            "w-full text-left p-3.5 rounded-2xl border transition-all duration-300 flex items-center justify-between group cursor-pointer relative overflow-hidden select-none outline-none",
                                             isSelected 
                                                 ? "bg-white border-brand shadow-[0_4px_16px_rgba(194,0,25,0.06)]" 
                                                 : "bg-white border-slate-200/80 hover:border-slate-350 hover:bg-slate-50/50 hover:shadow-xs hover:-translate-y-0.5"
@@ -151,13 +159,25 @@ export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshin
                                             </div>
                                         </div>
                                         
-                                        <div className="pl-2 shrink-0">
+                                        <div className="pl-2 shrink-0 flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onViewVisualizer(job.jobId);
+                                                }}
+                                                title="Open Apify Workspace Console"
+                                                className="p-1.5 rounded-lg border border-slate-200/80 text-slate-450 hover:text-brand hover:bg-brand/5 hover:border-brand/20 transition-all cursor-pointer bg-slate-50 opacity-0 group-hover:opacity-100 focus:opacity-100 select-none shadow-xs active:scale-95 flex items-center justify-center"
+                                            >
+                                                <Terminal className="size-3.5" />
+                                            </button>
+
                                             <ChevronRight className={cn(
                                                 "size-4 transition-all duration-300 group-hover:translate-x-0.5",
                                                 isSelected ? "text-brand" : "text-slate-300 group-hover:text-slate-450"
                                             )} />
                                         </div>
-                                    </button>
+                                    </div>
                                 );
                             })}
                         </div>

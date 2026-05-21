@@ -123,8 +123,13 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
             : typeof typedSource.comments === "number"
               ? typedSource.comments
               : undefined;
+  const getFirstThumbnail = (media: Array<{ thumbnail?: string } | null | undefined> | undefined) => {
+    if (!Array.isArray(media)) return "";
+    const found = media.find((m) => m && typeof m.thumbnail === "string" && m.thumbnail);
+    return found?.thumbnail || "";
+  };
   const thumbnail = String(
-    typedItem.media?.[0]?.thumbnail || typedSource.media?.[0]?.thumbnail || "",
+    getFirstThumbnail(typedItem.media) || getFirstThumbnail(typedSource.media) || "",
   );
 
   const displayName = String(

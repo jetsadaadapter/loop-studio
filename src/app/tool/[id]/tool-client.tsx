@@ -21,6 +21,7 @@ import { ToolFormSection } from "./tool-form-section";
 import { ToolHistorySidebar } from "./tool-history-sidebar";
 import { ToolJobModal } from "./tool-job-modal";
 import type { JobStatus } from "./tool-job-utils";
+import { ToolJobVisualizer } from "./components/tool-job-visualizer";
 
 interface ToolClientProps {
   tool: Tool;
@@ -55,6 +56,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [selectedJob, setSelectedJob] = useState<ToolJob | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isJobLoading, setIsJobLoading] = useState(false);
+  const [isVisualizerOpen, setIsVisualizerOpen] = useState(false);
+  const [isVisualizerLoading, setIsVisualizerLoading] = useState(false);
+  const [selectedVisualizerJob, setSelectedVisualizerJob] = useState<ToolJob | null>(null);
   const [activeTab, setActiveTab] = useState<JobStatus>("all");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { pushDialogToast } = useDialogToast();
@@ -122,6 +126,24 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       setIsJobModalOpen(false);
     } finally {
       setIsJobLoading(false);
+    }
+  };
+
+  const handleViewVisualizer = async (jobId: string) => {
+    setIsVisualizerOpen(true);
+    setIsVisualizerLoading(true);
+    setSelectedVisualizerJob(null);
+    try {
+      const job = await getToolJob(tool.id, jobId);
+      setSelectedVisualizerJob(job);
+      setJobs((prev) =>
+        prev.map((j) => (j.jobId === jobId ? { ...j, result: job.result } : j)),
+      );
+    } catch {
+      pushDialogToast("Failed to fetch job details.", "error");
+      setIsVisualizerOpen(false);
+    } finally {
+      setIsVisualizerLoading(false);
     }
   };
 
@@ -206,9 +228,10 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             <ToolHistorySidebar
               jobs={jobs}
               activeTab={activeTab}
-              selectedJobId={selectedJob?.jobId}
+              selectedJobId={selectedJob?.jobId || selectedVisualizerJob?.jobId}
               onTabChange={setActiveTab}
               onViewJob={handleViewJob}
+              onViewVisualizer={handleViewVisualizer}
               onRefresh={refreshJobs}
               isRefreshing={isRefreshing}
             />
@@ -221,6 +244,18 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         isLoading={isJobLoading}
         job={selectedJob}
         onOpenChange={setIsJobModalOpen}
+        onOpenVisualizer={(jobId) => {
+          setIsJobModalOpen(false);
+          handleViewVisualizer(jobId);
+        }}
+      />
+
+      <ToolJobVisualizer
+        open={isVisualizerOpen}
+        isLoading={isVisualizerLoading}
+        job={selectedVisualizerJob}
+        toolName={tool.name}
+        onOpenChange={setIsVisualizerOpen}
       />
     </div>
   );

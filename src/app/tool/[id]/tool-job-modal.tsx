@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { AlertCircle, Copy, Check, Workflow } from "lucide-react";
+import { AlertCircle, Copy, Check, Workflow, Terminal, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getJobStatus, getItemCount, type AnalysisResult, type PreviousResults, type StartUrlItem, type ExtendedToolJob } from "./tool-job-utils";
 import { JobDetailSkeleton } from "./components/job-detail-skeleton";
@@ -16,9 +16,10 @@ interface ToolJobModalProps {
     isLoading: boolean;
     job: ToolJob | null;
     onOpenChange: (open: boolean) => void;
+    onOpenVisualizer?: (jobId: string) => void;
 }
 
-export function ToolJobModal({ open, isLoading, job, onOpenChange }: ToolJobModalProps) {
+export function ToolJobModal({ open, isLoading, job, onOpenChange, onOpenVisualizer }: ToolJobModalProps) {
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent 
@@ -28,7 +29,7 @@ export function ToolJobModal({ open, isLoading, job, onOpenChange }: ToolJobModa
                 {isLoading ? (
                     <JobDetailSkeleton />
                 ) : job ? (
-                    <JobDetailContent job={job} />
+                    <JobDetailContent job={job} onOpenVisualizer={onOpenVisualizer} />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full space-y-4">
                         <p className="text-sm text-slate-500">No job data available.</p>
@@ -40,7 +41,7 @@ export function ToolJobModal({ open, isLoading, job, onOpenChange }: ToolJobModa
 }
 
 
-function JobDetailContent({ job }: { job: ToolJob }) {
+function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisualizer?: (jobId: string) => void }) {
     const status = getJobStatus(job);
     const [viewMode, setViewMode] = useState<'flat' | 'group'>('flat');
     const [copiedPrompt, setCopiedPrompt] = useState(false);
@@ -144,6 +145,28 @@ function JobDetailContent({ job }: { job: ToolJob }) {
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-6">
+                {/* Visualizer Workspace Shortcut */}
+                {onOpenVisualizer && (
+                    <button
+                        type="button"
+                        onClick={() => onOpenVisualizer(job.jobId)}
+                        className="w-full flex items-center justify-between p-3 px-4 bg-gradient-to-r from-blue-600/5 via-indigo-600/5 to-purple-600/5 hover:from-blue-600/10 hover:to-purple-600/10 border border-blue-200/40 hover:border-blue-300/60 rounded-xl transition-all duration-300 text-left group shadow-xs cursor-pointer select-none"
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-blue-600/10 text-blue-650 rounded-lg group-hover:bg-blue-600/20 transition-colors">
+                                <Terminal className="size-3.5" />
+                            </div>
+                            <div>
+                                <span className="text-xs font-bold text-slate-800 block">Open Actor Workspace Console</span>
+                                <span className="text-[10px] text-slate-450 mt-0.5 block leading-normal font-semibold">
+                                    View full datasets, table columns, all fields, JSON, and simulated raw runner logs.
+                                </span>
+                            </div>
+                        </div>
+                        <ChevronRight className="size-4 text-blue-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                    </button>
+                )}
+
                 {/* Compact Technical Metadata Ribbon */}
                 <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-2 px-3.5 flex items-center justify-between text-[11px] font-medium text-slate-650 shadow-xs">
                     <div className="flex items-center gap-4">
