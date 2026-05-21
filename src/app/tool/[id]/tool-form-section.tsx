@@ -22,6 +22,7 @@ import {
   Link2,
   Sparkles,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import {
@@ -281,6 +282,8 @@ function getHelperText(param: ToolParam): string {
   return `Configure the parameter settings for ${param.label}.`;
 }
 
+import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
+
 interface ToolFormSectionProps {
   params: ToolParam[];
   formData: Record<string, unknown>;
@@ -288,16 +291,23 @@ interface ToolFormSectionProps {
   isRunning: boolean;
   onChange: (key: string, value: unknown) => void;
   onRun: () => void;
+  onTestPrompt?: () => void;
+  isTesting?: boolean;
+  testResult?: ToolTestPromptResult | null;
 }
 
-export function ToolFormSection({
-  params,
-  formData,
-  errors,
-  isRunning,
-  onChange,
-  onRun,
-}: ToolFormSectionProps) {
+export function ToolFormSection(props: ToolFormSectionProps) {
+  const {
+    params,
+    formData,
+    errors,
+    isRunning,
+    onChange,
+    onRun,
+    onTestPrompt,
+    isTesting,
+    testResult,
+  } = props;
   const clearError = (key: string, value: unknown) => onChange(key, value);
 
   // Check if there is a prompt param
@@ -360,16 +370,17 @@ export function ToolFormSection({
               className="text-xs mt-1.5 font-medium"
             />
           </Field>
-          <div className="pt-6 mt-6 border-t border-slate-100 flex justify-end">
+          <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col gap-4 sm:flex-row sm:justify-end">
             <Button
               className="h-10 rounded-lg bg-linear-to-r from-brand to-brand-strong hover:from-brand-strong hover:to-brand text-white text-base px-7 shadow-md shadow-brand/25 font-bold transition-all duration-300 hover:shadow-lg hover:shadow-brand/40 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              onClick={onRun}
-              disabled={isRunning}
+              onClick={onTestPrompt}
+              disabled={isTesting}
+              type="button"
             >
-              {isRunning ? (
+              {isTesting ? (
                 <>
                   <Loader2 className="mr-2 size-5 animate-spin text-white" />
-                  <span>Processing...</span>
+                  <span>Testing...</span>
                 </>
               ) : (
                 <>
@@ -378,7 +389,87 @@ export function ToolFormSection({
                 </>
               )}
             </Button>
+            <Button
+              className="h-10 rounded-lg bg-linear-to-r from-brand to-brand-strong hover:from-brand-strong hover:to-brand text-white text-base px-7 shadow-md shadow-brand/25 font-bold transition-all duration-300 hover:shadow-lg hover:shadow-brand/40 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              onClick={onRun}
+              disabled={isRunning}
+              type="button"
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="mr-2 size-5 animate-spin text-white" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 size-5 fill-white text-white" />
+                  <span>Run Tool</span>
+                </>
+              )}
+            </Button>
           </div>
+          {/* Preview test result */}
+          {testResult && (
+            <div className="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+              {testResult.error && (
+                <div className="text-red-500 font-bold">{testResult.error}</div>
+              )}
+              {testResult.success && testResult.result && (
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-bold text-slate-700">URLs:</span>
+                    <ul className="list-disc ml-6 text-slate-600 text-xs">
+                      {testResult.result.urls?.map((url: string, i: number) => (
+                        <li key={i}>{url}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-700">Goal:</span>
+                    <span className="ml-2 text-slate-600 text-xs">
+                      {testResult.result.goal}
+                    </span>
+                  </div>
+                  {testResult.result.generatedSystemPrompt && (
+                    <div>
+                      <span className="font-bold text-slate-700">
+                        System Prompt:
+                      </span>
+                      <span className="ml-2 text-slate-600 text-xs">
+                        {testResult.result.generatedSystemPrompt}
+                      </span>
+                    </div>
+                  )}
+                  {typeof testResult.result.expectedOutputSchema === "object" &&
+                    testResult.result.expectedOutputSchema !== null && (
+                      <div>
+                        <span className="font-bold text-slate-700">
+                          Expected Output Schema:
+                        </span>
+                        <pre className="bg-slate-100 rounded p-2 text-xs text-slate-700 mt-1 overflow-x-auto">
+                          {JSON.stringify(
+                            testResult.result.expectedOutputSchema,
+                            null,
+                            2,
+                          )}
+                        </pre>
+                      </div>
+                    )}
+                  {typeof testResult.result.expectedOutputSchema ===
+                    "string" && (
+                    <div>
+                      <span className="font-bold text-slate-700">
+                        Expected Output Schema:
+                      </span>
+                      <pre className="bg-slate-100 rounded p-2 text-xs text-slate-700 mt-1 overflow-x-auto">
+                        {testResult.result.expectedOutputSchema}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     );

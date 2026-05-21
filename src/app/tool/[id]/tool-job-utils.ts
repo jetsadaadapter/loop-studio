@@ -84,6 +84,8 @@ export interface ScrapedJobItem {
     reactionCareCount?: number;
     reactionHahaCount?: number;
     reactionWowCount?: number;
+    reactionSadCount?: number;
+    reactionAngryCount?: number;
     user?: {
         profilePic?: string;
         name?: string;

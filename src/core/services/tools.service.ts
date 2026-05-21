@@ -1,21 +1,28 @@
 import { apiFetch, buildUrl } from "./api";
-import type { 
-    Tool, 
-    ToolJob, 
-    GetToolJobsResponse, 
+import type {
+    Tool,
+    ToolJob,
+    GetToolJobsResponse,
     GetToolJobDetailResponse,
-    GetToolDetailResponse
+    GetToolDetailResponse,
+    ToolTestPromptResult,
 } from "@/core/interfaces/tools.interface";
 
+/**
+ * Fetch detailed information for a specific tool.
+ */
 export async function getTool(id: string, init?: RequestInit): Promise<Tool> {
     const url = buildUrl(`/tools/${id}`);
     const response = await apiFetch<GetToolDetailResponse>(url, init);
     return response.data;
 }
 
+/**
+ * Execute a specific tool with form inputs.
+ */
 export async function runTool(
-    id: string, 
-    input: Record<string, unknown>, 
+    id: string,
+    input: Record<string, unknown>,
     init?: RequestInit
 ): Promise<{ success: boolean; jobId: string }> {
     const url = buildUrl(`/tools/${id}/run`);
@@ -26,8 +33,11 @@ export async function runTool(
     });
 }
 
+/**
+ * Retrieve execution job history for a specific tool.
+ */
 export async function getToolJobs(
-    id: string, 
+    id: string,
     params: { page?: number; limit?: number } = {},
     init?: RequestInit
 ): Promise<GetToolJobsResponse> {
@@ -35,17 +45,37 @@ export async function getToolJobs(
     return apiFetch<GetToolJobsResponse>(url, init);
 }
 
+/**
+ * Fetch detailed information for a specific execution job.
+ */
 export async function getToolJob(
-    toolId: string, 
-    jobId: string, 
+    toolId: string,
+    jobId: string,
     init?: RequestInit
 ): Promise<ToolJob> {
     const url = buildUrl(`/tools/${toolId}/jobs/${jobId}`);
     const response = await apiFetch<ToolJob | GetToolJobDetailResponse>(url, init);
-    
+
     // Flexible handling: check if it's the wrapped response or the job object directly
-    if ('data' in response && response.data) {
+    if ("data" in response && response.data) {
         return response.data;
     }
     return response as ToolJob;
 }
+
+/**
+ * Test a tool prompt (Call /tools/[toolId]/test).
+ */
+export async function testToolPrompt(
+    id: string,
+    input: string,
+    init?: RequestInit
+): Promise<ToolTestPromptResult> {
+    const url = buildUrl(`/tools/${id}/test`);
+    return apiFetch<ToolTestPromptResult>(url, {
+        method: "POST",
+        body: JSON.stringify({ input }),
+        ...init,
+    });
+}
+

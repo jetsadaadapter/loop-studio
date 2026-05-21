@@ -99,6 +99,18 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
       : typeof typedSource.reactionWowCount === "number"
         ? typedSource.reactionWowCount
         : undefined;
+  const reactionSadCount =
+    typeof typedItem.reactionSadCount === "number"
+      ? typedItem.reactionSadCount
+      : typeof typedSource.reactionSadCount === "number"
+        ? typedSource.reactionSadCount
+        : undefined;
+  const reactionAngryCount =
+    typeof typedItem.reactionAngryCount === "number"
+      ? typedItem.reactionAngryCount
+      : typeof typedSource.reactionAngryCount === "number"
+        ? typedSource.reactionAngryCount
+        : undefined;
   const commentsCount =
     typeof typedItem.commentsCount === "number"
       ? typedItem.commentsCount
@@ -266,6 +278,8 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
           reactionCareCount={reactionCareCount}
           reactionHahaCount={reactionHahaCount}
           reactionWowCount={reactionWowCount}
+          reactionSadCount={reactionSadCount}
+          reactionAngryCount={reactionAngryCount}
         />
 
         {/* 5. INTEGRATED AI ANALYSIS ZONE */}

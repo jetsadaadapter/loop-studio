@@ -12,6 +12,8 @@ type JobEngagementStatsProps = {
   reactionCareCount?: number;
   reactionHahaCount?: number;
   reactionWowCount?: number;
+  reactionSadCount?: number;
+  reactionAngryCount?: number;
 };
 
 export function JobEngagementStats({
@@ -24,6 +26,8 @@ export function JobEngagementStats({
   reactionCareCount,
   reactionHahaCount,
   reactionWowCount,
+  reactionSadCount,
+  reactionAngryCount,
 }: JobEngagementStatsProps) {
   const hasCounts =
     viewsCount !== undefined ||
@@ -36,7 +40,9 @@ export function JobEngagementStats({
     (reactionLoveCount !== undefined && reactionLoveCount > 0) ||
     (reactionCareCount !== undefined && reactionCareCount > 0) ||
     (reactionHahaCount !== undefined && reactionHahaCount > 0) ||
-    (reactionWowCount !== undefined && reactionWowCount > 0);
+    (reactionWowCount !== undefined && reactionWowCount > 0) ||
+    (reactionSadCount !== undefined && reactionSadCount > 0) ||
+    (reactionAngryCount !== undefined && reactionAngryCount > 0);
 
   if (!hasCounts && !hasReactions) return null;
 
@@ -119,8 +125,25 @@ export function JobEngagementStats({
               </span>
             </div>
           )}
+          {reactionSadCount !== undefined && reactionSadCount > 0 && (
+            <div className="flex items-center gap-1 bg-slate-50/60 border border-slate-200/40 rounded-full px-2 py-0.5 text-[10px] font-semibold text-slate-650 shadow-2xs hover:bg-slate-100/80 transition-all duration-200 cursor-default">
+              <span>😢</span>
+              <span className="font-bold text-slate-800">
+                {reactionSadCount.toLocaleString()}
+              </span>
+            </div>
+          )}
+          {reactionAngryCount !== undefined && reactionAngryCount > 0 && (
+            <div className="flex items-center gap-1 bg-slate-50/60 border border-slate-200/40 rounded-full px-2 py-0.5 text-[10px] font-semibold text-slate-650 shadow-2xs hover:bg-slate-100/80 transition-all duration-200 cursor-default">
+              <span>😡</span>
+              <span className="font-bold text-slate-800">
+                {reactionAngryCount.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
+

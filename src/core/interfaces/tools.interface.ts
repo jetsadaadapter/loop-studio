@@ -93,3 +93,16 @@ export interface GetToolDetailResponse {
     message: string;
     data: Tool;
 }
+
+export interface ToolTestPromptResult {
+    success?: boolean;
+    error?: string;
+    result?: {
+        urls?: string[];
+        goal?: string;
+        generatedSystemPrompt?: string;
+        expectedOutputSchema?: unknown;
+        [key: string]: unknown;
+    };
+}
+
