@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -13,7 +13,7 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (value === null || value === undefined) {
-    return <span className="text-zinc-700">-</span>;
+    return <span className="text-slate-400">-</span>;
   }
 
   if (columnKey === "url" || columnKey === "facebookUrl") {
@@ -23,7 +23,7 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
         href={urlStr}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate"
+        className="text-indigo-650 hover:text-indigo-500 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate font-semibold"
       >
         <span className="truncate">{urlStr}</span>
         <ExternalLink className="size-3 shrink-0" />
@@ -41,14 +41,14 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     const isLong = textStr.length > limit;
 
     return (
-      <div className="flex flex-col gap-1 max-w-[380px] text-zinc-300 leading-normal">
-        <p className={cn("text-xs font-normal whitespace-pre-wrap", !isExpanded && "line-clamp-2")}>
+      <div className="flex flex-col gap-1 max-w-[380px] text-slate-750 leading-relaxed font-normal">
+        <p className={cn("text-xs whitespace-pre-wrap", !isExpanded && "line-clamp-2")}>
           {textStr}
         </p>
         {isLong && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-[10px] text-blue-400 hover:text-blue-300 font-bold self-start mt-0.5 flex items-center gap-0.5 cursor-pointer"
+            className="text-[10px] text-brand hover:text-brand/80 font-bold self-start mt-0.5 flex items-center gap-0.5 cursor-pointer transition-colors"
           >
             {isExpanded ? (
               <>
@@ -69,7 +69,7 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
 
   if (typeof value === "object") {
     return (
-      <span className="text-zinc-500 font-mono text-[10px] bg-zinc-900 border border-zinc-800 px-1 py-0.5 rounded">
+      <span className="text-slate-500 font-mono text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
         {Array.isArray(value) ? `[Array: ${value.length}]` : "[Object]"}
       </span>
     );
@@ -81,8 +81,8 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
         className={cn(
           "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase border",
           value
-            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-            : "bg-zinc-800 text-zinc-500 border-zinc-700"
+            ? "bg-emerald-50 text-emerald-700 border-emerald-250"
+            : "bg-slate-100 text-slate-500 border-slate-200"
         )}
       >
         {String(value)}
@@ -144,29 +144,42 @@ interface MediaCellProps {
 export function MediaCell({ value }: MediaCellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => {
+      setIsOpen(false);
+      setHoveredIndex(null);
+    }, 350);
+  };
 
   const mediaArr = Array.isArray(value) ? value : [];
-  if (mediaArr.length === 0) return <span className="text-zinc-700">-</span>;
+  if (mediaArr.length === 0) return <span className="text-slate-400">-</span>;
 
   // Extract all valid image URLs
   const imageUrls = mediaArr.map(getImageUrl).filter(Boolean);
-  if (imageUrls.length === 0) return <span className="text-zinc-700">-</span>;
+  if (imageUrls.length === 0) return <span className="text-slate-400">-</span>;
 
   const thumbUrl = imageUrls[0];
 
   return (
     <div 
       className="relative flex items-center gap-2 select-none"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => {
-        setIsOpen(false);
-        setHoveredIndex(null);
-      }}
+      onMouseEnter={() => { cancelClose(); setIsOpen(true); }}
+      onMouseLeave={scheduleClose}
     >
       {/* Thumbnail Trigger */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="size-9 rounded-lg overflow-hidden border border-zinc-800 shrink-0 bg-zinc-950 cursor-pointer hover:border-blue-500/80 active:scale-95 transition-all shadow-md group relative"
+        className="size-9 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 cursor-pointer hover:border-brand active:scale-95 transition-all shadow-sm group relative"
       >
         <img 
           src={thumbUrl} 
@@ -183,22 +196,26 @@ export function MediaCell({ value }: MediaCellProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex flex-col cursor-pointer group"
       >
-        <span className="text-zinc-300 font-bold text-xs group-hover:text-blue-400 transition-colors">
+        <span className="text-slate-800 font-bold text-xs group-hover:text-brand transition-colors">
           {mediaArr.length} item{mediaArr.length > 1 ? "s" : ""}
         </span>
-        <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 transition-colors">
+        <span className="text-[10px] text-slate-400 group-hover:text-slate-500 transition-colors">
           Click/Hover to preview
         </span>
       </div>
 
       {/* Popover Preview Overlay */}
       {isOpen && (
-        <div className="absolute left-0 top-11 z-50 min-w-[280px] max-w-[340px] bg-[#121316]/95 backdrop-blur-md border border-zinc-800/95 rounded-xl p-3.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between border-b border-zinc-850 pb-2 mb-2.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+        <div 
+          className="absolute left-0 top-11 z-50 min-w-[280px] max-w-[340px] bg-white/95 backdrop-blur border border-slate-200 rounded-xl p-3.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
               Media Album ({imageUrls.length} image{imageUrls.length > 1 ? "s" : ""})
             </span>
-            <span className="text-[10px] text-zinc-500 font-medium">Hover to view large</span>
+            <span className="text-[10px] text-slate-400 font-medium">Hover to view large</span>
           </div>
 
           {/* Grid of Images */}
@@ -210,8 +227,8 @@ export function MediaCell({ value }: MediaCellProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "aspect-square rounded overflow-hidden border bg-zinc-950 hover:border-blue-400/80 active:scale-95 transition-all shadow-sm relative group",
-                  idx === 0 ? "border-zinc-700/90" : "border-zinc-850"
+                  "aspect-square rounded overflow-hidden border bg-slate-50 hover:border-brand active:scale-95 transition-all shadow-sm relative group",
+                  idx === 0 ? "border-slate-350" : "border-slate-200"
                 )}
                 onMouseEnter={() => setHoveredIndex(idx)}
               >
@@ -229,11 +246,11 @@ export function MediaCell({ value }: MediaCellProps) {
 
           {/* Expanded Preview on Hover */}
           {hoveredIndex !== null && imageUrls[hoveredIndex] && (
-            <div className="mt-3 pt-2.5 border-t border-zinc-850 flex flex-col gap-1.5 animate-in fade-in duration-150">
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5 animate-in fade-in duration-150">
+              <span className="text-[10px] text-slate-450 font-semibold uppercase tracking-wider">
                 Photo {hoveredIndex + 1} Preview:
               </span>
-              <div className="w-full aspect-[4/3] rounded bg-zinc-950 border border-zinc-800 overflow-hidden relative">
+              <div className="w-full aspect-[4/3] rounded bg-slate-50 border border-slate-200 overflow-hidden relative">
                 <img 
                   src={imageUrls[hoveredIndex]} 
                   alt="Expanded preview" 

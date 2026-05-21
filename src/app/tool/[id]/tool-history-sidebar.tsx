@@ -2,7 +2,7 @@
 
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, ChevronRight, Clock, RefreshCw, Terminal } from "lucide-react";
+import { History, ChevronRight, Clock, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount, type JobStatus } from "./tool-job-utils";
@@ -160,17 +160,6 @@ export function ToolHistorySidebar({ jobs, activeTab, selectedJobId, isRefreshin
                                         </div>
                                         
                                         <div className="pl-2 shrink-0 flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onViewVisualizer(job.jobId);
-                                                }}
-                                                title="Open Apify Workspace Console"
-                                                className="p-1.5 rounded-lg border border-slate-200/80 text-slate-450 hover:text-brand hover:bg-brand/5 hover:border-brand/20 transition-all cursor-pointer bg-slate-50 opacity-0 group-hover:opacity-100 focus:opacity-100 select-none shadow-xs active:scale-95 flex items-center justify-center"
-                                            >
-                                                <Terminal className="size-3.5" />
-                                            </button>
 
                                             <ChevronRight className={cn(
                                                 "size-4 transition-all duration-300 group-hover:translate-x-0.5",

@@ -24,10 +24,10 @@ export function TabOutput({ job }: TabOutputProps) {
 
   if (items.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-zinc-500 bg-[#0f1013] select-none h-full">
-        <Table2 className="size-12 text-zinc-700 mb-3 animate-pulse" />
-        <p className="text-sm font-bold text-zinc-400">No output dataset items found</p>
-        <p className="text-xs text-zinc-600 mt-1 max-w-xs text-center leading-normal">
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-500 bg-white select-none h-full">
+        <Table2 className="size-12 text-slate-300 mb-3" />
+        <p className="text-sm font-bold text-slate-700">No output dataset items found</p>
+        <p className="text-xs text-slate-450 mt-1.5 max-w-xs text-center leading-normal">
           This run did not produce any dataset entries. Check the execution logs to diagnose potential issues.
         </p>
       </div>
@@ -61,16 +61,16 @@ export function TabOutput({ job }: TabOutputProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#0f1013] text-zinc-300">
+    <div className="flex-1 flex flex-col min-h-0 bg-white text-slate-700">
       {/* Visualizer Controls Bar */}
-      <div className="bg-[#121316] border-b border-zinc-850 px-4 py-2 flex items-center justify-between shrink-0 select-none">
+      <div className="bg-white border-b border-slate-200/80 px-4 py-2 flex items-center justify-between shrink-0 select-none shadow-xs">
         {/* Inner Tabs (Left) */}
-        <div className="flex items-center bg-[#0b0c0e] rounded-lg p-0.5 border border-zinc-800">
+        <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
           <button
             onClick={() => setInnerTab("overview")}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
-              innerTab === "overview" ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+              innerTab === "overview" ? "bg-white text-slate-800 shadow-xs" : "text-slate-500 hover:text-slate-800"
             )}
           >
             Overview
@@ -79,7 +79,7 @@ export function TabOutput({ job }: TabOutputProps) {
             onClick={() => setInnerTab("all")}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
-              innerTab === "all" ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+              innerTab === "all" ? "bg-white text-slate-800 shadow-xs" : "text-slate-500 hover:text-slate-800"
             )}
           >
             All fields
@@ -88,12 +88,12 @@ export function TabOutput({ job }: TabOutputProps) {
 
         {/* View Toggles (Right) */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-[#0b0c0e] rounded-lg p-0.5 border border-zinc-800">
+          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
             <button
               onClick={() => setViewMode("table")}
               className={cn(
                 "p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
-                viewMode === "table" ? "bg-zinc-800 text-blue-400 shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "table" ? "bg-white text-brand shadow-xs" : "text-slate-400 hover:text-slate-600"
               )}
               title="Table view"
             >
@@ -103,70 +103,68 @@ export function TabOutput({ job }: TabOutputProps) {
               onClick={() => setViewMode("json")}
               className={cn(
                 "p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
-                viewMode === "json" ? "bg-zinc-800 text-blue-400 shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "json" ? "bg-white text-brand shadow-xs" : "text-slate-400 hover:text-slate-600"
               )}
               title="JSON view"
             >
               <FileCode className="size-4" />
             </button>
           </div>
-
-
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-auto min-h-0">
+      <div className="flex-1 overflow-auto min-h-0 bg-white">
         {viewMode === "json" ? (
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (
           <div className="min-w-full inline-block align-middle">
-            <table className="min-w-full divide-y divide-zinc-800 border-b border-zinc-850">
-              <thead className="bg-[#121316] sticky top-0 z-10 text-[10.5px] font-bold text-zinc-450 tracking-wider uppercase border-b border-zinc-800">
+            <table className="min-w-full divide-y divide-slate-100 border-b border-slate-200">
+              <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10.5px] font-bold text-slate-500 tracking-wider uppercase border-b border-slate-200">
                 <tr>
-                  <th scope="col" className="w-12 px-4 py-3 text-zinc-500 text-center">#</th>
+                  <th scope="col" className="w-12 px-4 py-3 text-slate-400 text-center">#</th>
                   <th scope="col" className="px-4 py-3">
                     <div className="flex flex-col">
-                      <span className="text-zinc-350">Media</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">media</span>
+                      <span className="text-slate-650">Media</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">media</span>
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3">
                     <div className="flex flex-col">
-                      <span className="text-zinc-350">Post url</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">url</span>
+                      <span className="text-slate-650">Post url</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">url</span>
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3 min-w-[280px]">
                     <div className="flex flex-col">
-                      <span className="text-zinc-350">Post text</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">text</span>
+                      <span className="text-slate-650">Post text</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">text</span>
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3 text-right">
                     <div className="flex flex-col items-end">
-                      <span className="text-zinc-350">Likes</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">likes</span>
+                      <span className="text-slate-650">Likes</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">likes</span>
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3 text-right">
                     <div className="flex flex-col items-end">
-                      <span className="text-zinc-350">Comments</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">comments</span>
+                      <span className="text-slate-650">Comments</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">comments</span>
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3 text-right">
                     <div className="flex flex-col items-end">
-                      <span className="text-zinc-350">Shares</span>
-                      <span className="text-zinc-600 text-[9px] font-mono lowercase tracking-normal">shares</span>
+                      <span className="text-slate-650">Shares</span>
+                      <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">shares</span>
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 bg-[#0f1013] text-xs font-semibold text-zinc-300">
+              <tbody className="divide-y divide-slate-100 bg-white text-xs font-semibold text-slate-700">
                 {paginatedItems.map((item, idx) => (
-                  <tr key={`ov-row-${idx}`} className="hover:bg-zinc-900/30 transition-colors even:bg-zinc-900/10">
-                    <td className="px-4 py-3.5 text-zinc-500 font-bold text-center border-r border-zinc-850/50 bg-[#121316]/10 select-none">
+                  <tr key={`ov-row-${idx}`} className="hover:bg-slate-50/60 transition-colors even:bg-slate-50/20">
+                    <td className="px-4 py-3.5 text-slate-400 font-bold text-center border-r border-slate-150 bg-slate-50/30 select-none">
                       {startIndex + idx + 1}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
@@ -181,10 +179,10 @@ export function TabOutput({ job }: TabOutputProps) {
                         columnKey="text"
                       />
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono text-zinc-100 font-bold">
+                    <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
                       {item.likes !== undefined ? item.likes.toLocaleString() : "-"}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono text-zinc-100 font-bold">
+                    <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
                       {(() => {
                         const count = item.commentsCount !== undefined
                           ? item.commentsCount
@@ -196,7 +194,7 @@ export function TabOutput({ job }: TabOutputProps) {
                         return count !== undefined ? count.toLocaleString() : "-";
                       })()}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono text-zinc-100 font-bold">
+                    <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
                       {item.shares !== undefined ? item.shares.toLocaleString() : "-"}
                     </td>
                   </tr>
@@ -206,25 +204,25 @@ export function TabOutput({ job }: TabOutputProps) {
           </div>
         ) : (
           /* All Fields View */
-          <div className="min-w-full inline-block align-middle overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-800 border-b border-zinc-850">
-              <thead className="bg-[#121316] sticky top-0 z-10 text-[10.5px] font-bold text-zinc-450 tracking-wider uppercase border-b border-zinc-800">
+          <div className="min-w-full inline-block align-middle overflow-x-auto bg-white">
+            <table className="min-w-full divide-y divide-slate-100 border-b border-slate-200">
+              <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10.5px] font-bold text-slate-500 tracking-wider uppercase border-b border-slate-200">
                 <tr>
-                  <th scope="col" className="w-12 px-4 py-3 text-zinc-500 text-center">#</th>
+                  <th scope="col" className="w-12 px-4 py-3 text-slate-400 text-center">#</th>
                   {allKeys.map((key) => (
                     <th key={`all-header-${key}`} scope="col" className="px-4 py-3 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-zinc-350">{getHeaderLabel(key)}</span>
-                        <span className="text-zinc-655 text-[9px] font-mono lowercase tracking-normal">{key}</span>
+                        <span className="text-slate-650">{getHeaderLabel(key)}</span>
+                        <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">{key}</span>
                       </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 bg-[#0f1013] text-xs font-semibold text-zinc-300">
+              <tbody className="divide-y divide-slate-100 bg-white text-xs font-semibold text-slate-700">
                 {paginatedItems.map((item, idx) => (
-                  <tr key={`all-row-${idx}`} className="hover:bg-zinc-900/30 transition-colors even:bg-zinc-900/10">
-                    <td className="px-4 py-3.5 text-zinc-500 font-bold text-center border-r border-zinc-850/50 bg-[#121316]/10 select-none">
+                  <tr key={`all-row-${idx}`} className="hover:bg-slate-50/60 transition-colors even:bg-slate-50/20">
+                    <td className="px-4 py-3.5 text-slate-400 font-bold text-center border-r border-slate-150 bg-slate-50/30 select-none">
                       {startIndex + idx + 1}
                     </td>
                     {allKeys.map((key) => (

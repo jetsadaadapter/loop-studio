@@ -19,7 +19,7 @@ export function ConsoleNavigation({ activeTab, itemCount, onTabChange }: Console
   ];
 
   return (
-    <div className="bg-[#0b0c0e] border-b border-zinc-800 px-4 flex items-center select-none overflow-x-auto scrollbar-none shrink-0">
+    <div className="bg-white border-b border-slate-200/80 px-4 flex items-center select-none overflow-x-auto scrollbar-none shrink-0">
       <div className="flex items-center gap-1.5 h-11">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -30,20 +30,20 @@ export function ConsoleNavigation({ activeTab, itemCount, onTabChange }: Console
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "h-full px-3.5 flex items-center gap-2 text-xs font-semibold relative transition-all duration-150 border-b-2 cursor-pointer select-none",
+                "h-full px-3.5 flex items-center gap-2 text-xs font-semibold relative transition-all duration-150 border-b-2 cursor-pointer select-none outline-none",
                 isActive 
-                  ? "text-white border-blue-500 bg-zinc-900/60" 
-                  : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900/20"
+                  ? "text-brand border-brand bg-slate-50/50" 
+                  : "text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50/30"
               )}
             >
-              <Icon className={cn("size-3.5", isActive ? "text-blue-400" : "text-zinc-500")} />
+              <Icon className={cn("size-3.5", isActive ? "text-brand" : "text-slate-400")} />
               <span>{tab.label}</span>
               {typeof tab.count === "number" && (
                 <span className={cn(
                   "px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-tight shrink-0 scale-90",
                   isActive 
-                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" 
-                    : "bg-zinc-800 text-zinc-500 border border-zinc-700/50"
+                    ? "bg-brand/10 text-brand border border-brand/20" 
+                    : "bg-slate-100 text-slate-500 border border-slate-200"
                 )}>
                   {tab.count}
                 </span>

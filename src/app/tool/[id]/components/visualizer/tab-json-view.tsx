@@ -32,18 +32,18 @@ export function TabJsonView({ items }: TabJsonViewProps) {
     const regex = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g;
 
     const colored = escaped.replace(regex, (match) => {
-      let cls = "text-[#b5cea8]"; // default: number (pale green)
+      let cls = "text-amber-700"; // default: number
       
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
-          cls = "text-[#9cdcfe] font-semibold"; // key (light blue)
+          cls = "text-indigo-650 font-semibold"; // key
         } else {
-          cls = "text-[#ce9178]"; // string (terracotta)
+          cls = "text-emerald-700"; // string
         }
       } else if (/true|false/.test(match)) {
-        cls = "text-[#569cd6] font-bold"; // boolean (blue)
+        cls = "text-rose-600 font-bold"; // boolean
       } else if (/null/.test(match)) {
-        cls = "text-[#d16969] font-medium"; // null (rose-brown)
+        cls = "text-slate-400 font-medium"; // null
       }
       
       return `<span class="${cls}">${match}</span>`;
@@ -53,23 +53,23 @@ export function TabJsonView({ items }: TabJsonViewProps) {
   };
 
   return (
-    <div className="relative flex-1 h-full min-h-0 bg-[#0f1013] p-4 flex flex-col overflow-hidden">
+    <div className="relative flex-1 h-full min-h-0 bg-slate-50 p-4 flex flex-col overflow-hidden">
       {/* Copy Button Toolbar */}
       <div className="absolute top-6 right-8 z-10">
         <Button
           onClick={handleCopy}
           size="sm"
           variant="ghost"
-          className="h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer shadow-sm"
+          className="h-8 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
         >
           {copied ? (
             <>
               <Check className="size-3.5 text-emerald-500" />
-              <span className="text-emerald-400">Copied</span>
+              <span className="text-emerald-600">Copied</span>
             </>
           ) : (
             <>
-              <Copy className="size-3.5 text-zinc-400" />
+              <Copy className="size-3.5 text-slate-400" />
               <span>Copy JSON</span>
             </>
           )}
@@ -77,8 +77,8 @@ export function TabJsonView({ items }: TabJsonViewProps) {
       </div>
 
       {/* Pretty Code Container */}
-      <div className="flex-1 overflow-auto rounded-xl border border-zinc-850 bg-[#0b0c0e] p-5 shadow-inner">
-        <pre className="font-mono text-xs leading-relaxed text-zinc-400">
+      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+        <pre className="font-mono text-xs leading-relaxed text-slate-650">
           <code 
             dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }} 
             className="block whitespace-pre"

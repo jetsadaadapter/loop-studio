@@ -27,13 +27,13 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="right" 
-        className="w-screen h-screen sm:w-[90vw] m-0 p-0 border-none bg-[#0f1013] text-zinc-100 flex flex-col focus:outline-none transition-all duration-300 overflow-hidden shadow-2xl data-[side=right]:max-w-full data-[side=right]:sm:max-w-[90vw] sm:max-w-[90vw] max-w-full [&_[data-slot=sheet-close]]:hidden"
+        className="w-screen h-screen sm:w-[90vw] m-0 p-0 border-none bg-white text-slate-800 flex flex-col focus:outline-none transition-all duration-300 overflow-hidden shadow-2xl data-[side=right]:max-w-full data-[side=right]:sm:max-w-[90vw] sm:max-w-[90vw] max-w-full [&_[data-slot=sheet-close]]:hidden border-l border-slate-200"
       >
         {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#0b0c0e] text-zinc-400 select-none">
-            <Loader2 className="size-10 text-blue-500 animate-spin" />
-            <p className="text-sm font-bold text-zinc-300">Loading Actor Console workspace...</p>
-            <p className="text-xs text-zinc-650">Fetching job run dataset logs and memory instances...</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white text-slate-400 select-none">
+            <Loader2 className="size-10 text-brand animate-spin" />
+            <p className="text-sm font-bold text-slate-700">Loading Actor Console workspace...</p>
+            <p className="text-xs text-slate-450">Fetching job run dataset logs and memory instances...</p>
           </div>
         ) : job ? (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -59,8 +59,8 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#0b0c0e] text-zinc-500 select-none">
-            <p className="text-sm">Workspace unavailable. Select a valid run from historical logs.</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white text-slate-400 select-none">
+            <p className="text-sm font-semibold">Workspace unavailable. Select a valid run from historical logs.</p>
           </div>
         )}
       </SheetContent>

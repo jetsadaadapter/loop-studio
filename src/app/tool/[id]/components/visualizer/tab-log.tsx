@@ -103,11 +103,11 @@ export function TabLog({ job }: TabLogProps) {
   };
 
   return (
-    <div className="flex-1 h-full min-h-0 bg-[#0f1013] p-4 flex flex-col overflow-hidden relative select-none">
+    <div className="flex-1 h-full min-h-0 bg-slate-50 p-4 flex flex-col overflow-hidden relative select-none">
       {/* Log Header Toolbar */}
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4 shrink-0">
-        <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-          <Terminal className="size-4 text-blue-500" />
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <Terminal className="size-4 text-indigo-650" />
           <span>System Console Logs</span>
         </div>
 
@@ -115,16 +115,16 @@ export function TabLog({ job }: TabLogProps) {
           onClick={handleCopy}
           size="sm"
           variant="ghost"
-          className="h-8 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer"
+          className="h-8 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
         >
           {copied ? (
             <>
               <Check className="size-3.5 text-emerald-500" />
-              <span className="text-emerald-400">Copied Logs</span>
+              <span className="text-emerald-600">Copied Logs</span>
             </>
           ) : (
             <>
-              <Copy className="size-3.5 text-zinc-400" />
+              <Copy className="size-3.5 text-slate-400" />
               <span>Copy Logs</span>
             </>
           )}
@@ -132,8 +132,8 @@ export function TabLog({ job }: TabLogProps) {
       </div>
 
       {/* Log Box */}
-      <div className="flex-1 overflow-auto rounded-xl border border-zinc-850 bg-[#0b0c0e] p-5 shadow-inner">
-        <pre className="font-mono text-[11px] leading-relaxed text-zinc-400 select-text">
+      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+        <pre className="font-mono text-[11px] leading-relaxed text-slate-600 select-text">
           {logs.map((line, i) => {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");
@@ -143,9 +143,9 @@ export function TabLog({ job }: TabLogProps) {
               <div 
                 key={i} 
                 className={`py-0.5 border-l-2 pl-3 ${
-                  isError ? "text-rose-450 border-rose-600 bg-rose-950/5" :
-                  isSuccess ? "text-emerald-400 border-emerald-500 bg-emerald-950/5" :
-                  isInfo ? "text-zinc-350 border-transparent" : "text-zinc-500 border-transparent"
+                  isError ? "text-rose-600 border-rose-500 bg-rose-50/40" :
+                  isSuccess ? "text-emerald-700 border-emerald-500 bg-emerald-50/40" :
+                  isInfo ? "text-slate-600 border-slate-200 bg-slate-50/20" : "text-slate-555 border-transparent"
                 }`}
               >
                 {line}
