@@ -87,7 +87,7 @@ function DialogContent({ className, children }: DialogContentProps) {
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 sm:px-6"
     >
       <div
         className={cn(

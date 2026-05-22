@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { ImageWithFallback } from "./image-with-fallback";
 
 interface OutputCellProps {
   value: unknown;
@@ -214,6 +215,7 @@ interface MediaCellProps {
 export function MediaCell({ value }: MediaCellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [thumbErrored, setThumbErrored] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancelClose = () => {
@@ -241,36 +243,42 @@ export function MediaCell({ value }: MediaCellProps) {
   const thumbUrl = imageUrls[0];
 
   return (
-    <div 
+    <div
       className="relative flex items-center gap-2 select-none"
-      onMouseEnter={() => { cancelClose(); setIsOpen(true); }}
+      onMouseEnter={() => { if (!thumbErrored) { cancelClose(); setIsOpen(true); } }}
       onMouseLeave={scheduleClose}
     >
       {/* Thumbnail Trigger */}
-      <div 
-        onClick={() => setIsOpen(!isOpen)}
-        className="size-9 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 cursor-pointer hover:border-brand active:scale-95 transition-all shadow-sm group relative"
+      <div
+        onClick={() => { if (!thumbErrored) setIsOpen(!isOpen); }}
+        className={cn(
+          "size-9 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 transition-all shadow-sm group relative",
+          thumbErrored ? "cursor-not-allowed" : "cursor-pointer hover:border-brand active:scale-95"
+        )}
       >
-        <img 
-          src={thumbUrl} 
-          alt="Primary media cover" 
+        <ImageWithFallback
+          src={thumbUrl}
+          alt="Primary media cover"
           className="size-full object-cover group-hover:scale-110 transition-transform duration-300"
+          onError={() => setThumbErrored(true)}
         />
         {/* Subtle hover icon indicator */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-          <span className="text-[10px] text-white font-bold">View</span>
-        </div>
+        {!thumbErrored && (
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <span className="text-[10px] text-white font-bold">View</span>
+          </div>
+        )}
       </div>
 
-      <div 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex flex-col cursor-pointer group"
+      <div
+        onClick={() => { if (!thumbErrored) setIsOpen(!isOpen); }}
+        className={cn("flex flex-col", thumbErrored ? "cursor-not-allowed" : "cursor-pointer group")}
       >
-        <span className="text-slate-800 font-bold text-xs group-hover:text-brand transition-colors">
+        <span className={cn("font-bold text-xs transition-colors", thumbErrored ? "text-slate-400" : "text-slate-800 group-hover:text-brand")}>
           {mediaArr.length} item{mediaArr.length > 1 ? "s" : ""}
         </span>
-        <span className="text-[10px] text-slate-400 group-hover:text-slate-500 transition-colors">
-          Click/Hover to preview
+        <span className="text-[10px] text-slate-400">
+          {thumbErrored ? "Image unavailable" : "Click/Hover to preview"}
         </span>
       </div>
 
@@ -302,9 +310,9 @@ export function MediaCell({ value }: MediaCellProps) {
                 )}
                 onMouseEnter={() => setHoveredIndex(idx)}
               >
-                <img 
-                  src={url} 
-                  alt={`Album photo ${idx + 1}`} 
+                <ImageWithFallback
+                  src={url}
+                  alt={`Album photo ${idx + 1}`}
                   className="size-full object-cover group-hover:scale-105 transition-transform"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -321,9 +329,9 @@ export function MediaCell({ value }: MediaCellProps) {
                 Photo {hoveredIndex + 1} Preview:
               </span>
               <div className="w-full aspect-[4/3] rounded bg-slate-50 border border-slate-200 overflow-hidden relative">
-                <img 
-                  src={imageUrls[hoveredIndex]} 
-                  alt="Expanded preview" 
+                <ImageWithFallback
+                  src={imageUrls[hoveredIndex]}
+                  alt="Expanded preview"
                   className="size-full object-contain animate-in zoom-in-95 duration-150"
                 />
               </div>

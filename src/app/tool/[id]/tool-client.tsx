@@ -51,6 +51,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     null,
   );
   const [jobs, setJobs] = useState<ToolJob[]>(initialJobs.data);
+  const [currentPage, setCurrentPage] = useState(initialJobs.meta?.page || 1);
+  const [totalPages, setTotalPages] = useState(initialJobs.meta?.totalPages || 1);
   const [isRunning, setIsRunning] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>(() =>
@@ -66,11 +68,13 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { pushDialogToast } = useDialogToast();
 
-  const refreshJobs = async () => {
+  const refreshJobs = async (page: number = currentPage) => {
     setIsRefreshing(true);
     try {
-      const response = await getToolJobs(tool.id);
+      const response = await getToolJobs(tool.id, { page, limit: 20 });
       setJobs(response.data);
+      setCurrentPage(response.meta?.page || page);
+      setTotalPages(response.meta?.totalPages || 1);
     } catch {
       pushDialogToast("Failed to refresh job history.", "error");
     } finally {
@@ -106,7 +110,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       pushDialogToast("Job started successfully!", "success");
       setFormData(buildInitialForm(tool.params));
       setErrors({});
-      await refreshJobs();
+      await refreshJobs(1);
     } catch {
       pushDialogToast("Failed to start job.", "error");
     } finally {
@@ -245,8 +249,11 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               onTabChange={setActiveTab}
               onViewJob={handleViewJob}
               onViewVisualizer={handleViewVisualizer}
-              onRefresh={refreshJobs}
+              onRefresh={() => refreshJobs(currentPage)}
               isRefreshing={isRefreshing}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={refreshJobs}
             />
           </aside>
         </div>

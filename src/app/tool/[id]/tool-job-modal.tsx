@@ -20,8 +20,8 @@ interface ToolJobModalProps {
 export function ToolJobModal({ open, isLoading, job, onOpenChange, onOpenVisualizer }: ToolJobModalProps) {
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent 
-                side="right" 
+            <SheetContent
+                side="right"
                 className="!w-full sm:!max-w-[480px] md:!max-w-[580px] lg:!max-w-[680px] xl:!max-w-[720px] overflow-hidden flex flex-col p-0 border-none bg-slate-50 shadow-2xl transition-all duration-300 h-full"
             >
                 {isLoading ? (
@@ -58,13 +58,13 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                             <SheetTitle className="text-sm font-bold text-slate-800 tracking-tight leading-none">
                                 Job Result Detail
                             </SheetTitle>
-                            
+
                             {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
                             <div className={cn(
                                 "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
                                 status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
-                                status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
-                                "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
+                                    status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
+                                        "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
                             )}>
                                 <span className={cn(
                                     "size-1 rounded-full bg-white shrink-0",
@@ -113,7 +113,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 {configPlugin || 'N/A'}
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-1.5">
                             <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Processed Time</span>
                             <span className="font-bold text-slate-800">

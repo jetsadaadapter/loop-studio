@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, Clock, RefreshCw } from "lucide-react";
+import { History, Clock, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getJobStatus, type JobStatus } from "./tool-job-utils";
 import { HistoryJobItem } from "./components/history/history-job-item";
@@ -24,7 +24,17 @@ interface ToolHistorySidebarProps {
   onViewJob: (jobId: string) => void;
   onViewVisualizer: (jobId: string) => void;
   onRefresh: () => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
+
+const STATUS_COLORS: Record<string, { base: string; active: string }> = {
+  completed: { base: "bg-emerald-500", active: "bg-emerald-400 animate-pulse" },
+  running: { base: "bg-amber-550 animate-pulse", active: "bg-amber-550 animate-pulse" },
+  failed: { base: "bg-rose-500", active: "bg-rose-400 animate-pulse" },
+  all: { base: "bg-indigo-500", active: "bg-indigo-400 animate-pulse" },
+};
 
 export function ToolHistorySidebar({
   jobs,
@@ -34,6 +44,9 @@ export function ToolHistorySidebar({
   onTabChange,
   onViewJob,
   onRefresh,
+  currentPage,
+  totalPages,
+  onPageChange,
 }: ToolHistorySidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -42,11 +55,43 @@ export function ToolHistorySidebar({
     (job) => activeTab === "all" || getJobStatus(job) === activeTab
   );
 
+  const handleTabChange = (tab: JobStatus) => {
+    onTabChange(tab);
+    onPageChange(1);
+  };
+
   const handleSelectJob = (jobId: string, isMobile: boolean) => {
     onViewJob(jobId);
     if (isMobile) {
       setMobileOpen(false);
     }
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-slate-100 shrink-0">
+        <span className="text-[10px] text-slate-400 font-semibold select-none">
+          Page {currentPage} of {totalPages}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+          >
+            <ChevronLeft className="size-3.5" />
+          </button>
+          <button
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+          >
+            <ChevronRight className="size-3.5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -80,52 +125,33 @@ export function ToolHistorySidebar({
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => onTabChange(tab)}
-                    className={cn(
-                      "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
-                      isActive
-                        ? "bg-slate-800 border-slate-800 text-white shadow-sm"
-                        : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
-                    )}
-                  >
-                    {tab === "completed" && (
+            {jobs.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {tabs.map((tab) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
+                      className={cn(
+                        "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
+                        isActive
+                          ? "bg-slate-800 border-slate-800 text-white shadow-sm"
+                          : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
+                      )}
+                    >
                       <span
                         className={cn(
                           "size-1.5 rounded-full shrink-0",
-                          isActive ? "bg-emerald-400 animate-pulse" : "bg-emerald-500"
+                          isActive ? STATUS_COLORS[tab]?.active : STATUS_COLORS[tab]?.base
                         )}
                       />
-                    )}
-                    {tab === "running" && (
-                      <span className="size-1.5 rounded-full shrink-0 animate-pulse bg-amber-550" />
-                    )}
-                    {tab === "failed" && (
-                      <span
-                        className={cn(
-                          "size-1.5 rounded-full shrink-0",
-                          isActive ? "bg-rose-400 animate-pulse" : "bg-rose-500"
-                        )}
-                      />
-                    )}
-                    {tab === "all" && (
-                      <span
-                        className={cn(
-                          "size-1.5 rounded-full shrink-0 bg-indigo-500",
-                          isActive && "bg-indigo-400 animate-pulse"
-                        )}
-                      />
-                    )}
-                    <span>{tab}</span>
-                  </button>
-                );
-              })}
-            </div>
+                      <span>{tab}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
@@ -153,6 +179,7 @@ export function ToolHistorySidebar({
                 </div>
               )}
             </div>
+            {renderPagination()}
           </CardContent>
         </Card>
       </div>
@@ -203,39 +230,35 @@ export function ToolHistorySidebar({
           </SheetHeader>
 
           {/* Sticky filter tabs inside the drawer */}
-          <div className="bg-white px-5 py-3 border-b border-slate-100 shrink-0">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => onTabChange(tab)}
-                    className={cn(
-                      "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
-                      isActive
-                        ? "bg-slate-800 border-slate-800 text-white shadow-sm"
-                        : "bg-white border-slate-200/80 text-slate-550 hover:bg-slate-50"
-                    )}
-                  >
-                    {tab === "completed" && (
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                    )}
-                    {tab === "running" && (
-                      <span className="size-1.5 rounded-full bg-amber-550 animate-pulse" />
-                    )}
-                    {tab === "failed" && (
-                      <span className="size-1.5 rounded-full bg-rose-500" />
-                    )}
-                    {tab === "all" && (
-                      <span className="size-1.5 rounded-full bg-indigo-500" />
-                    )}
-                    <span>{tab}</span>
-                  </button>
-                );
-              })}
+          {jobs.length > 0 && (
+            <div className="bg-white px-5 py-3 border-b border-slate-100 shrink-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {tabs.map((tab) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
+                      className={cn(
+                        "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
+                        isActive
+                          ? "bg-slate-800 border-slate-800 text-white shadow-sm"
+                          : "bg-white border-slate-200/80 text-slate-550 hover:bg-slate-50"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "size-1.5 rounded-full shrink-0",
+                          isActive ? STATUS_COLORS[tab]?.active : STATUS_COLORS[tab]?.base
+                        )}
+                      />
+                      <span>{tab}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Scrollable list container */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -262,6 +285,7 @@ export function ToolHistorySidebar({
               ))
             )}
           </div>
+          {renderPagination()}
         </SheetContent>
       </Sheet>
     </>

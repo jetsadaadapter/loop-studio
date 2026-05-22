@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
@@ -9,13 +9,31 @@ interface PromptTestPreviewProps {
 
 export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const element = containerRef.current;
+      const headerOffset = 96; // Spacious offset to clear the sticky navbar beautifully
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  }, []);
 
   if (!testResult.success || !testResult.result) return null;
 
   const { result } = testResult;
 
   return (
-    <div className="mt-6 p-6 rounded-2xl bg-white border border-slate-200/60 shadow-xs relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:border-slate-300 space-y-6">
+    <div
+      ref={containerRef}
+      className="mt-6 p-6 rounded-2xl bg-white border border-slate-200/60 shadow-xs relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:border-slate-300 space-y-6"
+    >
       {/* Left Stripe Accent */}
       <div className="bg-gradient-to-b from-brand to-indigo-650 absolute left-0 top-0 bottom-0 w-1.5" />
 
