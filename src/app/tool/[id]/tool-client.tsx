@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Terminal } from "lucide-react";
 import type {
   Tool,
   ToolJob,
@@ -22,6 +23,8 @@ import { ToolHistorySidebar } from "./tool-history-sidebar";
 import { ToolJobModal } from "./tool-job-modal";
 import type { JobStatus } from "./tool-job-utils";
 import { ToolJobVisualizer } from "./components/tool-job-visualizer";
+import { ToolStatsGrid } from "./components/tool-stats-grid";
+import packageInfo from "../../../../package.json";
 
 interface ToolClientProps {
   tool: Tool;
@@ -169,14 +172,13 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="mx-auto w-full max-w-6xl pb-6 flex-1">
-        <div className="mb-6">
+    <div className="pb-6">
+      <div className="mb-6">
           <AppCover src={null} alt={`${tool.name} cover`} accentColor="#0ea5e9">
             <div className="pt-5 sm:pt-8">
               <Link
                 href="/apps"
-                className="inline-flex items-center gap-1.5 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-black/70"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -195,22 +197,33 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             </div>
             <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-64 sm:py-8 sm:pt-16 lg:min-h-80 lg:py-10 lg:pt-20">
               <div className="max-w-3xl">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-white/10">
-                    AI Tool
+                <div className="flex items-center gap-2 mb-2.5 flex-wrap select-none">
+                  <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs uppercase tracking-wider">
+                    AI Automation
+                  </span>
+                  <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
+                    v{packageInfo.version}
                   </span>
                 </div>
-                <h1 className="page-hero-title text-white">{tool.name}</h1>
-                <p className="mt-4 text-lg text-slate-300 max-w-2xl leading-relaxed">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg shrink-0 hidden sm:flex">
+                    <Terminal className="size-6 text-white animate-pulse" />
+                  </div>
+                  <h1 className="page-hero-title text-white">{tool.name}</h1>
+                </div>
+                <p className="mt-4 text-sm sm:text-base text-slate-350 max-w-2xl leading-relaxed font-semibold">
                   {tool.description ||
                     "Configure and run this automated tool to analyze your data."}
                 </p>
+
+                {/* Stats Grid */}
+                <ToolStatsGrid tool={tool} jobs={jobs} />
               </div>
             </div>
           </AppCover>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-6">
             <ToolFormSection
               params={tool.params}
@@ -224,7 +237,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               testResult={testResult}
             />
           </div>
-          <div className="space-y-6 lg:sticky lg:top-24">
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">
             <ToolHistorySidebar
               jobs={jobs}
               activeTab={activeTab}
@@ -235,9 +248,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               onRefresh={refreshJobs}
               isRefreshing={isRefreshing}
             />
-          </div>
+          </aside>
         </div>
-      </div>
 
       <ToolJobModal
         open={isJobModalOpen}

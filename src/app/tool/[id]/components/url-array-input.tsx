@@ -51,7 +51,7 @@ export function UrlArrayInput({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="px-2 py-0.5 bg-slate-100 border border-slate-200/50 text-[9px] font-bold text-slate-500 rounded-md uppercase tracking-wider select-none shrink-0">
-          {value.length} items added
+          {value.filter((item) => item.trim() !== "").length} items added
         </div>
         <Button
           variant="outline"
@@ -83,7 +83,7 @@ export function UrlArrayInput({
             }
             placeholder="Paste your URLs here (one per line or comma-separated)..."
             className={cn(
-              "min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50",
+              "min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50 resize-none",
               hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
             )}
           />
@@ -154,50 +154,112 @@ export function UrlArrayInput({
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          {value.map((item, index) => (
-            <div
-              key={`url-input-${id}-${index}`}
-              className="flex gap-2 items-center group/row"
+        <div className="space-y-4">
+          {/* Quick Add Input bar */}
+          <div className="flex gap-2">
+            <Input
+              id={`quick-add-${id}`}
+              placeholder={placeholder || "พิมพ์หรือวางลิงก์โพสต์ (เช่น https://www.facebook.com/...)"}
+              className={cn(
+                "h-10.5 bg-slate-50/50 border-slate-200/80 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-[11px] font-normal rounded-xl px-4 flex-1 shadow-2xs hover:border-slate-300",
+                hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
+              )}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const target = e.currentTarget;
+                  const val = target.value.trim();
+                  if (val) {
+                    if (value.length === 1 && value[0] === "") {
+                      onChange([val]);
+                    } else {
+                      onChange([...value.filter((item) => item !== ""), val]);
+                    }
+                    target.value = "";
+                  }
+                }
+              }}
+            />
+            <Button
+              type="button"
+              className="h-10.5 px-4.5 bg-brand hover:bg-brand/95 active:scale-95 text-white font-bold rounded-xl text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm shrink-0 cursor-pointer"
+              title="เพิ่มลิงก์"
+              aria-label="เพิ่มลิงก์"
+              onClick={() => {
+                const input = document.getElementById(`quick-add-${id}`) as HTMLInputElement;
+                if (input) {
+                  const val = input.value.trim();
+                  if (val) {
+                    if (value.length === 1 && value[0] === "") {
+                      onChange([val]);
+                    } else {
+                      onChange([...value.filter((item) => item !== ""), val]);
+                    }
+                    input.value = "";
+                  }
+                }
+              }}
             >
-              {/* Visual index bubble that glows with brand on hover */}
-              <div className="flex items-center justify-center size-8 bg-slate-100/80 text-slate-500 text-[10.5px] font-bold rounded-lg shrink-0 select-none group-hover/row:bg-brand/10 group-hover/row:text-brand transition-all duration-300">
-                {index + 1}
-              </div>
+              <Plus className="size-3.5 shrink-0" />
+              <span>เพิ่ม</span>
+            </Button>
+          </div>
 
-              {/* Inner absolute trash containment */}
-              <div className="flex-1 relative flex items-center min-w-0">
-                <Input
-                  value={item}
-                  onChange={(e) => handleItemChange(index, e.target.value)}
-                  placeholder={placeholder || "https://..."}
-                  className={cn(
-                    "h-10 pr-10 bg-slate-50/50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl",
-                    hasError &&
-                      "border-red-500 focus:ring-red-500/20 bg-red-50/30",
-                  )}
-                />
+          {/* URL Tag Cloud (Chips display) */}
+          {value.some((item) => item && item.trim() !== "") && (
+            <div className="flex flex-wrap gap-2.5 pt-1">
+              {value.map((item, index) => {
+                if (!item || item.trim() === "") return null;
+                let domain = "facebook.com";
+                let displayUrl = item;
+                let isValid = false;
+                try {
+                  const clean = item.startsWith("http") ? item : `https://${item}`;
+                  const parsed = new URL(clean);
+                  domain = parsed.hostname.replace("www.", "");
+                  // Shorten URL pathname elegantly for a clean look
+                  displayUrl = parsed.pathname !== "/" && parsed.pathname.length > 10
+                    ? `${domain}${parsed.pathname.slice(0, 15)}...`
+                    : domain;
+                  isValid = item.includes(".") && item.length > 5;
+                } catch {
+                  displayUrl = item.length > 25 ? `${item.slice(0, 25)}...` : item;
+                }
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 size-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all opacity-0 group-hover/row:opacity-100 focus:opacity-100 cursor-pointer"
-                  onClick={() => handleRemove(index)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
+                return (
+                  <div
+                    key={`url-chip-${id}-${index}`}
+                    className={cn(
+                      "flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full border text-[10px] font-bold transition-all duration-200 shadow-2xs hover:shadow-xs select-none",
+                      isValid
+                        ? "bg-emerald-50/50 text-emerald-700 border-emerald-200 hover:border-emerald-350"
+                        : "bg-rose-50/50 text-rose-700 border-rose-200 hover:border-rose-350"
+                    )}
+                    title={item}
+                  >
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+                      className="w-3.5 h-3.5 rounded-md shrink-0 bg-white border border-slate-100 shadow-2xs"
+                      alt=""
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <span className="truncate max-w-48 leading-none pt-0.5 font-bold">
+                      {displayUrl}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(index)}
+                      className="flex items-center justify-center w-4 h-4 rounded-full bg-slate-200/50 hover:bg-slate-350/60 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer select-none font-extrabold text-[8px] leading-none pt-0.5"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full h-10 rounded-xl border-dashed border-slate-200/80 bg-slate-50/20 text-slate-500 hover:text-brand hover:border-brand hover:bg-brand/5 transition-colors duration-200 shadow-none font-semibold cursor-pointer flex items-center justify-center gap-1.5"
-            onClick={handleAdd}
-          >
-            <Plus className="size-4 shrink-0" /> Add Another URL
-          </Button>
+          )}
         </div>
       )}
     </div>
