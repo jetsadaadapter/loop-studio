@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Terminal } from "lucide-react";
 import type {
   Tool,
@@ -24,6 +24,7 @@ import { ToolJobModal } from "./tool-job-modal";
 import type { JobStatus } from "./tool-job-utils";
 import { ToolJobVisualizer } from "./components/tool-job-visualizer";
 import { ToolStatsGrid } from "./components/tool-stats-grid";
+import { ProcessingModal } from "./components/processing-modal";
 import packageInfo from "../../../../package.json";
 
 interface ToolClientProps {
@@ -54,6 +55,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [currentPage, setCurrentPage] = useState(initialJobs.meta?.page || 1);
   const [totalPages, setTotalPages] = useState(initialJobs.meta?.totalPages || 1);
   const [isRunning, setIsRunning] = useState(false);
+  const [isProcessingOpen, setIsProcessingOpen] = useState(false);
+  const [isJobComplete, setIsJobComplete] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>(() =>
     buildInitialForm(tool.params),
@@ -82,6 +86,29 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
   };
 
+  // Poll job status while processing modal is open
+  useEffect(() => {
+    if (!isProcessingOpen) {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+      return;
+    }
+    setIsJobComplete(false);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
+        const latest = res.data[0];
+        if (latest && (latest.state === "completed" || latest.state === "failed")) {
+          if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+          setJobs(res.data);
+          setCurrentPage(res.meta?.page || 1);
+          setTotalPages(res.meta?.totalPages || 1);
+          setIsJobComplete(true);
+        }
+      } catch { /* silently retry */ }
+    }, 5000);
+    return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+  }, [isProcessingOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFormChange = (key: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     if (errors[key])
@@ -107,7 +134,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     setIsRunning(true);
     try {
       await runTool(tool.id, formData);
-      pushDialogToast("Job started successfully!", "success");
+      setIsProcessingOpen(true);
       setFormData(buildInitialForm(tool.params));
       setErrors({});
       await refreshJobs(1);
@@ -178,85 +205,85 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   return (
     <div className="pb-6">
       <div className="mb-6">
-          <AppCover src={null} alt={`${tool.name} cover`} accentColor="#0ea5e9">
-            <div className="pt-5 sm:pt-8">
-              <Link
-                href="/apps"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
+        <AppCover src={null} alt={`${tool.name} cover`} accentColor="#0ea5e9">
+          <div className="pt-5 sm:pt-8">
+            <Link
+              href="/apps"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="size-4"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="size-4"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Back to Library
-              </Link>
-            </div>
-            <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-64 sm:py-8 sm:pt-16 lg:min-h-80 lg:py-10 lg:pt-20">
-              <div className="max-w-3xl">
-                <div className="flex items-center gap-2 mb-2.5 flex-wrap select-none">
-                  <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs uppercase tracking-wider">
-                    AI Automation
-                  </span>
-                  <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
-                    v{packageInfo.version}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg shrink-0 hidden sm:flex">
-                    <Terminal className="size-6 text-white animate-pulse" />
-                  </div>
-                  <h1 className="page-hero-title text-white">{tool.name}</h1>
-                </div>
-                <p className="mt-4 text-sm sm:text-base text-slate-350 max-w-2xl leading-relaxed font-semibold">
-                  {tool.description ||
-                    "Configure and run this automated tool to analyze your data."}
-                </p>
-
-                {/* Stats Grid */}
-                <ToolStatsGrid tool={tool} jobs={jobs} />
-              </div>
-            </div>
-          </AppCover>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2 space-y-6">
-            <ToolFormSection
-              params={tool.params}
-              formData={formData}
-              errors={errors}
-              isRunning={isRunning}
-              onChange={handleFormChange}
-              onRun={handleRun}
-              onTestPrompt={handleTestPrompt}
-              isTesting={isTesting}
-              testResult={testResult}
-            />
+                <path
+                  fillRule="evenodd"
+                  d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Back to Library
+            </Link>
           </div>
-          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">
-            <ToolHistorySidebar
-              jobs={jobs}
-              activeTab={activeTab}
-              selectedJobId={selectedJob?.jobId || selectedVisualizerJob?.jobId}
-              onTabChange={setActiveTab}
-              onViewJob={handleViewJob}
-              onViewVisualizer={handleViewVisualizer}
-              onRefresh={() => refreshJobs(currentPage)}
-              isRefreshing={isRefreshing}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={refreshJobs}
-            />
-          </aside>
+          <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-64 sm:py-8 sm:pt-16 lg:min-h-80 lg:py-10 lg:pt-20">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-2 mb-2.5 flex-wrap select-none">
+                <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs uppercase tracking-wider">
+                  AI Automation
+                </span>
+                <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
+                  v{packageInfo.version}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg shrink-0 hidden sm:flex">
+                  <Terminal className="size-6 text-white animate-pulse" />
+                </div>
+                <h1 className="page-hero-title text-white">{tool.name}</h1>
+              </div>
+              <p className="mt-4 text-sm sm:text-base text-slate-350 max-w-2xl leading-relaxed font-semibold">
+                {tool.description ||
+                  "Configure and run this automated tool to analyze your data."}
+              </p>
+
+              {/* Stats Grid */}
+              <ToolStatsGrid tool={tool} jobs={jobs} />
+            </div>
+          </div>
+        </AppCover>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
+          <ToolFormSection
+            params={tool.params}
+            formData={formData}
+            errors={errors}
+            isRunning={isRunning}
+            onChange={handleFormChange}
+            onRun={handleRun}
+            onTestPrompt={handleTestPrompt}
+            isTesting={isTesting}
+            testResult={testResult}
+          />
         </div>
+        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">
+          <ToolHistorySidebar
+            jobs={jobs}
+            activeTab={activeTab}
+            selectedJobId={selectedJob?.jobId || selectedVisualizerJob?.jobId}
+            onTabChange={setActiveTab}
+            onViewJob={handleViewJob}
+            onViewVisualizer={handleViewVisualizer}
+            onRefresh={() => refreshJobs(currentPage)}
+            isRefreshing={isRefreshing}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={refreshJobs}
+          />
+        </aside>
+      </div>
 
       <ToolJobModal
         open={isJobModalOpen}
@@ -275,6 +302,12 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         job={selectedVisualizerJob}
         toolName={tool.name}
         onOpenChange={setIsVisualizerOpen}
+      />
+      <ProcessingModal
+        open={isProcessingOpen}
+        onOpenChange={setIsProcessingOpen}
+        toolName={tool.name}
+        isJobComplete={isJobComplete}
       />
     </div>
   );
