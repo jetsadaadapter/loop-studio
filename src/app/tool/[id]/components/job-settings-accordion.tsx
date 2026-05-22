@@ -83,23 +83,34 @@ export function JobSettingsAccordion({
               <span className="text-[9px] font-bold text-slate-400 uppercase block">
                 System Prompt Template
               </span>
-              <div className="relative group rounded-lg bg-slate-950 p-2.5 pr-10 text-[10.5px] text-slate-200 overflow-x-auto max-h-[140px] overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap">
+              <div className="relative group rounded-xl bg-slate-950 p-4 pr-24 text-[10.5px] text-slate-200 overflow-x-auto max-h-[140px] overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap select-text">
+                {configPrompt}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyPrompt();
                   }}
-                  className="absolute top-2 right-2 p-1.5 rounded-md bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-slate-100 transition-all shadow-sm"
+                  className={cn(
+                    "absolute top-3.5 right-3.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                    copiedPrompt
+                      ? "bg-emerald-950/80 border-emerald-800 text-emerald-400 font-extrabold animate-in fade-in zoom-in-95 duration-150"
+                      : "bg-slate-900/90 border-slate-800 hover:bg-slate-800/90 text-slate-400 hover:text-slate-200"
+                  )}
                   title="Copy Prompt"
                 >
                   {copiedPrompt ? (
-                    <Check className="size-3.5 text-emerald-400" />
+                    <>
+                      <Check className="size-3 text-emerald-400 animate-bounce" />
+                      <span>Copied</span>
+                    </>
                   ) : (
-                    <Copy className="size-3.5" />
+                    <>
+                      <Copy className="size-3 text-slate-500" />
+                      <span>Copy</span>
+                    </>
                   )}
                 </button>
-                {configPrompt}
               </div>
             </div>
           )}

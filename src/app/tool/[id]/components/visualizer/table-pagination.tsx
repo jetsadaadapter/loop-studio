@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TablePaginationProps {
   pageSize: number;
@@ -25,11 +32,13 @@ export function TablePagination({
   endIndex,
 }: TablePaginationProps) {
   const [goToInput, setGoToInput] = useState("");
+  const [prevPage, setPrevPage] = useState(currentPage);
 
   // Reset the "Go to" input when page changes
-  useEffect(() => {
+  if (currentPage !== prevPage) {
+    setPrevPage(currentPage);
     setGoToInput("");
-  }, [currentPage]);
+  }
 
   const handleGoToPage = () => {
     const pageNum = parseInt(goToInput, 10);
@@ -40,32 +49,34 @@ export function TablePagination({
   };
 
   return (
-    <div className="bg-white border-t border-slate-200/80 px-4 py-2.5 flex items-center justify-between shrink-0 select-none text-xs text-slate-500">
+    <div className="bg-white border-t border-slate-200/80 px-4 py-2.5 flex flex-col sm:flex-row items-center gap-3 sm:gap-0 justify-between shrink-0 select-none text-xs text-slate-500">
       {/* Left Side: Items Per Page */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 w-full sm:w-auto">
         <span>Items per page:</span>
-        <div className="relative">
-          <select
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="appearance-none bg-slate-50 border border-slate-200 rounded-md text-slate-750 text-xs px-2.5 py-1.5 pr-8 hover:bg-slate-100 cursor-pointer outline-none transition-colors"
+        <Select
+          value={String(pageSize)}
+          onValueChange={(val) => val && onPageSizeChange(Number(val))}
+        >
+          <SelectTrigger
+            size="sm"
+            className="w-[70px] bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-750 font-medium text-xs transition-colors"
           >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
-            <ChevronRight className="size-3.5 rotate-90" />
-          </div>
-        </div>
+            <SelectValue placeholder={String(pageSize)} />
+          </SelectTrigger>
+          <SelectContent className="min-w-[70px]">
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="100">100</SelectItem>
+          </SelectContent>
+        </Select>
         <span className="text-slate-400 ml-1">
           Showing {startIndex + 1}–{Math.min(endIndex, totalItems)} of {totalItems}
         </span>
       </div>
 
       {/* Right Side: Page Navigation */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
         <div className="flex items-center gap-2">
           <span>Go to page:</span>
           <input

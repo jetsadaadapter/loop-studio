@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Terminal, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
@@ -14,87 +14,84 @@ export function TabLog({ job }: TabLogProps) {
   const status = getJobStatus(job);
   const itemCount = getItemCount(job);
   const [copied, setCopied] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
 
-  useEffect(() => {
-    const getSafeDate = (val: unknown): Date => {
-      if (!val) return new Date();
-      const d = new Date(val as string | number | Date);
-      if (!isNaN(d.getTime())) return d;
-      return new Date();
+  const getSafeDate = (val: unknown): Date => {
+    if (!val) return new Date();
+    const d = new Date(val as string | number | Date);
+    if (!isNaN(d.getTime())) return d;
+    return new Date();
+  };
+
+  const getSafeISOString = (dateObj: Date): string => {
+    try {
+      if (!isNaN(dateObj.getTime())) {
+        return dateObj.toISOString();
+      }
+    } catch {}
+    return new Date().toISOString();
+  };
+
+  const startTime = getSafeDate(job.createdAt);
+  
+  const generateLogs = () => {
+    const logLines: string[] = [];
+    const addLog = (timestampStr: string, type: "INFO" | "SUCCESS" | "WARN" | "ERROR", message: string) => {
+      logLines.push(`[${timestampStr}] ${type}: ${message}`);
     };
 
-    const getSafeISOString = (dateObj: Date): string => {
-      try {
-        if (!isNaN(dateObj.getTime())) {
-          return dateObj.toISOString();
-        }
-      } catch {}
-      return new Date().toISOString();
-    };
-
-    const startTime = getSafeDate(job.createdAt);
+    const initTimeStr = getSafeISOString(startTime);
+    addLog(initTimeStr, "INFO", `System: Actor run initiated for plugin: ${job.plugin || "Apify"}.`);
     
-    const generateLogs = () => {
-      const logLines: string[] = [];
-      const addLog = (timestampStr: string, type: "INFO" | "SUCCESS" | "WARN" | "ERROR", message: string) => {
-        logLines.push(`[${timestampStr}] ${type}: ${message}`);
-      };
+    const jobResult = job.result as Record<string, unknown> | undefined;
+    const configActorId = (job.config?.actorId || jobResult?.actorId) as string | undefined;
+    if (configActorId) {
+      addLog(initTimeStr, "INFO", `System: Active Actor ID resolved: "${configActorId}".`);
+    }
 
-      const initTimeStr = getSafeISOString(startTime);
-      addLog(initTimeStr, "INFO", `System: Actor run initiated for plugin: ${job.plugin || "Apify"}.`);
-      
-      const jobResult = job.result as Record<string, unknown> | undefined;
-      const configActorId = (job.config?.actorId || jobResult?.actorId) as string | undefined;
-      if (configActorId) {
-        addLog(initTimeStr, "INFO", `System: Active Actor ID resolved: "${configActorId}".`);
-      }
+    const runId = jobResult?.runId as string | undefined;
+    if (runId) {
+      addLog(initTimeStr, "INFO", `System: Upstream Job Run ID: "${runId}".`);
+    }
 
-      const runId = jobResult?.runId as string | undefined;
-      if (runId) {
-        addLog(initTimeStr, "INFO", `System: Upstream Job Run ID: "${runId}".`);
-      }
+    const inputKeys = Object.keys(job.input || {}).filter(k => k !== "startUrls");
+    if (inputKeys.length > 0) {
+      addLog(initTimeStr, "INFO", `System: Validated input schema parameters: [${inputKeys.join(", ")}].`);
+    }
 
-      const inputKeys = Object.keys(job.input || {}).filter(k => k !== "startUrls");
-      if (inputKeys.length > 0) {
-        addLog(initTimeStr, "INFO", `System: Validated input schema parameters: [${inputKeys.join(", ")}].`);
-      }
-
-      const startUrls = job.input?.startUrls as { url?: string }[] | undefined;
-      if (Array.isArray(startUrls) && startUrls.length > 0) {
-        addLog(initTimeStr, "INFO", `System: Dispatched targets queue size: ${startUrls.length}.`);
-        startUrls.forEach((u, i) => {
-          if (u.url) {
-            addLog(initTimeStr, "INFO", `Target #${i + 1}: ${u.url}`);
-          }
-        });
-      }
-
-      if (job.processed) {
-        const procTime = getSafeISOString(getSafeDate(job.processed));
-        addLog(procTime, "INFO", `Dataset: Writing results to catalog.`);
-      }
-
-      if (status === "failed") {
-        const endTimeStr = getSafeISOString(getSafeDate(job.updatedAt));
-        addLog(endTimeStr, "ERROR", `System: Job execution terminated with failure state.`);
-        if (job.error) {
-          const errStr = typeof job.error === "string" ? job.error : JSON.stringify(job.error);
-          addLog(endTimeStr, "ERROR", `Failure Cause: ${errStr}`);
+    const startUrls = job.input?.startUrls as { url?: string }[] | undefined;
+    if (Array.isArray(startUrls) && startUrls.length > 0) {
+      addLog(initTimeStr, "INFO", `System: Dispatched targets queue size: ${startUrls.length}.`);
+      startUrls.forEach((u, i) => {
+        if (u.url) {
+          addLog(initTimeStr, "INFO", `Target #${i + 1}: ${u.url}`);
         }
-      } else if (status === "running" || status === "queued") {
-        const currTimeStr = getSafeISOString(new Date());
-        addLog(currTimeStr, "INFO", `System: Job execution is currently in progress. Status: [${status}].`);
-      } else {
-        const endTimeStr = job.updatedAt ? getSafeISOString(getSafeDate(job.updatedAt)) : getSafeISOString(startTime);
-        addLog(endTimeStr, "SUCCESS", `System: Actor completed successfully. Total items processed: ${itemCount}.`);
+      });
+    }
+
+    if (job.processed) {
+      const procTime = getSafeISOString(getSafeDate(job.processed));
+      addLog(procTime, "INFO", `Dataset: Writing results to catalog.`);
+    }
+
+    if (status === "failed") {
+      const endTimeStr = getSafeISOString(getSafeDate(job.updatedAt));
+      addLog(endTimeStr, "ERROR", `System: Job execution terminated with failure state.`);
+      if (job.error) {
+        const errStr = typeof job.error === "string" ? job.error : JSON.stringify(job.error);
+        addLog(endTimeStr, "ERROR", `Failure Cause: ${errStr}`);
       }
+    } else if (status === "running" || status === "queued") {
+      const currTimeStr = getSafeISOString(new Date());
+      addLog(currTimeStr, "INFO", `System: Job execution is currently in progress. Status: [${status}].`);
+    } else {
+      const endTimeStr = job.updatedAt ? getSafeISOString(getSafeDate(job.updatedAt)) : getSafeISOString(startTime);
+      addLog(endTimeStr, "SUCCESS", `System: Actor completed successfully. Total items processed: ${itemCount}.`);
+    }
 
-      return logLines;
-    };
+    return logLines;
+  };
 
-    setLogs(generateLogs());
-  }, [job, status, itemCount]);
+  const logs = generateLogs();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(logs.join("\n"));

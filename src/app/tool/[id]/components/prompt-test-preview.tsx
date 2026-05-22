@@ -1,6 +1,6 @@
-"use client";
-
-import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, Copy, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
 
 interface PromptTestPreviewProps {
@@ -8,6 +8,8 @@ interface PromptTestPreviewProps {
 }
 
 export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
   if (!testResult.success || !testResult.result) return null;
 
   const { result } = testResult;
@@ -65,18 +67,35 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
               Generated System Prompt
             </span>
-            <div className="relative group/prompt">
-              <pre className="bg-slate-50 border border-slate-150 rounded-xl p-4 text-xs font-sans font-medium text-slate-650 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-60 overflow-y-auto shadow-inner">
+            <div className="relative group/prompt rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
+              <pre className="p-4 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
                 {result.generatedSystemPrompt as string}
               </pre>
               <button
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(String(result.generatedSystemPrompt || ""));
+                  setCopiedPrompt(true);
+                  setTimeout(() => setCopiedPrompt(false), 2000);
                 }}
-                className="absolute top-2.5 right-2.5 opacity-0 group-hover/prompt:opacity-100 focus:opacity-100 transition-opacity bg-white border border-slate-200 text-[10px] text-slate-700 font-bold px-2.5 py-1 rounded-lg shadow-xs active:scale-95 cursor-pointer hover:bg-slate-50 flex items-center gap-1"
+                className={cn(
+                  "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                  copiedPrompt
+                    ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                    : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800"
+                )}
               >
-                Copy Prompt
+                {copiedPrompt ? (
+                  <>
+                    <Check className="size-3 text-emerald-600" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3 text-slate-400" />
+                    <span>Copy</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

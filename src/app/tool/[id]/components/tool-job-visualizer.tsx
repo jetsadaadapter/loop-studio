@@ -8,7 +8,7 @@ import { ConsoleNavigation, type VisualizerTab } from "./visualizer/console-navi
 import { TabOutput } from "./visualizer/tab-output";
 import { TabLog } from "./visualizer/tab-log";
 import { TabInputStorage } from "./visualizer/tab-input-storage";
-import { Loader2, MonitorPlay, Network } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { getItemCount } from "../tool-job-utils";
 
 interface ToolJobVisualizerProps {
@@ -27,7 +27,7 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="right" 
-        className="w-screen h-screen sm:w-[90vw] m-0 p-0 border-none bg-white text-slate-800 flex flex-col focus:outline-none transition-all duration-300 overflow-hidden shadow-2xl data-[side=right]:max-w-full data-[side=right]:sm:max-w-[90vw] sm:max-w-[90vw] max-w-full [&_[data-slot=sheet-close]]:hidden border-l border-slate-200"
+        className="!w-screen h-screen m-0 p-0 border-none bg-white text-slate-800 flex flex-col focus:outline-none transition-all duration-300 overflow-hidden shadow-2xl !max-w-none [&_[data-slot=sheet-close]]:hidden border-l border-slate-200"
       >
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white text-slate-400 select-none">

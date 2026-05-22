@@ -5,11 +5,9 @@ import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AlertCircle, Copy, Check, Workflow, Terminal, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getJobStatus, getItemCount, type AnalysisResult, type PreviousResults, type StartUrlItem, type ExtendedToolJob } from "./tool-job-utils";
+import { getJobStatus, getItemCount } from "./tool-job-utils";
 import { JobDetailSkeleton } from "./components/job-detail-skeleton";
-import { JobRunAccordions } from "./components/job-run-accordions";
 import { JobResultItem } from "./components/job-result-item";
-import { JobPoliticianGroup } from "./components/job-politician-group";
 
 interface ToolJobModalProps {
     open: boolean;
@@ -40,74 +38,13 @@ export function ToolJobModal({ open, isLoading, job, onOpenChange, onOpenVisuali
     );
 }
 
-
 function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisualizer?: (jobId: string) => void }) {
     const status = getJobStatus(job);
-    const [viewMode, setViewMode] = useState<'flat' | 'group'>('flat');
-    const [copiedPrompt, setCopiedPrompt] = useState(false);
     const [copiedJobId, setCopiedJobId] = useState(false);
 
-    const extJob = job as unknown as ExtendedToolJob;
-
-    // Resolve config safely
-    let resolvedConfig: Record<string, unknown> = {};
-    try {
-        if (job.config) {
-            resolvedConfig = typeof job.config === 'string' ? JSON.parse(job.config as string) : (job.config as Record<string, unknown>);
-        }
-    } catch {
-        resolvedConfig = (job.config as Record<string, unknown>) || {};
-    }
-
-    try {
-        const resConfig = extJob.result?.config;
-        if (resConfig) {
-            const parsedResConfig = typeof resConfig === 'string' ? JSON.parse(resConfig) : (resConfig as Record<string, unknown>);
-            resolvedConfig = { ...parsedResConfig, ...resolvedConfig };
-        }
-    } catch {}
-
-    const configActorId = String(resolvedConfig.actorId || extJob.actorId || extJob.result?.actorId || '');
+    // Resolve plugin name safely
     const configPlugin = job.plugin ? job.plugin.charAt(0).toUpperCase() + job.plugin.slice(1) : '';
-    const configModelWithFallback = String(resolvedConfig.model || extJob.model || (configActorId ? 'Apify Scraper Engine' : 'Default Model'));
-    const configItemKey = String(resolvedConfig.itemKey || extJob.itemKey || '');
-    const hasItemKey = configItemKey !== '' && configItemKey !== 'N/A';
-    const configPrompt = String(resolvedConfig.prompt || extJob.prompt || extJob.result?.prompt || '');
-
-    const otherParams = Object.entries(resolvedConfig).filter(
-        ([key]) => !['model', 'itemKey', 'prompt', 'actorId', 'useInput'].includes(key)
-    );
-    const inputStartUrls = job.input?.startUrls as StartUrlItem[] | undefined;
-    const hasStartUrls = Array.isArray(inputStartUrls) && inputStartUrls.length > 0;
-
-    const previousResults = job.input?.previousResults as PreviousResults | undefined;
-    const hasPreviousResults = !!previousResults;
-    const prevUrls = previousResults?.items?.map(item => {
-        const rawUrl = String(item.facebookUrl || item.permalink_url || item.url || '');
-        return rawUrl;
-    }).filter(url => url !== '') || [];
-
-    const resolvedTargetUrls = hasStartUrls 
-        ? inputStartUrls?.map(item => String(item?.url || '')).filter(url => url !== '') || []
-        : prevUrls;
-    const hasTargetUrls = resolvedTargetUrls.length > 0;
-
-    const otherInputParams = Object.entries(job.input || {}).filter(
-        ([key]) => !['startUrls', 'previousResults'].includes(key)
-    );
-    const hasInputParams = hasTargetUrls || hasPreviousResults || otherInputParams.length > 0;
-
-    // Scan for unique politicians
-    const allPoliticiansSet = new Set<string>();
     const items = job.result?.items || [];
-    items.forEach(item => {
-        const analysis = (item.analysis as AnalysisResult) || {};
-        if (Array.isArray(analysis.politicians)) {
-            analysis.politicians.forEach(p => allPoliticiansSet.add(p));
-        }
-    });
-    const uniquePoliticians = Array.from(allPoliticiansSet);
-    const hasPoliticians = uniquePoliticians.length > 0;
 
     return (
         <>
@@ -122,22 +59,21 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 Job Result Detail
                             </SheetTitle>
                             
+                            {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
                             <div className={cn(
-                                "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold shadow-xs border transition-all duration-300 select-none shrink-0",
-                                status === 'completed' ? "bg-emerald-50/60 text-emerald-700 border-emerald-250/50" :
-                                status === 'running' ? "bg-amber-50/60 text-amber-700 border-amber-250/50" :
-                                "bg-rose-50/60 text-rose-700 border-rose-250/50"
+                                "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
+                                status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
+                                status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
+                                "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
                             )}>
                                 <span className={cn(
-                                    "size-1 rounded-full shrink-0",
-                                    status === 'completed' ? "bg-emerald-500 animate-pulse" :
-                                    status === 'running' ? "bg-amber-500 animate-pulse" :
-                                    "bg-rose-500 animate-pulse"
+                                    "size-1 rounded-full bg-white shrink-0",
+                                    status === 'running' && "animate-pulse"
                                 )} />
                                 {status.toUpperCase()}
                             </div>
                         </div>
-                        <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal">
+                        <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal font-semibold">
                             System Engine Analysis & Audit Trail Logs
                         </SheetDescription>
                     </div>
@@ -145,12 +81,12 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-6">
-                {/* Visualizer Workspace Shortcut */}
+                {/* Visualizer Workspace Shortcut (Primary Call-to-Action) */}
                 {onOpenVisualizer && (
                     <button
                         type="button"
                         onClick={() => onOpenVisualizer(job.jobId)}
-                        className="w-full flex items-center justify-between p-3 px-4 bg-gradient-to-r from-blue-600/5 via-indigo-600/5 to-purple-600/5 hover:from-blue-600/10 hover:to-purple-600/10 border border-blue-200/40 hover:border-blue-300/60 rounded-xl transition-all duration-300 text-left group shadow-xs cursor-pointer select-none"
+                        className="w-full flex items-center justify-between p-3.5 px-4 bg-gradient-to-r from-blue-600/5 via-indigo-600/5 to-purple-600/5 hover:from-blue-600/10 hover:to-purple-600/10 border border-blue-200/40 hover:border-blue-300/60 rounded-2xl transition-all duration-300 text-left group shadow-xs cursor-pointer select-none hover:-translate-y-0.5 hover:shadow-md"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="p-2 bg-blue-600/10 text-blue-650 rounded-lg group-hover:bg-blue-600/20 transition-colors">
@@ -158,7 +94,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                             </div>
                             <div>
                                 <span className="text-xs font-bold text-slate-800 block">Open Actor Workspace Console</span>
-                                <span className="text-[10px] text-slate-450 mt-0.5 block leading-normal font-semibold">
+                                <span className="text-[10px] text-slate-400 mt-0.5 block leading-normal font-semibold">
                                     View full datasets, table columns, all fields, JSON, and simulated raw runner logs.
                                 </span>
                             </div>
@@ -168,7 +104,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                 )}
 
                 {/* Compact Technical Metadata Ribbon */}
-                <div className="bg-slate-50/80 border border-slate-200/60 rounded-xl p-2 px-3.5 flex items-center justify-between text-[11px] font-medium text-slate-650 shadow-xs">
+                <div className="bg-white border border-slate-200/60 rounded-2xl p-3 px-4 flex items-center justify-between text-[11px] font-medium text-slate-600 shadow-xs hover:border-slate-300 transition-all duration-300">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5 border-r border-slate-200/60 pr-4">
                             <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Plugin</span>
@@ -209,33 +145,12 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                     </div>
                 </div>
 
-                <JobRunAccordions
-                    configActorId={configActorId}
-                    configModelWithFallback={configModelWithFallback}
-                    configItemKey={configItemKey}
-                    hasItemKey={hasItemKey}
-                    configPrompt={configPrompt}
-                    copiedPrompt={copiedPrompt}
-                    onCopyPrompt={() => {
-                        navigator.clipboard.writeText(configPrompt);
-                        setCopiedPrompt(true);
-                        setTimeout(() => setCopiedPrompt(false), 2000);
-                    }}
-                    otherParams={otherParams}
-                    hasPreviousResults={hasPreviousResults}
-                    previousResults={previousResults}
-                    resolvedTargetUrls={resolvedTargetUrls}
-                    hasTargetUrls={hasTargetUrls}
-                    otherInputParams={otherInputParams}
-                    hasInputParams={hasInputParams}
-                />
-
                 {job.error && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                    <div className="bg-red-50/50 border border-red-200/60 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
                         <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
                         <div className="space-y-1">
                             <p className="text-sm font-bold text-red-800">Job Failed</p>
-                            <p className="text-xs text-red-650 leading-relaxed">
+                            <p className="text-xs text-red-600 leading-relaxed font-semibold">
                                 {typeof job.error === 'string' ? job.error : JSON.stringify(job.error)}
                             </p>
                         </div>
@@ -244,42 +159,59 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <Workflow className="size-4 text-brand" /> Processed Items ({getItemCount(job)})
+                        <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                            <Workflow className="size-4 text-brand animate-pulse" /> Processed Items ({getItemCount(job)})
                         </h3>
-                        {hasPoliticians && (
-                            <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200 shadow-inner">
-                                <button
-                                    type="button"
-                                    onClick={() => setViewMode('flat')}
-                                    className={cn("flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
-                                        viewMode === 'flat' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800")}
-                                >
-                                    Flat List
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setViewMode('group')}
-                                    className={cn("flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
-                                        viewMode === 'group' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800")}
-                                >
-                                    Group By Politician
-                                </button>
-                            </div>
-                        )}
                     </div>
 
                     <div className="space-y-4">
                         {items.length === 0 ? (
-                            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
-                                <p className="text-sm text-slate-500">No result items found for this job.</p>
+                            <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/60 p-10 text-center flex flex-col items-center justify-center space-y-4 shadow-xs relative overflow-hidden group hover:border-slate-350 transition-all duration-300">
+                                <div className="bg-gradient-to-tr from-slate-50 to-white size-12 rounded-2xl border border-slate-200/50 flex items-center justify-center shadow-md animate-bounce-slow text-slate-400 group-hover:scale-105 transition-transform duration-300">
+                                    <Workflow className="size-5 text-brand" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <h4 className="text-xs font-bold text-slate-800 tracking-tight">No Processed Items Found</h4>
+                                    <p className="text-[10px] text-slate-400 leading-normal font-semibold max-w-[280px] mx-auto">
+                                        This job hasn't generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.
+                                    </p>
+                                </div>
+                                {onOpenVisualizer && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenVisualizer(job.jobId)}
+                                        className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-slate-700 hover:text-slate-800 text-[10px] font-bold px-3.5 py-1.5 rounded-xl shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer"
+                                    >
+                                        <span>Open Console</span>
+                                        <ChevronRight className="size-3 text-slate-400" />
+                                    </button>
+                                )}
                             </div>
-                        ) : viewMode === 'group' ? (
-                            <JobPoliticianGroup uniquePoliticians={uniquePoliticians} items={items} />
                         ) : (
-                            items.map((item, idx) => (
-                                <JobResultItem key={`modal-item-${idx}`} item={item} idx={idx} job={job} />
-                            ))
+                            <>
+                                {/* Slice to first 3 items for quick preview, keeping it lightweight */}
+                                {items.slice(0, 3).map((item, idx) => (
+                                    <JobResultItem key={`modal-item-${idx}`} item={item} idx={idx} job={job} />
+                                ))}
+
+                                {items.length > 3 && (
+                                    <div className="text-center pt-2 space-y-3">
+                                        <p className="text-xs text-slate-500 font-bold tracking-wide">
+                                            Viewing 3 of {items.length} items. Open the console to view all items.
+                                        </p>
+                                        {onOpenVisualizer && (
+                                            <button
+                                                type="button"
+                                                onClick={() => onOpenVisualizer(job.jobId)}
+                                                className="w-full flex items-center justify-center p-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-800 border border-slate-200/60 rounded-2xl font-extrabold text-xs transition-all hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer select-none gap-2 shadow-xs"
+                                            >
+                                                <span>View All {items.length} Items in Workspace Console</span>
+                                                <ChevronRight className="size-4 text-slate-500" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

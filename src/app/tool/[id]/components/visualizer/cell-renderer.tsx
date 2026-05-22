@@ -16,6 +16,76 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     return <span className="text-slate-400">-</span>;
   }
 
+  if (columnKey === "sentiment") {
+    const sentiment = String(value || "").toLowerCase();
+    if (sentiment === "positive") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 border border-emerald-400 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-emerald-500/10">
+          <span>Positive</span>
+        </span>
+      );
+    }
+    if (sentiment === "negative") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-500 border border-rose-400/40 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-rose-500/10">
+          <span>Negative</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-600 border border-slate-500 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs">
+        <span>{String(value || "Neutral")}</span>
+      </span>
+    );
+  }
+
+  if (columnKey === "keywords") {
+    const kwArr = Array.isArray(value) ? value : [];
+    if (kwArr.length === 0) return <span className="text-slate-400">-</span>;
+
+    const limit = 5;
+    const isLong = kwArr.length > limit;
+    const displayedKws = isExpanded ? kwArr : kwArr.slice(0, limit);
+
+    return (
+      <div className="flex flex-col gap-1.5 max-w-[280px]">
+        <div className="flex flex-wrap gap-1">
+          {displayedKws.map((kw: unknown, kIdx: number) => (
+            <span
+              key={kIdx}
+              className="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-500 rounded text-[9px] font-semibold whitespace-nowrap"
+            >
+              #{String(kw)}
+            </span>
+          ))}
+          {!isExpanded && isLong && (
+            <span className="px-1.5 py-0.5 bg-slate-50 text-slate-400 border border-slate-200/60 rounded text-[9px] font-semibold whitespace-nowrap select-none">
+              +{kwArr.length - limit} more
+            </span>
+          )}
+        </div>
+        {isLong && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-[10px] text-brand hover:text-brand/80 font-bold self-start mt-0.5 flex items-center gap-0.5 cursor-pointer transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <span>Show less</span>
+                <ChevronUp className="size-3" />
+              </>
+            ) : (
+              <>
+                <span>Show more</span>
+                <ChevronDown className="size-3" />
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   if (columnKey === "url" || columnKey === "facebookUrl") {
     const urlStr = String(value);
     return (
@@ -23,7 +93,7 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
         href={urlStr}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-indigo-650 hover:text-indigo-500 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate font-semibold"
+        className="text-indigo-650 hover:text-brand hover:underline inline-flex items-center gap-1 max-w-[200px] truncate font-semibold transition-colors"
       >
         <span className="truncate">{urlStr}</span>
         <ExternalLink className="size-3 shrink-0" />
@@ -35,13 +105,13 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     return <MediaCell value={value} />;
   }
 
-  if (columnKey === "text" || columnKey === "caption" || columnKey === "message") {
+  if (columnKey === "text" || columnKey === "caption" || columnKey === "message" || columnKey === "summary") {
     const textStr = String(value);
     const limit = 90;
     const isLong = textStr.length > limit;
 
     return (
-      <div className="flex flex-col gap-1 max-w-[380px] text-slate-750 leading-relaxed font-normal">
+      <div className="flex flex-col gap-1 max-w-[500px] text-slate-750 leading-relaxed font-normal">
         <p className={cn("text-xs whitespace-pre-wrap", !isExpanded && "line-clamp-2")}>
           {textStr}
         </p>

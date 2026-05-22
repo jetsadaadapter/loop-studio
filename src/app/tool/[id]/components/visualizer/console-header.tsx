@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  ChevronLeft, 
-  Share2, 
-  Download, 
-  CheckCircle2, 
-  XCircle, 
-  Loader2, 
+import {
+  ChevronLeft,
+  Share2,
+  Download,
+  CheckCircle2,
+  XCircle,
+  Loader2,
   Terminal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
   };
 
   const startTime = getSafeDate(job.createdAt);
-  
+
   const getFormattedTime = (dateObj: Date): string => {
     try {
       if (!isNaN(dateObj.getTime())) {
@@ -48,7 +48,7 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
           second: "2-digit",
         }).replace("T", " ");
       }
-    } catch {}
+    } catch { }
     return "Unknown time";
   };
 
@@ -63,7 +63,7 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
           return Math.max(1, Math.round((end - start) / 1000));
         }
       }
-    } catch {}
+    } catch { }
     return 28;
   };
 
@@ -94,48 +94,48 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
       <div className="flex items-center justify-between px-4 py-2.5">
         {/* Left Section */}
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onClose}
             className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors font-semibold text-sm cursor-pointer"
           >
             <ChevronLeft className="size-4" />
-            <span>Run</span>
+            <span>Back</span>
           </button>
-          
+
           <span className="text-slate-200">|</span>
 
-          <div className="flex items-center gap-2">
-            <div className="size-6 bg-brand rounded-md flex items-center justify-center text-white shadow-xs">
-              <Terminal className="size-3.5" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="size-5 bg-brand rounded-md flex items-center justify-center text-white shadow-xs shrink-0">
+              <Terminal className="size-3" />
             </div>
-            <span className="font-bold text-sm text-slate-800">{toolName}</span>
-            <span className="px-1.5 py-0.5 bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-md uppercase tracking-wider scale-90">
+            <span className="font-bold text-sm text-slate-800 truncate max-w-[120px] sm:max-w-none">{toolName}</span>
+            <span className="px-1.5 py-0.5 bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-md uppercase tracking-wider scale-90 shrink-0">
               Actor
             </span>
           </div>
         </div>
 
         {/* Right Section Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Share button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleShare}
             className="h-8 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-xs font-semibold px-3 gap-1.5 cursor-pointer shadow-xs"
           >
             <Share2 className="size-3.5 text-slate-400" />
-            <span>Share</span>
+            <span className="hidden sm:inline">Share</span>
           </Button>
 
           {/* Export button */}
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={() => setExportModalOpen(true)}
             className="h-8 bg-brand hover:bg-brand/90 text-white rounded-md text-xs font-bold px-4 gap-1.5 border-none cursor-pointer shadow-sm"
           >
             <Download className="size-3.5" />
-            <span>Export</span>
+            <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
 
         {job.createdAt && (
           <>
-            <span className="text-slate-300">•</span>
+            <span className="text-slate-300 hidden sm:inline">•</span>
             {/* Timestamp */}
             <div className="font-medium">{formattedTime}</div>
           </>
@@ -179,17 +179,17 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
 
         {job.createdAt && job.updatedAt && (
           <>
-            <span className="text-slate-300">•</span>
+            <span className="text-slate-300 hidden sm:inline">•</span>
             {/* Duration */}
             <div className="font-medium">{durationSec} s</div>
           </>
         )}
       </div>
 
-      <ExportDatasetModal 
-        open={exportModalOpen} 
-        onOpenChange={setExportModalOpen} 
-        job={job} 
+      <ExportDatasetModal
+        open={exportModalOpen}
+        onOpenChange={setExportModalOpen}
+        job={job}
       />
     </div>
   );
