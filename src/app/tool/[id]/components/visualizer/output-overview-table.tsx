@@ -51,21 +51,21 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">keywords</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
               <div className="flex flex-col items-end">
-                <span className="text-slate-650">Likes</span>
+                <span className="text-slate-650">Number of likes</span>
                 <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">likes</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[160px]">
               <div className="flex flex-col items-end">
-                <span className="text-slate-650">Comments</span>
+                <span className="text-slate-650">Number of comments</span>
                 <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">comments</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
               <div className="flex flex-col items-end">
-                <span className="text-slate-650">Shares</span>
+                <span className="text-slate-650">Number of shares</span>
                 <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">shares</span>
               </div>
             </th>

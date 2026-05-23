@@ -20,15 +20,13 @@ const PIPELINE_STEPS = [
 
 export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete }: ProcessingModalProps) {
   const [step, setStep] = useState(0);
-  const [done, setDone] = useState(false);
+
+  const done = !!isJobComplete;
+  const currentStep = isJobComplete ? PIPELINE_STEPS.length - 1 : step;
 
   // Animation pipeline — steps advance on timers, but no auto-close
   useEffect(() => {
-    if (!open) {
-      setStep(0);
-      setDone(false);
-      return;
-    }
+    if (!open) return;
 
     const delays = [1000, 2800, 5000, 6600];
     //              step0 step1 step2 step3
@@ -39,17 +37,18 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete }:
       timers.push(t);
     });
 
-    return () => timers.forEach(clearTimeout);
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      timers.forEach(clearTimeout);
+      setStep(0);
+    };
+  }, [open]);
 
-  // Job complete signal from parent (API polling) → show success and close
+  // Job complete signal from parent (API polling) → close after a short delay
   useEffect(() => {
     if (!isJobComplete || !open) return;
-    setStep(PIPELINE_STEPS.length - 1);
-    setDone(true);
     const t = setTimeout(() => onOpenChange(false), 1800);
     return () => clearTimeout(t);
-  }, [isJobComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isJobComplete, open, onOpenChange]);
 
   if (!open) return null;
 
@@ -88,8 +87,8 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete }:
           <div className="space-y-3">
             {PIPELINE_STEPS.map((s, i) => {
               const Icon = s.icon;
-              const isActive = i === step && !done;
-              const isPast = i < step || done;
+              const isActive = i === currentStep && !done;
+              const isPast = i < currentStep || done;
               return (
                 <div
                   key={i}

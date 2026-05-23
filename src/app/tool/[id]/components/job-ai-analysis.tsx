@@ -52,35 +52,37 @@ export function JobAiAnalysis({ analysis, comments }: JobAiAnalysisProps) {
 
       {/* Sentiment and visualizers stacked beautifully */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-100/60 pb-2">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            Sentiment Analysis
-          </span>
-          {(() => {
-            if (sentiment === "positive") {
+        {analysis.sentiment && (
+          <div className="flex items-center justify-between border-b border-slate-100/60 pb-2">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+              Sentiment Analysis
+            </span>
+            {(() => {
+              if (sentiment === "positive") {
+                return (
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500 text-white border border-emerald-400 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-emerald-500/20 select-none animate-bounce-slow">
+                    <Smile className="size-3 text-white" />
+                    <span>Positive</span>
+                  </div>
+                );
+              }
+              if (sentiment === "negative") {
+                return (
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-500 text-white border border-rose-450 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-rose-500/20 select-none animate-bounce-slow">
+                    <Frown className="size-3 text-white" />
+                    <span>Negative</span>
+                  </div>
+                );
+              }
               return (
-                <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500 text-white border border-emerald-400 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-emerald-500/20 select-none animate-bounce-slow">
-                  <Smile className="size-3 text-white" />
-                  <span>Positive</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-600 text-white border border-slate-500 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-slate-600/10 select-none">
+                  <Meh className="size-3 text-white" />
+                  <span>{analysis.sentiment}</span>
                 </div>
               );
-            }
-            if (sentiment === "negative") {
-              return (
-                <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-500 text-white border border-rose-450 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-rose-500/20 select-none animate-bounce-slow">
-                  <Frown className="size-3 text-white" />
-                  <span>Negative</span>
-                </div>
-              );
-            }
-            return (
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-600 text-white border border-slate-500 rounded-full text-[9.5px] font-extrabold uppercase shadow-xs shadow-slate-600/10 select-none">
-                <Meh className="size-3 text-white" />
-                <span>{analysis.sentiment || "Neutral"}</span>
-              </div>
-            );
-          })()}
-        </div>
+            })()}
+          </div>
+        )}
 
         {/* Keywords Hashdeck */}
         <div className="flex flex-wrap gap-1 pb-1">

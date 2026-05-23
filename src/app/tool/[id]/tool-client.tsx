@@ -21,6 +21,7 @@ import { createToolExecutionSchema } from "@/core/validators/tools.validator";
 import { ToolFormSection } from "./tool-form-section";
 import { ToolHistorySidebar } from "./tool-history-sidebar";
 import { ToolJobModal } from "./tool-job-modal";
+import { getJobStatus } from "./tool-job-utils";
 import type { JobStatus } from "./tool-job-utils";
 import { ToolJobVisualizer } from "./components/tool-job-visualizer";
 import { ToolStatsGrid } from "./components/tool-stats-grid";
@@ -92,22 +93,73 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
       return;
     }
-    setIsJobComplete(false);
     pollRef.current = setInterval(async () => {
       try {
         const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
-        const latest = res.data[0];
+        let latest = res.data[0];
+
+        if (latest && latest.state !== "completed" && latest.state !== "failed") {
+          // Force synchronization and fetch full completed details from backend
+          const updatedJob = await getToolJob(tool.id, latest.jobId);
+          latest = updatedJob;
+          res.data[0] = updatedJob;
+        }
+
         if (latest && (latest.state === "completed" || latest.state === "failed")) {
           if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
           setJobs(res.data);
           setCurrentPage(res.meta?.page || 1);
           setTotalPages(res.meta?.totalPages || 1);
           setIsJobComplete(true);
+        } else {
+          setJobs(res.data);
         }
       } catch { /* silently retry */ }
     }, 5000);
     return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
   }, [isProcessingOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Poll active selected jobs (modal or visualizer) to auto-refresh their status and results
+  useEffect(() => {
+    const activeJob =
+      isJobModalOpen && selectedJob ? selectedJob :
+      isVisualizerOpen && selectedVisualizerJob ? selectedVisualizerJob : null;
+
+    if (!activeJob) return;
+
+    const status = getJobStatus(activeJob);
+    if (status === "completed" || status === "failed") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const job = await getToolJob(tool.id, activeJob.jobId);
+        
+        if (isJobModalOpen && selectedJob?.jobId === job.jobId) {
+          setSelectedJob(job);
+        }
+        if (isVisualizerOpen && selectedVisualizerJob?.jobId === job.jobId) {
+          setSelectedVisualizerJob(job);
+        }
+
+        // Also update the job in the main list
+        setJobs((prev) =>
+          prev.map((j) =>
+            j.jobId === job.jobId
+              ? { ...j, state: job.state, status: job.status, result: job.result, error: job.error }
+              : j
+          )
+        );
+      } catch { /* silently retry */ }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [
+    isJobModalOpen,
+    isVisualizerOpen,
+    selectedJob,
+    selectedVisualizerJob,
+    tool.id,
+  ]);
 
   const handleFormChange = (key: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -134,6 +186,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     setIsRunning(true);
     try {
       await runTool(tool.id, formData);
+      setIsJobComplete(false);
       setIsProcessingOpen(true);
       setFormData(buildInitialForm(tool.params));
       setErrors({});
@@ -195,7 +248,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     try {
       const res = await testToolPrompt(tool.id, prompt);
       setTestResult(res);
-    } catch (e) {
+    } catch {
       setTestResult({ error: "Test prompt failed." });
     } finally {
       setIsTesting(false);
@@ -304,8 +357,15 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         onOpenChange={setIsVisualizerOpen}
       />
       <ProcessingModal
+        key={isProcessingOpen ? "open" : "closed"}
         open={isProcessingOpen}
-        onOpenChange={setIsProcessingOpen}
+        onOpenChange={async (open) => {
+          setIsProcessingOpen(open);
+          if (!open) {
+            setIsJobComplete(false);
+            await refreshJobs(1);
+          }
+        }}
         toolName={tool.name}
         isJobComplete={isJobComplete}
       />

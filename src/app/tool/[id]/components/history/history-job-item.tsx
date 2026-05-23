@@ -26,19 +26,30 @@ export function HistoryJobItem({
     pluginLower === "apify"
       ? "Apify Post Scraper"
       : pluginLower === "gemini"
-      ? "Gemini AI Analysis"
-      : "Automation Run";
+        ? "Gemini AI Analysis"
+        : "Automation Run";
+  const rawId = job.jobId || job._id || "";
+  const slicedId = rawId ? `#${rawId.split("-")[0].slice(0, 8)}` : "";
 
-  const slicedId = `#${job.jobId.split("-")[0] || ""}`;
+  const formattedTime = (() => {
+    if (!job.createdAt) return "just now";
+    const date = new Date(job.createdAt);
+    if (isNaN(date.getTime())) return "just now";
+    try {
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return "just now";
+    }
+  })();
 
   return (
     <div
-      onClick={() => onSelect(job.jobId)}
+      onClick={() => onSelect(rawId)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          onSelect(job.jobId);
+          onSelect(rawId);
         }
       }}
       className={cn(
@@ -64,7 +75,7 @@ export function HistoryJobItem({
             </span>
           </div>
           <span className="text-[9px] text-slate-400 font-semibold shrink-0">
-            {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+            {formattedTime}
           </span>
         </div>
 
@@ -75,10 +86,10 @@ export function HistoryJobItem({
               status === "completed"
                 ? "bg-emerald-50/60 border-emerald-200/50 text-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
                 : status === "running"
-                ? "bg-amber-50/60 border-amber-200/50 text-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.08)]"
-                : status === "failed"
-                ? "bg-rose-50/60 border-rose-200/50 text-rose-600 shadow-[0_0_8px_rgba(244,63,94,0.08)]"
-                : "bg-slate-50 border-slate-200 text-slate-500"
+                  ? "bg-amber-50/60 border-amber-200/50 text-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.08)]"
+                  : status === "failed"
+                    ? "bg-rose-50/60 border-rose-200/50 text-rose-600 shadow-[0_0_8px_rgba(244,63,94,0.08)]"
+                    : "bg-slate-50 border-slate-200 text-slate-500"
             )}
           >
             <span
@@ -87,10 +98,10 @@ export function HistoryJobItem({
                 status === "completed"
                   ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse"
                   : status === "running"
-                  ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
-                  : status === "failed"
-                  ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse"
-                  : "bg-slate-400"
+                    ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
+                    : status === "failed"
+                      ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse"
+                      : "bg-slate-400"
               )}
             />
             <span>{status}</span>

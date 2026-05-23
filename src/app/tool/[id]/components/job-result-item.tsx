@@ -4,8 +4,6 @@ import Image from "next/image";
 import {
   CheckCircle2,
   ExternalLink,
-  MoreVertical,
-  Maximize2,
 } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import type {
@@ -231,12 +229,6 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
               <ExternalLink className="size-4" />
             </a>
           )}
-          <button
-            type="button"
-            className="p-2 text-slate-400 hover:text-slate-650 hover:bg-slate-50 rounded-xl transition-all"
-          >
-            <MoreVertical className="size-4" />
-          </button>
         </div>
       </div>
 
@@ -266,9 +258,6 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
                   "none";
               }}
             />
-            <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-xs p-2 rounded-full text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <Maximize2 className="size-4" />
-            </div>
           </div>
         )}
 

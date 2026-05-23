@@ -12,13 +12,39 @@ interface OutputCellProps {
 
 export function OutputCell({ value, columnKey }: OutputCellProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copiedDrm, setCopiedDrm] = useState(false);
 
   if (value === null || value === undefined) {
     return <span className="text-slate-400">-</span>;
   }
 
+  if (columnKey === "drm_info" || columnKey === "drmInfo") {
+    const rawStr = String(value);
+    return (
+      <div className="flex items-center gap-2 select-none">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-200/50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase shadow-3xs">
+          <span className="size-1.5 rounded-full bg-indigo-500 shrink-0" />
+          <span>DRM Secured</span>
+        </span>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(rawStr);
+            setCopiedDrm(true);
+            setTimeout(() => setCopiedDrm(false), 2000);
+          }}
+          className="bg-white border border-slate-200 hover:bg-slate-50 text-[10px] text-slate-550 hover:text-slate-700 font-bold px-2 py-0.5 rounded-md shadow-3xs active:scale-[0.98] transition-all cursor-pointer inline-flex items-center gap-1"
+        >
+          {copiedDrm ? "Copied!" : "Copy JSON"}
+        </button>
+      </div>
+    );
+  }
+
   if (columnKey === "sentiment") {
-    const sentiment = String(value || "").toLowerCase();
+    if (!value) {
+      return <span className="text-slate-400">-</span>;
+    }
+    const sentiment = String(value).toLowerCase();
     if (sentiment === "positive") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 border border-emerald-400 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-emerald-500/10">
@@ -35,7 +61,7 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-600 border border-slate-500 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs">
-        <span>{String(value || "Neutral")}</span>
+        <span>{String(value)}</span>
       </span>
     );
   }
@@ -106,7 +132,14 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     return <MediaCell value={value} />;
   }
 
-  if (columnKey === "text" || columnKey === "caption" || columnKey === "message" || columnKey === "summary") {
+  if (
+    columnKey === "text" ||
+    columnKey === "caption" ||
+    columnKey === "message" ||
+    columnKey === "summary" ||
+    columnKey === "previewTitle" ||
+    columnKey === "previewDescription"
+  ) {
     const textStr = String(value);
     const limit = 90;
     const isLong = textStr.length > limit;
@@ -165,6 +198,12 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
 }
 
 export function getHeaderLabel(key: string): string {
+  const normalized = key.toLowerCase();
+  if (normalized === "likes") return "Number of likes";
+  if (normalized === "comments" || normalized === "commentscount") return "Number of comments";
+  if (normalized === "shares") return "Number of shares";
+  if (normalized === "viewscount") return "Number of views";
+
   return key
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (str) => str.toUpperCase());

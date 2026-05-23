@@ -137,3 +137,39 @@ export const getItemCount = (job: ToolJob): number => {
 
     return 0;
 };
+
+export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
+    const pluginLower = String(job.plugin || "").toLowerCase();
+    
+    // If it's not a Gemini job, just return result.items or empty list
+    if (pluginLower !== "gemini") {
+        return (job.result?.items || []) as ScrapedJobItem[];
+    }
+
+    const previousItems = (job.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
+    const geminiItems = job.result?.items || [];
+
+    // Map each previous scraper item to a merged item
+    return previousItems.map((prevItem, idx) => {
+        const matchedGemini = geminiItems.find((g) => {
+            const sourceVal = String(g.sourceKeyValue || "");
+            const indexMatch = typeof g.sourceIndex === "number" && g.sourceIndex === idx;
+            const idMatch = sourceVal && (
+                String(prevItem.postId || "") === sourceVal ||
+                String(prevItem.id || "") === sourceVal ||
+                String(prevItem._id || "") === sourceVal ||
+                String(prevItem.url || "") === sourceVal
+            );
+            return indexMatch || idMatch;
+        });
+
+        // Construct the merged ScrapedJobItem
+        return {
+            ...prevItem,
+            sourceIndex: idx,
+            sourceKey: matchedGemini?.sourceKey || "postId",
+            analysis: matchedGemini?.analysis || undefined,
+            sourceKeyValue: matchedGemini?.sourceKeyValue || prevItem.postId || prevItem.id || prevItem._id,
+        } as unknown as ScrapedJobItem;
+    });
+};

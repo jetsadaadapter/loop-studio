@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Table2, FileCode } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import type { ScrapedJobItem } from "../../tool-job-utils";
+import { type ScrapedJobItem, getMergedGeminiItems } from "../../tool-job-utils";
 import { TabJsonView } from "./tab-json-view";
 import { OutputCell, getHeaderLabel } from "./cell-renderer";
 import { TablePagination } from "./table-pagination";
@@ -21,7 +21,7 @@ export function TabOutput({ job }: TabOutputProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
-  const items = (job.result?.items || []) as ScrapedJobItem[];
+  const items = getMergedGeminiItems(job);
 
   if (items.length === 0) {
     return (

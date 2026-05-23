@@ -17,6 +17,7 @@ import {
 import { ExportFieldSelector } from "./export-field-selector";
 import { ExportFormatGrid } from "./export-format-grid";
 import { ExportAdvancedOptions } from "./export-advanced-options";
+import { getMergedGeminiItems } from "../../tool-job-utils";
 
 interface ExportDatasetModalProps {
   open: boolean;
@@ -38,11 +39,11 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
     csvDelimiter: ",",
   });
 
-  const items = job.result?.items || [];
+  const items = getMergedGeminiItems(job);
   const runId = job.jobId || job._id;
 
   const allKeys = Array.from(
-    new Set(items.flatMap((item: any) => Object.keys(item)))
+    new Set(items.flatMap((item) => Object.keys(item as Record<string, unknown>)))
   ).filter((k) => k !== "analysis");
 
 

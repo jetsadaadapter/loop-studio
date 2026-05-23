@@ -168,14 +168,17 @@ export function ToolHistorySidebar({
                 </div>
               ) : (
                 <div className="p-3 md:p-4 space-y-3 max-h-[600px] overflow-y-auto bg-slate-50/20">
-                  {filtered.map((job) => (
-                    <HistoryJobItem
-                      key={job.jobId}
-                      job={job}
-                      isSelected={selectedJobId === job.jobId}
-                      onSelect={(id) => handleSelectJob(id, false)}
-                    />
-                  ))}
+                  {filtered.map((job, index) => {
+                    const id = job.jobId || job._id || (job as unknown as Record<string, string>).id || `job-index-${index}`;
+                    return (
+                      <HistoryJobItem
+                        key={id}
+                        job={job}
+                        isSelected={selectedJobId === id}
+                        onSelect={(jobId) => handleSelectJob(jobId, false)}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -274,15 +277,18 @@ export function ToolHistorySidebar({
                 </p>
               </div>
             ) : (
-              filtered.map((job) => (
-                <HistoryJobItem
-                  key={job.jobId}
-                  job={job}
-                  isSelected={selectedJobId === job.jobId}
-                  isMobile
-                  onSelect={(id) => handleSelectJob(id, true)}
-                />
-              ))
+              filtered.map((job, index) => {
+                const id = job.jobId || job._id || (job as unknown as Record<string, string>).id || `job-index-${index}`;
+                return (
+                  <HistoryJobItem
+                    key={id}
+                    job={job}
+                    isSelected={selectedJobId === id}
+                    isMobile
+                    onSelect={(jobId) => handleSelectJob(jobId, true)}
+                  />
+                );
+              })
             )}
           </div>
           {renderPagination()}

@@ -5,7 +5,7 @@ import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AlertCircle, Copy, Check, Workflow, Terminal, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getJobStatus, getItemCount } from "./tool-job-utils";
+import { getJobStatus, getItemCount, getMergedGeminiItems } from "./tool-job-utils";
 import { JobDetailSkeleton } from "./components/job-detail-skeleton";
 import { JobResultItem } from "./components/job-result-item";
 
@@ -44,7 +44,8 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
 
     // Resolve plugin name safely
     const configPlugin = job.plugin ? job.plugin.charAt(0).toUpperCase() + job.plugin.slice(1) : '';
-    const items = job.result?.items || [];
+    
+    const items = getMergedGeminiItems(job) as unknown as ToolJob["result"]["items"];
 
     return (
         <>
@@ -85,7 +86,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                 {onOpenVisualizer && (
                     <button
                         type="button"
-                        onClick={() => onOpenVisualizer(job.jobId)}
+                        onClick={() => onOpenVisualizer(job.jobId || job._id)}
                         className="w-full flex items-center justify-between p-3.5 px-4 bg-gradient-to-r from-blue-600/5 via-indigo-600/5 to-purple-600/5 hover:from-blue-600/10 hover:to-purple-600/10 border border-blue-200/40 hover:border-blue-300/60 rounded-2xl transition-all duration-300 text-left group shadow-xs cursor-pointer select-none hover:-translate-y-0.5 hover:shadow-md"
                     >
                         <div className="flex items-center gap-2.5">
@@ -128,14 +129,14 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                             type="button"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                navigator.clipboard.writeText(job.jobId);
+                                navigator.clipboard.writeText(job.jobId || job._id || "");
                                 setCopiedJobId(true);
                                 setTimeout(() => setCopiedJobId(false), 2000);
                             }}
-                            className="flex items-center gap-1 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] text-slate-700 font-semibold px-2 py-0.5 rounded-md shadow-xs active:scale-95 transition-all cursor-pointer"
+                            className="flex items-center gap-1 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] text-slate-700 font-semibold px-2 py-0.5 rounded-md shadow-xs active:scale-[0.98] transition-all cursor-pointer"
                             title="Copy Job ID"
                         >
-                            <span className="truncate max-w-[80px]">#{job.jobId.slice(0, 8)}</span>
+                            <span className="truncate max-w-[80px]">#{(job.jobId || job._id || "").slice(0, 8)}</span>
                             {copiedJobId ? (
                                 <Check className="size-2.5 text-emerald-500" />
                             ) : (
@@ -173,13 +174,13 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 <div className="space-y-1.5">
                                     <h4 className="text-xs font-bold text-slate-800 tracking-tight">No Processed Items Found</h4>
                                     <p className="text-[10px] text-slate-400 leading-normal font-semibold max-w-[280px] mx-auto">
-                                        This job hasn't generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.
+                                        This job hasn&apos;t generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.
                                     </p>
                                 </div>
                                 {onOpenVisualizer && (
                                     <button
                                         type="button"
-                                        onClick={() => onOpenVisualizer(job.jobId)}
+                                        onClick={() => onOpenVisualizer(job.jobId || job._id)}
                                         className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-slate-700 hover:text-slate-800 text-[10px] font-bold px-3.5 py-1.5 rounded-xl shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer"
                                     >
                                         <span>Open Console</span>
@@ -202,7 +203,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                         {onOpenVisualizer && (
                                             <button
                                                 type="button"
-                                                onClick={() => onOpenVisualizer(job.jobId)}
+                                                onClick={() => onOpenVisualizer(job.jobId || job._id)}
                                                 className="w-full flex items-center justify-center p-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-800 border border-slate-200/60 rounded-2xl font-extrabold text-xs transition-all hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer select-none gap-2 shadow-xs"
                                             >
                                                 <span>View All {items.length} Items in Workspace Console</span>

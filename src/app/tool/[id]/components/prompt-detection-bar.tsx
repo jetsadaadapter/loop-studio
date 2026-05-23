@@ -8,10 +8,10 @@ interface PromptDetectionBarProps {
 
 export function PromptDetectionBar({ text }: PromptDetectionBarProps) {
   const trimmed = text.trim();
-  if (!trimmed) return null;
 
   // Extract standard URLs using regex
   const urlCount = useMemo(() => {
+    if (!trimmed) return 0;
     const urlRegex = /(https?:\/\/[^\s,]+)/g;
     const matches = trimmed.match(urlRegex);
     return matches ? matches.length : 0;
@@ -19,6 +19,7 @@ export function PromptDetectionBar({ text }: PromptDetectionBarProps) {
 
   // Map high-fidelity keywords in Thai and English to intent labels
   const intentLabel = useMemo(() => {
+    if (!trimmed) return "วิเคราะห์ข้อมูลทั่วไป...";
     const lowerText = trimmed.toLowerCase();
 
     const hasSentiment =
@@ -55,6 +56,8 @@ export function PromptDetectionBar({ text }: PromptDetectionBarProps) {
 
     return "วิเคราะห์ข้อมูลทั่วไป...";
   }, [trimmed]);
+
+  if (!trimmed) return null;
 
   return (
     <div className="bg-rose-50/45 border border-rose-100/60 rounded-2xl p-3 flex items-center flex-wrap gap-2.5 text-xs font-semibold text-rose-700/90 transition-all duration-300 select-none shadow-2xs">
