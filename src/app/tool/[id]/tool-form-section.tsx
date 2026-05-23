@@ -53,8 +53,8 @@ export function ToolFormSection(props: ToolFormSectionProps) {
   // Typing animation effect for the prompt textarea
   useEffect(() => {
     const PROMPTS = [
-      "กรอกความต้องการวิเคราะห์ข้อมูลที่นี่...\n\nตัวอย่าง:\n1. https://facebook.com/share/p/1/\n2. https://facebook.com/share/p/2/\n3. https://facebook.com/share/p/3/\n\nช่วยวิเคราะห์ให้หน่อยครับว่า โพสต์ไหนมีแนวโน้มที่คนสนใจจะซื้อสินค้ามากที่สุด? โดยแบ่งกลุ่มคนที่เข้ามาคอมเมนต์ออกเป็น 3 กลุ่มหลัก คือ: 1. กลุ่มที่สนใจซื้อสินค้า 2. กลุ่มที่ไม่สนใจ/ถามเฉยๆ 3. กลุ่มเชิงลบหรือต่อต้าน และช่วยเปรียบเทียบสัดส่วนของแต่ละโพสต์ให้เห็นภาพง่ายที่สุดครับ",
-      "กรอกความต้องการวิเคราะห์ข้อมูลที่นี่...\n\nตัวอย่าง:\n- https://facebook.com/share/p/1/\n- https://facebook.com/share/p/2/\n- https://facebook.com/share/p/3/\n\nช่วยวิเคราะห์ทัศนคติ (Sentiment) ของแต่ละคอมเมนต์ และแยกหัวข้อที่มีการพูดถึงบ่อยที่สุด"
+      "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ...\n\nตัวอย่าง:\n1. https://facebook.com/share/p/1/\n2. https://facebook.com/share/p/2/\n3. https://facebook.com/share/p/3/\n\nช่วยวิเคราะห์ให้หน่อยครับว่า โพสต์ไหนมีแนวโน้มที่คนสนใจจะซื้อสินค้ามากที่สุด? โดยแบ่งกลุ่มคนที่เข้ามาคอมเมนต์ออกเป็น 3 กลุ่มหลัก คือ: 1. กลุ่มที่สนใจซื้อสินค้า 2. กลุ่มที่ไม่สนใจ/ถามเฉยๆ 3. กลุ่มเชิงลบหรือต่อต้าน และช่วยเปรียบเทียบสัดส่วนของแต่ละโพสต์ให้เห็นภาพง่ายที่สุดครับ",
+      "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ...\n\nตัวอย่าง:\n- https://facebook.com/share/p/1/\n- https://facebook.com/share/p/2/\n- https://facebook.com/share/p/3/\n\nช่วยวิเคราะห์ทัศนคติ (Sentiment) ของแต่ละคอมเมนต์ และแยกหัวข้อที่มีการพูดถึงบ่อยที่สุด"
     ];
 
     let currentPromptIdx = 0;
@@ -178,6 +178,9 @@ export function ToolFormSection(props: ToolFormSectionProps) {
                 error={errors[param.key]}
                 placeholderText={placeholderText}
                 onChange={onChange}
+                onSend={param.key === "prompt" ? buttonAction : undefined}
+                isSendLoading={param.key === "prompt" ? (isTesting || isRunning) : undefined}
+                testResult={param.key === "prompt" ? testResult : undefined}
               />
             ))}
 
@@ -215,6 +218,9 @@ export function ToolFormSection(props: ToolFormSectionProps) {
                         error={errors[param.key]}
                         placeholderText={placeholderText}
                         onChange={onChange}
+                        onSend={param.key === "prompt" ? buttonAction : undefined}
+                        isSendLoading={param.key === "prompt" ? (isTesting || isRunning) : undefined}
+                        testResult={param.key === "prompt" ? testResult : undefined}
                       />
                     ))}
                   </div>
@@ -223,65 +229,31 @@ export function ToolFormSection(props: ToolFormSectionProps) {
             )}
           </div>
 
-          <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col gap-4 sm:flex-row sm:justify-end items-center select-none">
-            {hasPrompt && testResult && testResult.error ? (
-              <div className="w-full sm:w-auto mr-auto py-1.5 px-3 text-xs font-bold flex items-center gap-1.5 select-none transition-all duration-200 text-rose-500 bg-rose-50 rounded-xl border border-rose-100">
-                <AlertCircle className="size-4 shrink-0" />
-                <span>{testResult.error}</span>
-              </div>
-            ) : hasPrompt ? (
-              <div className="w-full sm:w-auto mr-auto text-xs font-semibold text-slate-500 select-none py-1 leading-normal">
-                รองรับ URL สูงสุด <span className="text-brand font-extrabold">10 links</span> ต่อครั้ง
-              </div>
-            ) : null}
+          {((hasPrompt && testResult && testResult.error) || !hasPrompt) && (
+            <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col gap-4 sm:flex-row sm:justify-end items-center select-none">
+              {hasPrompt && testResult && testResult.error && (
+                <div className="w-full sm:w-auto mr-auto py-1.5 px-3 text-xs font-bold flex items-center gap-1.5 select-none transition-all duration-200 text-rose-500 bg-rose-50 rounded-xl border border-rose-100">
+                  <AlertCircle className="size-4 shrink-0" />
+                  <span>{testResult.error}</span>
+                </div>
+              )}
 
-            {hasPrompt && testResult?.success && !isTesting ? (
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-center">
+              {!hasPrompt && (
                 <Button
-                  variant="outline"
-                  className="h-10 rounded-xl text-xs font-bold px-5 border-slate-200 text-slate-700 hover:bg-slate-50/80 active:scale-95 duration-200 cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 shadow-2xs hover:shadow-xs transition-all disabled:opacity-50 border bg-white"
-                  onClick={onTestPrompt}
-                  disabled={isRunning}
-                  type="button"
-                >
-                  <Layers className="size-3.5 shrink-0 text-slate-500" />
-                  <span>Retest Prompt</span>
-                </Button>
-
-                <Button
-                  className="h-10 rounded-xl text-xs font-bold px-6 bg-brand hover:bg-brand/90 hover:shadow-[0_8px_20px_rgba(79,70,229,0.25)] hover:-translate-y-0.5 active:scale-95 duration-200 text-white shadow-sm transition-all cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 disabled:opacity-50"
-                  onClick={onRun}
-                  disabled={isRunning}
-                  type="button"
-                >
-                  {isRunning ? (
-                    <>
-                      <Loader2 className="size-3.5 shrink-0 animate-spin text-white" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="size-3.5 shrink-0 fill-white text-white" />
-                      <span>Run Tool</span>
-                    </>
+                  className={cn(
+                    "h-10 rounded-xl text-xs font-bold px-6 disabled:opacity-50 disabled:pointer-events-none cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 shadow-xs border border-transparent",
+                    buttonClass
                   )}
+                  onClick={buttonAction}
+                  disabled={buttonDisabled}
+                  type="button"
+                >
+                  {buttonIcon}
+                  <span>{buttonLabel}</span>
                 </Button>
-              </div>
-            ) : (
-              <Button
-                className={cn(
-                  "h-10 rounded-xl text-xs font-bold px-6 disabled:opacity-50 disabled:pointer-events-none cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 shadow-xs border border-transparent",
-                  buttonClass
-                )}
-                onClick={buttonAction}
-                disabled={buttonDisabled}
-                type="button"
-              >
-                {buttonIcon}
-                <span>{buttonLabel}</span>
-              </Button>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ToolParam } from "@/core/interfaces/tools.interface";
+import type { ToolParam, ToolTestPromptResult } from "@/core/interfaces/tools.interface";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,9 @@ import {
   CornerDownLeft,
   FileText,
   Link,
+  Sparkles,
+  Send,
+  Loader2,
 } from "lucide-react";
 
 const PARAM_HELPERS: Record<string, string> = {
@@ -59,6 +62,9 @@ interface FormParamFieldProps {
   error?: string;
   placeholderText?: string;
   onChange: (key: string, value: unknown) => void;
+  onSend?: () => void;
+  isSendLoading?: boolean;
+  testResult?: ToolTestPromptResult | null;
 }
 
 export function FormParamField({
@@ -67,6 +73,9 @@ export function FormParamField({
   error,
   placeholderText,
   onChange,
+  onSend,
+  isSendLoading,
+  testResult,
 }: FormParamFieldProps) {
   const helperText = getHelperText(param);
   const isPromptField = param.key === "prompt";
@@ -145,90 +154,134 @@ export function FormParamField({
         />
       ) : isPromptField ? (
         <div className="space-y-3.5">
-          <div className="relative group/prompt flex flex-col">
-            <Textarea
-              id={param.key}
-              placeholder={placeholderText || "กรอกความต้องการวิเคราะห์ข้อมูลที่นี่... (เช่น วิเคราะห์ทัศนคติ แยกแยะกลุ่มผู้ใช้ หรือ ค้นหาความเห็นเชิงบวก/เชิงลบ)"}
-              value={String(value || "")}
-              onChange={(e) => onChange(param.key, e.target.value)}
-              className={cn(
-                "min-h-58 pb-12 pt-4 bg-white border-slate-200/80 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all rounded-xl px-5 resize-vertical shadow-xs font-normal placeholder:text-slate-400 placeholder:opacity-85 text-slate-700 leading-relaxed text-sm whitespace-pre-wrap",
-                error && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
-              )}
-            />
-            {/* Real-time details ribbon embedded at the bottom of the prompt card */}
-            <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between border-t border-slate-100/80 pt-2.5 select-none pointer-events-none text-[10.5px] z-10 bg-white">
-              {/* Query Complexity Badge */}
-              <div className="flex items-center gap-1.5 font-bold">
-                {(() => {
-                  const len = String(value || "").length;
-                  const pill = len === 0
-                    ? { text: "Empty prompt", cls: "text-slate-400", dot: "bg-slate-350" }
-                    : len < 150
-                      ? { text: "Simple Scope", cls: "text-slate-500 bg-slate-50 border border-slate-200/50 px-2 py-0.5 rounded-lg", dot: "bg-slate-400" }
-                      : len < 500
-                        ? { text: "Balanced Query", cls: "text-blue-600 bg-blue-50/50 border border-blue-100/50 px-2 py-0.5 rounded-lg", dot: "bg-blue-500" }
-                        : { text: "Deep AI Analysis", cls: "text-indigo-650 bg-indigo-50/50 border border-indigo-100/50 px-2 py-0.5 rounded-lg animate-pulse", dot: "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" };
-                  return (
-                    <span className={cn("flex items-center gap-1.5 font-bold", pill.cls)}>
-                      <span className={cn("w-1.5 h-1.5 rounded-full", pill.dot)}></span>
-                      {pill.text}
-                    </span>
-                  );
-                })()}
-              </div>
+          {/* Floating Pill Buttons for Format Templates (Moved ABOVE Textarea) */}
+          <div className="select-none">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-550 block mt-1 mb-2 pl-1 select-none">
+              <span className="flex items-center gap-1.5">
+                <Link className="h-3.5 w-3.5 text-slate-400" />
+                <span>รูปแบบ URL ที่รองรับ <span className="text-[10px] font-normal text-slate-400">(คลิกเพื่อเติมตัวอย่างด่วน)</span></span>
+              </span>
+              <span className="ml-auto flex items-center gap-1 text-[8.5px] font-bold text-slate-450 uppercase tracking-wider bg-slate-50 border border-slate-200/40 px-1.5 py-0.5 rounded-md shadow-3xs">
+                <span className="w-1.25 h-1.25 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Auto-fill</span>
+              </span>
+            </div>
 
-              {/* Character Limit */}
-              <div className="font-bold text-slate-400">
-                <span className="text-slate-650 font-extrabold">{String(value || "").length}</span> / 2,000 chars
-              </div>
-            </div>
-          </div>
-          <div className="bg-linear-to-b from-slate-50/50 via-white to-slate-50/30 rounded-2xl border border-slate-200/60 p-4 space-y-3.5 transition-all duration-300 shadow-2xs hover:shadow-xs">
-            <div className="flex items-center justify-between flex-wrap gap-2 select-none">
-              <div className="flex items-center gap-2 text-[10.5px] font-extrabold text-slate-500">
-                <Link className="h-3.5 w-3.5 text-brand" />
-                <span>รูปแบบ URL ที่รองรับ (คลิกเพื่อเติมตัวอย่างด่วน)</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 bg-white border border-slate-200/40 px-2 py-0.5 rounded-full shadow-2xs">
-                <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Auto-fill Template</span>
-              </div>
-            </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => onChange(param.key, URL_TEMPLATES.numbered)}
-                className="group relative flex items-center gap-2 h-8.5 px-3 bg-white hover:bg-slate-50 border border-slate-200/60 hover:border-slate-350 text-slate-600 hover:text-slate-900 rounded-xl font-bold transition-all duration-200 cursor-pointer text-[10px] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95"
+                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
               >
-                <ListOrdered className="h-3.5 w-3.5 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>ลำดับ (1. https://...)</span>
+                <ListOrdered className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
+                <span>ลำดับ <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(1. https://...)</span></span>
               </button>
               <button
                 type="button"
                 onClick={() => onChange(param.key, URL_TEMPLATES.dashed)}
-                className="group relative flex items-center gap-2 h-8.5 px-3 bg-white hover:bg-slate-50 border border-slate-200/60 hover:border-slate-350 text-slate-600 hover:text-slate-900 rounded-xl font-bold transition-all duration-200 cursor-pointer text-[10px] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95"
+                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
               >
-                <List className="h-3.5 w-3.5 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>ขีดละรายการ (- https://...)</span>
+                <List className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
+                <span>รายการขีด <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(- https://...)</span></span>
               </button>
               <button
                 type="button"
                 onClick={() => onChange(param.key, URL_TEMPLATES.newline)}
-                className="group relative flex items-center gap-2 h-8.5 px-3 bg-white hover:bg-slate-50 border border-slate-200/60 hover:border-slate-350 text-slate-600 hover:text-slate-900 rounded-xl font-bold transition-all duration-200 cursor-pointer text-[10px] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95"
+                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
               >
-                <CornerDownLeft className="h-3.5 w-3.5 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>แยกบรรทัด (https://...)</span>
+                <CornerDownLeft className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
+                <span>แยกบรรทัด <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(https://...)</span></span>
               </button>
               <button
                 type="button"
                 onClick={() => onChange(param.key, URL_TEMPLATES.comma)}
-                className="group relative flex items-center gap-2 h-8.5 px-3 bg-white hover:bg-slate-50 border border-slate-200/60 hover:border-slate-350 text-slate-600 hover:text-slate-900 rounded-xl font-bold transition-all duration-200 cursor-pointer text-[10px] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95"
+                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
               >
-                <FileText className="h-3.5 w-3.5 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>คั่นด้วยจุลภาค (https://..., ...)</span>
+                <FileText className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
+                <span>คั่นจุลภาค <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(https://..., ...)</span></span>
               </button>
             </div>
+          </div>
+
+          {/* ChatGPT-style Unified Capsule Container */}
+          <div className={cn(
+            "group/prompt border border-slate-200/80 bg-slate-50/15 focus-within:bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10 transition-all rounded-2xl flex flex-col shadow-[0_8px_30px_rgba(15,23,42,0.01)] overflow-hidden",
+            error && "border-red-500 focus-within:ring-red-500/20 bg-red-50/10"
+          )}>
+            <Textarea
+              id={param.key}
+              placeholder={placeholderText || "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ... (เช่น วิเคราะห์ทัศนคติ แยกแยะกลุ่มผู้ใช้ หรือ ค้นหาความเห็นเชิงบวก/เชิงลบ)"}
+              value={String(value || "")}
+              onChange={(e) => onChange(param.key, e.target.value)}
+              className="min-h-58 pb-2 pt-4 bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 rounded-none px-5 resize-none shadow-none font-normal placeholder:text-slate-400 placeholder:opacity-85 text-slate-700 leading-relaxed text-sm whitespace-pre-wrap outline-none"
+            />
+            
+            {/* Embedded Bottom Controls Ribbon */}
+            <div className="flex items-center justify-between bg-transparent px-5 pb-4 pt-1.5 select-none text-[10.5px] z-10 w-full shrink-0 flex-wrap gap-3">
+              {/* Left Side: Complexity & Clear button */}
+              <div className="flex flex-wrap items-center gap-2">
+
+                {(() => {
+                  const len = String(value || "").length;
+                  const pill = len === 0
+                    ? { text: "Empty prompt", cls: "text-slate-400", dot: "bg-slate-300" }
+                    : len < 150
+                      ? { text: "Simple Scope", cls: "text-sky-600 bg-sky-50/45 border border-sky-100 px-2 py-0.5 rounded-md shadow-3xs", dot: "bg-sky-400" }
+                      : len < 500
+                        ? { text: "Balanced Query", cls: "text-emerald-600 bg-emerald-50/45 border border-emerald-100 px-2 py-0.5 rounded-md shadow-3xs", dot: "bg-emerald-500" }
+                        : { text: "Deep AI Analysis", cls: "text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-md shadow-3xs animate-pulse", dot: "bg-violet-500" };
+                  return (
+                    <span className={cn("flex items-center gap-1.5 font-bold", pill.cls)}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", pill.dot)}></span>
+                      {pill.text}
+                    </span>
+                  );
+                })()}
+
+                {/* Micro Clear button */}
+                {String(value || "").length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onChange(param.key, "")}
+                    className="flex items-center gap-1 text-slate-450 hover:text-rose-500 transition-colors font-bold bg-white border border-slate-200/60 hover:border-rose-100 px-2 py-0.5 rounded-md shadow-3xs hover:bg-rose-50/50 cursor-pointer pointer-events-auto"
+                  >
+                    Clear Prompt
+                  </button>
+                )}
+              </div>
+
+              {/* Right Side: Send Button */}
+              <div className="flex items-center gap-3.5 ml-auto">
+                {onSend && (
+                  <button
+                    type="button"
+                    onClick={onSend}
+                    disabled={isSendLoading || String(value || "").trim().length === 0}
+                    className={cn(
+                      "flex items-center justify-center h-7.5 w-7.5 rounded-lg transition-all duration-200 shadow-3xs select-none cursor-pointer border border-transparent shrink-0",
+                      isSendLoading
+                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : String(value || "").trim().length === 0
+                          ? "bg-slate-100/80 text-slate-300 border-slate-200/40 cursor-not-allowed"
+                          : testResult?.success
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white hover:scale-105 active:scale-95 shadow-md shadow-emerald-500/10"
+                            : "bg-brand hover:bg-brand/90 text-white hover:scale-105 active:scale-95 shadow-md shadow-brand/10"
+                    )}
+                    title={testResult?.success ? "Run Tool Job" : "Test prompt instruction"}
+                  >
+                    {isSendLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Send className="h-3.25 w-3.25 fill-current" />
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Character Count text placed outside the capsule container, at the bottom right corner */}
+          <div className="flex justify-end text-[10px] text-slate-400 font-normal select-none mt-1.5 pr-2">
+            <span className="text-slate-550 font-normal">{String(value || "").length}</span> / 2,000 chars
           </div>
         </div>
       ) : param.key === "rawInput" ||
