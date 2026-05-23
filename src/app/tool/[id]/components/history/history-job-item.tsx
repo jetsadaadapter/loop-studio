@@ -20,6 +20,7 @@ export function HistoryJobItem({
   onSelect,
 }: HistoryJobItemProps) {
   const status = getJobStatus(job);
+  const count = getItemCount(job);
 
   const pluginLower = String(job.plugin || "").toLowerCase();
   const friendlyTitle =
@@ -40,6 +41,16 @@ export function HistoryJobItem({
     } catch {
       return "just now";
     }
+  })();
+
+  const isTodayRun = (() => {
+    if (!job.createdAt) return false;
+    const date = new Date(job.createdAt);
+    if (isNaN(date.getTime())) return false;
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
   })();
 
   return (
@@ -74,9 +85,15 @@ export function HistoryJobItem({
               {slicedId}
             </span>
           </div>
-          <span className="text-[9px] text-slate-400 font-semibold shrink-0">
-            {formattedTime}
-          </span>
+          {isTodayRun ? (
+            <span className="text-[8.5px] text-slate-600 bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded-md font-bold shrink-0 shadow-3xs">
+              {formattedTime}
+            </span>
+          ) : (
+            <span className="text-[9px] text-slate-400 font-semibold shrink-0">
+              {formattedTime}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3 mt-2.5">
@@ -106,10 +123,59 @@ export function HistoryJobItem({
             />
             <span>{status}</span>
           </div>
-          <span className="text-slate-200 select-none">•</span>
-          <span className="text-[10px] text-slate-500 font-bold">
-            {getItemCount(job)} items
-          </span>
+          {!(pluginLower === "gemini" && count === 0) && (
+            <>
+              <span className="text-slate-200 select-none">•</span>
+              <span className="text-[10px] text-slate-500 font-bold">
+                {(() => {
+                  if (pluginLower === "apify") {
+                    if (status === "running") {
+                      return count > 0
+                        ? `${count} post${count === 1 ? "" : "s"} to scrape`
+                        : "No posts to scrape";
+                    }
+                    if (status === "completed") {
+                      return count > 0
+                        ? `${count} post${count === 1 ? "" : "s"} scraped`
+                        : "0 posts scraped";
+                    }
+                    return count > 0
+                      ? `${count} post${count === 1 ? "" : "s"}`
+                      : "0 posts";
+                  }
+                  if (pluginLower === "gemini") {
+                    if (status === "running") {
+                      return count > 0
+                        ? `${count} post${count === 1 ? "" : "s"} to analyze`
+                        : "No posts to analyze";
+                    }
+                    if (status === "completed") {
+                      return count > 0
+                        ? `${count} post${count === 1 ? "" : "s"} analyzed`
+                        : "0 posts analyzed";
+                    }
+                    return count > 0
+                      ? `${count} post${count === 1 ? "" : "s"}`
+                      : "0 posts";
+                  }
+                  // Fallback
+                  if (status === "running") {
+                    return count > 0
+                      ? `${count} item${count === 1 ? "" : "s"} to process`
+                      : "No items to process";
+                  }
+                  if (status === "completed") {
+                    return count > 0
+                      ? `${count} item${count === 1 ? "" : "s"} processed`
+                      : "0 items processed";
+                  }
+                  return count > 0
+                    ? `${count} item${count === 1 ? "" : "s"}`
+                    : "0 items";
+                })()}
+              </span>
+            </>
+          )}
         </div>
       </div>
 

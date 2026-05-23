@@ -44,6 +44,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
 
     // Resolve plugin name safely
     const configPlugin = job.plugin ? job.plugin.charAt(0).toUpperCase() + job.plugin.slice(1) : '';
+    const pluginLower = String(job.plugin || "").toLowerCase();
     
     const items = getMergedGeminiItems(job) as unknown as ToolJob["result"]["items"];
 
@@ -60,7 +61,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 Job Result Detail
                             </SheetTitle>
 
-                            {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
+                        {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
                             <div className={cn(
                                 "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
                                 status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
@@ -68,20 +69,102 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                         "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
                             )}>
                                 <span className={cn(
-                                    "size-1 rounded-full bg-white shrink-0",
-                                    status === 'running' && "animate-pulse"
+                                    "size-1.5 rounded-full bg-white shrink-0",
+                                    status === 'completed' ? "shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                        status === 'running' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                            "shadow-[0_0_8px_rgba(255,255,255,0.8)]"
                                 )} />
-                                {status.toUpperCase()}
+                                <span className="uppercase tracking-wider">{status}</span>
                             </div>
                         </div>
-                        <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal font-semibold">
+
+                        <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal font-semibold mt-0.5">
                             System Engine Analysis & Audit Trail Logs
                         </SheetDescription>
                     </div>
                 </div>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-5">
+                {/* 1. Header Metadata Summary */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-4 shadow-xs relative overflow-hidden">
+                    <div className="grid grid-cols-2 gap-4 relative z-10">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block leading-none">
+                                Runner Engine
+                            </span>
+                            <span className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 pt-0.5">
+                                <span className={cn(
+                                    "px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider",
+                                    pluginLower === "apify" ? "bg-amber-50 text-amber-700 border border-amber-200" :
+                                        pluginLower === "gemini" ? "bg-indigo-50 text-indigo-700 border border-indigo-200" :
+                                            "bg-slate-100 text-slate-700 border border-slate-200"
+                                )}>
+                                    {configPlugin || 'System'}
+                                </span>
+                            </span>
+                        </div>
+
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block leading-none">
+                                Created At
+                            </span>
+                            {(() => {
+                                const isToday = (() => {
+                                    if (!job.createdAt) return false;
+                                    const date = new Date(job.createdAt);
+                                    if (isNaN(date.getTime())) return false;
+                                    const today = new Date();
+                                    return date.getDate() === today.getDate() &&
+                                        date.getMonth() === today.getMonth() &&
+                                        date.getFullYear() === today.getFullYear();
+                                })();
+                                const dateStr = job.createdAt ? new Date(job.createdAt).toLocaleString('sv-SE', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }).replace('T', ' ') : 'just now';
+
+                                if (isToday) {
+                                    return (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200/60 rounded-md px-1.5 py-0.5 mt-1 shadow-3xs w-fit">
+                                            {dateStr} (Today)
+                                        </span>
+                                    );
+                                }
+                                return (
+                                    <span className="text-xs font-bold text-slate-850 block pt-1 leading-none">
+                                        {dateStr}
+                                    </span>
+                                );
+                            })()}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-slate-100/85 pt-3.5 flex items-center justify-between text-[11px] font-bold text-slate-500 relative z-10">
+                        <span>Workflow Run ID</span>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(job.jobId || job._id);
+                                    setCopiedJobId(true);
+                                    setTimeout(() => setCopiedJobId(false), 2000);
+                                } catch { }
+                            }}
+                            className="font-mono text-[10px] text-slate-650 hover:text-brand flex items-center gap-1 transition-colors bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-150 cursor-pointer shadow-3xs"
+                        >
+                            {job.jobId || job._id}
+                            {copiedJobId ? (
+                                <Check className="size-2.5 text-emerald-500" />
+                            ) : (
+                                <Copy className="size-2.5 text-slate-400" />
+                            )}
+                        </button>
+                    </div>
+                </div>
+
                 {/* Visualizer Workspace Shortcut (Primary Call-to-Action) */}
                 {onOpenVisualizer && (
                     <button
@@ -104,48 +187,6 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                     </button>
                 )}
 
-                {/* Compact Technical Metadata Ribbon */}
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-3 px-4 flex items-center justify-between text-[11px] font-medium text-slate-600 shadow-xs hover:border-slate-300 transition-all duration-300">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 border-r border-slate-200/60 pr-4">
-                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Plugin</span>
-                            <div className="flex items-center gap-1 font-bold text-slate-800">
-                                <div className="size-1.5 rounded-full bg-brand animate-pulse" />
-                                {configPlugin || 'N/A'}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Processed Time</span>
-                            <span className="font-bold text-slate-800">
-                                {job.createdAt ? new Date(job.createdAt).toLocaleString() : 'N/A'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Job ID</span>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(job.jobId || job._id || "");
-                                setCopiedJobId(true);
-                                setTimeout(() => setCopiedJobId(false), 2000);
-                            }}
-                            className="flex items-center gap-1 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] text-slate-700 font-semibold px-2 py-0.5 rounded-md shadow-xs active:scale-[0.98] transition-all cursor-pointer"
-                            title="Copy Job ID"
-                        >
-                            <span className="truncate max-w-[80px]">#{(job.jobId || job._id || "").slice(0, 8)}</span>
-                            {copiedJobId ? (
-                                <Check className="size-2.5 text-emerald-500" />
-                            ) : (
-                                <Copy className="size-2.5 text-slate-400" />
-                            )}
-                        </button>
-                    </div>
-                </div>
-
                 {job.error && (
                     <div className="bg-red-50/50 border border-red-200/60 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
                         <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
@@ -161,7 +202,16 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                 <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                            <Workflow className="size-4 text-brand animate-pulse" /> Processed Items ({getItemCount(job)})
+                            <Workflow className="size-4 text-brand animate-pulse" /> {(() => {
+                                const count = getItemCount(job);
+                                if (pluginLower === "apify") {
+                                    return status === "running" ? `Posts to Scrape (${count})` : `Scraped Posts (${count})`;
+                                }
+                                if (pluginLower === "gemini") {
+                                    return status === "running" ? `Posts to Analyze (${count})` : `Analyzed Posts (${count})`;
+                                }
+                                return status === "running" ? `Items to Process (${count})` : `Processed Items (${count})`;
+                            })()}
                         </h3>
                     </div>
 
@@ -172,9 +222,33 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                     <Workflow className="size-5 text-brand" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <h4 className="text-xs font-bold text-slate-800 tracking-tight">No Processed Items Found</h4>
+                                    <h4 className="text-xs font-bold text-slate-800 tracking-tight">
+                                        {(() => {
+                                            if (pluginLower === "apify") {
+                                                return status === "running" ? "No Posts to Scrape Found" : "No Scraped Posts Found";
+                                            }
+                                            if (pluginLower === "gemini") {
+                                                return status === "running" ? "No Posts to Analyze Found" : "No Analyzed Posts Found";
+                                            }
+                                            return status === "running" ? "No Items to Process Found" : "No Processed Items Found";
+                                        })()}
+                                    </h4>
                                     <p className="text-[10px] text-slate-400 leading-normal font-semibold max-w-[280px] mx-auto">
-                                        This job hasn&apos;t generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.
+                                        {(() => {
+                                            if (pluginLower === "apify") {
+                                                return status === "running"
+                                                    ? "This job doesn't have any posts to scrape queued. If you just started it, check back in a few moments, or check the full workspace console."
+                                                    : "This job hasn't scraped any posts yet. If the job is still running, check back in a few moments, or check the full workspace console.";
+                                            }
+                                            if (pluginLower === "gemini") {
+                                                return status === "running"
+                                                    ? "This job doesn't have any posts to analyze queued. If you just started it, check back in a few moments, or check the full workspace console."
+                                                    : "This job hasn't analyzed any posts yet. If the job is still running, check back in a few moments, or check the full workspace console.";
+                                            }
+                                            return status === "running"
+                                                ? "This job doesn't have any items to process queued. If the job is still running, check back in a few moments, or check the full workspace console."
+                                                : "This job hasn't generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.";
+                                        })()}
                                     </p>
                                 </div>
                                 {onOpenVisualizer && (

@@ -205,9 +205,6 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     try {
       const job = await getToolJob(tool.id, jobId);
       setSelectedJob(job);
-      setJobs((prev) =>
-        prev.map((j) => (j.jobId === jobId ? { ...j, result: job.result } : j)),
-      );
     } catch {
       pushDialogToast("Failed to fetch job details.", "error");
       setIsJobModalOpen(false);

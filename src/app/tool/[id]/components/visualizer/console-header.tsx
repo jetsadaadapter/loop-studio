@@ -27,6 +27,7 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const status = getJobStatus(job);
   const itemCount = getItemCount(job);
+  const pluginLower = String(job.plugin || "").toLowerCase();
   const getSafeDate = (val: unknown): Date => {
     if (!val) return new Date();
     const d = new Date(val as string | number | Date);
@@ -164,16 +165,41 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
 
         {/* Message */}
         <div className="font-semibold text-slate-700">
-          {status === "completed" && `Finished! Total ${itemCount} items processed.`}
+          {status === "completed" && (() => {
+            if (pluginLower === "apify") return `Finished! Total ${itemCount} posts scraped.`;
+            if (pluginLower === "gemini") return `Finished! Total ${itemCount} posts analyzed.`;
+            return `Finished! Total ${itemCount} items processed.`;
+          })()}
           {status === "failed" && `Finished with errors. Check log for details.`}
-          {status === "running" && `Processing items in progress...`}
+          {status === "running" && (() => {
+            if (pluginLower === "apify") return `Scraping posts in progress...`;
+            if (pluginLower === "gemini") return `Analyzing posts in progress...`;
+            return `Processing items in progress...`;
+          })()}
         </div>
 
         {job.createdAt && (
           <>
             <span className="text-slate-300 hidden sm:inline">•</span>
             {/* Timestamp */}
-            <div className="font-medium">{formattedTime}</div>
+            {(() => {
+              const isToday = (() => {
+                const date = new Date(job.createdAt);
+                if (isNaN(date.getTime())) return false;
+                const today = new Date();
+                return date.getDate() === today.getDate() &&
+                  date.getMonth() === today.getMonth() &&
+                  date.getFullYear() === today.getFullYear();
+              })();
+              if (isToday) {
+                return (
+                  <div className="font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 text-[10px] shadow-3xs">
+                    {formattedTime} (Today)
+                  </div>
+                );
+              }
+              return <div className="font-medium">{formattedTime}</div>;
+            })()}
           </>
         )}
 
