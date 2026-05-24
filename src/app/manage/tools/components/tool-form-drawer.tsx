@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -91,6 +90,41 @@ interface ToolFormDrawerProps {
   onUpdate: (id: string, payload: UpdateToolPayload) => Promise<void>;
 }
 
+function getFormValidationErrors(formState: FormState): {
+  nameError: string;
+  paramErrors: Record<string, { key?: string; label?: string }>;
+  validationError: string | null;
+} {
+  const nextParamErrors: Record<string, { key?: string; label?: string }> = {};
+  let nameError = "";
+  let hasParamErrors = false;
+
+  if (!formState.name.trim()) {
+    nameError = "Tool name is required.";
+  }
+
+  formState.params.forEach((p) => {
+    const fieldErrors: { key?: string; label?: string } = {};
+    if (!p.key.trim()) {
+      fieldErrors.key = "Key is required";
+      hasParamErrors = true;
+    }
+    if (!p.label.trim()) {
+      fieldErrors.label = "Label is required";
+      hasParamErrors = true;
+    }
+    if (Object.keys(fieldErrors).length > 0) {
+      nextParamErrors[p._localId] = fieldErrors;
+    }
+  });
+
+  return {
+    nameError,
+    paramErrors: nextParamErrors,
+    validationError: hasParamErrors ? "Every parameter must have a key and a label." : null,
+  };
+}
+
 // ── Inner form (keyed externally to reset state) ──────────────────────────────
 
 function ToolFormInner({
@@ -98,22 +132,39 @@ function ToolFormInner({
 }: ToolFormDrawerProps) {
   const [form, setForm] = useState<FormState>(() => buildInitialState(tool));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [paramErrors, setParamErrors] = useState<Record<string, { key?: string; label?: string }>>({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   function update(partial: Partial<FormState>) {
-    setForm((prev) => ({ ...prev, ...partial }));
-  }
+    setForm((prev) => {
+      const next = { ...prev, ...partial };
+      const { nameError, paramErrors: nextParamErrors, validationError: nextValErr } = getFormValidationErrors(next);
 
-  function clearError(key: string) {
-    setErrors((prev) => ({ ...prev, [key]: "" }));
+      if (hasAttemptedSubmit) {
+        setErrors({ name: nameError });
+        setParamErrors(nextParamErrors);
+        setValidationError(nextValErr);
+      } else {
+        if (partial.name !== undefined) {
+          setErrors({ name: nameError });
+        }
+        setParamErrors({});
+        setValidationError(null);
+      }
+      return next;
+    });
   }
 
   function validate(): boolean {
-    const next: Record<string, string> = {};
-    if (!form.name.trim()) next.name = "Tool name is required.";
-    const invalid = form.params.filter((p) => !p.key.trim() || !p.label.trim());
-    if (invalid.length > 0) next.params = "Every parameter must have a key and label.";
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    setHasAttemptedSubmit(true);
+    const { nameError, paramErrors: nextParamErrors, validationError: nextValErr } = getFormValidationErrors(form);
+
+    setErrors({ name: nameError });
+    setParamErrors(nextParamErrors);
+    setValidationError(nextValErr);
+
+    return !nameError && nextValErr === null;
   }
 
   async function handleSubmit() {
@@ -159,11 +210,11 @@ function ToolFormInner({
             <Input
               id="tf-name"
               value={form.name}
-              onChange={(e) => { update({ name: e.target.value }); clearError("name"); }}
+              onChange={(e) => update({ name: e.target.value })}
               placeholder="e.g. FB Post Analyzer"
-              className={errors.name ? "border-rose-300 bg-white" : "bg-white"}
+              className={errors.name ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100 bg-white" : "bg-white"}
             />
-            {errors.name && <p className="text-xs text-rose-500">{errors.name}</p>}
+            {errors.name && <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.name}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -194,10 +245,16 @@ function ToolFormInner({
 
         {/* Parameters */}
         <div className="space-y-3">
-          {errors.params && <p className="text-xs text-rose-500">{errors.params}</p>}
+          {validationError && (
+            <div className="rounded-xl border border-rose-150 bg-rose-50/60 px-4 py-2.5 text-xs text-rose-600 font-semibold mb-2 animate-fade-in flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" aria-hidden />
+              {validationError}
+            </div>
+          )}
           <ToolParamBuilder
             params={form.params}
-            onChange={(params) => { update({ params }); clearError("params"); }}
+            errors={paramErrors}
+            onChange={(params) => update({ params })}
           />
         </div>
       </div>

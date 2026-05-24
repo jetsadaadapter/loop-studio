@@ -4,6 +4,9 @@ import type {
     ToolDetailResponse,
     CreateToolPayload,
     UpdateToolPayload,
+    ToolParam,
+    ToolParamsResponse,
+    ToolParamPayload,
 } from "@/core/interfaces/tool";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
@@ -36,4 +39,43 @@ export async function deleteManageTool(id: string): Promise<void> {
     await apiFetch<{ success: boolean; message: string }>(url, {
         method: "DELETE",
     });
+}
+
+export async function getManageToolParams(toolId: string, init?: RequestInit): Promise<ToolParam[]> {
+    const url = buildUrl(`/manage/tools/${toolId}/params`);
+    const response = await apiFetch<ToolParamsResponse>(url, init);
+    return response.data;
+}
+
+export async function addManageToolParam(toolId: string, payload: ToolParamPayload): Promise<ToolParam> {
+    const url = buildUrl(`/manage/tools/${toolId}/params`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolParam }>(url, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
+}
+
+export async function updateManageToolParam(paramId: string, payload: ToolParamPayload): Promise<ToolParam> {
+    const url = buildUrl(`/manage/tools/params/${paramId}`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolParam }>(url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
+}
+export async function deleteManageToolParam(paramId: string): Promise<void> {
+    const url = buildUrl(`/manage/tools/params/${paramId}`);
+    await apiFetch<{ success: boolean; message: string }>(url, {
+        method: "DELETE",
+    });
+}
+
+export async function upsertManageToolParams(toolId: string, payload: ToolParamPayload[]): Promise<ToolParam[]> {
+    const url = buildUrl(`/manage/tools/${toolId}/params`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolParam[] }>(url, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
 }

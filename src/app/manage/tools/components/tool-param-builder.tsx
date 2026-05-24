@@ -21,9 +21,10 @@ function createEmptyParam(sortOrder: number): ParamDraft {
 interface ToolParamBuilderProps {
   params: ParamDraft[];
   onChange: (params: ParamDraft[]) => void;
+  errors?: Record<string, { key?: string; label?: string }>;
 }
 
-export function ToolParamBuilder({ params, onChange }: ToolParamBuilderProps) {
+export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderProps) {
   function addParam() {
     onChange([...params, createEmptyParam(params.length)]);
   }
@@ -83,6 +84,7 @@ export function ToolParamBuilder({ params, onChange }: ToolParamBuilderProps) {
               index={idx}
               onChange={(draft) => updateParam(idx, draft)}
               onRemove={() => removeParam(idx)}
+              error={errors?.[param._localId]}
             />
           ))}
         </div>

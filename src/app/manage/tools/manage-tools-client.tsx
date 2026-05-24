@@ -9,7 +9,7 @@ import {
   startTransition,
 } from "react";
 import { usePathname } from "next/navigation";
-import { Search, RefreshCw, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
@@ -22,6 +22,7 @@ import {
   createManageTool,
   updateManageTool,
   deleteManageTool,
+  getManageToolParams,
 } from "@/core/services/manage-tools.service";
 import type {
   ManageToolApiItem,
@@ -29,60 +30,13 @@ import type {
   UpdateToolPayload,
 } from "@/core/interfaces/tool";
 
-import { ToolRow } from "./components/tool-row";
 import { ToolListSkeleton } from "./components/tool-list-skeleton";
 import { ToolListEmpty } from "./components/tool-list-empty";
 import { ToolFormDrawer } from "./components/tool-form-drawer";
 import type { ToolFormMode } from "./components/types";
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function SummaryBar({
-  total, filtered, isRefreshing, lastUpdatedAt, onRefresh,
-}: {
-  total: number; filtered: number; isRefreshing: boolean;
-  lastUpdatedAt: Date | null; onRefresh: () => void;
-}) {
-  const label = total === filtered
-    ? `${total} ${total === 1 ? "tool" : "tools"}`
-    : `${filtered} of ${total} ${total === 1 ? "tool" : "tools"}`;
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/60 bg-slate-50/60 px-4 py-2.5">
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-slate-700">{label}</span>
-        {lastUpdatedAt && (
-          <span className="hidden text-[11px] text-slate-400 sm:inline">
-            · {lastUpdatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </span>
-        )}
-      </div>
-      <Button type="button" variant="ghost" size="sm" disabled={isRefreshing} onClick={onRefresh}
-        className="h-7 gap-1.5 text-xs text-slate-500 hover:text-slate-900"
-      >
-        <RefreshCw className={`size-3 ${isRefreshing ? "animate-spin" : ""}`} />
-        {isRefreshing ? "Refreshing…" : "Refresh"}
-      </Button>
-    </div>
-  );
-}
-
-function ToolList({
-  tools, onEdit, onDelete,
-}: {
-  tools: ManageToolApiItem[];
-  onEdit: (t: ManageToolApiItem) => void;
-  onDelete: (t: ManageToolApiItem) => void;
-}) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-xs">
-      {tools.map((tool, idx) => (
-        <div key={tool.id} className={idx < tools.length - 1 ? "border-b border-slate-100" : undefined}>
-          <ToolRow tool={tool} onEdit={() => onEdit(tool)} onDelete={() => onDelete(tool)} />
-        </div>
-      ))}
-    </div>
-  );
-}
+import { PromptPreviewDialog } from "./components/prompt-preview-dialog";
+import { ToolList, SummaryBar } from "./components/tool-list-grid";
+import { ToolParamsDrawer } from "./components/tool-params-drawer";
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -106,6 +60,13 @@ export function ManageToolsClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ManageToolApiItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [previewPrompt, setPreviewPrompt] = useState<{
+    label: string;
+    model?: string;
+    prompt?: string;
+    isLoading?: boolean;
+  } | null>(null);
+  const [paramsTarget, setParamsTarget] = useState<ManageToolApiItem | null>(null);
 
   const fetchTools = useCallback(async (silent = false) => {
     if (silent) setIsRefreshing(true); else setIsLoading(true);
@@ -225,9 +186,55 @@ export function ManageToolsClient() {
       {/* List */}
       {isLoading ? <ToolListSkeleton count={5} />
         : filteredTools.length === 0 ? <ToolListEmpty variant={emptyVariant} />
-        : <ToolList tools={filteredTools}
+        : <ToolList
+            tools={filteredTools}
             onEdit={(t) => { setEditTarget(t); setFormMode("edit"); }}
-            onDelete={(t) => setDeleteTarget(t)} />}
+            onDelete={(t) => setDeleteTarget(t)}
+            onManageParams={(t) => setParamsTarget(t)}
+            onPreviewPrompt={async (param) => {
+              setPreviewPrompt({
+                label: param.label,
+                isLoading: true,
+              });
+              try {
+                const freshParams = await getManageToolParams(param.toolId);
+                const matched = freshParams.find((p) => p.id === param.id || p.key === param.key);
+                if (matched) {
+                  const config = matched.config || {};
+                  const model = typeof config.model === "string" ? config.model : "gemini-1.5-flash";
+                  const prompt = typeof config.prompt === "string" ? config.prompt : "";
+                  setPreviewPrompt({
+                    label: matched.label,
+                    model,
+                    prompt,
+                    isLoading: false,
+                  });
+                } else {
+                  const config = param.config || {};
+                  const model = typeof config.model === "string" ? config.model : "gemini-1.5-flash";
+                  const prompt = typeof config.prompt === "string" ? config.prompt : "";
+                  setPreviewPrompt({
+                    label: param.label,
+                    model,
+                    prompt,
+                    isLoading: false,
+                  });
+                }
+              } catch (err) {
+                console.error("Failed to dynamically fetch parameters:", err);
+                const config = param.config || {};
+                const model = typeof config.model === "string" ? config.model : "gemini-1.5-flash";
+                const prompt = typeof config.prompt === "string" ? config.prompt : "";
+                setPreviewPrompt({
+                  label: param.label,
+                  model,
+                  prompt,
+                  isLoading: false,
+                });
+                pushToast("Failed to fetch fresh parameters. Showing cached version.", "error");
+              }
+            }}
+          />}
 
       {/* Create / Edit drawer */}
       <ToolFormDrawer
@@ -250,6 +257,25 @@ export function ManageToolsClient() {
           onConfirm={() => void handleDelete()}
         />
       )}
+
+      {/* Prompt Preview Dialog */}
+      <PromptPreviewDialog
+        open={previewPrompt !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewPrompt(null);
+        }}
+        label={previewPrompt?.label || ""}
+        model={previewPrompt?.model}
+        prompt={previewPrompt?.prompt}
+        isLoading={previewPrompt?.isLoading}
+      />
+
+      {/* Tool Parameters Sheet Drawer */}
+      <ToolParamsDrawer
+        tool={paramsTarget}
+        onClose={() => setParamsTarget(null)}
+        onSaveSuccess={fetchTools}
+      />
     </ManagerShell>
   );
 }

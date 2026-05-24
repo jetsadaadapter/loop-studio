@@ -1,27 +1,83 @@
-import { ArrowRight, Pencil, Trash2 } from "lucide-react";
+"use client";
+
+import { Wrench, Sparkles, Globe, LineChart, Ellipsis, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
   PLUGIN_META,
   PARAM_TYPE_BADGE,
-  getShortId,
-  formatUpdatedAt,
   getSortedScripts,
 } from "./data";
+
+// ── Automatic dynamic tool icon resolver based on plugin type or name keywords ───
+
+function getToolIconData(tool: ManageToolApiItem) {
+  const name = tool.name.toLowerCase();
+  const scripts = tool.scripts || [];
+  const firstPlugin = scripts[0]?.plugin?.toLowerCase() || "";
+
+  if (firstPlugin === "gemini" || name.includes("ai") || name.includes("gemini") || name.includes("analyzer") || name.includes("analysis")) {
+    return {
+      Icon: Sparkles,
+      bgActive: "bg-violet-50/80 border-violet-150/80 text-violet-600",
+      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+    };
+  }
+  if (firstPlugin === "apify" || name.includes("scrape") || name.includes("crawler") || name.includes("data") || name.includes("extract")) {
+    return {
+      Icon: Globe,
+      bgActive: "bg-orange-50/80 border-orange-150/80 text-orange-600",
+      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+    };
+  }
+  if (name.includes("social") || name.includes("fb") || name.includes("facebook") || name.includes("post") || name.includes("media") || name.includes("instagram")) {
+    return {
+      Icon: LineChart,
+      bgActive: "bg-sky-50/80 border-sky-150/80 text-sky-600",
+      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+    };
+  }
+  // Default fallback wrench icon
+  return {
+    Icon: Wrench,
+    bgActive: "bg-rose-50/80 border-rose-150/80 text-rose-600",
+    bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+  };
+}
+
+function ToolIcon({ tool, isActive }: { tool: ManageToolApiItem; isActive: boolean }) {
+  const { Icon, bgActive, bgInactive } = getToolIconData(tool);
+  return (
+    <div
+      className={`flex size-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
+        isActive ? bgActive : bgInactive
+      }`}
+    >
+      <Icon className={`size-4.5 ${isActive ? "animate-pulse-slow text-current" : ""}`} />
+    </div>
+  );
+}
 
 // ── Atomic badges ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
         isActive
-          ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
-          : "bg-slate-100 text-slate-500"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-250 shadow-sm"
+          : "bg-slate-100 text-slate-500 border border-slate-200"
       }`}
     >
       <span
-        className={`size-1.5 rounded-full ${isActive ? "bg-white/70" : "bg-slate-400"}`}
+        className={`size-1.5 rounded-full ${isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}
         aria-hidden
       />
       {isActive ? "Active" : "Inactive"}
@@ -29,10 +85,22 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
-function ParamBadge({ param }: { param: ToolParam }) {
-  const cls = PARAM_TYPE_BADGE[param.type] ?? "bg-slate-50 text-slate-500 ring-slate-200";
+function ParamBadge({ param, onClick }: { param: ToolParam; onClick?: () => void }) {
+  const isPrompt = param.type === "prompt";
+  const baseCls = PARAM_TYPE_BADGE[param.type] ?? "bg-slate-50/60 text-slate-600 border border-slate-200";
+  const cls = isPrompt
+    ? "cursor-pointer bg-violet-50/70 text-violet-700 border border-violet-200/80 hover:bg-violet-100 hover:text-violet-800 hover:border-violet-300 shadow-2xs select-none transition-all duration-200"
+    : baseCls;
+
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${cls}`}>
+    <span
+      onClick={onClick}
+      role={isPrompt ? "button" : undefined}
+      tabIndex={isPrompt ? 0 : undefined}
+      onKeyDown={isPrompt ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cls}`}
+    >
+      {isPrompt && <Sparkles className="size-2.5 text-violet-500 animate-pulse-slow" />}
       {param.label}
       {param.required && (
         <span className="font-bold text-rose-500" aria-label="required">*</span>
@@ -44,154 +112,175 @@ function ParamBadge({ param }: { param: ToolParam }) {
 function PipelineStep({ script, isLast }: { script: ToolScript; isLast: boolean }) {
   const meta = PLUGIN_META[script.plugin.toLowerCase()];
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600">
+    <div className="flex items-center gap-1">
+      <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors hover:bg-slate-50 hover:border-slate-300">
         {meta && (
-          <span className={`size-1.5 rounded-full ${meta.dot}`} aria-hidden />
+          <span className={`size-1.5 rounded-full ${meta.dot} animate-pulse`} aria-hidden />
         )}
         {script.label}
       </span>
       {!isLast && (
-        <ArrowRight className="size-3 text-slate-300" aria-hidden />
+        <span className="flex items-center justify-center px-0.5 text-slate-300" aria-hidden>
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
       )}
-    </span>
-  );
-}
-
-// ── Tool icon ─────────────────────────────────────────────────────────────────
-
-function ToolIcon({ isActive }: { isActive: boolean }) {
-  return (
-    <div
-      className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ${
-        isActive
-          ? "bg-brand/8 ring-brand/20 shadow-sm shadow-brand/10"
-          : "bg-slate-50 ring-slate-200/60"
-      }`}
-    >
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={isActive ? "text-brand" : "text-slate-400"}
-        aria-hidden
-      >
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-      </svg>
     </div>
   );
 }
 
-// ── Tool row ──────────────────────────────────────────────────────────────────
+// ── Tool row (Premium Light-Glassmorphism layout with 3-dots actions menu) ──────
 
 interface ToolRowProps {
   tool: ManageToolApiItem;
   onEdit: () => void;
   onDelete: () => void;
+  onPreviewPrompt?: (param: ToolParam) => void;
+  onManageParams?: () => void;
 }
 
-export function ToolRow({ tool, onEdit, onDelete }: ToolRowProps) {
+export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParams }: ToolRowProps) {
   const scripts = getSortedScripts(tool);
+  const namespace = `adapter/${tool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
-    <article className="group relative flex items-start gap-4 px-5 py-4 transition-colors duration-150 hover:bg-slate-50/70">
-      {/* Active stripe */}
+    <article
+      className={`group relative overflow-hidden flex flex-col p-5 rounded-2xl border transition-all duration-300 bg-white/70 backdrop-blur-md ${
+        tool.isActive
+          ? "border-brand/20 hover:border-brand/40 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_12px_36px_rgb(0,0,0,0.05)]"
+          : "border-slate-200/60 hover:border-slate-300/80 shadow-[0_4px_20px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.03)]"
+      } hover:-translate-y-0.5`}
+    >
+      {/* Active stripe - Perfectly clipped by overflow-hidden */}
       {tool.isActive && (
         <span
-          className="absolute left-0 top-3.5 bottom-3.5 w-[3px] rounded-r-full bg-gradient-to-b from-brand to-indigo-500"
+          className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand to-indigo-650"
           aria-hidden
         />
       )}
 
-      {/* Icon */}
-      <ToolIcon isActive={tool.isActive} />
+      {/* Top Header - Icon and Aligned Info Block next to it */}
+      <div className="flex items-start gap-3">
+        {/* Automatic Custom Icon */}
+        <ToolIcon tool={tool} isActive={tool.isActive} />
 
-      {/* Body */}
-      <div className="min-w-0 flex-1 space-y-2">
-        {/* Title row */}
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-sm font-semibold leading-tight text-slate-900">
-            {tool.name}
-          </h3>
-          <StatusBadge isActive={tool.isActive} />
-          <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-400">
-            {getShortId(tool.id)}
-          </span>
+        {/* Info Block */}
+        <div className="min-w-0 flex-1 space-y-0.5 pr-8"> {/* Leave exact space for action menu dropdown */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight text-slate-800 group-hover:text-brand transition-colors">
+              {tool.name}
+            </h3>
+            <StatusBadge isActive={tool.isActive} />
+          </div>
+          <p className="line-clamp-1 font-mono text-[9px] font-medium tracking-wide text-slate-500">
+            {namespace}
+          </p>
         </div>
 
-        {/* Description */}
+        {/* Actions Overlay Dropdown */}
+        <div className="absolute top-4 right-4 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="flex size-7 items-center justify-center rounded-full border border-slate-200/60 bg-white/80 p-0 text-slate-500 shadow-none backdrop-blur-xs transition hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200"
+                />
+              }
+              aria-label={`Open actions for ${tool.name}`}
+            >
+              <Ellipsis className="size-3.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom" className="w-40 z-30">
+              <DropdownMenuItem
+                onClick={onEdit}
+                className="py-2 text-xs cursor-pointer gap-2"
+              >
+                <Pencil className="size-3.5" />
+                Edit tool
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onManageParams}
+                className="py-2 text-xs cursor-pointer gap-2"
+              >
+                <Wrench className="size-3.5" />
+                Manage params
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="py-2 text-xs cursor-pointer text-red-655 focus:bg-red-50 focus:text-red-655 gap-2"
+              >
+                <Trash2 className="size-3.5" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="mt-3.5 flex-1">
         {tool.description ? (
-          <p className="line-clamp-1 text-xs text-slate-500">{tool.description}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600">{tool.description}</p>
         ) : (
-          <p className="text-xs italic text-slate-400">No description</p>
-        )}
-
-        {/* Params */}
-        {tool.params.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-              Params
-            </span>
-            {tool.params.map((p) => (
-              <ParamBadge key={p.id} param={p} />
-            ))}
-          </div>
-        )}
-
-        {/* Pipeline */}
-        {scripts.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 pt-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-              Pipeline
-            </span>
-            {scripts.map((s, idx) => (
-              <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1} />
-            ))}
-          </div>
+          <p className="text-xs italic leading-relaxed text-slate-400">No description</p>
         )}
       </div>
 
-      {/* Right: meta + actions */}
-      <div className="flex shrink-0 items-start gap-1 pt-0.5">
-        {/* Meta — desktop only */}
-        <div className="hidden shrink-0 flex-col items-end gap-1 pr-2 sm:flex">
-          <time className="text-[11px] text-slate-400" dateTime={tool.updatedAt}>
-            {formatUpdatedAt(tool.updatedAt)}
-          </time>
-          {tool.scripts.length > 0 && (
-            <span className="text-[10px] text-slate-400">
-              {tool.scripts.length} {tool.scripts.length === 1 ? "step" : "steps"}
-            </span>
-          )}
+      {/* Grid Footer - Only renders parameters or pipelines if present */}
+      {(tool.params.length > 0 || scripts.length > 0) && (
+        <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
+          <div className="space-y-2">
+            {/* Parameters Section */}
+            {tool.params.length > 0 && (
+              <div className="space-y-1">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Parameters
+                </span>
+                <div className="flex flex-wrap items-center gap-1">
+                  {tool.params.map((p) => (
+                    <ParamBadge
+                      key={p.id}
+                      param={p}
+                      onClick={() => {
+                        if (p.type === "prompt") {
+                          onPreviewPrompt?.(p);
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pipeline Section */}
+            {scripts.length > 0 && (
+              <div className="space-y-1">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Pipeline
+                </span>
+                <div className="flex flex-wrap items-center gap-1">
+                  {scripts.map((s, idx) => (
+                    <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Action buttons */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-8 text-slate-300 hover:bg-brand/8 hover:text-brand"
-          onClick={onEdit}
-          aria-label={`Edit ${tool.name}`}
-        >
-          <Pencil className="size-3.5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-8 text-slate-300 hover:bg-rose-50 hover:text-rose-500"
-          onClick={onDelete}
-          aria-label={`Delete ${tool.name}`}
-        >
-          <Trash2 className="size-3.5" />
-        </Button>
-      </div>
-    </article>
+      )}    </article>
   );
 }

@@ -74,3 +74,9 @@ export interface CreateToolPayload {
 }
 
 export type UpdateToolPayload = CreateToolPayload;
+
+export interface ToolParamsResponse {
+    success: boolean;
+    message: string;
+    data: ToolParam[];
+}

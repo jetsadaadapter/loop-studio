@@ -16,12 +16,12 @@ export const PLUGIN_META: Record<string, { color: string; dot: string; label: st
 };
 
 export const PARAM_TYPE_BADGE: Record<string, string> = {
-  prompt: "bg-indigo-50 text-indigo-600 ring-indigo-100",
-  url: "bg-sky-50 text-sky-600 ring-sky-100",
-  boolean: "bg-emerald-50 text-emerald-600 ring-emerald-100",
-  string: "bg-slate-50 text-slate-500 ring-slate-200",
-  number: "bg-amber-50 text-amber-600 ring-amber-100",
-  select: "bg-rose-50 text-rose-600 ring-rose-100",
+  prompt: "bg-indigo-50/60 text-indigo-650 border border-indigo-150",
+  url: "bg-sky-50/60 text-sky-650 border border-sky-150",
+  boolean: "bg-emerald-50/60 text-emerald-650 border border-emerald-150",
+  string: "bg-slate-50/60 text-slate-600 border border-slate-200",
+  number: "bg-amber-50/60 text-amber-650 border border-amber-150",
+  select: "bg-rose-50/60 text-rose-650 border border-rose-150",
 };
 
 // ── Derived display helpers ───────────────────────────────────────────────────
