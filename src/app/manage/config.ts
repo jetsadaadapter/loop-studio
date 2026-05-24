@@ -80,6 +80,15 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
         },
         crumb: { th: "Banners", en: "Banners" },
     },
+    {
+        href: "/manage/tools",
+        title: { th: "Tools", en: "Tools" },
+        subtitle: {
+            th: "Manage AI tools, params, and script pipelines",
+            en: "Manage AI tools, params, and script pipelines",
+        },
+        crumb: { th: "Tools", en: "Tools" },
+    },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [

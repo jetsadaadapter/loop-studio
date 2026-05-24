@@ -44,3 +44,33 @@ export interface ManageToolListResponse {
     message: string;
     data: ManageToolApiItem[];
 }
+
+export interface ToolDetailResponse {
+    success: boolean;
+    message: string;
+    data: ManageToolApiItem;
+}
+
+export interface ToolParamPayload {
+    id?: string;
+    key: string;
+    label: string;
+    type: string;
+    required: boolean;
+    sortOrder?: number;
+    defaultValue?: string | null;
+    placeholder?: string | null;
+    options?: string[] | null;
+    transform?: string | null;
+    config?: Record<string, unknown> | null;
+}
+
+export interface CreateToolPayload {
+    name: string;
+    description?: string | null;
+    sortOrder?: number;
+    isActive?: boolean;
+    params?: ToolParamPayload[];
+}
+
+export type UpdateToolPayload = CreateToolPayload;
