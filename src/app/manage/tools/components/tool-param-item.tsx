@@ -172,8 +172,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
 
       {/* Prompt config — prompt type only */}
       {param.type === "prompt" && (
-        <div className="space-y-3 border-l-2 border-indigo-300 pl-3.5">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-indigo-500">
+        <div className="space-y-3 border-l-2 border-brand pl-3.5 pb-3.5">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-brand">
             AI Config
           </p>
           <div className="space-y-1">
