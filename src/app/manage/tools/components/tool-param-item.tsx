@@ -110,9 +110,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             value={param.key}
             onChange={(e) => update({ key: e.target.value.replace(/[^a-zA-Z0-9_]/g, "") })}
             placeholder="e.g. startUrls"
-            className={`h-8 bg-white text-xs ${
-              error?.key ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
-            }`}
+            className={`h-8 bg-white text-xs ${error?.key ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
+              }`}
           />
           {error?.key && <p className="text-[9px] text-rose-500 font-semibold leading-none mt-1">{error.key}</p>}
         </div>
@@ -124,9 +123,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             value={param.label}
             onChange={(e) => update({ label: e.target.value })}
             placeholder="e.g. Post URLs"
-            className={`h-8 bg-white text-xs ${
-              error?.label ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
-            }`}
+            className={`h-8 bg-white text-xs ${error?.label ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
+              }`}
           />
           {error?.label && <p className="text-[9px] text-rose-500 font-semibold leading-none mt-1">{error.label}</p>}
         </div>
