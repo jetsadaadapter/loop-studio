@@ -50,15 +50,23 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
 
       <div className="space-y-5 pl-2">
         {/* Target URLs Section */}
-        {result.urls && result.urls.length > 0 && (
+        {result.preview?.startUrls && result.preview.startUrls.length > 0 && (
           <div className="space-y-2">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
               Target URLs
             </span>
             <ul className="space-y-1.5 pl-4 border-l-2 border-slate-200/80">
-              {result.urls.map((url: string, i: number) => (
-                <li key={i} className="text-xs font-semibold text-slate-650 truncate hover:text-brand transition-colors">
-                  <a href={url} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
+              {result.preview.startUrls.map((url: string, i: number) => (
+                <li
+                  key={i}
+                  className="text-xs font-semibold text-slate-650 truncate hover:text-brand transition-colors"
+                >
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline flex items-center gap-1"
+                  >
                     {url}
                   </a>
                 </li>
@@ -68,31 +76,33 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
         )}
 
         {/* Goal Section */}
-        {typeof result.goal === "string" && (
+        {typeof result.preview.goal === "string" && (
           <div className="space-y-2">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
               Goal Analysis
             </span>
             <p className="text-xs font-semibold text-slate-700 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-150/60 shadow-inner shadow-slate-100/50">
-              {result.goal as string}
+              {result.preview.goal as string}
             </p>
           </div>
         )}
 
         {/* System Prompt Section */}
-        {typeof result.generatedSystemPrompt === "string" && (
+        {typeof result.preview.generatedSystemPrompt === "string" && (
           <div className="space-y-2">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
               Generated System Prompt
             </span>
             <div className="relative group/prompt rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
               <pre className="p-4 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
-                {result.generatedSystemPrompt as string}
+                {result.preview.generatedSystemPrompt as string}
               </pre>
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(String(result.generatedSystemPrompt || ""));
+                  navigator.clipboard.writeText(
+                    String(result.preview.generatedSystemPrompt || ""),
+                  );
                   setCopiedPrompt(true);
                   setTimeout(() => setCopiedPrompt(false), 2000);
                 }}
@@ -100,7 +110,7 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
                   "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
                   copiedPrompt
                     ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
-                    : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800"
+                    : "bg-white border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800",
                 )}
               >
                 {copiedPrompt ? (
@@ -120,30 +130,37 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
         )}
 
         {/* Expected Output Schema Section */}
-        {result.expectedOutputSchema !== undefined && result.expectedOutputSchema !== null && (() => {
-          const schema = result.expectedOutputSchema;
-          const hasDescription = typeof schema === "object" && schema !== null && "description" in schema;
-          const descriptionText = hasDescription ? String((schema as { description?: unknown }).description || "") : "";
+        {result.preview.expectedOutputSchema !== undefined &&
+          result.preview.expectedOutputSchema !== null &&
+          (() => {
+            const schema = result.preview.expectedOutputSchema;
+            const hasDescription =
+              typeof schema === "object" &&
+              schema !== null &&
+              "description" in schema;
+            const descriptionText = hasDescription
+              ? String((schema as { description?: unknown }).description || "")
+              : "";
 
-          return (
-            <div className="space-y-2">
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
-                Expected Output Schema
-              </span>
-              {hasDescription ? (
-                <p className="text-xs font-semibold text-slate-700 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-150/60 shadow-inner shadow-slate-100/50">
-                  {descriptionText}
-                </p>
-              ) : (
-                <pre className="bg-slate-50 border border-slate-150 rounded-xl p-4 font-sans text-xs text-slate-650 leading-relaxed overflow-x-auto max-h-60 overflow-y-auto shadow-inner">
-                  {typeof schema === "object"
-                    ? JSON.stringify(schema, null, 2)
-                    : String(schema)}
-                </pre>
-              )}
-            </div>
-          );
-        })()}
+            return (
+              <div className="space-y-2">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                  Expected Output Schema
+                </span>
+                {hasDescription ? (
+                  <p className="text-xs font-semibold text-slate-700 leading-relaxed bg-slate-50/50 p-3.5 rounded-xl border border-slate-150/60 shadow-inner shadow-slate-100/50">
+                    {descriptionText}
+                  </p>
+                ) : (
+                  <pre className="bg-slate-50 border border-slate-150 rounded-xl p-4 font-sans text-xs text-slate-650 leading-relaxed overflow-x-auto max-h-60 overflow-y-auto shadow-inner">
+                    {typeof schema === "object"
+                      ? JSON.stringify(schema, null, 2)
+                      : String(schema)}
+                  </pre>
+                )}
+              </div>
+            );
+          })()}
       </div>
     </div>
   );

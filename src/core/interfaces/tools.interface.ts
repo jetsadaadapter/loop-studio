@@ -98,11 +98,16 @@ export interface ToolTestPromptResult {
     success?: boolean;
     error?: string;
     result?: {
-        urls?: string[];
-        goal?: string;
-        generatedSystemPrompt?: string;
-        expectedOutputSchema?: unknown;
+        preview: ToolTestPromptResultPreview;
         [key: string]: unknown;
     };
+}
+
+export interface ToolTestPromptResultPreview {
+    startUrls?: string[];
+    goal?: string;
+    generatedSystemPrompt?: string;
+    expectedOutputSchema?: unknown;
+    [key: string]: unknown;
 }
 

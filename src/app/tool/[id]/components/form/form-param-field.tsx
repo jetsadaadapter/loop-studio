@@ -1,6 +1,9 @@
 "use client";
 
-import type { ToolParam, ToolTestPromptResult } from "@/core/interfaces/tools.interface";
+import type {
+  ToolParam,
+  ToolTestPromptResult,
+} from "@/core/interfaces/tools.interface";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,44 +17,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UrlArrayInput } from "../url-array-input";
-import {
-  ListOrdered,
-  List,
-  CornerDownLeft,
-  FileText,
-  Link,
-  Sparkles,
-  Send,
-  Loader2,
-} from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 
 const PARAM_HELPERS: Record<string, string> = {
-  starturls: "Enter a valid Facebook page URL, e.g. https://www.facebook.com/senatorWong/.",
-  resultslimit: "If this limit is not set, only the initial page of results will be extracted.",
+  starturls:
+    "Enter a valid Facebook page URL, e.g. https://www.facebook.com/senatorWong/.",
+  resultslimit:
+    "If this limit is not set, only the initial page of results will be extracted.",
   rendertext: "Extract video transcript [ if available ]",
-  onlynewerthan: "Scrape posts from the analyzed date to the present day YYYY-MM-DD format.",
-  onlyolderthan: "Scrape posts from the analyzed date to the past YYYY-MM-DD format.",
+  onlynewerthan:
+    "Scrape posts from the analyzed date to the present day YYYY-MM-DD format.",
+  onlyolderthan:
+    "Scrape posts from the analyzed date to the past YYYY-MM-DD format.",
 };
 
-const SUFFIX = "\n\nช่วยวิเคราะห์ให้หน่อยครับว่า โพสต์ไหนมีแนวโน้มที่คนสนใจจะซื้อสินค้ามากที่สุด? โดยแบ่งกลุ่มคนที่เข้ามาคอมเมนต์ออกเป็น 3 กลุ่มหลัก คือ: 1. กลุ่มที่สนใจซื้อสินค้า 2. กลุ่มที่ไม่สนใจ/ถามเฉยๆ 3. กลุ่มเชิงลบหรือต่อต้าน และช่วยเปรียบเทียบสัดส่วนของแต่ละโพสต์ให้เห็นภาพง่ายที่สุดครับ";
-
-const URL_TEMPLATES = {
-  numbered: `1. https://facebook.com/share/p/1/\n2. https://facebook.com/share/p/2/\n3. https://facebook.com/share/p/3/${SUFFIX}`,
-  dashed: `- https://facebook.com/share/p/1/\n- https://facebook.com/share/p/2/\n- https://facebook.com/share/p/3/${SUFFIX}`,
-  newline: `https://facebook.com/share/p/1/\nhttps://facebook.com/share/p/2/\nhttps://facebook.com/share/p/3/${SUFFIX}`,
-  comma: `https://facebook.com/share/p/1/, https://facebook.com/share/p/2/, https://facebook.com/share/p/3/${SUFFIX}`,
-};
+// ...existing code...
 
 function getHelperText(param: ToolParam): string {
   const key = param.key.toLowerCase();
   if (PARAM_HELPERS[key]) return PARAM_HELPERS[key];
-  if (key.includes("url")) return "Enter a valid Facebook page URL. Note that you can only scrape public pages.";
-  if (key.includes("limit") || key.includes("max")) return "If this limit is not set, only the initial page of results will be extracted.";
-  if (key.includes("newer")) return "Scrape posts from the analyzed date to the present day (YYYY-MM-DD or relative).";
-  if (key.includes("older")) return "Scrape posts from the analyzed date to the past (YYYY-MM-DD or relative).";
-  if (key.includes("caption") || key.includes("render")) return "Extract video transcript [ if available ]";
-  if (key.includes("comment")) return "Specify the count threshold of comments to pull and analyze per social post.";
-  return param.placeholder && param.placeholder.length > 5 && !param.placeholder.includes("https://")
+  if (key.includes("url"))
+    return "Enter a valid Facebook page URL. Note that you can only scrape public pages.";
+  if (key.includes("limit") || key.includes("max"))
+    return "If this limit is not set, only the initial page of results will be extracted.";
+  if (key.includes("newer"))
+    return "Scrape posts from the analyzed date to the present day (YYYY-MM-DD or relative).";
+  if (key.includes("older"))
+    return "Scrape posts from the analyzed date to the past (YYYY-MM-DD or relative).";
+  if (key.includes("caption") || key.includes("render"))
+    return "Extract video transcript [ if available ]";
+  if (key.includes("comment"))
+    return "Specify the count threshold of comments to pull and analyze per social post.";
+  return param.placeholder &&
+    param.placeholder.length > 5 &&
+    !param.placeholder.includes("https://")
     ? param.placeholder
     : `Configure the parameter settings for ${param.label}.`;
 }
@@ -87,7 +86,7 @@ export function FormParamField({
           htmlFor={param.key}
           className={cn(
             "font-semibold text-slate-700 cursor-pointer select-none",
-            isPromptField ? "text-[15px]" : "text-sm"
+            isPromptField ? "text-[15px]" : "text-sm",
           )}
         >
           {param.label}
@@ -97,7 +96,7 @@ export function FormParamField({
           <span
             className={cn(
               "text-slate-400 font-semibold block leading-normal select-none transition-all duration-300",
-              isPromptField ? "text-[11.5px]" : "text-[10.5px]"
+              isPromptField ? "text-[11.5px]" : "text-[10.5px]",
             )}
           >
             {helperText}
@@ -127,10 +126,12 @@ export function FormParamField({
             id={param.key}
             className={cn(
               "h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-bold rounded-xl cursor-pointer shadow-xs hover:border-slate-300",
-              error && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
+              error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
             )}
           >
-            <SelectValue placeholder={param.placeholder || "Select an option..."} />
+            <SelectValue
+              placeholder={param.placeholder || "Select an option..."}
+            />
           </SelectTrigger>
           <SelectContent className="rounded-xl shadow-lg border-slate-100">
             {param.options?.map((option, idx) => (
@@ -154,85 +155,71 @@ export function FormParamField({
         />
       ) : isPromptField ? (
         <div className="space-y-3.5">
-          {/* Floating Pill Buttons for Format Templates (Moved ABOVE Textarea) */}
-          <div className="select-none">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-550 block mt-1 mb-2 pl-1 select-none">
-              <span className="flex items-center gap-1.5">
-                <Link className="h-3.5 w-3.5 text-slate-400" />
-                <span>รูปแบบ URL ที่รองรับ <span className="text-[10px] font-normal text-slate-400">(คลิกเพื่อเติมตัวอย่างด่วน)</span></span>
-              </span>
-              <span className="ml-auto flex items-center gap-1 text-[8.5px] font-bold text-slate-450 uppercase tracking-wider bg-slate-50 border border-slate-200/40 px-1.5 py-0.5 rounded-md shadow-3xs">
-                <span className="w-1.25 h-1.25 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Auto-fill</span>
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => onChange(param.key, URL_TEMPLATES.numbered)}
-                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
-              >
-                <ListOrdered className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>ลำดับ <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(1. https://...)</span></span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onChange(param.key, URL_TEMPLATES.dashed)}
-                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
-              >
-                <List className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>รายการขีด <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(- https://...)</span></span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onChange(param.key, URL_TEMPLATES.newline)}
-                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
-              >
-                <CornerDownLeft className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>แยกบรรทัด <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(https://...)</span></span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onChange(param.key, URL_TEMPLATES.comma)}
-                className="group flex items-center gap-1.5 h-7.5 px-2.5 bg-white hover:bg-slate-50/50 border border-slate-200/50 hover:border-slate-300 text-slate-550 hover:text-slate-800 rounded-lg font-medium transition-all duration-200 cursor-pointer text-[10px] shadow-3xs hover:-translate-y-0.5 active:scale-95"
-              >
-                <FileText className="h-3 w-3 text-slate-400 group-hover:text-brand transition-colors" />
-                <span>คั่นจุลภาค <span className="text-slate-400/80 font-normal text-[9px] ml-0.5">(https://..., ...)</span></span>
-              </button>
-            </div>
-          </div>
+          {/* ซ่อน Floating Pill Buttons for Format Templates ตามคำขอ */}
+          {/* <div className="select-none"> ... (ปุ่มรูปแบบ url) ... </div> */}
 
           {/* ChatGPT-style Unified Capsule Container */}
-          <div className={cn(
-            "group/prompt border border-slate-200/80 bg-slate-50/15 focus-within:bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10 transition-all rounded-2xl flex flex-col shadow-[0_8px_30px_rgba(15,23,42,0.01)] overflow-hidden",
-            error && "border-red-500 focus-within:ring-red-500/20 bg-red-50/10"
-          )}>
+          <div
+            className={cn(
+              "group/prompt border border-slate-200/80 bg-slate-50/15 focus-within:bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10 transition-all rounded-2xl flex flex-col shadow-[0_8px_30px_rgba(15,23,42,0.01)] overflow-hidden",
+              error &&
+                "border-red-500 focus-within:ring-red-500/20 bg-red-50/10",
+            )}
+          >
             <Textarea
               id={param.key}
-              placeholder={placeholderText || "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ... (เช่น วิเคราะห์ทัศนคติ แยกแยะกลุ่มผู้ใช้ หรือ ค้นหาความเห็นเชิงบวก/เชิงลบ)"}
+              placeholder={
+                placeholderText ||
+                "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ... (เช่น วิเคราะห์ทัศนคติ แยกแยะกลุ่มผู้ใช้ หรือ ค้นหาความเห็นเชิงบวก/เชิงลบ)"
+              }
               value={String(value || "")}
               onChange={(e) => onChange(param.key, e.target.value)}
               className="min-h-58 pb-2 pt-4 bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 rounded-none px-5 resize-none shadow-none font-normal placeholder:text-slate-400 placeholder:opacity-85 text-slate-700 leading-relaxed text-sm whitespace-pre-wrap outline-none"
             />
-            
+
             {/* Embedded Bottom Controls Ribbon */}
             <div className="flex items-center justify-between bg-transparent px-5 pb-4 pt-1.5 select-none text-[10.5px] z-10 w-full shrink-0 flex-wrap gap-3">
               {/* Left Side: Complexity & Clear button */}
               <div className="flex flex-wrap items-center gap-2">
-
                 {(() => {
                   const len = String(value || "").length;
-                  const pill = len === 0
-                    ? { text: "Empty prompt", cls: "text-slate-400", dot: "bg-slate-300" }
-                    : len < 150
-                      ? { text: "Simple Scope", cls: "text-sky-600 bg-sky-50/45 border border-sky-100 px-2 py-0.5 rounded-md shadow-3xs", dot: "bg-sky-400" }
-                      : len < 500
-                        ? { text: "Balanced Query", cls: "text-emerald-600 bg-emerald-50/45 border border-emerald-100 px-2 py-0.5 rounded-md shadow-3xs", dot: "bg-emerald-500" }
-                        : { text: "Deep AI Analysis", cls: "text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-md shadow-3xs animate-pulse", dot: "bg-violet-500" };
+                  const pill =
+                    len === 0
+                      ? {
+                          text: "Empty prompt",
+                          cls: "text-slate-400",
+                          dot: "bg-slate-300",
+                        }
+                      : len < 150
+                        ? {
+                            text: "Simple Scope",
+                            cls: "text-sky-600 bg-sky-50/45 border border-sky-100 px-2 py-0.5 rounded-md shadow-3xs",
+                            dot: "bg-sky-400",
+                          }
+                        : len < 500
+                          ? {
+                              text: "Balanced Query",
+                              cls: "text-emerald-600 bg-emerald-50/45 border border-emerald-100 px-2 py-0.5 rounded-md shadow-3xs",
+                              dot: "bg-emerald-500",
+                            }
+                          : {
+                              text: "Deep AI Analysis",
+                              cls: "text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-md shadow-3xs animate-pulse",
+                              dot: "bg-violet-500",
+                            };
                   return (
-                    <span className={cn("flex items-center gap-1.5 font-bold", pill.cls)}>
-                      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", pill.dot)}></span>
+                    <span
+                      className={cn(
+                        "flex items-center gap-1.5 font-bold",
+                        pill.cls,
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full shrink-0",
+                          pill.dot,
+                        )}
+                      ></span>
                       {pill.text}
                     </span>
                   );
@@ -256,7 +243,9 @@ export function FormParamField({
                   <button
                     type="button"
                     onClick={onSend}
-                    disabled={isSendLoading || String(value || "").trim().length === 0}
+                    disabled={
+                      isSendLoading || String(value || "").trim().length === 0
+                    }
                     className={cn(
                       "flex items-center justify-center h-7.5 w-7.5 rounded-lg transition-all duration-200 shadow-3xs select-none cursor-pointer border border-transparent shrink-0",
                       isSendLoading
@@ -265,9 +254,13 @@ export function FormParamField({
                           ? "bg-slate-100/80 text-slate-300 border-slate-200/40 cursor-not-allowed"
                           : testResult?.success
                             ? "bg-emerald-600 hover:bg-emerald-700 text-white hover:scale-105 active:scale-95 shadow-md shadow-emerald-500/10"
-                            : "bg-brand hover:bg-brand/90 text-white hover:scale-105 active:scale-95 shadow-md shadow-brand/10"
+                            : "bg-brand hover:bg-brand/90 text-white hover:scale-105 active:scale-95 shadow-md shadow-brand/10",
                     )}
-                    title={testResult?.success ? "Run Tool Job" : "Test prompt instruction"}
+                    title={
+                      testResult?.success
+                        ? "Run Tool Job"
+                        : "Test prompt instruction"
+                    }
                   >
                     {isSendLoading ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -281,7 +274,10 @@ export function FormParamField({
           </div>
           {/* Character Count text placed outside the capsule container, at the bottom right corner */}
           <div className="flex justify-end text-[10px] text-slate-400 font-normal select-none mt-1.5 pr-2">
-            <span className="text-slate-550 font-normal">{String(value || "").length}</span> / 2,000 chars
+            <span className="text-slate-550 font-normal">
+              {String(value || "").length}
+            </span>{" "}
+            / 2,000 chars
           </div>
         </div>
       ) : param.key === "rawInput" ||
@@ -289,23 +285,27 @@ export function FormParamField({
         (param as ToolParam & { multiline?: boolean }).multiline ? (
         <Textarea
           id={param.key}
-          placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
+          placeholder={
+            param.placeholder || `Enter ${param.label.toLowerCase()}...`
+          }
           value={String(value || "")}
           onChange={(e) => onChange(param.key, e.target.value)}
           className={cn(
             "min-h-30 py-3 bg-slate-50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-semibold rounded-xl px-4 resize-none shadow-2xs hover:border-slate-300",
-            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
+            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
           )}
         />
       ) : (
         <Input
           id={param.key}
-          placeholder={param.placeholder || `Enter ${param.label.toLowerCase()}...`}
+          placeholder={
+            param.placeholder || `Enter ${param.label.toLowerCase()}...`
+          }
           value={String(value || "")}
           onChange={(e) => onChange(param.key, e.target.value)}
           className={cn(
             "h-11 bg-slate-50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-semibold rounded-xl px-4 shadow-2xs hover:border-slate-300",
-            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
+            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
           )}
         />
       )}
