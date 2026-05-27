@@ -127,11 +127,11 @@ Behavior บังคับ:
   - Validators: `[name].validator.ts`
   - Components (new): ใช้โฟลเดอร์แบบ kebab-case เสมอ เช่น `src/components/library-guided-cta-block/`
   - Hooks: `use[Name].ts`
-- ก่อนสร้าง component ใหม่ ต้องอ่าน `src/components/COMPONENTS.md` ก่อนทุกครั้ง
+- ก่อนสร้าง component ใหม่ ต้องอ่าน `src/components/COMPONENTS.md` และ `DESIGN.md` ใน root โฟลเดอร์ก่อนทุกครั้ง เพื่อทำความเข้าใจระเบียบโครงสร้าง สี ฟอนต์ และอนิเมชันของโปรเจกต์
 - แยก responsibilities ให้ไฟล์อ่านง่าย; ไฟล์ใหญ่เกินจำเป็นให้ split component/service
 - **กฎจำกัดความยาวของไฟล์ไม่เกิน 300 บรรทัด (300 Lines Rule)**: เพื่อรักษาความเป็นโมดูลาร์ (Modularity) อ่านง่าย (Readability) และบำรุงรักษาได้ง่ายที่สุด ไฟล์โค้ดทั้งหมด**ห้ามมีความยาวเกิน 300 บรรทัด** หากตัวคอมโพเนนต์หรือเซอร์วิสเริ่มมีขนาดใหญ่เกินขีดจำกัดนี้ ผู้พัฒนาและ AI Agent จะต้องทำการรีแฟคเตอร์ (Refactor) โดยการแยกออกเป็นคอมโพเนนต์ย่อย (Sub-components) หรือแยกส่วนตรรกะออกไปเป็น Custom Hook หรือ Utility Service เสริมภายนอกทันที
 - หลีกเลี่ยง refactor unrelated code ระหว่างแก้ issue เดียว
-- หากแก้ behavior ที่กระทบเอกสาร ให้ update เอกสารนี้, `README.md`, และ `AGENTS.md` พร้อมกัน
+- หากแก้ behavior ที่กระทบเอกสาร ให้ update เอกสารนี้, `README.md`, `AGENTS.md`, และ `DESIGN.md` พร้อมกัน
 
 ### Start-of-Task Guidelines (Required Every Time)
 

@@ -18,6 +18,7 @@ When these files diverge, update both in the same change.
 - Product/developer docs: `README.md`
 - Engineering rules: `.github/project-guidlines.md`
 - Agent behavior rules: `AGENTS.md` (this file)
+- UI/UX & Design system standards: `DESIGN.md`
 
 ## 2. Current App Model (Must Match Code)
 
@@ -56,7 +57,7 @@ When these files diverge, update both in the same change.
 - Keep business logic in `src/core/services` and `src/core/adapters`, not in UI
 - Validate external data with strict Zod schemas at boundaries
 - Avoid unrelated refactors in focused fixes
-- Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and follow its naming/structure convention
+- Before creating any new component under `src/components`, read `src/components/COMPONENTS.md` and `DESIGN.md` in the project root, and follow their naming/structure/design standards
 - **File Length Limits (300 Lines Rule)**: Keep files modular, clean, and highly maintainable. Under ordinary circumstances, code files **must not exceed 300 lines**. Actively refactor code by splitting long components or services into focused sub-components or standalone helpers.
 
 **Normalize all UI fields:** Before rendering any field that may be an object or string (e.g., `category`), always normalize to string:
