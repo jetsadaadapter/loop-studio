@@ -18,9 +18,12 @@ When these files diverge, update both in the same change.
 - Product/developer docs: `README.md`
 - Engineering rules: `.github/project-guidlines.md`
 - Agent behavior rules: `AGENTS.md` (this file)
+- Agent rules & guidelines: `.antigravityrules`
 - Core standards & guidelines: `.antigravity/standard.md`
 - Coding best practices & automation: `.antigravity/best-practices.md`
 - UI/UX & Design system standards: `DESIGN.md`
+
+
 
 ## 2. Current App Model (Must Match Code)
 
@@ -71,7 +74,7 @@ When these files diverge, update both in the same change.
 
 Before writing code on any new task, follow this sequence:
 
-1. Always read `.antigravity/standard.md`, `.antigravity/best-practices.md`, and `DESIGN.md` in the project root to ensure compliance with the repository architecture, UX rules, and design tokens.
+1. Always read `.antigravityrules`, `.antigravity/standard.md`, `.antigravity/best-practices.md`, and `DESIGN.md` in the project root to ensure compliance with the repository architecture, UX rules, and design tokens.
 2. Do not jump into code immediately.
 3. Analyze requirements first.
 4. List files that will be created/updated.
