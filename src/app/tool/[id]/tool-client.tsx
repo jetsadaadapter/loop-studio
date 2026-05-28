@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Terminal } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type {
   Tool,
   ToolJob,
@@ -48,6 +49,7 @@ const buildInitialForm = (params: Tool["params"]): Record<string, unknown> => {
 
 
 export function ToolClient({ tool, initialJobs }: ToolClientProps) {
+  const router = useRouter();
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<ToolTestPromptResult | null>(
     null,
@@ -198,19 +200,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
   };
 
-  const handleViewJob = async (jobId: string) => {
-    setIsJobModalOpen(true);
-    setIsJobLoading(true);
-    setSelectedJob(null);
-    try {
-      const job = await getToolJob(tool.id, jobId);
-      setSelectedJob(job);
-    } catch {
-      pushDialogToast("Failed to fetch job details.", "error");
-      setIsJobModalOpen(false);
-    } finally {
-      setIsJobLoading(false);
-    }
+  const handleViewJob = (runId: string) => {
+    if (!runId) return;
+    router.push(`/tools/${tool.id}/runs/${runId}`);
   };
 
   const handleViewVisualizer = async (jobId: string) => {

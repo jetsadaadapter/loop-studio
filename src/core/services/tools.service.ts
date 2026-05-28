@@ -6,6 +6,8 @@ import type {
     GetToolJobDetailResponse,
     GetToolDetailResponse,
     ToolTestPromptResult,
+    ToolRun,
+    GetToolRunResponse,
 } from "@/core/interfaces/tools.interface";
 
 /**
@@ -77,5 +79,18 @@ export async function testToolPrompt(
         body: JSON.stringify({ input }),
         ...init,
     });
+}
+
+/**
+ * Fetch detailed information for a specific tool run (grouped jobs).
+ */
+export async function getToolRun(
+    toolId: string,
+    runId: string,
+    init?: RequestInit
+): Promise<ToolRun> {
+    const url = buildUrl(`/tools/${toolId}/runs/${runId}`);
+    const response = await apiFetch<GetToolRunResponse>(url, init);
+    return response.data;
 }
 

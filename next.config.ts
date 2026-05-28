@@ -25,6 +25,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/tools/:id/runs/:runId",
+        destination: "/tool/:id/runs/:runId",
+      },
+      {
+        source: "/tools/:id",
+        destination: "/tool/:id",
+      },
+    ];
+  },
   async headers() {
     return [
       {

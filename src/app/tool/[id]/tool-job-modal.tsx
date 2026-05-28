@@ -3,11 +3,12 @@
 import { useState } from "react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { AlertCircle, Copy, Check, Workflow, Terminal, ChevronRight } from "lucide-react";
+import { AlertCircle, Copy, Check, Workflow, Terminal, ChevronRight, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getJobStatus, getItemCount, getMergedGeminiItems } from "./tool-job-utils";
 import { JobDetailSkeleton } from "./components/job-detail-skeleton";
 import { JobResultItem } from "./components/job-result-item";
+import { ExportDatasetModal } from "./components/visualizer/export-dataset-modal";
 
 interface ToolJobModalProps {
     open: boolean;
@@ -41,47 +42,62 @@ export function ToolJobModal({ open, isLoading, job, onOpenChange, onOpenVisuali
 function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisualizer?: (jobId: string) => void }) {
     const status = getJobStatus(job);
     const [copiedJobId, setCopiedJobId] = useState(false);
+    const [exportModalOpen, setExportModalOpen] = useState(false);
 
     // Resolve plugin name safely
     const configPlugin = job.plugin ? job.plugin.charAt(0).toUpperCase() + job.plugin.slice(1) : '';
     const pluginLower = String(job.plugin || "").toLowerCase();
     
-    const items = getMergedGeminiItems(job) as unknown as ToolJob["result"]["items"];
+    const items = getMergedGeminiItems(job) as unknown as NonNullable<ToolJob["result"]>["items"];
 
     return (
         <>
-            <SheetHeader className="p-4 md:p-5 bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-200 shrink-0 relative pr-16">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 bg-brand/5 border border-brand/10 text-brand rounded-xl shrink-0 shadow-xs">
-                        <Workflow className="size-4 animate-spin-slow" />
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <SheetTitle className="text-sm font-bold text-slate-800 tracking-tight leading-none">
-                                Job Result Detail
-                            </SheetTitle>
-
-                        {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
-                            <div className={cn(
-                                "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
-                                status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
-                                    status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
-                                        "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
-                            )}>
-                                <span className={cn(
-                                    "size-1.5 rounded-full bg-white shrink-0",
-                                    status === 'completed' ? "shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
-                                        status === 'running' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
-                                            "shadow-[0_0_8px_rgba(255,255,255,0.8)]"
-                                )} />
-                                <span className="uppercase tracking-wider">{status}</span>
-                            </div>
+            <SheetHeader className="p-4 md:p-5 bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-200 shrink-0 relative pr-20">
+                <div className="flex items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 bg-brand/5 border border-brand/10 text-brand rounded-xl shrink-0 shadow-xs">
+                            <Workflow className="size-4 animate-spin-slow" />
                         </div>
+                        <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <SheetTitle className="text-sm font-bold text-slate-800 tracking-tight leading-none">
+                                    Job Result Detail
+                                </SheetTitle>
 
-                        <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal font-semibold mt-0.5">
-                            System Engine Analysis & Audit Trail Logs
-                        </SheetDescription>
+                            {/* Glowing & Saturated Apple-Level Status Indicators (standard.md Section 7) */}
+                                <div className={cn(
+                                    "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
+                                    status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
+                                        status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
+                                            "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
+                                )}>
+                                    <span className={cn(
+                                        "size-1.5 rounded-full bg-white shrink-0",
+                                        status === 'completed' ? "shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                            status === 'running' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                                "shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                                    )} />
+                                    <span className="uppercase tracking-wider">{status}</span>
+                                </div>
+                            </div>
+
+                            <SheetDescription className="text-slate-400 text-[10px] truncate block leading-normal font-semibold mt-0.5">
+                                System Engine Analysis & Audit Trail Logs
+                            </SheetDescription>
+                        </div>
                     </div>
+
+                    {/* Export dataset button */}
+                    {status === 'completed' && items.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setExportModalOpen(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-800 border border-slate-200/60 rounded-xl text-[10px] font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-3xs mr-6 shrink-0"
+                        >
+                            <Download className="size-3 text-slate-500" />
+                            <span>Export</span>
+                        </button>
+                    )}
                 </div>
             </SheetHeader>
 
@@ -148,7 +164,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                         <button
                             onClick={async () => {
                                 try {
-                                    await navigator.clipboard.writeText(job.jobId || job._id);
+                                    await navigator.clipboard.writeText(job.jobId || job._id || "");
                                     setCopiedJobId(true);
                                     setTimeout(() => setCopiedJobId(false), 2000);
                                 } catch { }
@@ -169,7 +185,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                 {onOpenVisualizer && (
                     <button
                         type="button"
-                        onClick={() => onOpenVisualizer(job.jobId || job._id)}
+                        onClick={() => onOpenVisualizer(job.jobId || job._id || "")}
                         className="w-full flex items-center justify-between p-3.5 px-4 bg-gradient-to-r from-blue-600/5 via-indigo-600/5 to-purple-600/5 hover:from-blue-600/10 hover:to-purple-600/10 border border-blue-200/40 hover:border-blue-300/60 rounded-2xl transition-all duration-300 text-left group shadow-xs cursor-pointer select-none hover:-translate-y-0.5 hover:shadow-md"
                     >
                         <div className="flex items-center gap-2.5">
@@ -254,7 +270,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 {onOpenVisualizer && (
                                     <button
                                         type="button"
-                                        onClick={() => onOpenVisualizer(job.jobId || job._id)}
+                                        onClick={() => onOpenVisualizer(job.jobId || job._id || "")}
                                         className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-slate-700 hover:text-slate-800 text-[10px] font-bold px-3.5 py-1.5 rounded-xl shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer"
                                     >
                                         <span>Open Console</span>
@@ -277,7 +293,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                         {onOpenVisualizer && (
                                             <button
                                                 type="button"
-                                                onClick={() => onOpenVisualizer(job.jobId || job._id)}
+                                                onClick={() => onOpenVisualizer(job.jobId || job._id || "")}
                                                 className="w-full flex items-center justify-center p-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-800 border border-slate-200/60 rounded-2xl font-extrabold text-xs transition-all hover:-translate-y-0.5 hover:shadow-xs active:scale-95 cursor-pointer select-none gap-2 shadow-xs"
                                             >
                                                 <span>View All {items.length} Items in Workspace Console</span>
@@ -291,6 +307,12 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                     </div>
                 </div>
             </div>
+
+            <ExportDatasetModal
+                open={exportModalOpen}
+                onOpenChange={setExportModalOpen}
+                job={job}
+            />
         </>
     );
 }

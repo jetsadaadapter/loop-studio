@@ -15,7 +15,7 @@ import { JobAiAnalysis } from "./job-ai-analysis";
 import { JobEngagementStats } from "./job-engagement-stats";
 
 type JobResultItemProps = {
-  item: ToolJob["result"]["items"][0];
+  item: NonNullable<ToolJob["result"]>["items"][0];
   idx: number;
   job: ToolJob;
 };

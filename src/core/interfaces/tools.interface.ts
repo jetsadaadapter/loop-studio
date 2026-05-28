@@ -56,14 +56,20 @@ export interface AppTool {
 }
 
 export interface ToolJob {
-    _id: string;
+    id: string;
+    _id?: string;
     jobId: string;
     plugin: string;
     toolId: string;
     userId: string;
-    config: Record<string, unknown>;
-    input: Record<string, unknown>;
-    result: {
+    config?: Record<string, unknown>;
+    input: {
+        userInput?: string;
+        startUrls?: string[];
+        previousResults?: unknown;
+        [key: string]: unknown;
+    };
+    result?: {
         itemCount: number;
         items: Array<{
             sourceIndex: number;
@@ -73,13 +79,27 @@ export interface ToolJob {
             [key: string]: unknown;
         }>;
     };
-    processed: string | null;
+    resultId?: string | null;
+    runId?: string;
+    processed?: string | null;
     status?: 'running' | 'completed' | 'failed' | 'queued';
-    state?: string;
+    state: string;
     error?: string | null | Record<string, unknown>;
     createdAt: string;
     updatedAt: string;
     __v?: number;
+}
+
+export interface ToolRun {
+    runId: string;
+    toolId: string;
+    jobs: ToolJob[];
+}
+
+export interface GetToolRunResponse {
+    success: boolean;
+    message: string;
+    data: ToolRun;
 }
 
 export type GetToolJobsResponse = Paginated<ToolJob>;

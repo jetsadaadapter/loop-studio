@@ -18,6 +18,8 @@ When these files diverge, update both in the same change.
 - Product/developer docs: `README.md`
 - Engineering rules: `.github/project-guidlines.md`
 - Agent behavior rules: `AGENTS.md` (this file)
+- Core standards & guidelines: `.antigravity/standard.md`
+- Coding best practices & automation: `.antigravity/best-practices.md`
 - UI/UX & Design system standards: `DESIGN.md`
 
 ## 2. Current App Model (Must Match Code)
@@ -44,14 +46,13 @@ When these files diverge, update both in the same change.
 
 ## 4. Code Change Rules
 
-**AI/LLM Token Efficiency Best Practices:**
+**AI/LLM Token & Context Guardrails (Strict Efficiency Rules):**
 
-- Minimize unnecessary AI/LLM calls—prefer local computation, caching, and static analysis when possible.
-- Batch requests and avoid repeated queries for the same data.
-- Use concise prompts and context—send only what is needed for the task.
-- Cache and reuse AI results where safe and appropriate.
-- Avoid sending large files, logs, or full documents unless absolutely required.
-- Always review and optimize prompt/code to reduce token usage before submitting to LLM.
+- **Grep Before View**: DO NOT read an entire file if it exceeds 100 lines. First, use `grep_search` to pinpoint the exact location of interest, then use `view_file` specifying a narrow line range (e.g., `StartLine` and `EndLine`).
+- **Surgical Code Edits**: Never rewrite an entire file when modifying code. Use `replace_file_content` (for contiguous blocks) or `multi_replace_file_content` (for separate blocks) targeting the smallest possible line range.
+- **Minimize Context Bloat**: Do not request or include large build logs, node_modules listings, or console histories. Only request the exact 5-10 lines containing error stacks.
+- **Asynchronous Task Waiting**: Never poll terminal statuses or run infinite loops. Launch async tasks and wait for the system's background wakeup.
+- **Data & Logic Decoupling**: Keep mock arrays, static constants, and options list out of `.tsx` files. Store them in a separate `data.ts` sibling file so they are not repeatedly parsed during UI changes.
 
 - Default to Server Components; use `"use client"` only when required
 - Keep business logic in `src/core/services` and `src/core/adapters`, not in UI
@@ -70,15 +71,16 @@ When these files diverge, update both in the same change.
 
 Before writing code on any new task, follow this sequence:
 
-1. Do not jump into code immediately.
-2. Analyze requirements first.
-3. List files that will be created/updated.
-4. Break work into small verifiable steps.
-5. Before editing, state which files will change and how.
-6. After editing, summarize what changed.
-7. Do not remove existing code unless necessary.
-8. Keep code readable, beginner-friendly, and easy to maintain.
-9. Always account for security, maintainability, and best practices.
+1. Always read `.antigravity/standard.md`, `.antigravity/best-practices.md`, and `DESIGN.md` in the project root to ensure compliance with the repository architecture, UX rules, and design tokens.
+2. Do not jump into code immediately.
+3. Analyze requirements first.
+4. List files that will be created/updated.
+5. Break work into small verifiable steps.
+6. Before editing, state which files will change and how.
+7. After editing, summarize what changed.
+8. Do not remove existing code unless necessary.
+9. Keep code readable, beginner-friendly, and easy to maintain.
+10. Always account for security, maintainability, and best practices.
 
 ## 5. Documentation Sync Policy
 

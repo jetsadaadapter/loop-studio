@@ -29,8 +29,8 @@ export function HistoryJobItem({
       : pluginLower === "gemini"
         ? "Gemini AI Analysis"
         : "Automation Run";
-  const rawId = job.jobId || job._id || "";
-  const slicedId = rawId ? `#${rawId.split("-")[0].slice(0, 8)}` : "";
+  const runId = job.runId || "";
+  const slicedId = job.jobId ? `#${job.jobId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
 
   const formattedTime = (() => {
     if (!job.createdAt) return "just now";
@@ -55,12 +55,12 @@ export function HistoryJobItem({
 
   return (
     <div
-      onClick={() => onSelect(rawId)}
+      onClick={() => onSelect(runId)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          onSelect(rawId);
+          onSelect(runId);
         }
       }}
       className={cn(
@@ -123,59 +123,7 @@ export function HistoryJobItem({
             />
             <span>{status}</span>
           </div>
-          {!(pluginLower === "gemini" && count === 0) && (
-            <>
-              <span className="text-slate-200 select-none">•</span>
-              <span className="text-[10px] text-slate-500 font-bold">
-                {(() => {
-                  if (pluginLower === "apify") {
-                    if (status === "running") {
-                      return count > 0
-                        ? `${count} post${count === 1 ? "" : "s"} to scrape`
-                        : "No posts to scrape";
-                    }
-                    if (status === "completed") {
-                      return count > 0
-                        ? `${count} post${count === 1 ? "" : "s"} scraped`
-                        : "0 posts scraped";
-                    }
-                    return count > 0
-                      ? `${count} post${count === 1 ? "" : "s"}`
-                      : "0 posts";
-                  }
-                  if (pluginLower === "gemini") {
-                    if (status === "running") {
-                      return count > 0
-                        ? `${count} post${count === 1 ? "" : "s"} to analyze`
-                        : "No posts to analyze";
-                    }
-                    if (status === "completed") {
-                      return count > 0
-                        ? `${count} post${count === 1 ? "" : "s"} analyzed`
-                        : "0 posts analyzed";
-                    }
-                    return count > 0
-                      ? `${count} post${count === 1 ? "" : "s"}`
-                      : "0 posts";
-                  }
-                  // Fallback
-                  if (status === "running") {
-                    return count > 0
-                      ? `${count} item${count === 1 ? "" : "s"} to process`
-                      : "No items to process";
-                  }
-                  if (status === "completed") {
-                    return count > 0
-                      ? `${count} item${count === 1 ? "" : "s"} processed`
-                      : "0 items processed";
-                  }
-                  return count > 0
-                    ? `${count} item${count === 1 ? "" : "s"}`
-                    : "0 items";
-                })()}
-              </span>
-            </>
-          )}
+
         </div>
       </div>
 
