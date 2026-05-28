@@ -155,10 +155,15 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
               <XCircle className="size-3" />
               <span>Failed</span>
             </div>
+          ) : status === "queued" ? (
+            <div className="flex items-center gap-1 bg-blue-500 text-white shadow-xs shadow-blue-500/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+              <Loader2 className="size-3 animate-spin" />
+              <span>Queued</span>
+            </div>
           ) : (
             <div className="flex items-center gap-1 bg-amber-500 text-white shadow-xs shadow-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
               <Loader2 className="size-3 animate-spin" />
-              <span>Running</span>
+              <span>Active</span>
             </div>
           )}
         </div>
@@ -171,7 +176,8 @@ export function ConsoleHeader({ job, toolName, onClose }: ConsoleHeaderProps) {
             return `Finished! Total ${itemCount} items processed.`;
           })()}
           {status === "failed" && `Finished with errors. Check log for details.`}
-          {status === "running" && (() => {
+          {(status === "running" || status === "active" || status === "queued") && (() => {
+            if (status === "queued") return `Job is queued in the pipeline...`;
             if (pluginLower === "apify") return `Scraping posts in progress...`;
             if (pluginLower === "gemini") return `Analyzing posts in progress...`;
             return `Processing items in progress...`;

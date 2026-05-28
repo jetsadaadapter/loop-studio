@@ -68,14 +68,16 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 <div className={cn(
                                     "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold transition-all duration-300 select-none shrink-0 text-white border shadow-sm",
                                     status === 'completed' ? "bg-emerald-500 border-emerald-400/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]" :
-                                        status === 'running' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
-                                            "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
+                                        status === 'running' || status === 'active' ? "bg-amber-500 border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]" :
+                                            status === 'queued' ? "bg-blue-500 border-blue-400/40 shadow-[0_0_12px_rgba(59,130,246,0.25)]" :
+                                                "bg-rose-500 border-rose-400/40 shadow-[0_0_12px_rgba(239,68,68,0.25)]"
                                 )}>
                                     <span className={cn(
                                         "size-1.5 rounded-full bg-white shrink-0",
                                         status === 'completed' ? "shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
-                                            status === 'running' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
-                                                "shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                                            status === 'running' || status === 'active' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                                status === 'queued' ? "animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" :
+                                                    "shadow-[0_0_8px_rgba(255,255,255,0.8)]"
                                     )} />
                                     <span className="uppercase tracking-wider">{status}</span>
                                 </div>
@@ -220,13 +222,14 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                         <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                             <Workflow className="size-4 text-brand animate-pulse" /> {(() => {
                                 const count = getItemCount(job);
+                                const isPending = status === "running" || status === "active" || status === "queued";
                                 if (pluginLower === "apify") {
-                                    return status === "running" ? `Posts to Scrape (${count})` : `Scraped Posts (${count})`;
+                                    return isPending ? `Posts to Scrape (${count})` : `Scraped Posts (${count})`;
                                 }
                                 if (pluginLower === "gemini") {
-                                    return status === "running" ? `Posts to Analyze (${count})` : `Analyzed Posts (${count})`;
+                                    return isPending ? `Posts to Analyze (${count})` : `Analyzed Posts (${count})`;
                                 }
-                                return status === "running" ? `Items to Process (${count})` : `Processed Items (${count})`;
+                                return isPending ? `Items to Process (${count})` : `Processed Items (${count})`;
                             })()}
                         </h3>
                     </div>
@@ -240,28 +243,30 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                 <div className="space-y-1.5">
                                     <h4 className="text-xs font-bold text-slate-800 tracking-tight">
                                         {(() => {
+                                            const isPending = status === "running" || status === "active" || status === "queued";
                                             if (pluginLower === "apify") {
-                                                return status === "running" ? "No Posts to Scrape Found" : "No Scraped Posts Found";
+                                                return isPending ? "No Posts to Scrape Found" : "No Scraped Posts Found";
                                             }
                                             if (pluginLower === "gemini") {
-                                                return status === "running" ? "No Posts to Analyze Found" : "No Analyzed Posts Found";
+                                                return isPending ? "No Posts to Analyze Found" : "No Analyzed Posts Found";
                                             }
-                                            return status === "running" ? "No Items to Process Found" : "No Processed Items Found";
+                                            return isPending ? "No Items to Process Found" : "No Processed Items Found";
                                         })()}
                                     </h4>
                                     <p className="text-[10px] text-slate-400 leading-normal font-semibold max-w-[280px] mx-auto">
                                         {(() => {
+                                            const isPending = status === "running" || status === "active" || status === "queued";
                                             if (pluginLower === "apify") {
-                                                return status === "running"
+                                                return isPending
                                                     ? "This job doesn't have any posts to scrape queued. If you just started it, check back in a few moments, or check the full workspace console."
                                                     : "This job hasn't scraped any posts yet. If the job is still running, check back in a few moments, or check the full workspace console.";
                                             }
                                             if (pluginLower === "gemini") {
-                                                return status === "running"
+                                                return isPending
                                                     ? "This job doesn't have any posts to analyze queued. If you just started it, check back in a few moments, or check the full workspace console."
                                                     : "This job hasn't analyzed any posts yet. If the job is still running, check back in a few moments, or check the full workspace console.";
                                             }
-                                            return status === "running"
+                                            return isPending
                                                 ? "This job doesn't have any items to process queued. If the job is still running, check back in a few moments, or check the full workspace console."
                                                 : "This job hasn't generated any results yet. If the job is still running, check back in a few moments, or check the full workspace console.";
                                         })()}

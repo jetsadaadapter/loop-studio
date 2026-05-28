@@ -31,7 +31,9 @@ interface ToolHistorySidebarProps {
 
 const STATUS_COLORS: Record<string, { base: string; active: string }> = {
   completed: { base: "bg-emerald-500", active: "bg-emerald-400 animate-pulse" },
+  active: { base: "bg-amber-550 animate-pulse", active: "bg-amber-550 animate-pulse" },
   running: { base: "bg-amber-550 animate-pulse", active: "bg-amber-550 animate-pulse" },
+  queued: { base: "bg-blue-500/80 animate-pulse", active: "bg-blue-400 animate-pulse" },
   failed: { base: "bg-rose-500", active: "bg-rose-400 animate-pulse" },
   all: { base: "bg-indigo-500", active: "bg-indigo-400 animate-pulse" },
 };
@@ -49,6 +51,16 @@ export function ToolHistorySidebar({
   onPageChange,
 }: ToolHistorySidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const getTabCount = (tab: string) => {
+    if (tab === "all") return jobs.length;
+    return jobs.filter((j) => getJobStatus(j) === tab).length;
+  };
+
+  const runningCount = jobs.filter(j => {
+    const status = getJobStatus(j);
+    return status === "active" || status === "running" || status === "queued";
+  }).length;
 
   const tabs = ["all", ...Array.from(new Set(jobs.map((j) => getJobStatus(j))))];
   const filtered = jobs.filter(
@@ -105,10 +117,18 @@ export function ToolHistorySidebar({
                 <div className="p-2 bg-indigo-50 border border-indigo-100/80 text-brand rounded-xl shrink-0 shadow-xs">
                   <History className="size-4 text-brand" />
                 </div>
-                <div>
-                  <CardTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
-                    Job History
-                  </CardTitle>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
+                      Job History
+                    </CardTitle>
+                    {runningCount > 0 && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-200/50 text-[9px] font-extrabold uppercase tracking-wider animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.05)] select-none shrink-0 scale-90">
+                        <span className="size-1 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)] animate-ping" />
+                        {runningCount} Active
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-slate-400 font-medium mt-1 block">
                     Automation history & execution logs
                   </span>
@@ -129,12 +149,13 @@ export function ToolHistorySidebar({
               <div className="flex flex-wrap items-center gap-1.5">
                 {tabs.map((tab) => {
                   const isActive = activeTab === tab;
+                  const count = getTabCount(tab);
                   return (
                     <button
                       key={tab}
                       onClick={() => handleTabChange(tab)}
                       className={cn(
-                        "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
+                        "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
                         isActive
                           ? "bg-slate-800 border-slate-800 text-white shadow-sm"
                           : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
@@ -147,6 +168,14 @@ export function ToolHistorySidebar({
                         )}
                       />
                       <span>{tab}</span>
+                      <span className={cn(
+                        "px-1.5 py-0.5 text-[8.5px] rounded-md font-black select-none transition-colors border",
+                        isActive 
+                          ? "bg-white/15 text-white/90 border-white/10" 
+                          : "bg-slate-100 text-slate-450 border-slate-200/30 group-hover:bg-slate-200/50"
+                      )}>
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
@@ -213,13 +242,21 @@ export function ToolHistorySidebar({
               <div className="p-2 bg-indigo-50 border border-indigo-100/80 text-brand rounded-xl shrink-0">
                 <History className="size-4 text-brand" />
               </div>
-              <div className="text-left">
-                <SheetTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
-                  Job History
-                </SheetTitle>
-                <SheetDescription className="text-[10px] text-slate-400 font-medium mt-1">
+              <div className="text-left flex flex-col min-w-0">
+                <div className="flex items-center gap-2">
+                  <SheetTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
+                    Job History
+                  </SheetTitle>
+                  {runningCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-200/50 text-[9px] font-extrabold uppercase tracking-wider animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.05)] select-none shrink-0 scale-90">
+                      <span className="size-1 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)] animate-ping" />
+                      {runningCount} Active
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium mt-1 block">
                   Automation history & execution logs
-                </SheetDescription>
+                </span>
               </div>
             </div>
 
@@ -238,12 +275,13 @@ export function ToolHistorySidebar({
               <div className="flex flex-wrap items-center gap-1.5">
                 {tabs.map((tab) => {
                   const isActive = activeTab === tab;
+                  const count = getTabCount(tab);
                   return (
                     <button
                       key={tab}
                       onClick={() => handleTabChange(tab)}
                       className={cn(
-                        "px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
+                        "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
                         isActive
                           ? "bg-slate-800 border-slate-800 text-white shadow-sm"
                           : "bg-white border-slate-200/80 text-slate-550 hover:bg-slate-50"
@@ -256,6 +294,14 @@ export function ToolHistorySidebar({
                         )}
                       />
                       <span>{tab}</span>
+                      <span className={cn(
+                        "px-1.5 py-0.5 text-[8.5px] rounded-md font-black select-none transition-colors border",
+                        isActive 
+                          ? "bg-white/15 text-white/90 border-white/10" 
+                          : "bg-slate-100 text-slate-450 border-slate-200/30 group-hover:bg-slate-200/50"
+                      )}>
+                        {count}
+                      </span>
                     </button>
                   );
                 })}

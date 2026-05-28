@@ -80,7 +80,7 @@ export function TabLog({ job }: TabLogProps) {
         const errStr = typeof job.error === "string" ? job.error : JSON.stringify(job.error);
         addLog(endTimeStr, "ERROR", `Failure Cause: ${errStr}`);
       }
-    } else if (status === "running" || status === "queued") {
+    } else if (status === "running" || status === "active" || status === "queued") {
       const currTimeStr = getSafeISOString(new Date());
       addLog(currTimeStr, "INFO", `System: Job execution is currently in progress. Status: [${status}].`);
     } else {

@@ -36,7 +36,13 @@ const STATUS_COLORS: Record<string, { base: string; text: string; bg: string; do
     base: "bg-emerald-500", 
     text: "text-emerald-600", 
     bg: "bg-emerald-50/60 border-emerald-200/50 shadow-[0_0_8px_rgba(16,185,129,0.08)]",
-    dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
+    dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse"
+  },
+  active: { 
+    base: "bg-amber-550 animate-pulse", 
+    text: "text-amber-600", 
+    bg: "bg-amber-50/60 border-amber-200/50 shadow-[0_0_8px_rgba(245,158,11,0.08)]",
+    dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
   },
   running: { 
     base: "bg-amber-550 animate-pulse", 
@@ -51,10 +57,10 @@ const STATUS_COLORS: Record<string, { base: string; text: string; bg: string; do
     dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse"
   },
   queued: { 
-    base: "bg-slate-450", 
-    text: "text-slate-500", 
-    bg: "bg-slate-50 border-slate-200 text-slate-500",
-    dot: "bg-slate-400"
+    base: "bg-blue-500/80 animate-pulse", 
+    text: "text-blue-600", 
+    bg: "bg-blue-50/60 border-blue-200/50 shadow-[0_0_8px_rgba(59,130,246,0.08)]",
+    dot: "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] animate-pulse"
   },
 };
 
@@ -95,7 +101,9 @@ export function RunClient({ tool, run, initialJobs, runId }: RunClientProps) {
     ? "failed"
     : run.jobs.every(j => getJobStatus(j) === "completed")
       ? "completed"
-      : "running";
+      : run.jobs.some(j => getJobStatus(j) === "active" || getJobStatus(j) === "running")
+        ? "active"
+        : "queued";
 
   const formattedTime = (createdAtStr: string) => {
     if (!createdAtStr) return "just now";

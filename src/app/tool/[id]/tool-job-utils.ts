@@ -114,11 +114,19 @@ export interface SourceItem {
 }
 
 export const getJobStatus = (job: ToolJob): JobStatus => {
-    if (job.status) return job.status;
+    if (job.status) {
+        const normalized = job.status.toLowerCase();
+        if (normalized === 'running') return 'active';
+        return normalized;
+    }
     if (job.error) return 'failed';
-    if (job.state) return job.state.toLowerCase();
+    if (job.state) {
+        const normalized = job.state.toLowerCase();
+        if (normalized === 'running') return 'active';
+        return normalized;
+    }
     if (job.processed) return 'completed';
-    return 'running';
+    return 'active';
 };
 
 export const getItemCount = (job: ToolJob): number => {
