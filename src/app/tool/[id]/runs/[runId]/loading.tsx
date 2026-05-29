@@ -2,32 +2,34 @@ export default function RunPageLoading() {
   return (
     <div className="pb-10">
       {/* ── Hero / AppCover Skeleton ───────────────────── */}
-      <div className="mb-6 rounded-2xl overflow-hidden bg-slate-900 relative min-h-64">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 animate-pulse" />
+      <div className="mb-6 rounded-2xl overflow-hidden bg-[#1d2028] relative min-h-64 shadow-[0_30px_72px_-44px_rgba(2,6,23,0.92)] select-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0d14] via-[#3c1518]/30 via-45% to-[#69140e]/15 animate-pulse" />
+        <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(0deg,rgba(255,255,255,0.03)_0px,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_3px)] animate-pulse" />
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-size-[4px_4px]" />
 
         <div className="relative z-10 px-6 pt-5 pb-8 sm:px-8 sm:pt-8 sm:pb-10 lg:pb-12 space-y-4">
           {/* Back-button badges */}
           <div className="flex gap-3 pt-1">
-            <div className="h-7 w-28 rounded-full bg-white/10 animate-pulse" />
-            <div className="h-7 w-20 rounded-full bg-white/5 animate-pulse" />
+            <div className="h-7 w-28 rounded-full bg-white/10 border border-white/10 animate-pulse" />
+            <div className="h-7 w-20 rounded-full bg-white/5 border border-white/5 animate-pulse" />
           </div>
 
           {/* Breadcrumb badges */}
           <div className="flex items-center gap-2 pt-4">
-            <div className="h-4 w-36 rounded-full bg-white/15 animate-pulse" />
-            <div className="h-4 w-24 rounded-full bg-white/10 animate-pulse" />
+            <div className="h-5 w-36 rounded-full bg-linear-to-r from-red-500/10 to-brand/20 border border-brand/40 animate-pulse" />
+            <div className="h-5 w-24 rounded-full bg-white/5 border border-white/10 animate-pulse" />
           </div>
 
           {/* Title row */}
           <div className="flex items-center gap-3 mt-2">
-            <div className="size-12 rounded-2xl bg-white/10 animate-pulse shrink-0" />
-            <div className="h-8 w-64 rounded-xl bg-white/15 animate-pulse" />
+            <div className="size-12 rounded-2xl bg-linear-to-br from-brand/50 via-brand-strong/40 to-rose-700/30 border border-white/20 shadow-lg shadow-brand/10 shrink-0 animate-pulse" />
+            <div className="h-8 w-64 rounded-xl bg-white/10 animate-pulse" />
           </div>
 
           {/* Sub-description */}
           <div className="space-y-2 pt-1 max-w-xl">
             <div className="h-3 w-full rounded-full bg-white/10 animate-pulse" />
-            <div className="h-3 w-4/5 rounded-full bg-white/8 animate-pulse" />
+            <div className="h-3 w-4/5 rounded-full bg-white/5 animate-pulse" />
           </div>
         </div>
       </div>

@@ -111,7 +111,7 @@ export function HistoryJobItem({
           const subJobs = (job as { jobs?: ToolJob[] }).jobs;
           if (!subJobs || subJobs.length === 0) return null;
           return (
-            <div className="flex items-center gap-1 w-full mt-2.5">
+            <div className="flex items-center gap-1.5 w-full mt-2.5">
               {subJobs.map((sub, idx) => {
                 const subStatus = getJobStatus(sub);
                 return (
@@ -119,11 +119,11 @@ export function HistoryJobItem({
                     key={sub.id || sub.jobId || idx}
                     title={`${sub.plugin || "Job"}: ${subStatus}`}
                     className={cn(
-                      "h-1 flex-1 rounded-full transition-all duration-300",
-                      subStatus === "completed" ? "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.25)]" :
-                        subStatus === "active" || subStatus === "running" ? "bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.25)] animate-pulse" :
-                          subStatus === "queued" ? "bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.25)] animate-pulse" :
-                            subStatus === "failed" ? "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.25)]" : "bg-slate-200/60"
+                      "h-1.5 flex-1 rounded-full transition-all duration-500 relative overflow-hidden",
+                      subStatus === "completed" ? "bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-[0_1px_4px_rgba(16,185,129,0.25)]" :
+                        subStatus === "active" || subStatus === "running" ? "bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_1px_4px_rgba(245,158,11,0.25)] animate-pulse" :
+                          subStatus === "queued" ? "bg-gradient-to-r from-blue-400 to-blue-500 shadow-[0_1px_4px_rgba(59,130,246,0.25)] animate-pulse" :
+                            subStatus === "failed" ? "bg-gradient-to-r from-rose-500 to-red-600 shadow-[0_1px_4px_rgba(244,63,94,0.25)]" : "bg-slate-100 border border-slate-200/30"
                     )}
                   />
                 );
