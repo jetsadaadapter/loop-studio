@@ -7,6 +7,7 @@ import type {
     ToolParam,
     ToolParamsResponse,
     ToolParamPayload,
+    ToolScript,
 } from "@/core/interfaces/tool";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
@@ -85,3 +86,44 @@ export async function upsertManageToolParams(toolId: string, payload: ToolParamP
     });
     return response.data;
 }
+
+export async function getManageToolScripts(toolId: string, init?: RequestInit): Promise<ToolScript[]> {
+    const url = buildUrl(`/manage/tools/${toolId}/scripts`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolScript[] }>(url, init);
+    return response.data;
+}
+
+export async function upsertManageToolScripts(toolId: string, payload: Partial<ToolScript>[]): Promise<ToolScript[]> {
+    const url = buildUrl(`/manage/tools/${toolId}/scripts`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolScript[] }>(url, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
+}
+
+export async function deleteManageToolScript(scriptId: string): Promise<void> {
+    const url = buildUrl(`/manage/tools/scripts/${scriptId}`);
+    await apiFetch<{ success: boolean; message: string }>(url, {
+        method: "DELETE",
+    });
+}
+
+export async function updateManageToolScript(scriptId: string, payload: Partial<ToolScript>): Promise<ToolScript> {
+    const url = buildUrl(`/manage/tools/scripts/${scriptId}`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolScript }>(url, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
+}
+
+export async function createManageToolScript(toolId: string, payload: Partial<ToolScript>): Promise<ToolScript> {
+    const url = buildUrl(`/manage/tools/${toolId}/scripts`);
+    const response = await apiFetch<{ success: boolean; message: string; data: ToolScript }>(url, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+    return response.data;
+}
+

@@ -58,6 +58,7 @@ interface ToolListProps {
   onDelete: (t: ManageToolApiItem) => void;
   onPreviewPrompt: (param: ToolParam) => void;
   onManageParams: (t: ManageToolApiItem) => void;
+  onManageScripts: (t: ManageToolApiItem) => void;
 }
 
 export function ToolList({
@@ -66,6 +67,7 @@ export function ToolList({
   onDelete,
   onPreviewPrompt,
   onManageParams,
+  onManageScripts,
 }: ToolListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -77,6 +79,7 @@ export function ToolList({
           onDelete={() => onDelete(tool)}
           onPreviewPrompt={onPreviewPrompt}
           onManageParams={() => onManageParams(tool)}
+          onManageScripts={() => onManageScripts(tool)}
         />
       ))}
     </div>

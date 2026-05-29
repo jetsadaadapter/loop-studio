@@ -1,6 +1,6 @@
 "use client";
 
-import { Wrench, Sparkles, Globe, LineChart, Ellipsis, Pencil, Trash2 } from "lucide-react";
+import { Wrench, Sparkles, Globe, LineChart, Ellipsis, Pencil, Trash2, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
@@ -141,9 +141,10 @@ interface ToolRowProps {
   onDelete: () => void;
   onPreviewPrompt?: (param: ToolParam) => void;
   onManageParams?: () => void;
+  onManageScripts?: () => void;
 }
 
-export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParams }: ToolRowProps) {
+export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParams, onManageScripts }: ToolRowProps) {
   const scripts = getSortedScripts(tool);
   const namespace = `adapter/${tool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -197,6 +198,15 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                       label: "Manage params",
                       icon: Wrench,
                       onClick: onManageParams,
+                    },
+                  ]
+                : []),
+              ...(onManageScripts
+                ? [
+                    {
+                      label: "Manage scripts",
+                      icon: Workflow,
+                      onClick: onManageScripts,
                     },
                   ]
                 : []),

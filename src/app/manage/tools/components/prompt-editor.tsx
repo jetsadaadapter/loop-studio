@@ -438,7 +438,7 @@ export function PromptEditor({
         }`}>
         {toolbar}
         {editorMode === "preview" ? (
-          <div className="p-3.5 bg-slate-50 text-xs min-h-[140px] max-h-[350px] overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
+          <div className="p-3.5 bg-slate-50 text-xs min-h-[80px] max-h-[350px] overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
             <PromptPreview text={value} />
           </div>
         ) : (
@@ -447,9 +447,9 @@ export function PromptEditor({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            rows={5}
+            rows={3}
             disabled={disabled}
-            className="border-0 focus-visible:ring-0 rounded-none resize-y bg-white text-xs leading-relaxed min-h-[140px] focus:outline-none p-3.5"
+            className="border-0 focus-visible:ring-0 rounded-none resize-y bg-white text-xs leading-relaxed min-h-[80px] focus:outline-none p-3.5 placeholder:text-xs"
           />
         )}
       </div>
@@ -502,7 +502,7 @@ export function PromptEditor({
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="border-0 focus-visible:ring-0 rounded-none resize-none bg-white text-xs leading-relaxed flex-1 focus:outline-none p-4"
+                className="border-0 focus-visible:ring-0 rounded-none resize-none bg-white text-xs leading-relaxed flex-1 focus:outline-none p-4 placeholder:text-xs"
               />
             )}
           </div>

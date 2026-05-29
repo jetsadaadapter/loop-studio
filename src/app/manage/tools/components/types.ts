@@ -14,4 +14,15 @@ export interface ParamDraft {
   configPrompt: string;
 }
 
+export interface ScriptDraft {
+  _localId: string;
+  id?: string;
+  plugin: string;
+  label: string;
+  description: string;
+  sortOrder: number;
+  config: Record<string, unknown>;
+}
+
 export type ToolFormMode = "create" | "edit";
+

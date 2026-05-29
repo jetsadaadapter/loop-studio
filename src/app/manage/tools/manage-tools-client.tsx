@@ -38,6 +38,7 @@ import type { ToolFormMode } from "./components/types";
 import { PromptPreviewDialog } from "./components/prompt-preview-dialog";
 import { ToolList, SummaryBar } from "./components/tool-list-grid";
 import { ToolParamsDrawer } from "./components/tool-params-drawer";
+import { ToolScriptsDrawer } from "./components/tool-scripts-drawer";
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ export function ManageToolsClient() {
     isLoading?: boolean;
   } | null>(null);
   const [paramsTarget, setParamsTarget] = useState<ManageToolApiItem | null>(null);
+  const [scriptsTarget, setScriptsTarget] = useState<ManageToolApiItem | null>(null);
 
   const fetchTools = useCallback(async (silent = false) => {
     if (silent) setIsRefreshing(true); else setIsLoading(true);
@@ -209,6 +211,7 @@ export function ManageToolsClient() {
             onEdit={(t) => void handleOpenEdit(t)}
             onDelete={(t) => setDeleteTarget(t)}
             onManageParams={(t) => setParamsTarget(t)}
+            onManageScripts={(t) => setScriptsTarget(t)}
             onPreviewPrompt={async (param) => {
               setPreviewPrompt({
                 label: param.label,
@@ -291,6 +294,13 @@ export function ManageToolsClient() {
       <ToolParamsDrawer
         tool={paramsTarget}
         onClose={() => setParamsTarget(null)}
+        onSaveSuccess={fetchTools}
+      />
+
+      {/* Tool Scripts Sheet Drawer */}
+      <ToolScriptsDrawer
+        tool={scriptsTarget}
+        onClose={() => setScriptsTarget(null)}
         onSaveSuccess={fetchTools}
       />
     </ManagerShell>
