@@ -22,7 +22,6 @@ export function HistoryJobItem({
 }: HistoryJobItemProps) {
   const [isPipelineExpanded, setIsPipelineExpanded] = useState(false);
   const status = getJobStatus(job);
-  const count = getItemCount(job);
 
   const pluginLower = String(job.plugin || "").toLowerCase();
   const friendlyTitle =

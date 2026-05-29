@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export type ExportFormat = "json" | "csv" | "xml" | "excel" | "html" | "rss" | "jsonl";
 
 export interface ExportConfig {

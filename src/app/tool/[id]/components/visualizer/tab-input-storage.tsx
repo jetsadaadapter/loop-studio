@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { Sliders, Settings, Copy, Check } from "lucide-react";
+import { Sliders, Settings, Copy, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TabInputStorageProps {
@@ -16,6 +16,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const [copied, setCopied] = useState(false);
   const [copiedInputPrompt, setCopiedInputPrompt] = useState(false);
   const [copiedConfigPrompt, setCopiedConfigPrompt] = useState(false);
+  const [copiedPreProcessPrompt, setCopiedPreProcessPrompt] = useState(false);
 
   // Safe resolve configuration
   let resolvedConfig: Record<string, unknown> = {};
@@ -35,13 +36,16 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const hasStartUrls = Array.isArray(job.input?.startUrls) && job.input.startUrls.length > 0;
 
   const inputEntries = Object.entries(job.input || {}).filter(
-    ([key]) => key.toLowerCase() !== "prompt" && key.toLowerCase() !== "starturls"
+    ([key]) => key.toLowerCase() !== "prompt" && key.toLowerCase() !== "starturls" && key.toLowerCase() !== "_preprocessconfig"
   );
-  const hasScalarInputs = inputEntries.some(([_, val]) => typeof val !== "object" && val !== undefined && val !== null);
+  const hasScalarInputs = inputEntries.some(([, val]) => typeof val !== "object" && val !== undefined && val !== null);
 
   const hasAnyInput = hasScalarInputs || hasInputPrompt || hasStartUrls;
 
   const configEntries = Object.entries(resolvedConfig);
+
+  const preProcessConfig = job.input?._preProcessConfig as { model?: string; prompt?: string } | undefined;
+  const hasPreProcess = !!preProcessConfig;
 
   const jsonStr = JSON.stringify(job.input || {}, null, 2);
 
@@ -285,6 +289,61 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   }
                   return null;
                 })()}
+              </div>
+            )}
+
+            {/* Section: AI Pre-processing Configuration */}
+            {hasPreProcess && preProcessConfig && (
+              <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-750 flex items-center gap-2 uppercase tracking-wider">
+                  <Sparkles className="size-4 text-emerald-600" />
+                  <span>AI Pre-processing Agent Settings</span>
+                </h3>
+                {preProcessConfig.model && (
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">LLM Analytics Model</span>
+                    <span className="text-xs font-semibold text-slate-750 mt-1 block">
+                      {preProcessConfig.model}
+                    </span>
+                  </div>
+                )}
+
+                {preProcessConfig.prompt && (
+                  <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
+                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">Analyst System Prompt & Instructions</span>
+                    <div className="relative group/prompt-preprocess rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
+                      <pre className="p-3.5 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
+                        {preProcessConfig.prompt}
+                      </pre>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(String(preProcessConfig.prompt));
+                          setCopiedPreProcessPrompt(true);
+                          setTimeout(() => setCopiedPreProcessPrompt(false), 2000);
+                        }}
+                        className={cn(
+                          "absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                          copiedPreProcessPrompt
+                            ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                            : "bg-white border-slate-250 hover:bg-slate-50 text-slate-600 hover:text-slate-800"
+                        )}
+                        type="button"
+                      >
+                        {copiedPreProcessPrompt ? (
+                          <>
+                            <Check className="size-3 text-emerald-600" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="size-3 text-slate-400" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

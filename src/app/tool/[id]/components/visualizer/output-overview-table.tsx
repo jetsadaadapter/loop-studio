@@ -81,7 +81,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <OutputCell value={item.media} columnKey="media" />
               </td>
               <td className="px-4 py-3.5">
-                <OutputCell value={item.url || item.facebookUrl} columnKey="url" />
+                <OutputCell value={item.url || item.facebookUrl || (item as Record<string, unknown>).commentUrl} columnKey="url" />
               </td>
               <td className="px-4 py-3.5">
                 <OutputCell
@@ -102,7 +102,14 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <OutputCell value={item.analysis?.keywords} columnKey="keywords" />
               </td>
               <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
-                {item.likes !== undefined ? item.likes.toLocaleString() : "-"}
+                {(() => {
+                  const likes = item.likes !== undefined
+                    ? item.likes
+                    : (item as Record<string, unknown>).likesCount !== undefined
+                      ? Number((item as Record<string, unknown>).likesCount)
+                      : undefined;
+                  return likes !== undefined && !isNaN(likes) ? likes.toLocaleString() : "-";
+                })()}
               </td>
               <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
                 {(() => {

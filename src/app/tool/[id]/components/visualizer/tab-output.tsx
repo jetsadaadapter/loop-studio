@@ -65,11 +65,11 @@ export function TabOutput({ job }: TabOutputProps) {
   const hasAnalysis = items.some((item) => item.analysis);
   const allKeys = hasAnalysis
     ? [
-        ...baseKeys.filter((k) => k !== "likes" && k !== "comments" && k !== "commentsCount" && k !== "shares"),
+        ...baseKeys.filter((k) => k !== "likes" && k !== "likesCount" && k !== "comments" && k !== "commentsCount" && k !== "shares"),
         "sentiment",
         "summary",
         "keywords",
-        ...baseKeys.filter((k) => k === "likes" || k === "comments" || k === "commentsCount" || k === "shares"),
+        ...baseKeys.filter((k) => k === "likes" || k === "likesCount" || k === "comments" || k === "commentsCount" || k === "shares"),
       ]
     : baseKeys;
 

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
-  Terminal, History, Clock, ArrowLeft, Loader2, 
-  Play, Settings, FileText, Database, ShieldAlert, ChevronRight, Download,
+  Terminal, ArrowLeft, Loader2, 
+  Play, ShieldAlert, ChevronRight, Download,
   Maximize2, Minimize2
 } from "lucide-react";
-import type { Tool, ToolJob, ToolRun, GetToolJobsResponse } from "@/core/interfaces/tools.interface";
-import { getToolJob, getToolJobs } from "@/core/services/tools.service";
+import type { Tool, ToolJob, ToolRun } from "@/core/interfaces/tools.interface";
+import { getToolJob } from "@/core/services/tools.service";
 import { AppCover } from "@/components/app-cover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,12 +21,10 @@ import { ConsoleNavigation, type VisualizerTab } from "../../components/visualiz
 import { TabOutput } from "../../components/visualizer/tab-output";
 import { TabLog } from "../../components/visualizer/tab-log";
 import { TabInputStorage } from "../../components/visualizer/tab-input-storage";
-import packageInfo from "../../../../../../package.json";
 
 interface RunClientProps {
   tool: Tool;
   run: ToolRun;
-  initialJobs: GetToolJobsResponse;
   runId: string;
 }
 
@@ -64,13 +61,11 @@ const STATUS_COLORS: Record<string, { base: string; text: string; bg: string; do
   },
 };
 
-export function RunClient({ tool, run, initialJobs, runId }: RunClientProps) {
-  const router = useRouter();
+export function RunClient({ tool, run, runId }: RunClientProps) {
   const [activeJobId, setActiveJobId] = useState<string>(() => run.jobs[0]?.jobId || "");
   const [fullJob, setFullJob] = useState<ToolJob | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(false);
   const [activeVisualizerTab, setActiveVisualizerTab] = useState<VisualizerTab>("output");
-  const [jobsList, setJobsList] = useState<ToolJob[]>(initialJobs.data);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -116,10 +111,6 @@ export function RunClient({ tool, run, initialJobs, runId }: RunClientProps) {
     }
   };
 
-  const handleSidebarViewJob = (clickedRunId: string) => {
-    if (clickedRunId === runId) return;
-    router.push(`/tools/${tool.id}/runs/${clickedRunId}`);
-  };
 
   const activeJobCount = fullJob ? getItemCount(fullJob) : 0;
 
@@ -171,7 +162,7 @@ export function RunClient({ tool, run, initialJobs, runId }: RunClientProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Side: Run Pipeline Summary & Sub-Jobs list */}
         <div className={cn(
-          "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300",
+          "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit",
           isExpanded ? "hidden lg:hidden" : "block"
         )}>
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">

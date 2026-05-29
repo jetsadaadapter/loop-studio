@@ -85,79 +85,103 @@ export async function getAuthToken(): Promise<string | null> {
     }
 }
 
+const inflightRequests = new Map<string, Promise<unknown>>();
+
 export async function apiFetch<T>(
     url: string,
     init?: RequestInit,
 ): Promise<T> {
-    const incomingHeaders = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? "GET";
+    const isGet = method === "GET";
 
-    if (!incomingHeaders.has("Authorization")) {
-        const token = await getAuthToken();
-        if (token) {
-            incomingHeaders.set("Authorization", `Bearer ${token}`);
+    if (isGet) {
+        const cachedPromise = inflightRequests.get(url);
+        if (cachedPromise) {
+            console.log(`[Library API] Reusing in-flight request for: ${url}`);
+            return cachedPromise as Promise<T>;
         }
     }
 
-    if (!incomingHeaders.has("Content-Type")) {
-        incomingHeaders.set("Content-Type", "application/json");
-    }
+    const promise = (async () => {
+        const incomingHeaders = new Headers(init?.headers);
 
-    const hasAuth = incomingHeaders.has("Authorization");
-    console.log(`[Library API] → ${init?.method ?? "GET"} ${url}`);
-    console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING (Handled by Proxy)"}`);
-
-    const t0 = Date.now();
-    let res: Response;
-    try {
-        res = await fetch(url, {
-            headers: incomingHeaders,
-            credentials: "include",
-            ...init,
-        });
-    } catch (error) {
-        const err = error as Error & {
-            cause?: { code?: string; errno?: number; syscall?: string; address?: string; port?: number };
-        };
-
-        console.error("[Library API] ✗ Network fetch failed", {
-            url,
-            method: init?.method ?? "GET",
-            hasAuth,
-            message: err.message,
-            cause: err.cause,
-        });
-        throw error;
-    }
-    console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
-
-    if (res.status === 401) {
-        if (typeof window !== "undefined") {
-            window.location.href = "/api/auth/logout";
+        if (!incomingHeaders.has("Authorization")) {
+            const token = await getAuthToken();
+            if (token) {
+                incomingHeaders.set("Authorization", `Bearer ${token}`);
+            }
         }
-        throw new ApiError(401, "Unauthorized", url);
-    }
 
-    if (!res.ok) {
-        let parsedBody: unknown = undefined;
-        let bodyText = "";
+        if (!incomingHeaders.has("Content-Type")) {
+            incomingHeaders.set("Content-Type", "application/json");
+        }
+
+        const hasAuth = incomingHeaders.has("Authorization");
+        console.log(`[Library API] → ${init?.method ?? "GET"} ${url}`);
+        console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING (Handled by Proxy)"}`);
+
+        const t0 = Date.now();
+        let res: Response;
         try {
-            bodyText = await res.text();
-            parsedBody = bodyText ? JSON.parse(bodyText) : undefined;
-        } catch {
-            parsedBody = bodyText || undefined;
+            res = await fetch(url, {
+                headers: incomingHeaders,
+                credentials: "include",
+                ...init,
+            });
+        } catch (error) {
+            const err = error as Error & {
+                cause?: { code?: string; errno?: number; syscall?: string; address?: string; port?: number };
+            };
+
+            console.error("[Library API] ✗ Network fetch failed", {
+                url,
+                method: init?.method ?? "GET",
+                hasAuth,
+                message: err.message,
+                cause: err.cause,
+            });
+            throw error;
+        }
+        console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
+
+        if (res.status === 401) {
+            if (typeof window !== "undefined") {
+                window.location.href = "/api/auth/logout";
+            }
+            throw new ApiError(401, "Unauthorized", url);
         }
 
-        if (bodyText) {
-            console.error(`[Library API] ✗ Error body: ${bodyText.slice(0, 500)}`);
+        if (!res.ok) {
+            let parsedBody: unknown = undefined;
+            let bodyText = "";
+            try {
+                bodyText = await res.text();
+                parsedBody = bodyText ? JSON.parse(bodyText) : undefined;
+            } catch {
+                parsedBody = bodyText || undefined;
+            }
+
+            if (bodyText) {
+                console.error(`[Library API] ✗ Error body: ${bodyText.slice(0, 500)}`);
+            }
+
+            throw new ApiError(
+                res.status,
+                `Library API error ${res.status} ${res.statusText}`,
+                url,
+                parsedBody,
+            );
         }
 
-        throw new ApiError(
-            res.status,
-            `Library API error ${res.status} ${res.statusText}`,
-            url,
-            parsedBody,
-        );
+        return res.json() as Promise<T>;
+    })();
+
+    if (isGet) {
+        inflightRequests.set(url, promise);
+        promise.finally(() => {
+            inflightRequests.delete(url);
+        });
     }
 
-    return res.json() as Promise<T>;
+    return promise;
 }
