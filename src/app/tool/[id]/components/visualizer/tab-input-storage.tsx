@@ -202,7 +202,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs font-semibold text-slate-750 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                            <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
                               {valStr}
                             </span>
                           )}
@@ -217,7 +217,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
                     <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{promptKey}</span>
                     <div className="relative group/prompt rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
-                      <pre className="p-4 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
+                      <pre className="p-4 pr-24 text-xs font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
                         {promptVal}
                       </pre>
                       <button
@@ -355,7 +355,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs font-semibold text-slate-750 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                          <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
                             {valStr}
                           </span>
                         )}
@@ -374,7 +374,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                         <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
                           <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{key}</span>
                           <div className="relative group/prompt-config rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
-                            <pre className="p-3.5 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-40 overflow-y-auto">
+                            <pre className="p-3.5 pr-24 text-xs font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-40 overflow-y-auto">
                               {val}
                             </pre>
                             <button
