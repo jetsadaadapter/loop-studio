@@ -102,10 +102,10 @@ interface ToolFormDrawerProps {
 
 function getFormValidationErrors(formState: FormState): {
   nameError: string;
-  paramErrors: Record<string, { key?: string; label?: string }>;
+  paramErrors: Record<string, { key?: string; label?: string; configPrompt?: string }>;
   validationError: string | null;
 } {
-  const nextParamErrors: Record<string, { key?: string; label?: string }> = {};
+  const nextParamErrors: Record<string, { key?: string; label?: string; configPrompt?: string }> = {};
   let nameError = "";
   let hasParamErrors = false;
 
@@ -114,13 +114,17 @@ function getFormValidationErrors(formState: FormState): {
   }
 
   formState.params.forEach((p) => {
-    const fieldErrors: { key?: string; label?: string } = {};
+    const fieldErrors: { key?: string; label?: string; configPrompt?: string } = {};
     if (!p.key.trim()) {
       fieldErrors.key = "Key is required";
       hasParamErrors = true;
     }
     if (!p.label.trim()) {
       fieldErrors.label = "Label is required";
+      hasParamErrors = true;
+    }
+    if (p.type === "prompt" && !p.configPrompt.trim()) {
+      fieldErrors.configPrompt = "System Prompt is required for AI prompts";
       hasParamErrors = true;
     }
     if (Object.keys(fieldErrors).length > 0) {
@@ -131,7 +135,7 @@ function getFormValidationErrors(formState: FormState): {
   return {
     nameError,
     paramErrors: nextParamErrors,
-    validationError: hasParamErrors ? "Every parameter must have a key and a label." : null,
+    validationError: hasParamErrors ? "Every parameter must be fully and validly configured." : null,
   };
 }
 
@@ -143,7 +147,7 @@ function ToolFormInner({
   const [form, setForm] = useState<FormState>(() => buildInitialState(tool));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [paramErrors, setParamErrors] = useState<Record<string, { key?: string; label?: string }>>({});
+  const [paramErrors, setParamErrors] = useState<Record<string, { key?: string; label?: string; configPrompt?: string }>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   function update(partial: Partial<FormState>) {
@@ -215,16 +219,16 @@ function ToolFormInner({
 
           <div className="space-y-1.5">
             <Label htmlFor="tf-name" className="text-sm font-medium text-slate-700">
-              Tool Name <span className="text-rose-500">*</span>
+              Tool Name <span className="text-brand">*</span>
             </Label>
             <Input
               id="tf-name"
               value={form.name}
               onChange={(e) => update({ name: e.target.value })}
               placeholder="e.g. FB Post Analyzer"
-              className={errors.name ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100 bg-white" : "bg-white"}
+              className={errors.name ? "border-brand focus-visible:ring-brand focus-visible:border-brand-strong/30 shadow-xs shadow-brand/5 bg-white" : "bg-white"}
             />
-            {errors.name && <p className="text-[11px] font-semibold text-rose-500 mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-[11px] font-semibold text-brand mt-1">{errors.name}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -256,8 +260,8 @@ function ToolFormInner({
         {/* Parameters */}
         <div className="space-y-3">
           {validationError && (
-            <div className="rounded-xl border border-rose-150 bg-rose-50/60 px-4 py-2.5 text-xs text-rose-600 font-semibold mb-2 animate-fade-in flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" aria-hidden />
+            <div className="rounded-xl border border-brand/10 bg-brand/5 px-4 py-2.5 text-xs text-brand font-semibold mb-2 animate-fade-in flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-brand animate-pulse" aria-hidden />
               {validationError}
             </div>
           )}

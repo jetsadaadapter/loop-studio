@@ -88,7 +88,7 @@ export function ManagerDeleteConfirm({
                   className="h-8.5 border-slate-200 bg-white/50 focus-visible:ring-brand focus-visible:border-brand-strong/30 text-[11px] rounded-lg shadow-2xs transition-all placeholder:text-slate-350"
                 />
                 {confirmationInput.trim() !== "" && !isConfirmationValid ? (
-                  <p className="text-[9.5px] font-medium text-rose-500 mt-0.5 flex items-center gap-1 animate-fade-in">
+                  <p className="text-[9.5px] font-medium text-brand mt-0.5 flex items-center gap-1 animate-fade-in">
                     <AlertTriangle className="size-3 shrink-0" />
                     <span>Input does not match target name exactly.</span>
                   </p>

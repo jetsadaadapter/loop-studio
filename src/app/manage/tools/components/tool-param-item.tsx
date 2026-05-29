@@ -15,6 +15,7 @@ import {
 import type { ParamDraft } from "./types";
 import { getManageAiModels } from "@/core/services/models.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
+import { PromptEditor } from "./prompt-editor";
 
 const PARAM_TYPES = [
   { value: "string", label: "String" },
@@ -30,7 +31,7 @@ interface ToolParamItemProps {
   index: number;
   onChange: (draft: ParamDraft) => void;
   onRemove: () => void;
-  error?: { key?: string; label?: string };
+  error?: { key?: string; label?: string; configPrompt?: string };
 }
 
 export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolParamItemProps) {
@@ -74,7 +75,7 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
       {showConfirm && (
         <div className="rounded-xl border border-slate-200/60 bg-slate-50/80 p-3.5 animate-fade-in flex flex-col gap-2.5 shadow-2xs">
           <div className="flex items-start gap-2 text-left">
-            <span className="size-1.5 rounded-full bg-rose-500 animate-pulse mt-1.5 shrink-0" />
+            <span className="size-1.5 rounded-full bg-brand animate-pulse mt-1.5 shrink-0" />
             <div className="space-y-0.5">
               <p className="text-xs font-bold text-slate-800">Delete Parameter?</p>
               <p className="text-[10px] leading-relaxed text-slate-500 font-medium">
@@ -93,12 +94,11 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             </Button>
             <Button
               type="button"
-              variant="destructive"
               onClick={() => {
                 setShowConfirm(false);
                 onRemove();
               }}
-              className="h-7 px-2.5 text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm"
+              className="h-7 px-2.5 text-[10px] font-bold bg-brand hover:bg-brand-strong text-white rounded-lg shadow-sm border-none cursor-pointer"
             >
               Delete
             </Button>
@@ -115,7 +115,7 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="size-7 text-slate-400 hover:bg-brand/5 hover:text-brand transition-colors"
           onClick={() => {
             const isSaved = param.id && !param.id.startsWith("local-") && param.id.length > 8;
             if (isSaved) {
@@ -133,34 +133,40 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
       {/* Core fields grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <Label className={`text-xs font-semibold ${error?.key ? "text-rose-500" : "text-slate-600"}`}>
-            Key <span className="text-rose-500">*</span>
+          <Label className={`text-xs font-semibold ${error?.key ? "text-brand" : "text-slate-600"}`}>
+            Key <span className="text-brand">*</span>
           </Label>
           <Input
             value={param.key}
             onChange={(e) => update({ key: e.target.value.replace(/[^a-zA-Z0-9_]/g, "") })}
             placeholder="e.g. startUrls"
-            className={`h-8 bg-white text-xs ${error?.key ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
-              }`}
+            className={`h-8 bg-white text-xs ${
+              error?.key
+                ? "border-brand focus-visible:ring-brand focus-visible:border-brand-strong/30 shadow-xs shadow-brand/5"
+                : "border-slate-200"
+            }`}
           />
-          {error?.key && <p className="text-[9px] text-rose-500 font-semibold leading-none mt-1">{error.key}</p>}
+          {error?.key && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.key}</p>}
         </div>
         <div className="space-y-1">
-          <Label className={`text-xs font-semibold ${error?.label ? "text-rose-500" : "text-slate-600"}`}>
-            Label <span className="text-rose-500">*</span>
+          <Label className={`text-xs font-semibold ${error?.label ? "text-brand" : "text-slate-600"}`}>
+            Label <span className="text-brand">*</span>
           </Label>
           <Input
             value={param.label}
             onChange={(e) => update({ label: e.target.value })}
             placeholder="e.g. Post URLs"
-            className={`h-8 bg-white text-xs ${error?.label ? "border-rose-400 focus-visible:ring-rose-400 shadow-sm shadow-rose-100" : "border-slate-200"
-              }`}
+            className={`h-8 bg-white text-xs ${
+              error?.label
+                ? "border-brand focus-visible:ring-brand focus-visible:border-brand-strong/30 shadow-xs shadow-brand/5"
+                : "border-slate-200"
+            }`}
           />
-          {error?.label && <p className="text-[9px] text-rose-500 font-semibold leading-none mt-1">{error.label}</p>}
+          {error?.label && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.label}</p>}
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs font-semibold text-slate-600">Type <span className="text-rose-500">*</span></Label>
+          <Label className="text-xs font-semibold text-slate-600">Type <span className="text-brand">*</span></Label>
           <Select value={param.type} onValueChange={(v) => { if (v !== null) update({ type: v }); }}>
             <SelectTrigger className="h-8 bg-white border-slate-200 text-xs">
               <SelectValue />
@@ -243,14 +249,21 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs font-semibold text-slate-600">System Prompt</Label>
-            <Textarea
-              value={param.configPrompt}
-              onChange={(e) => update({ configPrompt: e.target.value })}
+            <Label className={`text-xs font-semibold ${error?.configPrompt ? "text-brand" : "text-slate-600"}`}>
+              System Prompt <span className="text-brand">*</span>
+            </Label>
+            <PromptEditor
+              value={param.configPrompt || ""}
+              onChange={(v) => update({ configPrompt: v })}
               placeholder="Enter system prompt instructions…"
-              rows={4}
-              className="resize-y bg-white border-slate-200 text-xs leading-relaxed"
+              disabled={isLoadingModels}
+              hasError={!!error?.configPrompt}
             />
+            {error?.configPrompt && (
+              <p className="text-[9px] text-brand font-semibold leading-none mt-1">
+                {error.configPrompt}
+              </p>
+            )}
           </div>
         </div>
       )}

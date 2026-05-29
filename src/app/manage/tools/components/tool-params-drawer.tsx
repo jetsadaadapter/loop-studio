@@ -57,13 +57,13 @@ function fetchToolParamsDeduplicated(toolId: string): Promise<ToolParam[]> {
 
 function getValidationErrors(paramsList: ParamDraft[]): {
   validationError: string | null;
-  errors: Record<string, { key?: string; label?: string }>;
+  errors: Record<string, { key?: string; label?: string; configPrompt?: string }>;
 } {
-  const nextErrors: Record<string, { key?: string; label?: string }> = {};
+  const nextErrors: Record<string, { key?: string; label?: string; configPrompt?: string }> = {};
   let hasErrors = false;
 
   paramsList.forEach((p) => {
-    const fieldErrors: { key?: string; label?: string } = {};
+    const fieldErrors: { key?: string; label?: string; configPrompt?: string } = {};
     if (!p.key.trim()) {
       fieldErrors.key = "Key is required";
       hasErrors = true;
@@ -72,13 +72,17 @@ function getValidationErrors(paramsList: ParamDraft[]): {
       fieldErrors.label = "Label is required";
       hasErrors = true;
     }
+    if (p.type === "prompt" && !p.configPrompt.trim()) {
+      fieldErrors.configPrompt = "System Prompt is required for AI prompts";
+      hasErrors = true;
+    }
     if (Object.keys(fieldErrors).length > 0) {
       nextErrors[p._localId] = fieldErrors;
     }
   });
 
   return {
-    validationError: hasErrors ? "Every parameter must have a key and a label." : null,
+    validationError: hasErrors ? "Every parameter must be fully and validly configured." : null,
     errors: nextErrors,
   };
 }
@@ -102,7 +106,7 @@ function ToolParamsDrawerInner({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, { key?: string; label?: string }>>({});
+  const [errors, setErrors] = useState<Record<string, { key?: string; label?: string; configPrompt?: string }>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   const toolId = tool?.id;
@@ -193,7 +197,7 @@ function ToolParamsDrawerInner({
           </div>
         ) : errorMsg ? (
           <div className="text-center py-10 space-y-3">
-            <p className="text-sm text-rose-500 font-medium">{errorMsg}</p>
+            <p className="text-sm text-brand font-medium">{errorMsg}</p>
             <Button
               variant="outline"
               size="sm"
@@ -211,8 +215,8 @@ function ToolParamsDrawerInner({
         ) : (
           <div className="space-y-4">
             {validationError && (
-              <div className="rounded-xl border border-rose-150 bg-rose-50/60 px-4 py-2.5 text-xs text-rose-600 font-semibold mb-2 animate-fade-in flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" aria-hidden />
+              <div className="rounded-xl border border-brand/10 bg-brand/5 px-4 py-2.5 text-xs text-brand font-semibold mb-2 animate-fade-in flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-brand animate-pulse" aria-hidden />
                 {validationError}
               </div>
             )}

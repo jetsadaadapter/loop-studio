@@ -21,7 +21,7 @@ function createEmptyParam(sortOrder: number): ParamDraft {
 interface ToolParamBuilderProps {
   params: ParamDraft[];
   onChange: (params: ParamDraft[]) => void;
-  errors?: Record<string, { key?: string; label?: string }>;
+  errors?: Record<string, { key?: string; label?: string; configPrompt?: string }>;
 }
 
 export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderProps) {
