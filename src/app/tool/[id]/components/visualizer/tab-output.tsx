@@ -10,6 +10,7 @@ import { OutputCell, getHeaderLabel } from "./cell-renderer";
 import { TablePagination } from "./table-pagination";
 import { OutputOverviewTable } from "./output-overview-table";
 import { CommentThreadCard, type CommentItem } from "./comment-thread-card";
+import { IntentAnalysisCard, type IntentAnalysisItem } from "./intent-analysis-card";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -24,6 +25,10 @@ export function TabOutput({ job }: TabOutputProps) {
 
   const items = getMergedGeminiItems(job);
   const isCommentScraper = items.some(item => (item as Record<string, unknown>).commentId || (item as Record<string, unknown>).profileName);
+  const isIntentAnalysis = items.some(item => {
+    const a = (item as Record<string, unknown>).analysis as Record<string, unknown> | undefined;
+    return Array.isArray(a?.keywords);
+  });
 
   if (items.length === 0) {
     return (
@@ -55,7 +60,7 @@ export function TabOutput({ job }: TabOutputProps) {
   ).filter((k) => {
     if (k === "analysis") return false; // Filter out analysis object to keep table clean
     if (k === "media") return true; // Explicitly preserve media because we have a premium interactive popover for it
-    
+
     // Show only primitive fields that are NOT object/array children (null counts as primitive)
     return !items.some((item) => {
       const val = (item as Record<string, unknown>)[k];
@@ -67,12 +72,12 @@ export function TabOutput({ job }: TabOutputProps) {
   const hasAnalysis = items.some((item) => item.analysis);
   const allKeys = hasAnalysis
     ? [
-        ...baseKeys.filter((k) => k !== "likes" && k !== "likesCount" && k !== "comments" && k !== "commentsCount" && k !== "shares"),
-        "sentiment",
-        "summary",
-        "keywords",
-        ...baseKeys.filter((k) => k === "likes" || k === "likesCount" || k === "comments" || k === "commentsCount" || k === "shares"),
-      ]
+      ...baseKeys.filter((k) => k !== "likes" && k !== "likesCount" && k !== "comments" && k !== "commentsCount" && k !== "shares"),
+      "sentiment",
+      "summary",
+      "keywords",
+      ...baseKeys.filter((k) => k === "likes" || k === "likesCount" || k === "comments" || k === "commentsCount" || k === "shares"),
+    ]
     : baseKeys;
 
   const getValue = (item: ScrapedJobItem, key: string) => {
@@ -95,7 +100,7 @@ export function TabOutput({ job }: TabOutputProps) {
               innerTab === "overview" ? "bg-white text-slate-800 shadow-xs" : "text-slate-500 hover:text-slate-800"
             )}
           >
-            {isCommentScraper ? "Thread view" : "Overview"}
+            {isCommentScraper ? "Thread view" : isIntentAnalysis ? "Intent Analysis" : "Overview"}
           </button>
           <button
             onClick={() => setInnerTab("all")}
@@ -145,6 +150,18 @@ export function TabOutput({ job }: TabOutputProps) {
               <div className="max-w-4xl mx-auto space-y-6">
                 {paginatedItems.map((item, idx) => (
                   <CommentThreadCard key={`comment-${(item as Record<string, unknown>).id || idx}`} comment={item as unknown as CommentItem} />
+                ))}
+              </div>
+            </div>
+          ) : isIntentAnalysis ? (
+            <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
+              <div className="max-w-4xl mx-auto space-y-5">
+                {paginatedItems.map((item, idx) => (
+                  <IntentAnalysisCard
+                    key={`intent-${startIndex + idx}`}
+                    item={item as unknown as IntentAnalysisItem}
+                    index={startIndex + idx}
+                  />
                 ))}
               </div>
             </div>

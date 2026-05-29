@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Terminal, ArrowLeft, Loader2,
+  Terminal, ArrowLeft,
   Play, ShieldAlert, ChevronRight, Download,
   Maximize2, Minimize2
 } from "lucide-react";
+import { RunConsoleSkeleton } from "./run-console-skeleton";
 import Image from "next/image";
 import type { Tool, ToolJob, ToolRun } from "@/core/interfaces/tools.interface";
 import { getToolJob } from "@/core/services/tools.service";
@@ -225,11 +226,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
           isExpanded ? "lg:col-span-3" : "lg:col-span-2"
         )}>
           {isLoadingJob ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white text-slate-400 select-none">
-              <Loader2 className="size-8 text-brand animate-spin" />
-              <p className="text-xs font-bold text-slate-700">Loading Console workspace...</p>
-              <p className="text-[10px] text-slate-450">Fetching job run datasets and memory logs...</p>
-            </div>
+            <RunConsoleSkeleton />
           ) : fullJob ? (
             <div className="flex-1 flex flex-col h-full overflow-hidden">
               {/* Inline Header Details */}

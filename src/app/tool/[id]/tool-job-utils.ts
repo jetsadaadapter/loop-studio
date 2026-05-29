@@ -61,6 +61,15 @@ export interface AnalysisResult {
         count: number;
         percentage: number;
     }>;
+    // Consumer-intent analysis (purchase intent job)
+    postUrl?: string;
+    groups?: Array<{
+        label: string;
+        count: number;
+        percentage: number;
+    }>;
+    verdict?: string;
+    conversionLeader?: boolean;
 }
 
 export interface ScrapedComment {
@@ -156,8 +165,20 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
 
     const previousItems = (job.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
     const geminiItems = job.result?.items || [];
+    const wrapResult = (job.config as Record<string, unknown> | undefined)?.wrapResult === true;
 
-    // Map each previous scraper item to a merged item
+    // If no gemini result yet but we have previous scraper items, display them as-is (no analysis)
+    if (geminiItems.length === 0 && previousItems.length > 0) {
+        return previousItems.map((prevItem, idx) => ({
+            ...prevItem,
+            sourceIndex: idx,
+            sourceKey: "postId",
+            analysis: undefined,
+            sourceKeyValue: prevItem.postId || prevItem.id || prevItem._id,
+        } as unknown as ScrapedJobItem));
+    }
+
+    // Map each previous scraper item to a merged item with Gemini analysis
     return previousItems.map((prevItem, idx) => {
         const matchedGemini = geminiItems.find((g) => {
             const sourceVal = String(g.sourceKeyValue || "");
@@ -171,12 +192,29 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             return indexMatch || idMatch;
         });
 
-        // Construct the merged ScrapedJobItem
+        // Build analysis: wrapResult=true stores fields at top-level of result item, not under .analysis
+        let analysis: AnalysisResult | undefined = matchedGemini?.analysis as AnalysisResult | undefined;
+        if (!analysis && matchedGemini && wrapResult) {
+            const g = matchedGemini as Record<string, unknown>;
+            // Collect any recognizable analysis fields from the top-level result item
+            const hasFlatAnalysis = g.sentiment || g.summary || g.keywords || g.groups || g.verdict;
+            if (hasFlatAnalysis) {
+                analysis = {
+                    sentiment: g.sentiment as string | undefined,
+                    summary: g.summary as string | undefined,
+                    keywords: g.keywords as string[] | undefined,
+                    groups: g.groups as AnalysisResult["groups"],
+                    verdict: g.verdict as string | undefined,
+                    conversionLeader: g.conversionLeader as boolean | undefined,
+                };
+            }
+        }
+
         return {
             ...prevItem,
             sourceIndex: idx,
             sourceKey: matchedGemini?.sourceKey || "postId",
-            analysis: matchedGemini?.analysis || undefined,
+            analysis,
             sourceKeyValue: matchedGemini?.sourceKeyValue || prevItem.postId || prevItem.id || prevItem._id,
         } as unknown as ScrapedJobItem;
     });
