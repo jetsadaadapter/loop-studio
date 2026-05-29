@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
 import { ExportDatasetModal } from "../../components/visualizer/export-dataset-modal";
+import { JobStatusBadge } from "../../components/job-status-badge";
 
 // Reuse existing high-quality visualizer components
 import { ConsoleNavigation, type VisualizerTab } from "../../components/visualizer/console-navigation";
@@ -29,38 +30,7 @@ interface RunClientProps {
   runId: string;
 }
 
-const STATUS_COLORS: Record<string, { base: string; text: string; bg: string; dot: string }> = {
-  completed: { 
-    base: "bg-emerald-500", 
-    text: "text-emerald-600", 
-    bg: "bg-emerald-50/60 border-emerald-200/50 shadow-[0_0_8px_rgba(16,185,129,0.08)]",
-    dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse"
-  },
-  active: { 
-    base: "bg-amber-550 animate-pulse", 
-    text: "text-amber-600", 
-    bg: "bg-amber-50/60 border-amber-200/50 shadow-[0_0_8px_rgba(245,158,11,0.08)]",
-    dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
-  },
-  running: { 
-    base: "bg-amber-550 animate-pulse", 
-    text: "text-amber-600", 
-    bg: "bg-amber-50/60 border-amber-200/50 shadow-[0_0_8px_rgba(245,158,11,0.08)]",
-    dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
-  },
-  failed: { 
-    base: "bg-rose-500", 
-    text: "text-rose-600", 
-    bg: "bg-rose-50/60 border-rose-200/50 shadow-[0_0_8px_rgba(244,63,94,0.08)]",
-    dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse"
-  },
-  queued: { 
-    base: "bg-blue-500/80 animate-pulse", 
-    text: "text-blue-600", 
-    bg: "bg-blue-50/60 border-blue-200/50 shadow-[0_0_8px_rgba(59,130,246,0.08)]",
-    dot: "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] animate-pulse"
-  },
-};
+// Status color mapping is now fully encapsulated inside the reusable JobStatusBadge component
 
 export function RunClient({ tool, run, runId }: RunClientProps) {
   const [activeJobId, setActiveJobId] = useState<string>(() => run.jobs[0]?.jobId || "");
@@ -171,13 +141,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               <Play className="size-4 text-brand" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">Run Pipeline</h3>
             </div>
-            <div className={cn(
-              "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider transition-all duration-205 shrink-0",
-              STATUS_COLORS[overallState]?.bg
-            )}>
-              <span className={cn("size-1.5 rounded-full shrink-0", STATUS_COLORS[overallState]?.dot)} />
-              <span>{overallState}</span>
-            </div>
+            <JobStatusBadge status={overallState} />
           </div>
 
           {/* Jobs List Step-by-Step */}
@@ -233,13 +197,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                     </div>
                       
                       <div className="flex items-center gap-2 mt-2 select-none">
-                        <span className={cn(
-                          "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider transition-all duration-205 shrink-0",
-                          STATUS_COLORS[jobStatus]?.bg
-                        )}>
-                          <span className={cn("size-1.5 rounded-full shrink-0", STATUS_COLORS[jobStatus]?.dot)} />
-                          {jobStatus}
-                        </span>
+                        <JobStatusBadge status={jobStatus} />
                         <span className="text-[9px] text-slate-400 font-medium">
                           {formattedTime(job.createdAt)}
                         </span>

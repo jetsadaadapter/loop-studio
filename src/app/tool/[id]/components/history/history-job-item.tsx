@@ -7,6 +7,7 @@ import { ChevronRight, ChevronDown, ChevronUp, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
+import { JobStatusBadge } from "../job-status-badge";
 
 interface HistoryJobItemProps {
   job: ToolJob;
@@ -113,36 +114,7 @@ export function HistoryJobItem({
           </div>
 
           {/* Status Badge */}
-          <div
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider transition-all duration-205 shrink-0",
-              status === "completed"
-                ? "bg-emerald-50/60 border-emerald-200/50 text-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
-                : status === "running" || status === "active"
-                  ? "bg-amber-50/60 border-amber-200/50 text-amber-600 shadow-[0_0_8px_rgba(245,158,11,0.08)] animate-pulse"
-                  : status === "queued"
-                    ? "bg-blue-50/60 border-blue-200/50 text-blue-600 shadow-[0_0_8px_rgba(59,130,246,0.08)] animate-pulse"
-                    : status === "failed"
-                      ? "bg-rose-50/60 border-rose-200/50 text-rose-600 shadow-[0_0_8px_rgba(244,63,94,0.08)]"
-                      : "bg-slate-50 border-slate-200 text-slate-500"
-            )}
-          >
-            <span
-              className={cn(
-                "size-1.5 rounded-full shrink-0",
-                status === "completed"
-                  ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
-                  : status === "running" || status === "active"
-                    ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse"
-                    : status === "queued"
-                      ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] animate-pulse"
-                      : status === "failed"
-                        ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]"
-                        : "bg-slate-400"
-              )}
-            />
-            <span>{status}</span>
-          </div>
+          <JobStatusBadge status={status} />
         </div>
 
         {/* Dynamic Segmented Progress Bar (Sleek Horizontal Capsules like Image 2) */}
