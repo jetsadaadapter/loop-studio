@@ -91,41 +91,43 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
   return (
     <div className="pb-10">
       <div className="mb-6">
-        <AppCover src={null} alt={`${tool.name} run cover`} accentColor="#0ea5e9">
+        <AppCover src={null} alt={`${tool.name} run cover`} accentColor={tool.accentColor || "#c20019"}>
           <div className="pt-5 sm:pt-8 flex flex-wrap gap-3">
             <Link
               href={`/tool/${tool.id}`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/30 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-black/5 hover:shadow-lg cursor-pointer"
             >
               <ArrowLeft className="size-3.5" />
-              Back to {tool.name}
+              <span>Back to {tool.name}</span>
             </Link>
             <Link
               href="/apps"
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-xs font-semibold text-slate-300 backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-xs font-bold text-slate-200 backdrop-blur-md transition-all duration-300 hover:bg-white/15 hover:border-white/20 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-black/5 hover:shadow-lg cursor-pointer"
             >
-              All Apps
+              <span>All Apps</span>
             </Link>
           </div>
 
           <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-56 sm:py-8 sm:pt-14 lg:min-h-64 lg:py-10">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 mb-2 flex-wrap select-none">
-                <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[9.5px] font-bold text-white shadow-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 mb-3.5 flex-wrap select-none">
+                <span className="rounded-full bg-linear-to-r from-red-500/10 to-brand/20 border border-brand/40 px-3 py-1 text-[9px] font-black text-white shadow-xs uppercase tracking-wider">
                   Automation Run Detail
                 </span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[9.5px] font-extrabold text-slate-400 font-sans">
+                <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[9px] font-extrabold text-slate-350 font-sans tracking-wide">
                   RUN #{runId.slice(0, 12).toUpperCase()}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg shrink-0">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-linear-to-br from-brand via-brand-strong to-rose-700 border border-white/20 backdrop-blur-md rounded-2xl shadow-xl shadow-brand/10 shrink-0">
                   <Terminal className="size-6 text-white animate-pulse" />
                 </div>
-                <h1 className="page-hero-title text-white">Execution Console</h1>
+                <h1 className="page-hero-title font-black tracking-tight text-white bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
+                  Execution Console
+                </h1>
               </div>
-              <p className="mt-3 text-xs sm:text-sm text-slate-350 max-w-2xl font-medium">
-                Inspecting multi-agent job orchestration pipelines for {tool.name}. Select a sub-job step from the execution list to inspect dynamic outputs and logs.
+              <p className="mt-4 text-xs sm:text-[13px] text-slate-300 leading-relaxed max-w-2xl font-medium select-text">
+                Inspecting multi-agent job orchestration pipelines for <span className="text-white font-extrabold bg-white/10 px-1.5 py-0.5 rounded-md border border-white/5 mx-0.5">{tool.name}</span>. Select a sub-job step from the execution list to inspect dynamic outputs and logs.
               </p>
             </div>
           </div>

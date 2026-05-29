@@ -247,17 +247,17 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   return (
     <div className="pb-6">
       <div className="mb-6">
-        <AppCover src={null} alt={`${tool.name} cover`} accentColor="#0ea5e9">
+        <AppCover src={null} alt={`${tool.name} cover`} accentColor={tool.accentColor || "#c20019"}>
           <div className="pt-5 sm:pt-8">
             <Link
               href="/apps"
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/10 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5 active:scale-95 duration-200"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/30 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-black/5 hover:shadow-lg cursor-pointer"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className="size-4"
+                className="size-3.5"
               >
                 <path
                   fillRule="evenodd"
@@ -265,26 +265,26 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                   clipRule="evenodd"
                 />
               </svg>
-              Back to Library
+              <span>Back to Library</span>
             </Link>
           </div>
           <div className="relative z-10 flex min-h-48 flex-col justify-end py-5 pt-10 text-white sm:min-h-64 sm:py-8 sm:pt-16 lg:min-h-80 lg:py-10 lg:pt-20">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 mb-2.5 flex-wrap select-none">
-                <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 mb-3.5 flex-wrap select-none">
+                <span className="rounded-full bg-linear-to-r from-red-500/10 to-brand/20 border border-brand/40 px-3 py-1 text-[9px] font-black text-white shadow-xs uppercase tracking-wider">
                   AI Automation
                 </span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
+                <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[9px] font-extrabold text-slate-355 tracking-wide">
                   v{packageInfo.version}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow-lg shrink-0 hidden sm:flex">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-linear-to-br from-brand via-brand-strong to-rose-700 border border-white/20 backdrop-blur-md rounded-2xl shadow-xl shadow-brand/10 shrink-0 hidden sm:flex">
                   <Terminal className="size-6 text-white animate-pulse" />
                 </div>
-                <h1 className="page-hero-title text-white">{tool.name}</h1>
+                <h1 className="page-hero-title font-black tracking-tight text-white bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">{tool.name}</h1>
               </div>
-              <p className="mt-4 text-sm sm:text-base text-slate-350 max-w-2xl leading-relaxed font-semibold">
+              <p className="mt-4 text-xs sm:text-[13px] text-slate-300 leading-relaxed max-w-2xl font-medium select-text">
                 {tool.description ||
                   "Configure and run this automated tool to analyze your data."}
               </p>

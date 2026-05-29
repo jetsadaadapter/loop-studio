@@ -37,6 +37,7 @@ export interface Tool {
     id: string;
     name: string;
     description: string | null;
+    accentColor?: string | null;
     sortOrder: number;
     isActive: boolean;
     userId: string;
