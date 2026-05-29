@@ -7,6 +7,7 @@ import {
   Play, ShieldAlert, ChevronRight, Download,
   Maximize2, Minimize2
 } from "lucide-react";
+import Image from "next/image";
 import type { Tool, ToolJob, ToolRun } from "@/core/interfaces/tools.interface";
 import { getToolJob } from "@/core/services/tools.service";
 import { AppCover } from "@/components/app-cover";
@@ -171,7 +172,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">Run Pipeline</h3>
             </div>
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider",
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider transition-all duration-205 shrink-0",
               STATUS_COLORS[overallState]?.bg
             )}>
               <span className={cn("size-1.5 rounded-full shrink-0", STATUS_COLORS[overallState]?.dot)} />
@@ -204,27 +205,46 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
 
                   <div className={cn("min-w-0 flex-1", isSelected && "pl-1")}>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] font-extrabold text-slate-800 tracking-tight leading-none capitalize">
+                      {pluginLower === "apify" ? (
+                        <Image
+                          src="/images/icons/apify-symbol-200x200.svg"
+                          alt="Apify"
+                          width={14}
+                          height={14}
+                          className="size-3.5 shrink-0 object-contain select-none"
+                        />
+                      ) : pluginLower === "gemini" ? (
+                        <Image
+                          src="/images/icons/gemini-color.svg"
+                          alt="Gemini"
+                          width={14}
+                          height={14}
+                          className="size-3.5 shrink-0 object-contain select-none animate-pulse"
+                        />
+                      ) : (
+                        <Terminal className="size-3.5 shrink-0 text-slate-400" />
+                      )}
+                      <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none capitalize">
                         {pluginLower} Scraper
                       </span>
-                      <span className="text-[8px] px-1 py-0.5 bg-slate-100 border border-slate-200/50 text-slate-400 font-extrabold rounded">
+                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
                         {slicedJobId}
                       </span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 mt-2 select-none">
-                      <span className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8px] font-extrabold uppercase tracking-wider",
-                        STATUS_COLORS[jobStatus]?.bg
-                      )}>
-                        <span className={cn("size-1 rounded-full", STATUS_COLORS[jobStatus]?.dot)} />
-                        {jobStatus}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-medium">
-                        {formattedTime(job.createdAt)}
-                      </span>
+                      
+                      <div className="flex items-center gap-2 mt-2 select-none">
+                        <span className={cn(
+                          "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-extrabold uppercase select-none tracking-wider transition-all duration-205 shrink-0",
+                          STATUS_COLORS[jobStatus]?.bg
+                        )}>
+                          <span className={cn("size-1.5 rounded-full shrink-0", STATUS_COLORS[jobStatus]?.dot)} />
+                          {jobStatus}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-medium">
+                          {formattedTime(job.createdAt)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
                   
                   <ChevronRight className={cn(
                     "size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",

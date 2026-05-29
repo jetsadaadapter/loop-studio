@@ -157,7 +157,7 @@ export function ToolHistorySidebar({
                       className={cn(
                         "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
                         isActive
-                          ? "bg-slate-800 border-slate-800 text-white shadow-sm"
+                          ? "bg-brand border-brand text-white shadow-sm"
                           : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
                       )}
                     >
@@ -283,7 +283,7 @@ export function ToolHistorySidebar({
                       className={cn(
                         "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
                         isActive
-                          ? "bg-slate-800 border-slate-800 text-white shadow-sm"
+                          ? "bg-brand border-brand text-white shadow-sm"
                           : "bg-white border-slate-200/80 text-slate-550 hover:bg-slate-50"
                       )}
                     >

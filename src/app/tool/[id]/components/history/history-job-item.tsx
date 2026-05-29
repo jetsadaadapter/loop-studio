@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { ChevronRight, ChevronDown, ChevronUp, Globe, Sparkles, Terminal } from "lucide-react";
+import { ChevronRight, ChevronDown, ChevronUp, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
@@ -33,12 +34,7 @@ export function HistoryJobItem({
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
 
-  const PluginIcon =
-    pluginLower === "apify"
-      ? Globe
-      : pluginLower === "gemini"
-        ? Sparkles
-        : Terminal;
+  // Plugin icons are rendered directly using SVG Image components below
 
   const formattedTime = (() => {
     if (!job.createdAt) return "just now";
@@ -87,14 +83,25 @@ export function HistoryJobItem({
         {/* Top Row: Title + ID (Left), Status Badge (Right) */}
         <div className="flex items-center gap-2 w-full justify-between">
           <div className="flex items-center gap-1.5 min-w-0">
-            <PluginIcon
-              className={cn(
-                "size-3.5 shrink-0",
-                pluginLower === "apify" ? "text-indigo-500/90" :
-                  pluginLower === "gemini" ? "text-purple-500/90" :
-                    "text-slate-500/90"
-              )}
-            />
+            {pluginLower === "apify" ? (
+              <Image
+                src="/images/icons/apify-symbol-200x200.svg"
+                alt="Apify"
+                width={14}
+                height={14}
+                className="size-3.5 shrink-0 object-contain select-none"
+              />
+            ) : pluginLower === "gemini" ? (
+              <Image
+                src="/images/icons/gemini-color.svg"
+                alt="Gemini"
+                width={14}
+                height={14}
+                className="size-3.5 shrink-0 object-contain select-none animate-pulse"
+              />
+            ) : (
+              <Terminal className="size-3.5 shrink-0 text-slate-500/90" />
+            )}
             <h4 className="text-xs font-bold text-slate-800 tracking-tight truncate leading-none">
               {friendlyTitle}
             </h4>
@@ -234,12 +241,7 @@ export function HistoryJobItem({
                   hour12: true
                 }) : "just now";
 
-                const SubPluginIcon =
-                  subPluginLower === "apify"
-                    ? Globe
-                    : subPluginLower === "gemini"
-                      ? Sparkles
-                      : Terminal;
+                // Sub-job timeline icons are rendered directly using SVG Image components below
 
                 const subCount = getItemCount(sub);
 
@@ -261,14 +263,25 @@ export function HistoryJobItem({
                     {/* Step details */}
                     <div className="flex-1 min-w-0 text-left space-y-1">
                       <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                        <SubPluginIcon
-                          className={cn(
-                            "size-3 shrink-0",
-                            subPluginLower === "apify" ? "text-indigo-500/80" :
-                              subPluginLower === "gemini" ? "text-purple-500/80" :
-                                "text-slate-400/80"
-                          )}
-                        />
+                        {subPluginLower === "apify" ? (
+                          <Image
+                            src="/images/icons/apify-symbol-200x200.svg"
+                            alt="Apify"
+                            width={12}
+                            height={12}
+                            className="size-3 shrink-0 object-contain select-none"
+                          />
+                        ) : subPluginLower === "gemini" ? (
+                          <Image
+                            src="/images/icons/gemini-color.svg"
+                            alt="Gemini"
+                            width={12}
+                            height={12}
+                            className="size-3 shrink-0 object-contain select-none"
+                          />
+                        ) : (
+                          <Terminal className="size-3 shrink-0 text-slate-400/80" />
+                        )}
                         <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none truncate">
                           {subFriendlyTitle}
                         </span>
