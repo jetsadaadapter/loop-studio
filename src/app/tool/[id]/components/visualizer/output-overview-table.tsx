@@ -78,7 +78,10 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 {startIndex + idx + 1}
               </td>
               <td className="px-4 py-3.5 whitespace-nowrap">
-                <OutputCell value={item.media} columnKey="media" />
+                <OutputCell 
+                  value={item.media || (item as Record<string, unknown>).profilePicture} 
+                  columnKey={item.media ? "media" : (item as Record<string, unknown>).profilePicture ? "profilePicture" : "media"} 
+                />
               </td>
               <td className="px-4 py-3.5">
                 <OutputCell value={item.url || item.facebookUrl || (item as Record<string, unknown>).commentUrl} columnKey="url" />
@@ -87,6 +90,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <OutputCell
                   value={item.text || (item as Record<string, unknown>).message || (item as Record<string, unknown>).caption}
                   columnKey="text"
+                  authorName={(item as Record<string, unknown>).profileName as string}
                 />
               </td>
               <td className="px-4 py-3.5 text-center">

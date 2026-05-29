@@ -9,9 +9,10 @@ import { MediaCell } from "./media-cell";
 interface OutputCellProps {
   value: unknown;
   columnKey: string;
+  authorName?: string;
 }
 
-export function OutputCell({ value, columnKey }: OutputCellProps) {
+export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedDrm, setCopiedDrm] = useState(false);
 
@@ -161,7 +162,12 @@ export function OutputCell({ value, columnKey }: OutputCellProps) {
     const isLong = textStr.length > limit;
 
     return (
-      <div className="flex flex-col gap-1 max-w-[500px] text-slate-750 leading-relaxed font-normal">
+      <div className="flex flex-col gap-1.5 max-w-[500px] text-slate-750 leading-relaxed font-normal">
+        {authorName && (
+          <span className="text-[10px] font-extrabold text-indigo-750 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-md self-start font-mono leading-none tracking-tight">
+            {authorName}
+          </span>
+        )}
         <p className={cn("text-xs whitespace-pre-wrap", !isExpanded && "line-clamp-2")}>
           {textStr}
         </p>

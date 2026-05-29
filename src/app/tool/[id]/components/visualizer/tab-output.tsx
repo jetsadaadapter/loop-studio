@@ -9,6 +9,7 @@ import { TabJsonView } from "./tab-json-view";
 import { OutputCell, getHeaderLabel } from "./cell-renderer";
 import { TablePagination } from "./table-pagination";
 import { OutputOverviewTable } from "./output-overview-table";
+import { CommentThreadCard, type CommentItem } from "./comment-thread-card";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -22,6 +23,7 @@ export function TabOutput({ job }: TabOutputProps) {
   const [pageSize, setPageSize] = useState(50);
 
   const items = getMergedGeminiItems(job);
+  const isCommentScraper = items.some(item => (item as Record<string, unknown>).commentId || (item as Record<string, unknown>).profileName);
 
   if (items.length === 0) {
     return (
@@ -93,7 +95,7 @@ export function TabOutput({ job }: TabOutputProps) {
               innerTab === "overview" ? "bg-white text-slate-800 shadow-xs" : "text-slate-500 hover:text-slate-800"
             )}
           >
-            Overview
+            {isCommentScraper ? "Thread view" : "Overview"}
           </button>
           <button
             onClick={() => setInnerTab("all")}
@@ -138,7 +140,17 @@ export function TabOutput({ job }: TabOutputProps) {
         {viewMode === "json" ? (
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (
-          <OutputOverviewTable items={paginatedItems} startIndex={startIndex} />
+          isCommentScraper ? (
+            <div className="bg-slate-50 p-6 flex-1 min-h-0 overflow-y-auto">
+              <div className="max-w-4xl mx-auto space-y-6">
+                {paginatedItems.map((item, idx) => (
+                  <CommentThreadCard key={`comment-${(item as Record<string, unknown>).id || idx}`} comment={item as unknown as CommentItem} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <OutputOverviewTable items={paginatedItems} startIndex={startIndex} />
+          )
         ) : (
           /* All Fields View */
           <div className="min-w-full inline-block align-middle overflow-x-auto bg-white">
