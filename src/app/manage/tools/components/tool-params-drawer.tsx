@@ -187,7 +187,7 @@ function ToolParamsDrawerInner({
         <div className="mb-6 rounded-xl bg-slate-50/50 border border-slate-200/40 p-3">
           <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Target Tool</span>
           <p className="text-sm font-bold text-slate-800 tracking-tight">{tool?.name}</p>
-          <p className="font-mono text-[9px] text-slate-500 mt-0.5">id: {tool?.id}</p>
+          <p className="font-sans text-[9px] text-slate-500 mt-0.5">id: {tool?.id}</p>
         </div>
 
         {isLoading ? (

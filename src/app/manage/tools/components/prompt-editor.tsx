@@ -229,7 +229,7 @@ export function PromptEditor({
       const parsed = JSON.parse(value.trim());
       onChange(JSON.stringify(parsed, null, 2));
       return;
-    } catch {}
+    } catch { }
 
     // Smart nested brace-balancing search
     let found = false;
@@ -276,11 +276,10 @@ export function PromptEditor({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${
-              editorMode === "write"
-                ? "bg-white text-slate-800 shadow-2xs"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
+            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${editorMode === "write"
+              ? "bg-white text-slate-800 shadow-2xs"
+              : "text-slate-500 hover:text-slate-800"
+              }`}
             onClick={() => setEditorMode("write")}
           >
             <PenLine className="size-3 mr-1" />
@@ -290,11 +289,10 @@ export function PromptEditor({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${
-              editorMode === "preview"
-                ? "bg-white text-slate-800 shadow-2xs"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
+            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${editorMode === "preview"
+              ? "bg-white text-slate-800 shadow-2xs"
+              : "text-slate-500 hover:text-slate-800"
+              }`}
             onClick={() => setEditorMode("preview")}
           >
             <Eye className="size-3 mr-1" />
@@ -434,11 +432,10 @@ export function PromptEditor({
   return (
     <div className="space-y-1.5 w-full">
       {/* Editor Container */}
-      <div className={`rounded-xl border bg-white shadow-2xs overflow-hidden flex flex-col transition-all duration-300 ${
-        hasError
-          ? "border-brand focus-within:border-brand-strong focus-within:ring-1 focus-within:ring-brand-strong/20 shadow-sm shadow-brand/10"
-          : "border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand-strong/20"
-      }`}>
+      <div className={`rounded-xl border bg-white shadow-2xs overflow-hidden flex flex-col transition-all duration-300 ${hasError
+        ? "border-brand focus-within:border-brand-strong focus-within:ring-1 focus-within:ring-brand-strong/20 shadow-sm shadow-brand/10"
+        : "border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand-strong/20"
+        }`}>
         {toolbar}
         {editorMode === "preview" ? (
           <div className="p-3.5 bg-slate-50 text-xs min-h-[140px] max-h-[350px] overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
@@ -459,13 +456,12 @@ export function PromptEditor({
 
       {/* Validation status bar */}
       <div
-        className={`flex items-start gap-1.5 p-2 rounded-lg text-[10px] leading-tight font-medium ${
-          jsonStatus.isValid
-            ? jsonStatus.blocksCount > 0
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-              : "bg-slate-50 text-slate-500 border border-slate-100/80"
-            : "bg-brand/5 text-brand border border-brand/10"
-        }`}
+        className={`flex items-start gap-1.5 p-2 rounded-lg text-[10px] leading-tight font-medium ${jsonStatus.isValid
+          ? jsonStatus.blocksCount > 0
+            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+            : "bg-slate-50 text-slate-500 border border-slate-100/80"
+          : "bg-brand/5 text-brand border border-brand/10"
+          }`}
       >
         {jsonStatus.isValid ? (
           jsonStatus.blocksCount > 0 ? (
@@ -514,13 +510,12 @@ export function PromptEditor({
           {/* Expanded Status Bar */}
           <div className="flex items-center justify-between gap-4 pt-1">
             <div
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight shadow-3xs ${
-                jsonStatus.isValid
-                  ? jsonStatus.blocksCount > 0
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-150"
-                    : "bg-slate-50 text-slate-500 border border-slate-200"
-                  : "bg-brand/5 text-brand border border-brand/10"
-              }`}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight shadow-3xs ${jsonStatus.isValid
+                ? jsonStatus.blocksCount > 0
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-150"
+                  : "bg-slate-50 text-slate-500 border border-slate-200"
+                : "bg-brand/5 text-brand border border-brand/10"
+                }`}
             >
               {jsonStatus.isValid ? (
                 jsonStatus.blocksCount > 0 ? (
@@ -602,9 +597,9 @@ function PromptPreview({ text }: { text: string }) {
     try {
       const parsed = JSON.parse(jsonStr);
       const formatted = JSON.stringify(parsed, null, 2);
-      
+
       return (
-        <pre className="p-3 bg-slate-900 text-slate-100 rounded-lg overflow-x-auto font-mono text-[11px] leading-relaxed shadow-inner">
+        <pre className="p-3 bg-slate-900 text-slate-100 rounded-lg overflow-x-auto text-[11px] leading-relaxed shadow-inner">
           <code className="block select-all whitespace-pre">
             {formatted.split("\n").map((line, lIdx) => {
               const highlightedLine = line.replace(
@@ -632,7 +627,7 @@ function PromptPreview({ text }: { text: string }) {
       );
     } catch {
       return (
-        <pre className="p-3 bg-slate-900 text-rose-300 rounded-lg overflow-x-auto font-mono text-[11px] leading-relaxed">
+        <pre className="p-3 bg-slate-900 text-rose-300 rounded-lg overflow-x-auto font-sans text-[11px] leading-relaxed">
           <code>{jsonStr}</code>
         </pre>
       );
@@ -654,7 +649,7 @@ function PromptPreview({ text }: { text: string }) {
 
       content = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
       content = content.replace(/\*(.*?)\*/g, "<em>$1</em>");
-      content = content.replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono text-slate-800 border border-slate-200/50">$1</code>');
+      content = content.replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-sans text-slate-800 border border-slate-200/50">$1</code>');
 
       const innerHtml = { __html: content };
 

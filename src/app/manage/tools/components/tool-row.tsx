@@ -176,7 +176,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
             </h3>
             <StatusBadge isActive={tool.isActive} />
           </div>
-          <p className="line-clamp-1 font-mono text-[9px] font-medium tracking-wide text-slate-500">
+          <p className="line-clamp-1 font-sans text-[9px] font-medium tracking-wide text-slate-500">
             {namespace}
           </p>
         </div>
