@@ -16,6 +16,12 @@ export async function getManageTools(init?: RequestInit): Promise<ManageToolApiI
     return response.data;
 }
 
+export async function getManageTool(id: string, init?: RequestInit): Promise<ManageToolApiItem> {
+    const url = buildUrl(`/manage/tools/${id}`);
+    const response = await apiFetch<ToolDetailResponse>(url, init);
+    return response.data;
+}
+
 export async function createManageTool(payload: CreateToolPayload): Promise<ManageToolApiItem> {
     const url = buildUrl("/manage/tools");
     const response = await apiFetch<ToolDetailResponse>(url, {

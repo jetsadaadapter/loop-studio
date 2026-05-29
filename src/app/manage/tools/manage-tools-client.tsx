@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   getManageTools,
+  getManageTool,
   createManageTool,
   updateManageTool,
   deleteManageTool,
@@ -58,6 +59,7 @@ export function ManageToolsClient() {
   const [formMode, setFormMode] = useState<ToolFormMode | null>(null);
   const [editTarget, setEditTarget] = useState<ManageToolApiItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingEdit, setIsFetchingEdit] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ManageToolApiItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewPrompt, setPreviewPrompt] = useState<{
@@ -145,6 +147,22 @@ export function ManageToolsClient() {
     }
   }
 
+  async function handleOpenEdit(tool: ManageToolApiItem) {
+    setIsFetchingEdit(true);
+    try {
+      const fresh = await getManageTool(tool.id);
+      setEditTarget(fresh);
+      setFormMode("edit"); // open drawer only after fresh data is ready
+    } catch {
+      // fallback: open with cached data if fetch fails
+      setEditTarget(tool);
+      setFormMode("edit");
+      pushToast("Could not refresh tool data. Showing cached version.", "error");
+    } finally {
+      setIsFetchingEdit(false);
+    }
+  }
+
   // ── Derived ──────────────────────────────────────────────────────────────────
 
   const filteredTools = useMemo(() => {
@@ -188,7 +206,7 @@ export function ManageToolsClient() {
         : filteredTools.length === 0 ? <ToolListEmpty variant={emptyVariant} />
         : <ToolList
             tools={filteredTools}
-            onEdit={(t) => { setEditTarget(t); setFormMode("edit"); }}
+            onEdit={(t) => void handleOpenEdit(t)}
             onDelete={(t) => setDeleteTarget(t)}
             onManageParams={(t) => setParamsTarget(t)}
             onPreviewPrompt={async (param) => {
@@ -236,11 +254,10 @@ export function ManageToolsClient() {
             }}
           />}
 
-      {/* Create / Edit drawer */}
       <ToolFormDrawer
         mode={formMode}
         tool={editTarget}
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting || isFetchingEdit}
         onClose={() => { setFormMode(null); setEditTarget(null); }}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
