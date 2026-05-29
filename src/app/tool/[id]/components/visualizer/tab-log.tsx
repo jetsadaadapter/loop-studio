@@ -32,20 +32,34 @@ export function TabLog({ job }: TabLogProps) {
   };
 
   const startTime = getSafeDate(job.createdAt);
-  
+
   const generateLogs = () => {
     const logLines: string[] = [];
-    const addLog = (timestampStr: string, type: "INFO" | "SUCCESS" | "WARN" | "ERROR", message: string) => {
+    const addLog = (
+      timestampStr: string,
+      type: "INFO" | "SUCCESS" | "WARN" | "ERROR",
+      message: string,
+    ) => {
       logLines.push(`[${timestampStr}] ${type}: ${message}`);
     };
 
     const initTimeStr = getSafeISOString(startTime);
-    addLog(initTimeStr, "INFO", `System: Actor run initiated for plugin: ${job.plugin || "Apify"}.`);
-    
+    addLog(
+      initTimeStr,
+      "INFO",
+      `System: Actor run initiated for plugin: ${job.plugin || "Apify"}.`,
+    );
+
     const jobResult = job.result as Record<string, unknown> | undefined;
-    const configActorId = (job.config?.actorId || jobResult?.actorId) as string | undefined;
+    const configActorId = (job.config?.actorId || jobResult?.actorId) as
+      | string
+      | undefined;
     if (configActorId) {
-      addLog(initTimeStr, "INFO", `System: Active Actor ID resolved: "${configActorId}".`);
+      addLog(
+        initTimeStr,
+        "INFO",
+        `System: Active Actor ID resolved: "${configActorId}".`,
+      );
     }
 
     const runId = jobResult?.runId as string | undefined;
@@ -53,14 +67,24 @@ export function TabLog({ job }: TabLogProps) {
       addLog(initTimeStr, "INFO", `System: Upstream Job Run ID: "${runId}".`);
     }
 
-    const inputKeys = Object.keys(job.input || {}).filter(k => k !== "startUrls");
+    const inputKeys = Object.keys(job.input || {}).filter(
+      (k) => k !== "startUrls",
+    );
     if (inputKeys.length > 0) {
-      addLog(initTimeStr, "INFO", `System: Validated input schema parameters: [${inputKeys.join(", ")}].`);
+      addLog(
+        initTimeStr,
+        "INFO",
+        `System: Validated input schema parameters: [${inputKeys.join(", ")}].`,
+      );
     }
 
     const startUrls = job.input?.startUrls as { url?: string }[] | undefined;
     if (Array.isArray(startUrls) && startUrls.length > 0) {
-      addLog(initTimeStr, "INFO", `System: Dispatched targets queue size: ${startUrls.length}.`);
+      addLog(
+        initTimeStr,
+        "INFO",
+        `System: Dispatched targets queue size: ${startUrls.length}.`,
+      );
       startUrls.forEach((u, i) => {
         if (u.url) {
           addLog(initTimeStr, "INFO", `Target #${i + 1}: ${u.url}`);
@@ -75,17 +99,36 @@ export function TabLog({ job }: TabLogProps) {
 
     if (status === "failed") {
       const endTimeStr = getSafeISOString(getSafeDate(job.updatedAt));
-      addLog(endTimeStr, "ERROR", `System: Job execution terminated with failure state.`);
+      addLog(
+        endTimeStr,
+        "ERROR",
+        `System: Job execution terminated with failure state.`,
+      );
       if (job.error) {
-        const errStr = typeof job.error === "string" ? job.error : JSON.stringify(job.error);
+        const errStr =
+          typeof job.error === "string" ? job.error : JSON.stringify(job.error);
         addLog(endTimeStr, "ERROR", `Failure Cause: ${errStr}`);
       }
-    } else if (status === "running" || status === "active" || status === "queued") {
+    } else if (
+      status === "running" ||
+      status === "active" ||
+      status === "queued"
+    ) {
       const currTimeStr = getSafeISOString(new Date());
-      addLog(currTimeStr, "INFO", `System: Job execution is currently in progress. Status: [${status}].`);
+      addLog(
+        currTimeStr,
+        "INFO",
+        `System: Job execution is currently in progress. Status: [${status}].`,
+      );
     } else {
-      const endTimeStr = job.updatedAt ? getSafeISOString(getSafeDate(job.updatedAt)) : getSafeISOString(startTime);
-      addLog(endTimeStr, "SUCCESS", `System: Actor completed successfully. Total items processed: ${itemCount}.`);
+      const endTimeStr = job.updatedAt
+        ? getSafeISOString(getSafeDate(job.updatedAt))
+        : getSafeISOString(startTime);
+      addLog(
+        endTimeStr,
+        "SUCCESS",
+        `System: Actor completed successfully. Total items processed: ${itemCount}.`,
+      );
     }
 
     return logLines;
@@ -135,15 +178,24 @@ export function TabLog({ job }: TabLogProps) {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");
             const isInfo = line.includes("INFO:");
-            
+            const isActive = line.includes(
+              "System: Job execution is currently in progress. Status: [active].",
+            );
             return (
-              <div 
-                key={i} 
-                className={`py-0.5 border-l-2 pl-3 ${
-                  isError ? "text-rose-600 border-rose-500 bg-rose-50/40" :
-                  isSuccess ? "text-emerald-700 border-emerald-500 bg-emerald-50/40" :
-                  isInfo ? "text-slate-600 border-slate-200 bg-slate-50/20" : "text-slate-555 border-transparent"
-                }`}
+              <div
+                key={i}
+                className={[
+                  "py-0.5 border-l-2 pl-3",
+                  isError
+                    ? "text-rose-600 border-rose-500 bg-rose-50/40"
+                    : isSuccess
+                      ? "text-emerald-700 border-emerald-500 bg-emerald-50/40"
+                      : isActive
+                        ? "active-log-line text-emerald-700 border-emerald-500 bg-emerald-50/80 font-bold animate-pulse"
+                        : isInfo
+                          ? "text-slate-600 border-slate-200 bg-slate-50/20"
+                          : "text-slate-555 border-transparent",
+                ].join(" ")}
               >
                 {line}
               </div>

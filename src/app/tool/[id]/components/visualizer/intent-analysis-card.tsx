@@ -129,16 +129,16 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
       )}
     >
       {/* Card Header */}
-      <div className="px-5 py-4 bg-gradient-to-r from-slate-50/80 to-white border-b border-slate-100">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="px-5 py-3.5 bg-gradient-to-r from-slate-50/60 to-white border-b border-slate-150/80">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="size-7 rounded-lg bg-slate-100 border border-slate-200/60 flex items-center justify-center shrink-0 select-none">
-              <span className="text-[10px] font-extrabold text-slate-500">
+              <span className="text-[10px] font-black text-slate-500">
                 #{index + 1}
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
                 Post URL
               </p>
               {postUrl ? (
@@ -146,11 +146,11 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                   href={postUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-bold text-brand hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                  className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
                   title={postUrl}
                 >
                   <span className="truncate">{displayUrl}</span>
-                  <ExternalLink className="size-3 shrink-0" />
+                  <ExternalLink className="size-3 shrink-0 opacity-70" />
                 </a>
               ) : (
                 <span className="text-xs text-slate-400 italic">No URL</span>
@@ -158,10 +158,24 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
             </div>
           </div>
 
-          {/* Verdict / Leader Badge */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Sentiment & Verdict / Leader Badges */}
+          <div className="flex items-center gap-2 shrink-0 select-none">
+            {sentiment && (
+              <span
+                className={cn(
+                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border",
+                  String(sentiment).toLowerCase() === "positive"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : String(sentiment).toLowerCase() === "negative"
+                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : "bg-slate-50 text-slate-600 border-slate-200",
+                )}
+              >
+                {sentiment}
+              </span>
+            )}
             {isLeader && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 text-[9px] font-extrabold uppercase tracking-wider select-none">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-extrabold uppercase tracking-wider">
                 <Crown className="size-2.5" />
                 Top Performer
               </span>
@@ -170,16 +184,16 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-5">
         {/* Groups Breakdown */}
         {groups.length > 0 && (
           <div className="space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
               Intent Breakdown
             </p>
 
             {/* Stacked bar */}
-            <div className="flex rounded-full overflow-hidden h-3 w-full gap-0.5">
+            <div className="flex rounded-full overflow-hidden h-2.5 w-full gap-0.5 bg-slate-100">
               {groups.map((g, i) => {
                 const cfg = getGroupConfig(g.label, i);
                 const pct =
@@ -207,7 +221,7 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                   <div
                     key={`group-${i}`}
                     className={cn(
-                      "flex flex-col gap-1 p-3 rounded-xl border",
+                      "flex flex-col gap-1 p-3 rounded-xl border bg-slate-50/20",
                       cfg.bg,
                       cfg.border,
                     )}
@@ -216,7 +230,7 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                       <Icon className={cn("size-3 shrink-0", cfg.color)} />
                       <span
                         className={cn(
-                          "text-[9.5px] font-extrabold uppercase tracking-wider leading-tight",
+                          "text-[9px] font-bold uppercase tracking-wider leading-tight",
                           cfg.color,
                         )}
                       >
@@ -226,7 +240,7 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                     <div className="flex items-baseline gap-1.5 mt-0.5">
                       <span
                         className={cn(
-                          "text-lg font-black leading-none tabular-nums",
+                          "text-base font-black leading-none tabular-nums",
                           cfg.color,
                         )}
                       >
@@ -236,7 +250,7 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                         className={cn(
                           "text-[9px] font-bold",
                           cfg.color,
-                          "opacity-70",
+                          "opacity-75",
                         )}
                       >
                         {g.percentage}%
@@ -249,68 +263,45 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
           </div>
         )}
 
-        {/* AI Summary */}
-        {summary && (
-          <div className="bg-slate-50 rounded-xl border border-slate-100 p-3.5">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              AI Analysis Summary
-            </p>
-            <p className="text-xs text-slate-700 leading-relaxed font-medium">
-              {summary}
-            </p>
-          </div>
-        )}
+        {/* AI Summary & Keywords */}
+        {(summary || (Array.isArray(keywords) ? keywords.length > 0 : !!keywords)) && (
+          <div className="space-y-3.5">
+            {summary && (
+              <div className="border-l-3 border-brand pl-3.5 space-y-1">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  AI Analysis Summary
+                </p>
+                <p className="text-xs text-slate-650 leading-relaxed font-medium">
+                  {summary}
+                </p>
+              </div>
+            )}
 
-        {/* AI Keywords as Hashtags */}
-        {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
-          <div className="bg-slate-50 rounded-xl border border-slate-100 p-3.5">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              AI Analysis Keywords
-            </p>
-            <div className="flex flex-wrap gap-2 pt-0.5">
-              {(Array.isArray(keywords)
-                ? keywords
-                : String(keywords).split(/\s+/)
-              )
-                .filter((kw: string) => kw.trim().length > 0)
-                .map((kw: string, i: number) => (
-                  <span
-                    key={i}
-                    className="text-xs font-semibold text-slate-700 select-text"
-                  >
-                    #{kw.replace(/^#/, "")}
-                  </span>
-                ))}
-            </div>
-          </div>
-        )}
-
-        {/* AI Sentiment as Badge */}
-        {sentiment && (
-          <div className="bg-slate-50 rounded-xl border border-slate-100 p-3.5">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-              AI Analysis Sentiment
-            </p>
-            <span
-              className={cn(
-                "inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide shadow-sm select-none",
-                String(sentiment).toLowerCase() === "positive"
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                  : String(sentiment).toLowerCase() === "negative"
-                    ? "bg-rose-100 text-rose-700 border border-rose-200"
-                    : "bg-slate-100 text-slate-600 border border-slate-200",
-              )}
-            >
-              {String(sentiment).charAt(0).toUpperCase() +
-                String(sentiment).slice(1)}
-            </span>
+            {/* Keywords directly underneath summary */}
+            {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
+              <div className="pl-3.5 flex flex-wrap gap-1.5 pt-0.5">
+                {(Array.isArray(keywords)
+                  ? keywords
+                  : String(keywords).split(/\s+/)
+                )
+                  .filter((kw: string) => kw.trim().length > 0)
+                  .map((kw: string, i: number) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default"
+                    >
+                      #{kw.replace(/^#/, "")}
+                    </span>
+                  ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* Verdict */}
         {verdict && (
-          <div className="bg-linear-to-r from-sky-50 to-indigo-50 rounded-xl border border-sky-100 p-3.5">
-            <p className="text-[10px] font-bold text-sky-500 uppercase tracking-wider mb-1.5">
+          <div className="bg-sky-50/30 border border-sky-100/50 rounded-xl p-4 border-l-3 border-l-sky-500/80 shadow-2xs">
+            <p className="text-[9px] font-bold text-sky-600 uppercase tracking-wider mb-1">
               Verdict
             </p>
             <p className="text-xs text-slate-700 leading-relaxed font-semibold">
@@ -321,9 +312,9 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
 
         {/* Total comments analyzed */}
         {totalCount > 0 && (
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-            <Users className="size-3 text-slate-400" />
-            <span className="text-[10px] text-slate-400 font-semibold">
+          <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <Users className="size-3 text-slate-450" />
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
               {totalCount.toLocaleString()} comments analyzed
             </span>
           </div>
