@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { Sliders, Settings, Copy, Check, Sparkles } from "lucide-react";
+import { Sliders, Settings, Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TabInputStorageProps {
@@ -16,7 +16,20 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const [copied, setCopied] = useState(false);
   const [copiedInputPrompt, setCopiedInputPrompt] = useState(false);
   const [copiedConfigPrompt, setCopiedConfigPrompt] = useState(false);
-  const [copiedPreProcessPrompt, setCopiedPreProcessPrompt] = useState(false);
+  const [copiedUrlIdx, setCopiedUrlIdx] = useState<number | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopyUrl = (url: string, idx: number) => {
+    navigator.clipboard.writeText(url);
+    setCopiedUrlIdx(idx);
+    setTimeout(() => setCopiedUrlIdx(null), 2000);
+  };
+
+  const handleCopyKey = (val: string, key: string) => {
+    navigator.clipboard.writeText(val);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   // Safe resolve configuration
   let resolvedConfig: Record<string, unknown> = {};
@@ -43,9 +56,6 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const hasAnyInput = hasScalarInputs || hasInputPrompt || hasStartUrls;
 
   const configEntries = Object.entries(resolvedConfig);
-
-  const preProcessConfig = job.input?._preProcessConfig as { model?: string; prompt?: string } | undefined;
-  const hasPreProcess = !!preProcessConfig;
 
   const jsonStr = JSON.stringify(job.input || {}, null, 2);
 
@@ -154,12 +164,48 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {inputEntries.map(([key, val]) => {
                       if (typeof val === "object") return null; // skip startUrls and complex arrays
+                      const valStr = typeof val === "boolean" ? String(val) : String(val || "-");
+                      const isLongText = valStr.length > 80 || valStr.includes("\n");
                       return (
-                        <div key={`input-${key}`}>
-                          <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">{key}</span>
-                          <span className="text-xs font-semibold text-slate-750 mt-1 block">
-                            {typeof val === "boolean" ? String(val) : String(val || "-")}
-                          </span>
+                        <div 
+                          key={`input-${key}`}
+                          className={cn("min-w-0", isLongText && "col-span-full")}
+                        >
+                          <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">{key}</span>
+                          {isLongText ? (
+                            <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
+                              <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
+                                {valStr}
+                              </pre>
+                              <button
+                                onClick={() => handleCopyKey(valStr, key)}
+                                className={cn(
+                                  "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                                  copiedKey === key
+                                    ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                                    : "bg-white border-slate-250 hover:bg-slate-50 text-slate-650 hover:text-slate-800"
+                                )}
+                                type="button"
+                                title="Copy to clipboard"
+                              >
+                                {copiedKey === key ? (
+                                  <>
+                                    <Check className="size-3 text-emerald-600" />
+                                    <span>Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="size-3 text-slate-400" />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs font-semibold text-slate-750 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                              {valStr}
+                            </span>
+                          )}
                         </div>
                       );
                     })}
@@ -207,13 +253,52 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                 {/* Start URLs specialized rendering */}
                 {hasStartUrls && (
                   <div className="border-t border-slate-100 pt-4 mt-2">
-                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">startUrls (Targets)</span>
+                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">startUrls (Targets)</span>
                     <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
-                      {(job.input.startUrls as { url?: string }[]).map((item, idx) => (
-                        <div key={`url-${idx}`} className="bg-slate-50 border border-slate-200 p-2 rounded text-xs font-mono text-slate-650 truncate">
-                          {item.url}
-                        </div>
-                      ))}
+                      {(job.input.startUrls as { url?: string }[]).map((item, idx) => {
+                        const url = item.url || "";
+                        const isCopied = copiedUrlIdx === idx;
+                        return (
+                          <div 
+                            key={`url-${idx}`} 
+                            className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-mono text-slate-650 group/url shadow-xs hover:border-slate-300 transition-all duration-150"
+                          >
+                            <span className="flex-1 truncate select-text text-slate-700">
+                              {url}
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {url && (
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-all cursor-pointer shadow-2xs active:scale-90"
+                                  title="Open link in new window"
+                                >
+                                  <ExternalLink className="size-3.5" />
+                                </a>
+                              )}
+                              <button
+                                onClick={() => handleCopyUrl(url, idx)}
+                                className={cn(
+                                  "p-1 rounded-lg border text-xs font-bold transition-all active:scale-90 cursor-pointer shadow-2xs",
+                                  isCopied
+                                    ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                                    : "bg-white border-slate-250 hover:bg-slate-50 text-slate-400 hover:text-slate-600"
+                                )}
+                                title="Copy to clipboard"
+                                type="button"
+                              >
+                                {isCopied ? (
+                                  <Check className="size-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="size-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -231,13 +316,49 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   {configEntries.map(([key, val]) => {
                     if (typeof val === "object") return null;
                     if (key.toLowerCase() === "prompt") return null; // skip prompt from top grid
+                    const valStr = String(val || "-");
+                    const isLongText = valStr.length > 80 || valStr.includes("\n");
 
                     return (
-                      <div key={`config-${key}`}>
-                        <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">{key}</span>
-                        <span className="text-xs font-semibold text-slate-750 mt-1 block">
-                          {String(val || "-")}
-                        </span>
+                      <div 
+                        key={`config-${key}`}
+                        className={cn("min-w-0", isLongText && "col-span-full")}
+                      >
+                        <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">{key}</span>
+                        {isLongText ? (
+                          <div className="relative group/long-config mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
+                            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
+                              {valStr}
+                            </pre>
+                            <button
+                              onClick={() => handleCopyKey(valStr, key)}
+                              className={cn(
+                                "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                                copiedKey === key
+                                  ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                                  : "bg-white border-slate-250 hover:bg-slate-50 text-slate-655 hover:text-slate-800"
+                              )}
+                              type="button"
+                              title="Copy to clipboard"
+                            >
+                              {copiedKey === key ? (
+                                <>
+                                  <Check className="size-3 text-emerald-600" />
+                                  <span>Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="size-3 text-slate-400" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-semibold text-slate-750 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                            {valStr}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
@@ -289,61 +410,6 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   }
                   return null;
                 })()}
-              </div>
-            )}
-
-            {/* Section: AI Pre-processing Configuration */}
-            {hasPreProcess && preProcessConfig && (
-              <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-xs space-y-4">
-                <h3 className="text-xs font-bold text-slate-750 flex items-center gap-2 uppercase tracking-wider">
-                  <Sparkles className="size-4 text-emerald-600" />
-                  <span>AI Pre-processing Agent Settings</span>
-                </h3>
-                {preProcessConfig.model && (
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">LLM Analytics Model</span>
-                    <span className="text-xs font-semibold text-slate-750 mt-1 block">
-                      {preProcessConfig.model}
-                    </span>
-                  </div>
-                )}
-
-                {preProcessConfig.prompt && (
-                  <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
-                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">Analyst System Prompt & Instructions</span>
-                    <div className="relative group/prompt-preprocess rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
-                      <pre className="p-3.5 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
-                        {preProcessConfig.prompt}
-                      </pre>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(String(preProcessConfig.prompt));
-                          setCopiedPreProcessPrompt(true);
-                          setTimeout(() => setCopiedPreProcessPrompt(false), 2000);
-                        }}
-                        className={cn(
-                          "absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
-                          copiedPreProcessPrompt
-                            ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
-                            : "bg-white border-slate-250 hover:bg-slate-50 text-slate-600 hover:text-slate-800"
-                        )}
-                        type="button"
-                      >
-                        {copiedPreProcessPrompt ? (
-                          <>
-                            <Check className="size-3 text-emerald-600" />
-                            <span>Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="size-3 text-slate-400" />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>

@@ -8,6 +8,7 @@ import { ConsoleNavigation, type VisualizerTab } from "./visualizer/console-navi
 import { TabOutput } from "./visualizer/tab-output";
 import { TabLog } from "./visualizer/tab-log";
 import { TabInputStorage } from "./visualizer/tab-input-storage";
+import { TabPreProcess } from "./visualizer/tab-preprocess";
 import { Loader2 } from "lucide-react";
 import { getItemCount } from "../tool-job-utils";
 
@@ -49,6 +50,7 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
               activeTab={activeTab} 
               itemCount={itemCount} 
               onTabChange={setActiveTab} 
+              hasPreProcess={!!job?.input?._preProcessConfig}
             />
 
             {/* Main Active Tab Content */}
@@ -56,6 +58,7 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
               {activeTab === "output" && <TabOutput job={job} />}
               {activeTab === "log" && <TabLog job={job} />}
               {activeTab === "input" && <TabInputStorage job={job} mode="input" />}
+              {activeTab === "preprocess" && <TabPreProcess job={job} />}
             </div>
           </div>
         ) : (

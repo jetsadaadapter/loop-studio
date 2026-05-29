@@ -1,22 +1,27 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Database, FileText, Sliders } from "lucide-react";
+import { Database, FileText, Sliders, Sparkles } from "lucide-react";
 
-export type VisualizerTab = "output" | "log" | "input";
+export type VisualizerTab = "output" | "log" | "input" | "preprocess";
 
 interface ConsoleNavigationProps {
   activeTab: VisualizerTab;
   itemCount: number;
   onTabChange: (tab: VisualizerTab) => void;
+  hasPreProcess?: boolean;
 }
 
-export function ConsoleNavigation({ activeTab, itemCount, onTabChange }: ConsoleNavigationProps) {
+export function ConsoleNavigation({ activeTab, itemCount, onTabChange, hasPreProcess }: ConsoleNavigationProps) {
   const tabs = [
     { id: "output" as VisualizerTab, label: "Output", count: itemCount, icon: Database },
     { id: "log" as VisualizerTab, label: "Log", icon: FileText },
     { id: "input" as VisualizerTab, label: "Input", icon: Sliders },
   ];
+
+  if (hasPreProcess) {
+    tabs.push({ id: "preprocess" as VisualizerTab, label: "Pre-processing", icon: Sparkles });
+  }
 
   return (
     <div className="bg-white border-b border-slate-200/80 px-4 flex items-center select-none overflow-x-auto scrollbar-none shrink-0">

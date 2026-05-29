@@ -23,6 +23,7 @@ import { ConsoleNavigation, type VisualizerTab } from "../../components/visualiz
 import { TabOutput } from "../../components/visualizer/tab-output";
 import { TabLog } from "../../components/visualizer/tab-log";
 import { TabInputStorage } from "../../components/visualizer/tab-input-storage";
+import { TabPreProcess } from "../../components/visualizer/tab-preprocess";
 
 interface RunClientProps {
   tool: Tool;
@@ -279,6 +280,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 activeTab={activeVisualizerTab} 
                 itemCount={activeJobCount} 
                 onTabChange={setActiveVisualizerTab} 
+                hasPreProcess={!!fullJob?.input?._preProcessConfig}
               />
 
               {/* Visualizer Output Content Area */}
@@ -286,6 +288,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 {activeVisualizerTab === "output" && <TabOutput job={fullJob} />}
                 {activeVisualizerTab === "log" && <TabLog job={fullJob} />}
                 {activeVisualizerTab === "input" && <TabInputStorage job={fullJob} mode="input" />}
+                {activeVisualizerTab === "preprocess" && <TabPreProcess job={fullJob} />}
               </div>
             </div>
           ) : (
