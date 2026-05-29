@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
 import { JobStatusBadge } from "../job-status-badge";
+import { getPluginConfig } from "../../plugin-config";
 
 interface HistoryJobItemProps {
   job: ToolJob;
@@ -26,12 +27,8 @@ export function HistoryJobItem({
   const status = getJobStatus(job);
 
   const pluginLower = String(job.plugin || "").toLowerCase();
-  const friendlyTitle =
-    pluginLower === "apify"
-      ? "Apify Post Scraper"
-      : pluginLower === "gemini"
-        ? "Gemini AI Analysis"
-        : "Automation Run";
+  const pluginConfig = getPluginConfig(pluginLower);
+  const friendlyTitle = pluginConfig.cardTitle;
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
 
@@ -84,21 +81,13 @@ export function HistoryJobItem({
         {/* Top Row: Title + ID (Left), Status Badge (Right) */}
         <div className="flex items-center gap-2 w-full justify-between">
           <div className="flex items-center gap-1.5 min-w-0">
-            {pluginLower === "apify" ? (
+            {pluginConfig.iconSrc ? (
               <Image
-                src="/images/icons/apify-symbol-200x200.svg"
-                alt="Apify"
+                src={pluginConfig.iconSrc}
+                alt={pluginConfig.cardTitle}
                 width={14}
                 height={14}
-                className="size-3.5 shrink-0 object-contain select-none"
-              />
-            ) : pluginLower === "gemini" ? (
-              <Image
-                src="/images/icons/gemini-color.svg"
-                alt="Gemini"
-                width={14}
-                height={14}
-                className="size-3.5 shrink-0 object-contain select-none animate-pulse"
+                className={cn("size-3.5 shrink-0 object-contain select-none", pluginConfig.iconAnimate && "animate-pulse")}
               />
             ) : (
               <Terminal className="size-3.5 shrink-0 text-slate-500/90" />
@@ -198,12 +187,8 @@ export function HistoryJobItem({
               {subJobs.map((sub, idx) => {
                 const subStatus = getJobStatus(sub);
                 const subPluginLower = String(sub.plugin || "").toLowerCase();
-                const subFriendlyTitle =
-                  subPluginLower === "apify"
-                    ? "Apify Scraper Engine"
-                    : subPluginLower === "gemini"
-                      ? "Gemini AI Analysis"
-                      : "Automation Stage";
+                const subPluginConfig = getPluginConfig(subPluginLower);
+                const subFriendlyTitle = subPluginConfig.stepTitle;
 
                 const subTimeStr = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-US", {
                   day: "2-digit",
@@ -235,21 +220,13 @@ export function HistoryJobItem({
                     {/* Step details */}
                     <div className="flex-1 min-w-0 text-left space-y-1">
                       <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                        {subPluginLower === "apify" ? (
+                        {subPluginConfig.iconSrc ? (
                           <Image
-                            src="/images/icons/apify-symbol-200x200.svg"
-                            alt="Apify"
+                            src={subPluginConfig.iconSrc}
+                            alt={subPluginConfig.stepTitle}
                             width={12}
                             height={12}
-                            className="size-3 shrink-0 object-contain select-none"
-                          />
-                        ) : subPluginLower === "gemini" ? (
-                          <Image
-                            src="/images/icons/gemini-color.svg"
-                            alt="Gemini"
-                            width={12}
-                            height={12}
-                            className="size-3 shrink-0 object-contain select-none"
+                            className={cn("size-3 shrink-0 object-contain select-none", subPluginConfig.iconAnimate && "animate-pulse")}
                           />
                         ) : (
                           <Terminal className="size-3 shrink-0 text-slate-400/80" />

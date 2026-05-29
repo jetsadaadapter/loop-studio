@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  Terminal, ArrowLeft, Loader2, 
+import {
+  Terminal, ArrowLeft, Loader2,
   Play, ShieldAlert, ChevronRight, Download,
   Maximize2, Minimize2
 } from "lucide-react";
@@ -24,6 +24,7 @@ import { TabOutput } from "../../components/visualizer/tab-output";
 import { TabLog } from "../../components/visualizer/tab-log";
 import { TabInputStorage } from "../../components/visualizer/tab-input-storage";
 import { TabPreProcess } from "../../components/visualizer/tab-preprocess";
+import { getPluginConfig } from "../../plugin-config";
 
 interface RunClientProps {
   tool: Tool;
@@ -145,14 +146,25 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
             <JobStatusBadge status={overallState} />
           </div>
 
+          {/* Processing Run ID label */}
+          {run.runId && (
+            <div className="flex items-center gap-1.5 -mt-1 pb-1">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Processing Run ID</span>
+              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-all shrink-0 border border-slate-200/40 uppercase">
+                #{run.runId.split("-")[0].toUpperCase().slice(0, 8)}
+              </span>
+            </div>
+          )}
+
           {/* Jobs List Step-by-Step */}
           <div className="space-y-3">
             {run.jobs.map((job, idx) => {
               const jobStatus = getJobStatus(job);
               const isSelected = activeJobId === job.jobId;
               const pluginLower = String(job.plugin || "").toLowerCase();
+              const pluginConfig = getPluginConfig(pluginLower);
               const slicedJobId = job.jobId ? `#${job.jobId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
-              
+
               return (
                 <button
                   key={job.id || job.jobId || idx}
@@ -170,41 +182,33 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
 
                   <div className={cn("min-w-0 flex-1", isSelected && "pl-1")}>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      {pluginLower === "apify" ? (
+                      {pluginConfig.iconSrc ? (
                         <Image
-                          src="/images/icons/apify-symbol-200x200.svg"
-                          alt="Apify"
+                          src={pluginConfig.iconSrc}
+                          alt={pluginConfig.cardTitle}
                           width={14}
                           height={14}
-                          className="size-3.5 shrink-0 object-contain select-none"
-                        />
-                      ) : pluginLower === "gemini" ? (
-                        <Image
-                          src="/images/icons/gemini-color.svg"
-                          alt="Gemini"
-                          width={14}
-                          height={14}
-                          className="size-3.5 shrink-0 object-contain select-none animate-pulse"
+                          className={cn("size-3.5 shrink-0 object-contain select-none", pluginConfig.iconAnimate && "animate-pulse")}
                         />
                       ) : (
                         <Terminal className="size-3.5 shrink-0 text-slate-400" />
                       )}
-                      <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none capitalize">
-                        {pluginLower} Scraper
+                      <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none">
+                        {pluginConfig.cardTitle}
                       </span>
                       <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
                         {slicedJobId}
                       </span>
                     </div>
-                      
-                      <div className="flex items-center gap-2 mt-2 select-none">
-                        <JobStatusBadge status={jobStatus} />
-                        <span className="text-[9px] text-slate-400 font-medium">
-                          {formattedTime(job.createdAt)}
-                        </span>
-                      </div>
+
+                    <div className="flex items-center gap-2 mt-2 select-none">
+                      <JobStatusBadge status={jobStatus} />
+                      <span className="text-[9px] text-slate-400 font-medium">
+                        {formattedTime(job.createdAt)}
+                      </span>
                     </div>
-                  
+                  </div>
+
                   <ChevronRight className={cn(
                     "size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",
                     isSelected ? "text-brand" : "text-slate-300"
@@ -228,58 +232,58 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
             </div>
           ) : fullJob ? (
             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  {/* Inline Header Details */}
-                  <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-800 capitalize">{fullJob.plugin} Engine Workspace</span>
-                        <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
-                          #{fullJob.jobId.slice(0, 16)}
-                        </span>
-                      </div>
-                      <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-sm md:max-w-md">
-                        Input: {fullJob.input?.userInput || "N/A"}
-                      </p>
-                    </div>
-
-                    {/* Header Actions: Expand & Export */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {/* Expand / Minimize Button */}
-                      <button
-                        type="button"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="h-8 px-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-md text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-3xs text-slate-600 hover:text-slate-800 flex items-center justify-center gap-1.5"
-                        title={isExpanded ? "Show Sidebar" : "Hide Sidebar (100% Width)"}
-                      >
-                        {isExpanded ? (
-                          <>
-                            <Minimize2 className="size-3.5" />
-                            <span className="hidden md:inline">Collapse</span>
-                          </>
-                        ) : (
-                          <>
-                            <Maximize2 className="size-3.5" />
-                            <span className="hidden md:inline">Full Width</span>
-                          </>
-                        )}
-                      </button>
-
-                      <Button
-                        size="sm"
-                        onClick={() => setExportModalOpen(true)}
-                        className="h-8 bg-brand hover:bg-brand/90 text-white rounded-md text-xs font-bold px-4 gap-1.5 border-none cursor-pointer shadow-sm"
-                      >
-                        <Download className="size-3.5" />
-                        <span className="hidden sm:inline">Export</span>
-                      </Button>
-                    </div>
+              {/* Inline Header Details */}
+              <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-800 capitalize">{fullJob.plugin} Engine Workspace</span>
+                    <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
+                      #{fullJob.jobId.slice(0, 16)}
+                    </span>
                   </div>
+                  <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-sm md:max-w-md">
+                    Input: {fullJob.input?.userInput || "N/A"}
+                  </p>
+                </div>
+
+                {/* Header Actions: Expand & Export */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Expand / Minimize Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="h-8 px-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-md text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-3xs text-slate-600 hover:text-slate-800 flex items-center justify-center gap-1.5"
+                    title={isExpanded ? "Show Sidebar" : "Hide Sidebar (100% Width)"}
+                  >
+                    {isExpanded ? (
+                      <>
+                        <Minimize2 className="size-3.5" />
+                        <span className="hidden md:inline">Collapse</span>
+                      </>
+                    ) : (
+                      <>
+                        <Maximize2 className="size-3.5" />
+                        <span className="hidden md:inline">Full Width</span>
+                      </>
+                    )}
+                  </button>
+
+                  <Button
+                    size="sm"
+                    onClick={() => setExportModalOpen(true)}
+                    className="h-8 bg-brand hover:bg-brand/90 text-white rounded-md text-xs font-bold px-4 gap-1.5 border-none cursor-pointer shadow-sm"
+                  >
+                    <Download className="size-3.5" />
+                    <span className="hidden sm:inline">Export</span>
+                  </Button>
+                </div>
+              </div>
 
               {/* Visualizer Console Navigation */}
-              <ConsoleNavigation 
-                activeTab={activeVisualizerTab} 
-                itemCount={activeJobCount} 
-                onTabChange={setActiveVisualizerTab} 
+              <ConsoleNavigation
+                activeTab={activeVisualizerTab}
+                itemCount={activeJobCount}
+                onTabChange={setActiveVisualizerTab}
                 hasPreProcess={!!fullJob?.input?._preProcessConfig}
               />
 
