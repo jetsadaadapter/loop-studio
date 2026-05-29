@@ -2,13 +2,7 @@
 
 import { Wrench, Sparkles, Globe, LineChart, Ellipsis, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
   PLUGIN_META,
@@ -189,45 +183,32 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
 
         {/* Actions Overlay Dropdown */}
         <div className="absolute top-4 right-4 z-20">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="flex size-7 items-center justify-center rounded-full border border-slate-200/60 bg-white/80 p-0 text-slate-500 shadow-none backdrop-blur-xs transition hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200"
-                />
-              }
-              aria-label={`Open actions for ${tool.name}`}
-            >
-              <Ellipsis className="size-3.5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="bottom" className="w-40 z-30">
-              <DropdownMenuItem
-                onClick={onEdit}
-                className="py-2 text-xs cursor-pointer gap-2"
-              >
-                <Pencil className="size-3.5" />
-                Edit tool
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onManageParams}
-                className="py-2 text-xs cursor-pointer gap-2"
-              >
-                <Wrench className="size-3.5" />
-                Manage params
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="py-2 text-xs cursor-pointer text-red-655 focus:bg-red-50 focus:text-red-655 gap-2"
-              >
-                <Trash2 className="size-3.5" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ManagerActionsDropdown
+            ariaLabel={`Open actions for ${tool.name}`}
+            actions={[
+              {
+                label: "Edit tool",
+                icon: Pencil,
+                onClick: onEdit,
+              },
+              ...(onManageParams
+                ? [
+                    {
+                      label: "Manage params",
+                      icon: Wrench,
+                      onClick: onManageParams,
+                    },
+                  ]
+                : []),
+              {
+                label: "Delete",
+                icon: Trash2,
+                onClick: onDelete,
+                variant: "destructive" as const,
+                showSeparatorBefore: true,
+              },
+            ]}
+          />
         </div>
       </div>
 

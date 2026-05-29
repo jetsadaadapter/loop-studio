@@ -13,13 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAppBadgeClass } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { AppBannerCardProps } from "./types";
 
 export default function AppBannerCard({
@@ -103,45 +97,31 @@ export default function AppBannerCard({
         </div>
 
         {/* Action Buttons */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="flex size-7 items-center justify-center rounded-full border-0 bg-transparent p-0 text-zinc-400 shadow-none transition hover:bg-zinc-100 hover:text-zinc-900 aria-expanded:bg-zinc-100"
-              />
-            }
-            aria-label={`Open actions for ${title}`}
-          >
-            <Ellipsis className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="bottom" className="w-48">
-            <DropdownMenuItem
-              onClick={(e) => {
+        <ManagerActionsDropdown
+          ariaLabel={`Open actions for ${title}`}
+          triggerSize="icon-sm"
+          triggerClassName="flex size-7 items-center justify-center rounded-full border-0 bg-transparent p-0 text-zinc-400 shadow-none transition hover:bg-zinc-100 hover:text-zinc-900 aria-expanded:bg-zinc-100"
+          actions={[
+            {
+              label: "Edit",
+              icon: Pencil,
+              onClick: (e) => {
                 e.stopPropagation();
                 onEdit?.();
-              }}
-              className="py-2 text-sm cursor-pointer"
-            >
-              <Pencil className="size-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={(e) => {
+              },
+            },
+            {
+              label: "Delete",
+              icon: Trash2,
+              onClick: (e) => {
                 e.stopPropagation();
                 onDelete?.();
-              }}
-              variant="destructive"
-              className="py-2 text-sm cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-600"
-            >
-              <Trash2 className="size-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              },
+              variant: "destructive",
+              showSeparatorBefore: true,
+            },
+          ]}
+        />
       </div>
 
       {/* Title / Subtitle Text */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { Trash2Icon } from "lucide-react";
+import { Trash2Icon, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,41 +33,48 @@ export function ManagerDeleteConfirm({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop
           data-slot="dialog-overlay"
-          className="fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
+          className="fixed inset-0 isolate z-50 bg-slate-900/40 backdrop-blur-xs duration-300 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
         />
         <DialogPrimitive.Popup
           data-slot="dialog-content"
-          className="fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-background p-4 text-sm shadow-lg ring-1 ring-foreground/10 outline-none duration-300 sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-open:zoom-in-100 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8 data-closed:zoom-out-100"
+          className="fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2.5rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-slate-100 bg-white/95 backdrop-blur-md p-5 text-xs shadow-2xl outline-none duration-300 sm:max-w-[320px] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8 data-closed:zoom-out-95"
           role="dialog"
         >
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-              <Trash2Icon className="size-5" aria-hidden />
+            {/* Glowing Danger Circle */}
+            <div className="flex size-11 items-center justify-center rounded-full bg-brand/5 border border-brand/10 text-brand shadow-2xs animate-in zoom-in-50 duration-300">
+              <Trash2Icon className="size-4.5 animate-pulse" aria-hidden />
             </div>
 
             <div
               data-slot="dialog-header"
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col items-center gap-1"
             >
               <h2
                 data-slot="dialog-title"
-                className="text-base leading-none font-medium"
+                className="text-sm font-bold tracking-tight text-slate-800 capitalize leading-none"
               >
                 Delete {itemTypeLabel}
               </h2>
               <p
                 data-slot="dialog-description"
-                className="text-muted-foreground text-sm"
+                className="text-slate-500 text-[11px] leading-relaxed font-medium mt-1 select-text max-w-[280px]"
               >
-                You are deleting <strong>{itemName}</strong> ({itemId}). This
-                action cannot be undone and the data will be permanently
-                removed.
+                You are deleting <span className="text-slate-800 font-bold bg-slate-50 border border-slate-100 px-1 py-0.2 rounded mx-0.5">{itemName}</span>
+                {itemId && (
+                  <span className="text-[9px] font-sans font-bold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all ml-1.5 shrink-0 uppercase">
+                    #{itemId.slice(0, 8)}
+                  </span>
+                )}
+                <span className="block mt-1.5 text-slate-400 font-medium">
+                  This action cannot be undone and all data will be permanently removed.
+                </span>
               </p>
             </div>
 
             <div className="w-full space-y-4">
               <div className="grid gap-1.5 text-left">
-                <label htmlFor="confirm-input" className="text-xs font-medium">
+                <label htmlFor="confirm-input" className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-none">
                   Type the {itemTypeLabel} name to confirm:
                 </label>
                 <Input
@@ -78,20 +85,21 @@ export function ManagerDeleteConfirm({
                   onChange={(e) => setConfirmationInput(e.target.value)}
                   disabled={isLoading}
                   autoComplete="off"
+                  className="h-8.5 border-slate-200 bg-white/50 focus-visible:ring-brand focus-visible:border-brand-strong/30 text-[11px] rounded-lg shadow-2xs transition-all placeholder:text-slate-350"
                 />
                 {confirmationInput.trim() !== "" && !isConfirmationValid ? (
-                  <p className="text-xs text-destructive">
-                    Input does not match. Please type:{" "}
-                    <strong>{itemName}</strong>
+                  <p className="text-[9.5px] font-medium text-rose-500 mt-0.5 flex items-center gap-1 animate-fade-in">
+                    <AlertTriangle className="size-3 shrink-0" />
+                    <span>Input does not match target name exactly.</span>
                   </p>
                 ) : null}
               </div>
 
-              <div className="flex w-full gap-2">
+              <div className="flex w-full gap-2.5 pt-0.5 select-none">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-8.5 rounded-lg text-[11px] font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 duration-200 transition-all shadow-3xs cursor-pointer bg-white"
                   onClick={onCancel}
                   disabled={isLoading}
                 >
@@ -99,8 +107,7 @@ export function ManagerDeleteConfirm({
                 </Button>
                 <Button
                   type="button"
-                  variant="destructive"
-                  className="flex-1"
+                  className="flex-1 h-8.5 rounded-lg text-[11px] font-bold bg-brand hover:bg-brand-strong text-white active:scale-95 duration-200 transition-all shadow-sm shadow-brand/10 border-none disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   onClick={onConfirm}
                   disabled={isLoading || !isConfirmationValid}
                 >

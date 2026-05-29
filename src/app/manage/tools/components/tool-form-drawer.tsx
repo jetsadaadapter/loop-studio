@@ -24,7 +24,17 @@ import type { ParamDraft, ToolFormMode } from "./types";
 // ── Conversion helpers ────────────────────────────────────────────────────────
 
 function paramToDraft(param: ToolParam): ParamDraft {
-  const config = (param.config ?? {}) as { model?: string; prompt?: string };
+  let config: { model?: string; prompt?: string } = {};
+  try {
+    if (param.config) {
+      config = typeof param.config === "string"
+        ? JSON.parse(param.config)
+        : (param.config as Record<string, unknown>);
+    }
+  } catch (e) {
+    console.error("Failed to parse param config:", e);
+  }
+
   return {
     _localId: param.id,
     id: param.id,

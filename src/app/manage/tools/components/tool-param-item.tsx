@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ParamDraft } from "./types";
+import { getManageAiModels } from "@/core/services/models.service";
+import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 
 const PARAM_TYPES = [
   { value: "string", label: "String" },
@@ -33,10 +35,38 @@ interface ToolParamItemProps {
 
 export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolParamItemProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [models, setModels] = useState<ManageAiApiListItem[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   function update(partial: Partial<ParamDraft>) {
     onChange({ ...param, ...partial });
   }
+
+  useEffect(() => {
+    if (param.type === "prompt" && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      setIsLoadingModels(true);
+      getManageAiModels()
+        .then((list) => {
+          const activeModels = list.filter((m) => m.isActive);
+          setModels(activeModels);
+          if (!param.configModel && activeModels.length > 0) {
+            const defaultModel = activeModels.find((m) => m.isDefault) || activeModels[0];
+            if (defaultModel) {
+              update({ configModel: defaultModel.modelSlug });
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load models:", err);
+          hasFetchedRef.current = false;
+        })
+        .finally(() => {
+          setIsLoadingModels(false);
+        });
+    }
+  }, [param.type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-3.5 rounded-xl border border-slate-200/50 bg-slate-50/30 p-4 shadow-sm hover:border-slate-350 hover:shadow-md hover:shadow-indigo-500/2 transition-all duration-300">
@@ -178,12 +208,39 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
           </p>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600">Model</Label>
-            <Input
+            <Select
               value={param.configModel}
-              onChange={(e) => update({ configModel: e.target.value })}
-              placeholder="e.g. gemini-2.0-flash"
-              className="h-8 bg-white border-slate-200 text-xs"
-            />
+              onValueChange={(v) => {
+                if (v !== null) {
+                  let newPrompt = param.configPrompt || "";
+                  const modelRegex = /("model"\s*:\s*")[^"]*(")/g;
+                  if (modelRegex.test(newPrompt)) {
+                    newPrompt = newPrompt.replace(modelRegex, `$1${v}$2`);
+                  }
+                  update({ 
+                    configModel: v,
+                    configPrompt: newPrompt
+                  });
+                }
+              }}
+              disabled={isLoadingModels}
+            >
+              <SelectTrigger className="h-8 bg-white border-slate-200 text-xs">
+                <SelectValue placeholder={isLoadingModels ? "Loading models..." : "Select AI model"} />
+              </SelectTrigger>
+              <SelectContent className="min-w-[260px]">
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.modelSlug} className="text-xs">
+                    {model.name} {model.isDefault ? "(Default)" : ""}
+                  </SelectItem>
+                ))}
+                {models.length === 0 && !isLoadingModels && (
+                  <SelectItem value="gemini-2.5-flash" disabled className="text-xs">
+                    No models found (Fallback: Gemini 2.5 Flash)
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600">System Prompt</Label>

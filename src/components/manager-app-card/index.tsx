@@ -6,13 +6,7 @@ import { Check, Copy, Ellipsis, ExternalLink, Pencil, Trash2, Folder, Link as Li
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 type ManagerAppCardItem = {
@@ -125,56 +119,36 @@ export function ManagerAppCard({
           )}
 
           <div className="absolute right-2 top-2 z-20">
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="flex size-8 items-center justify-center rounded-full border-0 bg-black/40 p-0 text-white shadow-none backdrop-blur-md transition hover:bg-black/60 hover:text-white aria-expanded:bg-black/60 active:bg-black/60"
-                  />
-                }
-                aria-label={`Open actions for ${item.name}`}
-              >
-                <Ellipsis className="size-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom" className="w-48">
-                <DropdownMenuItem
-                  onClick={onEdit}
-                  disabled={isBusy}
-                  className="py-2 text-sm cursor-pointer"
-                >
-                  <Pencil className="size-4 mr-2" />
-                  Edit app
-                </DropdownMenuItem>
-
-
-                <DropdownMenuItem
-                  onClick={(e) => {
+            <ManagerActionsDropdown
+              ariaLabel={`Open actions for ${item.name}`}
+              triggerSize="icon-sm"
+              triggerClassName="flex size-8 items-center justify-center rounded-full border-0 bg-black/40 p-0 text-white shadow-none backdrop-blur-md transition hover:bg-black/60 hover:text-white aria-expanded:bg-black/60 active:bg-black/60"
+              actions={[
+                {
+                  label: "Edit app",
+                  icon: Pencil,
+                  disabled: isBusy,
+                  onClick: onEdit,
+                },
+                {
+                  label: "Detail",
+                  icon: ExternalLink,
+                  onClick: (e) => {
                     e.stopPropagation();
                     const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
                     window.open(url, "_blank");
-                  }}
-                  className="py-2 text-sm cursor-pointer"
-                >
-                  <ExternalLink className="size-4 mr-2" />
-                  Detail
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  disabled={isBusy}
-                  variant="destructive"
-                  className="py-2 text-sm cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-600"
-                >
-                  <Trash2 className="size-4 mr-2" />
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  },
+                },
+                {
+                  label: isDeleting ? "Deleting..." : "Delete",
+                  icon: Trash2,
+                  disabled: isBusy,
+                  onClick: onDelete,
+                  variant: "destructive",
+                  showSeparatorBefore: true,
+                },
+              ]}
+            />
           </div>
         </div>
       </div>
