@@ -112,7 +112,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 <span className="rounded-full bg-brand/20 border border-brand/30 px-2.5 py-0.5 text-[9.5px] font-bold text-white shadow-xs uppercase tracking-wider">
                   Automation Run Detail
                 </span>
-                <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[9.5px] font-extrabold text-slate-400 font-mono">
+                <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[9.5px] font-extrabold text-slate-400 font-sans">
                   RUN #{runId.slice(0, 12).toUpperCase()}
                 </span>
               </div>
@@ -233,7 +233,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-800 capitalize">{fullJob.plugin} Engine Workspace</span>
-                        <span className="text-[9px] font-mono font-bold text-slate-400 uppercase select-none">
+                        <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
                           #{fullJob.jobId.slice(0, 16)}
                         </span>
                       </div>

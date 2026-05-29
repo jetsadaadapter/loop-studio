@@ -18,55 +18,55 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
             <th scope="col" className="px-4 py-3">
               <div className="flex flex-col">
                 <span className="text-slate-650">Media</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">media</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">media</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3">
               <div className="flex flex-col">
                 <span className="text-slate-650">Post url</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">url</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">url</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 min-w-[360px]">
               <div className="flex flex-col">
                 <span className="text-slate-650">Post text</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">text</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">text</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 text-center">
               <div className="flex flex-col items-center">
                 <span className="text-slate-650">Sentiment</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">sentiment</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">sentiment</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 min-w-[360px]">
               <div className="flex flex-col">
                 <span className="text-slate-650">AI Summary</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">summary</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">summary</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 min-w-[200px]">
               <div className="flex flex-col">
                 <span className="text-slate-650">Keywords</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">keywords</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">keywords</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of likes</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">likes</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">likes</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[160px]">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of comments</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">comments</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">comments</span>
               </div>
             </th>
             <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of shares</span>
-                <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">shares</span>
+                <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">shares</span>
               </div>
             </th>
           </tr>
@@ -105,7 +105,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
               <td className="px-4 py-3.5">
                 <OutputCell value={item.analysis?.keywords} columnKey="keywords" />
               </td>
-              <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
+              <td className="px-4 py-3.5 text-right font-sans text-slate-900 font-bold">
                 {(() => {
                   const likes = item.likes !== undefined
                     ? item.likes
@@ -115,7 +115,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                   return likes !== undefined && !isNaN(likes) ? likes.toLocaleString() : "-";
                 })()}
               </td>
-              <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
+              <td className="px-4 py-3.5 text-right font-sans text-slate-900 font-bold">
                 {(() => {
                   const count = item.commentsCount !== undefined
                     ? item.commentsCount
@@ -127,7 +127,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                   return count !== undefined ? count.toLocaleString() : "-";
                 })()}
               </td>
-              <td className="px-4 py-3.5 text-right font-mono text-slate-900 font-bold">
+              <td className="px-4 py-3.5 text-right font-sans text-slate-900 font-bold">
                 {item.shares !== undefined ? item.shares.toLocaleString() : "-"}
               </td>
             </tr>

@@ -125,7 +125,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-mono text-xs leading-relaxed text-slate-655 select-text pr-28">
+            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
@@ -142,7 +142,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
 
               {preProcessConfig.model && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-405 font-mono block uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
                     LLM Analytics Model
                   </span>
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-lg select-none">
@@ -157,7 +157,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                     ) : (
                       <Sparkles className="size-3.5 text-emerald-500 shrink-0" />
                     )}
-                    <span className="text-xs font-semibold text-slate-750 font-mono">
+                    <span className="text-xs font-semibold text-slate-750 font-sans">
                       {preProcessConfig.model}
                     </span>
                   </div>
@@ -166,7 +166,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
 
               {preProcessConfig.prompt && (
                 <div className="border-t border-slate-100 pt-4 space-y-2.5">
-                  <span className="text-[10px] font-bold text-slate-405 font-mono block uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
                     Analyst System Prompt & Instructions
                   </span>
                   <div className="relative group/prompt-preprocess rounded-xl border border-slate-200 bg-slate-50/40 hover:bg-slate-50/70 transition-all duration-200 shadow-xs hover:border-slate-350">

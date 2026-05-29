@@ -130,7 +130,7 @@ export function TabLog({ job }: TabLogProps) {
 
       {/* Log Box */}
       <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-        <pre className="font-mono text-[11px] leading-relaxed text-slate-600 select-text">
+        <pre className="font-sans text-[11px] leading-relaxed text-slate-600 select-text">
           {logs.map((line, i) => {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");

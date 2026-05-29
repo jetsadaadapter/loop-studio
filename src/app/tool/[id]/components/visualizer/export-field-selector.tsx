@@ -91,7 +91,7 @@ export function ExportFieldSelector({
         {selected.map((k) => (
           <span
             key={k}
-            className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-md text-[10.5px] font-mono transition-colors"
+            className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-md text-[10.5px] font-sans transition-colors"
           >
             <span>{k}</span>
             <button
@@ -117,7 +117,7 @@ export function ExportFieldSelector({
           }}
           onFocus={openDropdown}
           onClick={(e) => e.stopPropagation()}
-          className="flex-1 min-w-[60px] bg-transparent border-none outline-none focus:ring-0 p-0 text-xs font-mono font-semibold text-slate-750 placeholder-slate-400"
+          className="flex-1 min-w-[60px] bg-transparent border-none outline-none focus:ring-0 p-0 text-xs font-sans font-semibold text-slate-750 placeholder-slate-400"
         />
 
         {/* Right side controls */}
@@ -172,7 +172,7 @@ export function ExportFieldSelector({
                     e.preventDefault();
                     toggleField(k);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs font-mono font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-between ${
+                  className={`w-full text-left px-3 py-1.5 text-xs font-sans font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-between ${
                     isSelected
                       ? "bg-brand/5 text-brand"
                       : "text-slate-700 hover:bg-slate-50"

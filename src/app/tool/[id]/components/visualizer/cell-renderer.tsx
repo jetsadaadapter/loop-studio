@@ -164,7 +164,7 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     return (
       <div className="flex flex-col gap-1.5 max-w-[500px] text-slate-750 leading-relaxed font-normal">
         {authorName && (
-          <span className="text-[10px] font-extrabold text-indigo-750 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-md self-start font-mono leading-none tracking-tight">
+          <span className="text-[10px] font-extrabold text-indigo-750 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-md self-start font-sans leading-none tracking-tight">
             {authorName}
           </span>
         )}
@@ -195,7 +195,7 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
 
   if (typeof value === "object") {
     return (
-      <span className="text-slate-500 font-mono text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
+      <span className="text-slate-500 font-sans text-[10px] bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded">
         {Array.isArray(value) ? `[Array: ${value.length}]` : "[Object]"}
       </span>
     );

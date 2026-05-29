@@ -78,7 +78,7 @@ export function TabJsonView({ items }: TabJsonViewProps) {
 
       {/* Pretty Code Container */}
       <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-        <pre className="font-mono text-xs leading-relaxed text-slate-650">
+        <pre className="font-sans text-xs leading-relaxed text-slate-650">
           <code 
             dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }} 
             className="block whitespace-pre"

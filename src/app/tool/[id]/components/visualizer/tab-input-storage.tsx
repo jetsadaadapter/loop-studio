@@ -143,7 +143,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-mono text-xs leading-relaxed text-slate-655 select-text pr-28">
+            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
@@ -171,7 +171,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                           key={`input-${key}`}
                           className={cn("min-w-0", isLongText && "col-span-full")}
                         >
-                          <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">{key}</span>
+                          <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
                           {isLongText ? (
                             <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
                               <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
@@ -215,7 +215,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                 {/* Prompt specialized copy box */}
                 {hasInputPrompt && (
                   <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
-                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">{promptKey}</span>
+                    <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{promptKey}</span>
                     <div className="relative group/prompt rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
                       <pre className="p-4 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
                         {promptVal}
@@ -253,7 +253,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                 {/* Start URLs specialized rendering */}
                 {hasStartUrls && (
                   <div className="border-t border-slate-100 pt-4 mt-2">
-                    <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">startUrls (Targets)</span>
+                    <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">startUrls (Targets)</span>
                     <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
                       {(job.input.startUrls as { url?: string }[]).map((item, idx) => {
                         const url = item.url || "";
@@ -261,7 +261,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                         return (
                           <div 
                             key={`url-${idx}`} 
-                            className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-mono text-slate-650 group/url shadow-xs hover:border-slate-300 transition-all duration-150"
+                            className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-sans text-slate-650 group/url shadow-xs hover:border-slate-300 transition-all duration-150"
                           >
                             <span className="flex-1 truncate select-text text-slate-700">
                               {url}
@@ -324,7 +324,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                         key={`config-${key}`}
                         className={cn("min-w-0", isLongText && "col-span-full")}
                       >
-                        <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase tracking-wider">{key}</span>
+                        <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
                         {isLongText ? (
                           <div className="relative group/long-config mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
                             <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
@@ -372,7 +372,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                     if (typeof val === "string" && val) {
                       return (
                         <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
-                          <span className="text-[10px] font-bold text-slate-450 font-mono block uppercase">{key}</span>
+                          <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{key}</span>
                           <div className="relative group/prompt-config rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
                             <pre className="p-3.5 pr-24 text-xs font-sans font-semibold text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-40 overflow-y-auto">
                               {val}

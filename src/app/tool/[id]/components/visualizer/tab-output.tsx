@@ -170,7 +170,7 @@ export function TabOutput({ job }: TabOutputProps) {
                     >
                       <div className="flex flex-col">
                         <span className="text-slate-650">{getHeaderLabel(key)}</span>
-                        <span className="text-slate-400 text-[9px] font-mono lowercase tracking-normal">{key}</span>
+                        <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">{key}</span>
                       </div>
                     </th>
                   ))}

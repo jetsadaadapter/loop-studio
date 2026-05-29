@@ -171,7 +171,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
                                     setTimeout(() => setCopiedJobId(false), 2000);
                                 } catch { }
                             }}
-                            className="font-mono text-[10px] text-slate-650 hover:text-brand flex items-center gap-1 transition-colors bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-150 cursor-pointer shadow-3xs"
+                            className="font-sans text-[10px] text-slate-650 hover:text-brand flex items-center gap-1 transition-colors bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-150 cursor-pointer shadow-3xs"
                         >
                             {job.jobId || job._id}
                             {copiedJobId ? (
