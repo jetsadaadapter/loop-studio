@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolParamItem } from "./tool-param-item";
@@ -25,6 +26,21 @@ interface ToolParamBuilderProps {
 }
 
 export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const prevLengthRef = useRef(params.length);
+
+  useEffect(() => {
+    if (params.length > prevLengthRef.current) {
+      setTimeout(() => {
+        const listEl = listRef.current;
+        if (listEl && listEl.lastElementChild) {
+          listEl.lastElementChild.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 100);
+    }
+    prevLengthRef.current = params.length;
+  }, [params.length]);
+
   function addParam() {
     onChange([...params, createEmptyParam(params.length)]);
   }
@@ -42,7 +58,7 @@ export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderP
   return (
     <div className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky -top-5 z-20 -mx-6 px-6 py-2.5 bg-white/95 backdrop-blur-xs border-b border-slate-100/80 mb-3">
         <div>
           <p className="text-sm font-semibold text-slate-800">Parameters</p>
           <p className="text-xs text-slate-500">
@@ -76,7 +92,7 @@ export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderP
 
       {/* Param cards */}
       {params.length > 0 && (
-        <div className="space-y-3">
+        <div ref={listRef} className="space-y-3">
           {params.map((param, idx) => (
             <ToolParamItem
               key={param._localId}

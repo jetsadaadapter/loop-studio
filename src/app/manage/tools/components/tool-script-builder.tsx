@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Plus, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolScriptItem } from "./tool-script-item";
@@ -13,7 +14,7 @@ function createEmptyScript(sortOrder: number): ScriptDraft {
     description: "",
     sortOrder,
     config: {
-      model: "gemini-1.5-flash",
+      model: "",
       prompt: "",
     },
   };
@@ -26,6 +27,21 @@ interface ToolScriptBuilderProps {
 }
 
 export function ToolScriptBuilder({ scripts, onChange, errors }: ToolScriptBuilderProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const prevLengthRef = useRef(scripts.length);
+
+  useEffect(() => {
+    if (scripts.length > prevLengthRef.current) {
+      setTimeout(() => {
+        const listEl = listRef.current;
+        if (listEl && listEl.lastElementChild) {
+          listEl.lastElementChild.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 100);
+    }
+    prevLengthRef.current = scripts.length;
+  }, [scripts.length]);
+
   function addScript() {
     onChange([...scripts, createEmptyScript(scripts.length)]);
   }
@@ -57,7 +73,7 @@ export function ToolScriptBuilder({ scripts, onChange, errors }: ToolScriptBuild
   return (
     <div className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky -top-5 z-20 -mx-6 px-6 py-2.5 bg-white/95 backdrop-blur-xs border-b border-slate-100/80 mb-3">
         <div className="flex items-center gap-2">
           <Workflow className="size-4.5 text-slate-500" />
           <div>
@@ -94,7 +110,7 @@ export function ToolScriptBuilder({ scripts, onChange, errors }: ToolScriptBuild
 
       {/* Scripts cards list */}
       {scripts.length > 0 && (
-        <div className="space-y-3">
+        <div ref={listRef} className="space-y-3">
           {scripts.map((script, idx) => (
             <ToolScriptItem
               key={script._localId}

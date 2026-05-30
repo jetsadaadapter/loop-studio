@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Trash2, Sparkles, Globe, Terminal, ArrowUp, ArrowDown } from "lucide-react";
+import { Trash2, Terminal, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import type { ScriptDraft } from "./types";
 import { getManageAiModels } from "@/core/services/models.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 import { PromptEditor } from "./prompt-editor";
+import { DynamicConfigBuilder } from "./dynamic-config-builder";
 
 const PLUGIN_TYPES = [
   { value: "gemini", label: "Gemini AI" },
@@ -98,17 +99,12 @@ export function ToolScriptItem({
         .then((list) => {
           const activeModels = list.filter((m) => m.isActive);
           setModels(activeModels);
-          if (!script.config.model && activeModels.length > 0) {
-            const defaultModel = activeModels.find((m) => m.isDefault) || activeModels[0];
-            if (defaultModel) {
-              updateConfig({ ...script.config, model: defaultModel.modelSlug });
-            }
-          }
+          // Do not auto-write modelSlug on mount to keep it optional and show placeholder
         })
         .catch((err) => console.error("Failed to load models:", err))
         .finally(() => setIsLoadingModels(false));
     }
-  }, [script.plugin]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [script.plugin]);
 
 
 
@@ -192,7 +188,7 @@ export function ToolScriptItem({
           <Label className="text-xs font-semibold text-slate-600">Plugin Type <span className="text-brand">*</span></Label>
           <Select value={isGemini ? "gemini" : isApify ? "apify" : "custom"} onValueChange={(v) => {
             if (v === "gemini") {
-              update({ plugin: "gemini", config: { model: "gemini-1.5-flash", prompt: "" } });
+              update({ plugin: "gemini", config: { model: "", prompt: "" } });
             } else if (v === "apify") {
               setInputTemplateJson("");
               setTemplateError(null);
@@ -225,13 +221,13 @@ export function ToolScriptItem({
 
       {isGemini && (
         <div className="space-y-3 border-l-2 border-violet-500 pl-3.5 pb-2">
-          <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-violet-600">
-            <Sparkles className="size-3 animate-pulse-slow" /><span>Gemini AI Processor</span>
+          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-violet-600">
+            <img src="/images/icons/gemini-color.svg" className="size-3.5 shrink-0" alt="Gemini" /><span>Gemini AI Processor</span>
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600">Model</Label>
-            <Select value={(script.config.model as string) || "gemini-1.5-flash"} onValueChange={(v) => v && updateConfig({ ...script.config, model: v })} disabled={isLoadingModels}>
-              <SelectTrigger className="h-8 bg-white border-slate-200 text-xs"><SelectValue placeholder="Select model" /></SelectTrigger>
+            <Select value={(script.config.model as string) || ""} onValueChange={(v) => v && updateConfig({ ...script.config, model: v })} disabled={isLoadingModels}>
+              <SelectTrigger className="h-8 bg-white border-slate-200 text-xs"><SelectValue placeholder="Select AI Model" /></SelectTrigger>
               <SelectContent>
                 {models.map((m) => <SelectItem key={m.id} value={m.modelSlug} className="text-xs">{m.name}</SelectItem>)}
                 {models.length === 0 && <SelectItem value="gemini-1.5-flash" className="text-xs">Gemini 1.5 Flash</SelectItem>}
@@ -239,17 +235,18 @@ export function ToolScriptItem({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className={`text-xs font-semibold ${error?.config ? "text-brand" : "text-slate-600"}`}>System Prompt <span className="text-brand">*</span></Label>
+            <Label className={`text-xs font-semibold ${error?.config ? "text-brand" : "text-slate-600"}`}>System Prompt</Label>
             <PromptEditor value={(script.config.prompt as string) || ""} onChange={(v) => updateConfig({ ...script.config, prompt: v })} placeholder="System Prompt instructions..." hasError={!!error?.config} />
             {error?.config && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.config}</p>}
           </div>
+          <DynamicConfigBuilder label="Additional Parameters" value={script.config} onChange={updateConfig} excludeKeys={["model", "prompt"]} />
         </div>
       )}
 
       {isApify && (
         <div className="space-y-3 border-l-2 border-orange-500 pl-3.5 pb-2">
-          <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-orange-600">
-            <Globe className="size-3" /><span>Apify Scraper</span>
+          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-orange-600">
+            <img src="/images/icons/apify-symbol-200x200.svg" className="size-3.5 shrink-0" alt="Apify" /><span>Apify Scraper</span>
           </div>
           <div className="space-y-1">
             <Label className={`text-xs font-semibold ${error?.config ? "text-brand" : "text-slate-600"}`}>Actor ID <span className="text-brand">*</span></Label>
@@ -261,6 +258,7 @@ export function ToolScriptItem({
             <Textarea value={inputTemplateJson} onChange={(e) => handleTemplateChange(e.target.value)} placeholder='{"startUrls": "{{startUrls:urlObjects}}"}' className={`font-mono text-xs placeholder:text-xs bg-white ${templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
             {templateError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{templateError}</p>}
           </div>
+          <DynamicConfigBuilder label="Additional Parameters" value={script.config} onChange={updateConfig} excludeKeys={["actorId", "inputTemplate"]} />
         </div>
       )}
 

@@ -8,7 +8,6 @@ import { useToast } from "@/components/toast-provider";
 import type { ManageToolApiItem, ToolScript } from "@/core/interfaces/tool";
 import {
   getManageToolScripts,
-  upsertManageToolScripts,
   deleteManageToolScript,
   updateManageToolScript,
   createManageToolScript,
@@ -65,13 +64,7 @@ function getValidationErrors(scriptsList: ScriptDraft[]): {
       hasErrors = true;
     }
 
-    if (s.plugin === "gemini") {
-      const prompt = s.config.prompt as string | undefined;
-      if (!prompt || !prompt.trim()) {
-        fieldErrors.config = "System Prompt is required for Gemini AI step";
-        hasErrors = true;
-      }
-    } else if (s.plugin === "apify") {
+    if (s.plugin === "apify") {
       const actorId = s.config.actorId as string | undefined;
       if (!actorId || !actorId.trim()) {
         fieldErrors.config = "Actor ID is required for Apify step";
