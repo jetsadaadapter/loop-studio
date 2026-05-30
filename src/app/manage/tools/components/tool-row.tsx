@@ -20,29 +20,29 @@ function getToolIconData(tool: ManageToolApiItem) {
   if (firstPlugin === "gemini" || name.includes("ai") || name.includes("gemini") || name.includes("analyzer") || name.includes("analysis")) {
     return {
       Icon: Sparkles,
-      bgActive: "bg-violet-50/80 border-violet-150/80 text-violet-600",
-      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+      bgActive: "bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent border-violet-500/20 text-violet-600 shadow-sm shadow-violet-500/5",
+      bgInactive: "bg-slate-100/50 border-slate-200/50 text-slate-400",
     };
   }
   if (firstPlugin === "apify" || name.includes("scrape") || name.includes("crawler") || name.includes("data") || name.includes("extract")) {
     return {
       Icon: Globe,
-      bgActive: "bg-orange-50/80 border-orange-150/80 text-orange-600",
-      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+      bgActive: "bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent border-orange-500/20 text-orange-600 shadow-sm shadow-orange-500/5",
+      bgInactive: "bg-slate-100/50 border-slate-200/50 text-slate-400",
     };
   }
   if (name.includes("social") || name.includes("fb") || name.includes("facebook") || name.includes("post") || name.includes("media") || name.includes("instagram")) {
     return {
       Icon: LineChart,
-      bgActive: "bg-sky-50/80 border-sky-150/80 text-sky-600",
-      bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+      bgActive: "bg-gradient-to-br from-sky-500/10 via-blue-500/5 to-transparent border-sky-500/20 text-sky-600 shadow-sm shadow-sky-500/5",
+      bgInactive: "bg-slate-100/50 border-slate-200/50 text-slate-400",
     };
   }
   // Default fallback wrench icon
   return {
     Icon: Wrench,
-    bgActive: "bg-rose-50/80 border-rose-150/80 text-rose-600",
-    bgInactive: "bg-slate-100/80 border-slate-200/60 text-slate-400",
+    bgActive: "bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-transparent border-rose-500/20 text-rose-600 shadow-sm shadow-rose-500/5",
+    bgInactive: "bg-slate-100/50 border-slate-200/50 text-slate-400",
   };
 }
 
@@ -50,11 +50,11 @@ function ToolIcon({ tool, isActive }: { tool: ManageToolApiItem; isActive: boole
   const { Icon, bgActive, bgInactive } = getToolIconData(tool);
   return (
     <div
-      className={`flex size-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
+      className={`flex size-12 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
         isActive ? bgActive : bgInactive
       }`}
     >
-      <Icon className={`size-4.5 ${isActive ? "animate-pulse-slow text-current" : ""}`} />
+      <Icon className={`size-5 ${isActive ? "animate-pulse-slow text-current" : ""}`} />
     </div>
   );
 }
@@ -81,10 +81,10 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
 
 function ParamBadge({ param, onClick }: { param: ToolParam; onClick?: () => void }) {
   const isPrompt = param.type === "prompt";
-  const baseCls = PARAM_TYPE_BADGE[param.type] ?? "bg-slate-50/60 text-slate-600 border border-slate-200";
+  const baseCls = PARAM_TYPE_BADGE[param.type] ?? "bg-slate-50 text-slate-600 border border-slate-200/60";
   const cls = isPrompt
-    ? "cursor-pointer bg-violet-50/70 text-violet-700 border border-violet-200/80 hover:bg-violet-100 hover:text-violet-800 hover:border-violet-300 shadow-2xs select-none transition-all duration-200"
-    : baseCls;
+    ? "cursor-pointer bg-violet-50/70 text-violet-700 border border-violet-200/80 hover:bg-violet-100/90 hover:text-violet-800 hover:border-violet-300 shadow-3xs select-none transition-all duration-200"
+    : `${baseCls} shadow-3xs`;
 
   return (
     <span
@@ -92,12 +92,12 @@ function ParamBadge({ param, onClick }: { param: ToolParam; onClick?: () => void
       role={isPrompt ? "button" : undefined}
       tabIndex={isPrompt ? 0 : undefined}
       onKeyDown={isPrompt ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cls}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.75 text-[10px] font-semibold transition-all duration-250 ${cls}`}
     >
-      {isPrompt && <Sparkles className="size-2.5 text-violet-500 animate-pulse-slow" />}
-      {param.label}
+      {isPrompt && <Sparkles className="size-2.5 text-violet-500 animate-pulse-slow shrink-0" />}
+      <span>{param.label}</span>
       {param.required && (
-        <span className="font-bold text-rose-500" aria-label="required">*</span>
+        <span className="font-bold text-rose-500 shrink-0 ml-0.5" aria-label="required">*</span>
       )}
     </span>
   );
@@ -107,21 +107,21 @@ function PipelineStep({ script, isLast }: { script: ToolScript; isLast: boolean 
   const meta = PLUGIN_META[script.plugin.toLowerCase()];
   return (
     <div className="flex items-center gap-1">
-      <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors hover:bg-slate-50 hover:border-slate-300">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-slate-50/60 px-2.5 py-0.75 text-[10px] font-semibold text-slate-600 transition-all hover:bg-white hover:border-slate-350 shadow-3xs cursor-default">
         {meta && (
           <span className={`size-1.5 rounded-full ${meta.dot} animate-pulse`} aria-hidden />
         )}
-        {script.label}
+        <span>{script.label}</span>
       </span>
       {!isLast && (
         <span className="flex items-center justify-center px-0.5 text-slate-300" aria-hidden>
           <svg
-            width="12"
-            height="12"
+            width="10"
+            height="10"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -150,16 +150,16 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
 
   return (
     <article
-      className={`group relative overflow-hidden flex flex-col p-5 rounded-2xl border transition-all duration-300 bg-white/70 backdrop-blur-md ${
+      className={`group relative overflow-hidden flex flex-col p-5.5 rounded-2xl border transition-all duration-300 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.015)] ${
         tool.isActive
-          ? "border-brand/20 hover:border-brand/40 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_12px_36px_rgb(0,0,0,0.05)]"
-          : "border-slate-200/60 hover:border-slate-300/80 shadow-[0_4px_20px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.03)]"
+          ? "border-slate-100 hover:border-brand/35 shadow-[0_12px_36px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
+          : "border-slate-100 hover:border-slate-300/80 shadow-[0_4px_20px_rgb(0,0,0,0.005)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)]"
       } hover:-translate-y-0.5`}
     >
       {/* Active stripe - Perfectly clipped by overflow-hidden */}
       {tool.isActive && (
         <span
-          className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand to-indigo-650"
+          className="absolute left-0 top-0 bottom-0 w-1.2 bg-gradient-to-b from-brand via-violet-500 to-indigo-650 rounded-r-md group-hover:opacity-90 transition-opacity"
           aria-hidden
         />
       )}
@@ -167,7 +167,9 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
       {/* Top Header - Icon and Aligned Info Block next to it */}
       <div className="flex items-start gap-3">
         {/* Automatic Custom Icon */}
-        <ToolIcon tool={tool} isActive={tool.isActive} />
+        <div className="group-hover:scale-105 transition-transform duration-300">
+          <ToolIcon tool={tool} isActive={tool.isActive} />
+        </div>
 
         {/* Info Block */}
         <div className="min-w-0 flex-1 space-y-0.5 pr-8"> {/* Leave exact space for action menu dropdown */}
@@ -177,7 +179,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
             </h3>
             <StatusBadge isActive={tool.isActive} />
           </div>
-          <p className="line-clamp-1 font-sans text-[9px] font-medium tracking-wide text-slate-500">
+          <p className="line-clamp-1 font-sans text-[9px] font-medium tracking-wide text-slate-400">
             {namespace}
           </p>
         </div>
@@ -225,23 +227,23 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
       {/* Description */}
       <div className="mt-3.5 flex-1">
         {tool.description ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600">{tool.description}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600 font-sans">{tool.description}</p>
         ) : (
-          <p className="text-xs italic leading-relaxed text-slate-400">No description</p>
+          <p className="text-xs italic leading-relaxed text-slate-400 font-sans">No description</p>
         )}
       </div>
 
       {/* Grid Footer - Only renders parameters or pipelines if present */}
       {(tool.params.length > 0 || scripts.length > 0) && (
-        <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
-          <div className="space-y-2">
+        <div className="mt-5 pt-4 border-t border-slate-100/85 space-y-3">
+          <div className="space-y-2.5">
             {/* Parameters Section */}
             {tool.params.length > 0 && (
               <div className="space-y-1">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400/90 mb-1.5">
                   Parameters
                 </span>
-                <div className="flex flex-wrap items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {tool.params.map((p) => (
                     <ParamBadge
                       key={p.id}
@@ -260,10 +262,10 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
             {/* Pipeline Section */}
             {scripts.length > 0 && (
               <div className="space-y-1">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400/90 mb-1.5">
                   Pipeline
                 </span>
-                <div className="flex flex-wrap items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {scripts.map((s, idx) => (
                     <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1} />
                   ))}

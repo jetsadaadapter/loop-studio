@@ -4,6 +4,51 @@ import { Brain, Star, Edit3, Trash2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ManagerActionsDropdown } from "../manager-actions-dropdown";
 
+// ── Resolves brand SVG logo + background for each AI provider ─────────────────
+
+function getModelIconData(name: string, provider: string, modelSlug: string): {
+  imgSrc: string | null;
+  fallbackIcon?: typeof Brain;
+  bgCls: string;
+} {
+  const prov = provider.toLowerCase();
+  const lowerName = name.toLowerCase();
+  const slug = modelSlug.toLowerCase();
+
+  if (prov.includes("google") || prov.includes("gemini") || lowerName.includes("gemini") || slug.includes("gemini")) {
+    return {
+      imgSrc: "/images/icons/gemini-color.svg",
+      bgCls: "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100/60 shadow-3xs",
+    };
+  }
+  if (prov.includes("anthropic") || prov.includes("claude") || lowerName.includes("claude") || slug.includes("claude")) {
+    return {
+      imgSrc: "/images/icons/claude-color.svg",
+      bgCls: "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100/60 shadow-3xs",
+    };
+  }
+  if (prov.includes("openai") || prov.includes("gpt") || lowerName.includes("gpt") || slug.includes("gpt")) {
+    return {
+      imgSrc: null,
+      fallbackIcon: Brain,
+      bgCls: "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100/60 text-emerald-600 shadow-3xs",
+    };
+  }
+  if (prov.includes("meta") || prov.includes("llama") || lowerName.includes("llama") || slug.includes("llama")) {
+    return {
+      imgSrc: null,
+      fallbackIcon: Brain,
+      bgCls: "bg-gradient-to-br from-sky-50 to-blue-50 border-sky-100/60 text-sky-600 shadow-3xs",
+    };
+  }
+  // Default brain fallback
+  return {
+    imgSrc: null,
+    fallbackIcon: Brain,
+    bgCls: "bg-gradient-to-br from-indigo-50 to-violet-50 border-indigo-100/60 text-indigo-500 shadow-3xs",
+  };
+}
+
 export interface ManagerModelTableProps {
   models: Array<{
     id: string;
@@ -133,6 +178,7 @@ export function ManagerModelTable({
             </tr>
           ) : (
             models.map((row, index) => {
+              const { imgSrc, fallbackIcon: FallbackIcon, bgCls } = getModelIconData(row.name, row.provider, row.modelSlug);
               return (
                 <tr
                   key={row.id}
@@ -143,8 +189,15 @@ export function ManagerModelTable({
                   </td>
                   <td className="p-3 align-middle min-w-[240px]">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full flex items-center justify-center bg-indigo-50 border border-indigo-100/50 shrink-0">
-                        <Brain className="size-4.5 text-indigo-500" aria-hidden="true" />
+                      <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border ${bgCls}`}>
+                        {imgSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={imgSrc} alt="" className="size-4.5 object-contain" aria-hidden="true" />
+                        ) : FallbackIcon ? (
+                          <FallbackIcon className="size-4.5" aria-hidden="true" />
+                        ) : (
+                          <Brain className="size-4.5 text-indigo-500" aria-hidden="true" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
