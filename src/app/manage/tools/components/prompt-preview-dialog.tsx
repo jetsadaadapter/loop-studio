@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Check, Copy, Sparkles } from "lucide-react";
 import {
   Dialog,
@@ -59,7 +60,7 @@ export function PromptPreviewDialog({
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-[10px] font-medium text-slate-500">Target Model:</span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-100/80 shadow-2xs hover:bg-violet-100/50 transition-colors">
-                  <img src="/images/icons/gemini-color.svg" className="size-3.5 shrink-0 animate-pulse-slow" alt="Gemini" /> {model}
+                  <Image src="/images/icons/gemini-color.svg" width={14} height={14} className="size-3.5 shrink-0 animate-pulse-slow" alt="Gemini" /> {model}
                 </span>
               </div>
             )}

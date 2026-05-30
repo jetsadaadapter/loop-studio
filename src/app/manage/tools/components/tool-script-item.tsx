@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Trash2, Terminal, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,7 @@ export function ToolScriptItem({
       {isGemini && (
         <div className="space-y-3 border-l-2 border-violet-500 pl-3.5 pb-2">
           <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-violet-600">
-            <img src="/images/icons/gemini-color.svg" className="size-3.5 shrink-0" alt="Gemini" /><span>Gemini AI Processor</span>
+            <Image src="/images/icons/gemini-color.svg" width={14} height={14} className="size-3.5 shrink-0" alt="Gemini" /><span>Gemini AI Processor</span>
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600">Model</Label>
@@ -246,7 +247,7 @@ export function ToolScriptItem({
       {isApify && (
         <div className="space-y-3 border-l-2 border-orange-500 pl-3.5 pb-2">
           <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-orange-600">
-            <img src="/images/icons/apify-symbol-200x200.svg" className="size-3.5 shrink-0" alt="Apify" /><span>Apify Scraper</span>
+            <Image src="/images/icons/apify-symbol-200x200.svg" width={14} height={14} className="size-3.5 shrink-0" alt="Apify" /><span>Apify Scraper</span>
           </div>
           <div className="space-y-1">
             <Label className={`text-xs font-semibold ${error?.config ? "text-brand" : "text-slate-600"}`}>Actor ID <span className="text-brand">*</span></Label>
