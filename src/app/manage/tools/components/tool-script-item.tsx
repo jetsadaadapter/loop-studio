@@ -16,15 +16,11 @@ import {
 } from "@/components/ui/select";
 import type { ScriptDraft } from "./types";
 import { getManageAiModels } from "@/core/services/models.service";
+import { getPlugins } from "@/core/services/manage-tools.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 import { PromptEditor } from "./prompt-editor";
 import { DynamicConfigBuilder } from "./dynamic-config-builder";
 
-const PLUGIN_TYPES = [
-  { value: "gemini", label: "Gemini AI" },
-  { value: "apify", label: "Apify" },
-  { value: "custom", label: "Custom Plugin" },
-];
 
 interface ToolScriptItemProps {
   script: ScriptDraft;
@@ -48,8 +44,39 @@ export function ToolScriptItem({
   error,
 }: ToolScriptItemProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [plugins, setPlugins] = useState<{ value: string; label: string }[]>([
+    { value: "gemini", label: "Gemini AI" },
+    { value: "apify", label: "Apify" },
+    { value: "custom", label: "Custom Plugin" },
+  ]);
   const [models, setModels] = useState<ManageAiApiListItem[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getPlugins()
+      .then((list) => {
+        if (!active) return;
+        if (list.length > 0) {
+          const mapped = list.map((p) => {
+            let label = p.name;
+            if (p.name === "gemini") label = "Gemini AI";
+            else if (p.name === "apify") label = "Apify";
+            else if (p.name.length > 0) {
+              label = p.name.charAt(0).toUpperCase() + p.name.slice(1);
+            }
+            return { value: p.name, label };
+          });
+          mapped.push({ value: "custom", label: "Custom Plugin" });
+          setPlugins(mapped);
+        }
+      })
+      .catch((err) => console.error("Failed to load plugins:", err));
+
+    return () => {
+      active = false;
+    };
+  }, []);
   const [rawJson, setRawJson] = useState(() => {
     if (script.plugin !== "gemini" && script.plugin !== "apify") {
       return JSON.stringify(script.config, null, 2);
@@ -202,7 +229,7 @@ export function ToolScriptItem({
           }}>
             <SelectTrigger className="h-8 bg-white border-slate-200 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PLUGIN_TYPES.map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
+              {plugins.map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

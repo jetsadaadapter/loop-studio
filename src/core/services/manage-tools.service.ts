@@ -127,3 +127,20 @@ export async function createManageToolScript(toolId: string, payload: Partial<To
     return response.data;
 }
 
+export interface PluginListItem {
+    name: string;
+    description: string;
+}
+
+export async function getPlugins(init?: RequestInit): Promise<PluginListItem[]> {
+    const url = buildUrl("/plugins");
+    const response = await apiFetch<PluginListItem[] | { success: boolean; data: PluginListItem[] }>(url, init);
+    if (Array.isArray(response)) {
+        return response;
+    }
+    if (response && typeof response === "object" && "data" in response && Array.isArray(response.data)) {
+        return response.data;
+    }
+    return [];
+}
+
