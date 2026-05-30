@@ -9,12 +9,13 @@ import {
   useState,
   startTransition,
 } from "react";
-
+import { Search, RotateCw, Plus, SlidersHorizontal } from "lucide-react";
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 
 import { ManagerModelTable } from "@/components/manager-model-table";
 import { ManagerForm } from "@/components/manager-form";
+import { ManagerPagination } from "@/components/manager-pagination";
 import type { ManagerFormProps } from "@/components/manager-form/types";
 import {
   Sheet,
@@ -46,7 +47,7 @@ import type {
 import {
   createManageAiModel,
   deleteManageAiModel,
-  getManageAiModels,
+  getManageAiModelsResponse,
   setDefaultManageAiModel,
   updateManageAiModel,
 } from "@/core/services/models.service";
@@ -146,8 +147,11 @@ export function ManageAiClient() {
   const [providerFilter, setProviderFilter] = useState("all");
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sortBy, setSortBy] = useState("sort-asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12); // standard 12 as default
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
   const [draft, setDraft] = useState<ModelRecord>(EMPTY_MODEL);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -166,8 +170,9 @@ export function ManageAiClient() {
       }
       setLoadError("");
       try {
-        const response = await getManageAiModels();
-        setModels(response.map(mapApiModel));
+        const response = await getManageAiModelsResponse(currentPage, pageSize);
+        setModels((response.data ?? []).map(mapApiModel));
+        setTotalItems(response.meta?.total ?? 0);
         setLastUpdatedAt(new Date());
       } catch {
         setLoadError("Failed to load AI models.");
@@ -180,7 +185,7 @@ export function ManageAiClient() {
         }
       }
     },
-    [],
+    [currentPage, pageSize],
   );
 
   useEffect(() => {
@@ -188,7 +193,7 @@ export function ManageAiClient() {
       void loadModels();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, pageSize]);
 
   // Avoid hydration mismatch: format date string only on client
   useEffect(() => {
@@ -254,6 +259,18 @@ export function ManageAiClient() {
 
   const hasActiveFilter = search.trim() !== "" || providerFilter !== "all";
 
+  // Reset page when filters or pageSize change
+  useEffect(() => {
+    startTransition(() => {
+      setCurrentPage(1);
+    });
+  }, [search, providerFilter, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const pagedModels = visibleModels;
+
   function openCreateForm() {
     setMode("create");
     setDraft(EMPTY_MODEL);
@@ -283,13 +300,7 @@ export function ManageAiClient() {
 
   function onSearchChange(value: string) {
     setSearchInput(value);
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-    searchDebounceRef.current = setTimeout(() => {
-      setSearch(value);
-      searchDebounceRef.current = null;
-    }, 300);
+    setSearch(value);
   }
 
   function resetForm() {
@@ -498,146 +509,168 @@ export function ManageAiClient() {
     <ManagerShell
       title={pageTitle}
       description={pageSubtitle}
-      actions={
-        <Button
-          type="button"
-          disabled={
-            isSubmitting || settingDefaultId !== null || deletingId !== null
-          }
-          onClick={openCreateForm}
-        >
-          {isSubmitting ? (
-            <span className="inline-flex items-center gap-1.5">
-              <ButtonSpinner />
-              Processing...
-            </span>
-          ) : (
-            "Add Model"
-          )}
-        </Button>
-      }
+      actions={null}
     >
-      <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between mb-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div>
-            <p className="text-base font-semibold text-foreground">Filters</p>
-            <p className="text-sm text-muted-foreground">
-              {visibleModels.length} items found
-            </p>
-          </div>
-        </div>
-        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:items-center xl:justify-end">
-          {/* Search input */}
-          <div className="relative w-full sm:col-span-2 xl:w-[320px]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-search pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            >
-              <path d="m21 21-4.34-4.34"></path>
-              <circle cx="11" cy="11" r="8"></circle>
-            </svg>
+      {/* Search and Filters Bar */}
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none">
+        {/* Left Group */}
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
+          {/* Search Input */}
+          <div className="relative w-full xl:w-80 shrink-0">
+            <Search className="absolute left-3 top-2 size-4 text-slate-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search model name, slug, or provider"
-              className="h-8 w-full min-w-0 rounded-sm border border-input px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 bg-background pl-9"
+              className="h-8 w-full rounded-sm border border-slate-200 bg-white pl-9.5 pr-3 text-xs shadow-3xs transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand/5 placeholder:text-slate-400"
               value={searchInput}
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
-          {/* Refresh button */}
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            disabled={isLoading || isRefreshing}
-            onClick={() => void loadModels({ silent: true })}
-            className="h-8 gap-1.5 px-2.5 w-full border-brand/30 bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand xl:w-auto rounded-sm"
-          >
-            {isRefreshing ? (
-              <span className="inline-flex items-center gap-1.5">
-                <ButtonSpinner />
-                Refreshing...
-              </span>
-            ) : (
-              "Refresh"
+
+          {/* Select Filters Wrapper */}
+          <div className="flex items-center gap-3 w-full xl:w-auto">
+            {/* Sort Select */}
+            <div className="flex items-center gap-2 flex-1 xl:flex-initial">
+              <span className="text-xs font-semibold text-slate-500 shrink-0">Sort By</span>
+              <div className="flex-1 xl:w-40">
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => setSortBy(value ?? "sort-asc")}
+                >
+                  <SelectTrigger className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 w-full shadow-3xs flex items-center justify-between cursor-pointer">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                    <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Provider Filter Select */}
+            <div className="flex items-center gap-2 flex-1 xl:flex-initial">
+              <span className="text-xs font-semibold text-slate-500 shrink-0">Provider</span>
+              <div className="flex-1 xl:w-40">
+                <Select
+                  value={providerFilter}
+                  onValueChange={(value) => setProviderFilter(value ?? "all")}
+                >
+                  <SelectTrigger className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 w-full shadow-3xs flex items-center justify-between cursor-pointer">
+                    <SelectValue placeholder="Provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {providerOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Reset Filter Icon Button */}
+            {(searchInput || providerFilter !== "all") && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={clearFilters}
+                className="size-8 rounded-sm border border-slate-200 hover:bg-slate-50 cursor-pointer text-slate-500 shadow-3xs flex items-center justify-center shrink-0"
+                title="Reset Filters"
+              >
+                <SlidersHorizontal className="size-4" />
+              </Button>
             )}
-          </Button>
-          {/* Sort select (shadcn/ui) */}
-          <div className="w-full xl:w-40">
-            <Select
-              value={sortBy}
-              onValueChange={(value) => setSortBy(value ?? "sort-asc")}
-            >
-              <SelectTrigger className="w-full xl:w-40 h-8 rounded-sm border border-input bg-background px-2.5 py-1 text-sm">
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="name-asc">Name: A-Z</SelectItem>
-                <SelectItem value="name-desc">Name: Z-A</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Provider filter select (shadcn/ui) */}
-          <div className="w-full xl:w-40">
-            <Select
-              value={providerFilter}
-              onValueChange={(value) => setProviderFilter(value ?? "all")}
-            >
-              <SelectTrigger className="w-full xl:w-40 h-8 rounded-sm border border-input bg-background px-2.5 py-1 text-sm">
-                <SelectValue placeholder="Provider" />
-              </SelectTrigger>
-              <SelectContent>
-                {providerOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
-      </div>
-      <span className="text-xs text-slate-500 mt-1 block">
-        {lastUpdatedString}
-      </span>
 
-      <ManagerModelTable
-        models={visibleModels}
-        isLoading={isLoading}
-        isSubmitting={isSubmitting}
-        settingDefaultId={settingDefaultId}
-        deletingId={deletingId}
-        loadError={!!loadError}
-        hasActiveFilter={hasActiveFilter}
-        hideCheckboxAll
-        onEdit={(id) => {
-          const row = visibleModels.find((m) => m.id === id);
-          if (row) {
-            setMode("edit");
-            setSelectedId(row.id);
-            setDraft(row);
-          }
-        }}
-        onSetDefault={onSetDefault}
-        onDelete={(id) => {
-          const row = visibleModels.find((m) => m.id === id);
-          if (row) setDeleteTarget(row);
-        }}
-        onRetry={() => void loadModels()}
-        onAdd={openCreateForm}
-        onClearFilters={clearFilters}
-      />
+        {/* Right Group */}
+        <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0 select-none">
+          {/* Last updated timestamp and refresh button */}
+          <div className="flex items-center gap-2">
+            {lastUpdatedString && (
+              <span className="text-[10px] font-medium text-slate-400">
+                {lastUpdatedString}
+              </span>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={isLoading || isRefreshing}
+              onClick={() => void loadModels({ silent: true })}
+              className="size-8 border-slate-200 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
+              title="Refresh Models"
+            >
+              <RotateCw className={`size-3.5 text-slate-500 ${isRefreshing ? "animate-spin text-brand" : ""}`} />
+            </Button>
+          </div>
+
+          <Button
+            type="button"
+            disabled={
+              isSubmitting || settingDefaultId !== null || deletingId !== null
+            }
+            onClick={openCreateForm}
+            className="h-8 bg-brand hover:bg-brand/90 text-white text-xs font-semibold px-4.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-sm shadow-brand/10 transition-all select-none flex-1 xl:flex-none justify-center"
+          >
+            {isSubmitting ? (
+              <span className="inline-flex items-center gap-1.5">
+                <ButtonSpinner />
+                Saving...
+              </span>
+            ) : (
+              <>
+                <Plus className="size-4 shrink-0" />
+                Add Model
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <ManagerModelTable
+          models={isLoading ? [] : pagedModels}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          settingDefaultId={settingDefaultId}
+          deletingId={deletingId}
+          loadError={!!loadError}
+          hasActiveFilter={hasActiveFilter}
+          onEdit={(id) => {
+            const row = visibleModels.find((m) => m.id === id);
+            if (row) {
+              setMode("edit");
+              setSelectedId(row.id);
+              setDraft(row);
+            }
+          }}
+          onSetDefault={onSetDefault}
+          onDelete={(id) => {
+            const row = visibleModels.find((m) => m.id === id);
+            if (row) setDeleteTarget(row);
+          }}
+          onRetry={() => void loadModels()}
+          onAdd={openCreateForm}
+          onClearFilters={clearFilters}
+        />
+
+        {/* Premium Custom Pagination Footer */}
+        {!isLoading && (
+          <ManagerPagination
+            currentPage={safeCurrentPage}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
+      </div>
 
       {deleteTarget ? (
         <ManagerDeleteConfirm

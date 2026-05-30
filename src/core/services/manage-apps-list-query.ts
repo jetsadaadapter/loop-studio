@@ -1,6 +1,6 @@
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
-export const DEFAULT_PAGE_SIZE = 9;
+export const DEFAULT_PAGE_SIZE = 12;
 export const PAGE_SIZE_OPTIONS = [6, 9, 12, 18] as const;
 export const SORT_OPTIONS = ["newest", "name-asc", "name-desc", "sort-asc"] as const;
 
@@ -39,9 +39,7 @@ function isTypeValue(value: string): value is TypeFilterValue {
     );
 }
 
-function isPageSizeValue(value: number): value is (typeof PAGE_SIZE_OPTIONS)[number] {
-    return (PAGE_SIZE_OPTIONS as readonly number[]).includes(value);
-}
+
 
 export function parseManageAppsListQuery(params: QueryReader): ManageAppsListQueryState {
     const q = params.get("q") ?? "";
@@ -56,8 +54,8 @@ export function parseManageAppsListQuery(params: QueryReader): ManageAppsListQue
     const sortRaw = params.get("sort") ?? "sort-asc";
     const sort = isSortValue(sortRaw) ? sortRaw : "sort-asc";
 
-    const sizeRaw = Number(params.get("size") ?? DEFAULT_PAGE_SIZE);
-    const size = isPageSizeValue(sizeRaw) ? sizeRaw : DEFAULT_PAGE_SIZE;
+    const sizeRaw = Number(params.get("size") ?? params.get("limit") ?? DEFAULT_PAGE_SIZE);
+    const size = Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : DEFAULT_PAGE_SIZE;
 
     const pageRaw = Number(params.get("page") ?? 1);
     const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
@@ -85,6 +83,7 @@ export function applyManageAppsListQuery(
     next.delete("type");
     next.delete("sort");
     next.delete("size");
+    next.delete("limit");
     next.delete("page");
 
     if (state.q.trim()) next.set("q", state.q.trim());
@@ -92,7 +91,7 @@ export function applyManageAppsListQuery(
     if (state.status !== "all") next.set("status", state.status);
     if (state.type !== "all") next.set("type", state.type);
     if (state.sort !== "sort-asc") next.set("sort", state.sort);
-    if (state.size !== DEFAULT_PAGE_SIZE) next.set("size", String(state.size));
+    if (state.size !== DEFAULT_PAGE_SIZE) next.set("limit", String(state.size));
     if (state.page > 1) next.set("page", String(state.page));
 
     return next;

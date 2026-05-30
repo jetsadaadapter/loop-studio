@@ -1,8 +1,8 @@
 import { Button } from "../ui/button";
-// import { Badge } from "../ui/badge"; // Badge is not used
 import React from "react";
-import { Brain } from "lucide-react";
+import { Brain, Star, Edit3, Trash2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { ManagerActionsDropdown } from "../manager-actions-dropdown";
 
 export interface ManagerModelTableProps {
   models: Array<{
@@ -27,7 +27,6 @@ export interface ManagerModelTableProps {
   onRetry: () => void;
   onAdd: () => void;
   onClearFilters: () => void;
-  hideCheckboxAll?: boolean;
 }
 
 export function ManagerModelTable({
@@ -44,84 +43,36 @@ export function ManagerModelTable({
   onRetry,
   onAdd,
   onClearFilters,
-  hideCheckboxAll,
 }: ManagerModelTableProps) {
   return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-    >
-      <table
-        data-slot="table"
-        className="w-full caption-bottom text-sm min-w-2xl"
-      >
-        <thead data-slot="table-header" className="[&_tr]:border-b">
-          <tr
-            data-slot="table-row"
-            className="data-[state=selected]:bg-muted border-b transition-colors hover:bg-transparent!"
-          >
-            {!hideCheckboxAll && (
-              <th
-                data-slot="table-head"
-                className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-3 ps-6"
-              >
-                {/* Checkbox column header */}
-              </th>
-            )}
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2 px-3"
-            >
+    <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
+      <table className="w-full caption-bottom text-sm min-w-3xl">
+        <thead className="[&_tr]:border-b bg-slate-50/50">
+          <tr className="border-b transition-colors hover:bg-transparent">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
               #
             </th>
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2"
-            >
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
               Model Name
             </th>
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2"
-            >
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40">
               Provider
             </th>
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2"
-            >
-              Created
-            </th>
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-2"
-            >
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
               Status
             </th>
-            <th
-              data-slot="table-head"
-              className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap [&:has([role=checkbox])]:pr-0 p-3 pe-6 flex justify-start"
-            >
-              Actions
+            <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
             </th>
           </tr>
         </thead>
-        <tbody
-          data-slot="table-body"
-          className="[&_tr:last-child]:border-0 divide-y divide-border dark:divide-darkborder"
-        >
+        <tbody className="divide-y divide-slate-100 bg-white">
           {isLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i} className="border-b transition-colors hover:bg-transparent!">
-                {!hideCheckboxAll && (
-                  <td className="p-3 ps-6">
-                    <Skeleton className="h-4 w-4 rounded" />
-                  </td>
-                )}
-                <td className="p-2 px-3">
-                  <Skeleton className="h-4 w-8" />
+              <tr key={i} className="animate-pulse">
+                <td className="p-3 px-4">
+                  <Skeleton className="h-4 w-4 rounded" />
                 </td>
-                <td className="p-2">
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-9 w-9 rounded-full" />
                     <div className="space-y-1">
@@ -130,51 +81,38 @@ export function ManagerModelTable({
                     </div>
                   </div>
                 </td>
-                <td className="p-2">
-                  <Skeleton className="h-4 w-20" />
+                <td className="p-3">
+                  <Skeleton className="h-6 w-20 rounded-full" />
                 </td>
-                <td className="p-2">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="p-2">
+                <td className="p-3">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-2 w-2 rounded-full" />
                     <Skeleton className="h-4 w-16" />
                   </div>
                 </td>
-                <td className="p-3 pe-6">
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-16 rounded-sm" />
-                    <Skeleton className="h-8 w-24 rounded-sm" />
-                    <Skeleton className="h-8 w-20 rounded-sm" />
-                  </div>
+                <td className="p-3 px-4">
+                  <Skeleton className="h-8 w-8 rounded" />
                 </td>
               </tr>
             ))
           ) : models.length === 0 ? (
             <tr>
-              <td
-                colSpan={hideCheckboxAll ? 6 : 7}
-                className="p-4 text-center text-muted-foreground"
-              >
+              <td colSpan={5} className="p-8 text-center text-slate-400 select-none">
                 {loadError
                   ? "Unable to load AI models right now."
-                  : "No AI models configured yet. Add one to begin testing and assignment."}
-                <div className="flex gap-2 justify-center mt-2">
+                  : "No AI models configured yet. Add one to begin testing."}
+                <div className="flex gap-2 justify-center mt-3">
                   {loadError ? (
-                    <Button type="button" size="sm" onClick={onRetry}>
+                    <Button type="button" size="sm" onClick={onRetry} className="h-8 cursor-pointer">
                       Retry
                     </Button>
                   ) : (
                     <Button
                       type="button"
                       size="sm"
-                      disabled={
-                        isSubmitting ||
-                        settingDefaultId !== null ||
-                        deletingId !== null
-                      }
+                      disabled={isSubmitting || settingDefaultId !== null || deletingId !== null}
                       onClick={onAdd}
+                      className="h-8 cursor-pointer bg-brand hover:bg-brand/90 text-white"
                     >
                       Add Model
                     </Button>
@@ -185,6 +123,7 @@ export function ManagerModelTable({
                       size="sm"
                       variant="outline"
                       onClick={onClearFilters}
+                      className="h-8 border-slate-200 cursor-pointer"
                     >
                       Clear Filters
                     </Button>
@@ -193,152 +132,91 @@ export function ManagerModelTable({
               </td>
             </tr>
           ) : (
-            models.map((row, index) => (
-              <tr
-                key={row.id}
-                data-slot="table-row"
-                className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
-              >
-                {!hideCheckboxAll && (
-                  <td
-                    data-slot="table-cell"
-                    className="align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap p-3 ps-6"
-                  >
-                    <span
-                      data-unchecked=""
-                      role="checkbox"
-                      tabIndex={0}
-                      aria-checked="false"
-                      data-slot="checkbox"
-                      aria-label="Select model"
-                      className="border-input dark:bg-input/30 data-checked:bg-primary data-checked:text-primary-foreground dark:data-checked:bg-primary data-checked:border-primary aria-invalid:aria-checked:border-primary aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex size-4 items-center justify-center rounded-lg border transition-colors group-has-disabled/field:opacity-50 focus-visible:ring-3 aria-invalid:ring-3 peer relative shrink-0 outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-                    ></span>
-                    <input
-                      tabIndex={-1}
-                      type="checkbox"
-                      aria-hidden="true"
-                      className="sr-only"
-                      aria-label="Select model"
-                    />
+            models.map((row, index) => {
+              return (
+                <tr
+                  key={row.id}
+                  className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
+                >
+                  <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                    {index + 1}
                   </td>
-                )}
-                <td
-                  data-slot="table-cell"
-                  className="p-2 px-3 align-middle whitespace-nowrap text-xs font-medium text-muted-foreground"
-                >
-                  #{index + 1}
-                </td>
-                <td
-                  data-slot="table-cell"
-                  className="p-2 align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap min-w-62.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="h-9 w-9 rounded-full flex items-center justify-center bg-indigo-400/20">
-                      <Brain
-                        className="size-4.5 text-indigo-400"
-                        aria-hidden="true"
-                      />
+                  <td className="p-3 align-middle min-w-[240px]">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full flex items-center justify-center bg-indigo-50 border border-indigo-100/50 shrink-0">
+                        <Brain className="size-4.5 text-indigo-500" aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-slate-800 tracking-tight truncate">
+                            {row.name}
+                          </span>
+                          {row.isDefault && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-sm bg-brand/10 text-[8px] font-bold text-brand font-sans">
+                              <Star className="size-2 fill-current" /> DEFAULT
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 font-sans truncate mt-0.5">
+                          {row.modelSlug}
+                        </p>
+                      </div>
                     </div>
-                    <div className="">
-                      <h6 className="text-sm font-medium">{row.name}</h6>
-                      <p className="text-xs text-muted-foreground">
-                        {row.modelSlug}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td
-                  data-slot="table-cell"
-                  className="p-2 align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap"
-                >
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {row.provider}
-                  </span>
-                </td>
-                <td
-                  data-slot="table-cell"
-                  className="p-2 align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap"
-                >
-                  <p className="text-sm font-normal text-muted-foreground">
-                    {row.createdAt}
-                  </p>
-                </td>
-                <td
-                  data-slot="table-cell"
-                  className="p-2 align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap"
-                >
-                  <div className="flex gap-2 text-sm items-center font-normal text-muted-foreground">
+                  </td>
+                  <td className="p-3 align-middle whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-50 text-[10px] font-bold text-slate-700 border border-slate-200">
+                      {row.provider}
+                    </span>
+                  </td>
+                  <td className="p-3 align-middle whitespace-nowrap">
                     <span
-                      className={
-                        `inline-block h-2 w-2 rounded-full mr-0 align-middle ` +
-                        (row.isActive ? "bg-green-500" : "bg-gray-400")
-                      }
-                      aria-label={row.isActive ? "Active" : "Inactive"}
-                    ></span>
-                    <span
-                      className={
-                        row.isActive ? "text-green-700" : "text-gray-500"
-                      }
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${row.isActive
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
+                          : "bg-slate-150 text-slate-500 border border-slate-200"
+                        }`}
                     >
+                      <span
+                        className={`size-1.5 rounded-full ${row.isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}
+                        aria-hidden
+                      />
                       {row.isActive ? "Active" : "Inactive"}
                     </span>
-                  </div>
-                </td>
-                <td
-                  data-slot="table-cell"
-                  className="align-middle [&:has([role=checkbox])]:pr-0 whitespace-nowrap p-3 pe-6"
-                >
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={
-                        isSubmitting ||
-                        settingDefaultId !== null ||
-                        deletingId !== null
-                      }
-                      onClick={() => onEdit(row.id)}
-                    >
-                      Edit
-                    </Button>
-                    {row.isDefault ? null : (
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={
-                          isSubmitting ||
-                          settingDefaultId !== null ||
-                          deletingId !== null
-                        }
-                        onClick={() => onSetDefault(row.id)}
-                      >
-                        {settingDefaultId === row.id ? (
-                          <span className="inline-flex items-center gap-1.5">
-                            Setting...
-                          </span>
-                        ) : (
-                          "Set Default"
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      disabled={
-                        isSubmitting ||
-                        settingDefaultId !== null ||
-                        deletingId !== null
-                      }
-                      onClick={() => onDelete(row.id)}
-                    >
-                      {deletingId === row.id ? "Deleting..." : "Delete"}
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))
+                  </td>
+                  <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
+                    <div className="flex justify-end">
+                      <ManagerActionsDropdown
+                        triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
+                        actions={[
+                          ...(row.isDefault
+                            ? []
+                            : [
+                              {
+                                label: settingDefaultId === row.id ? "Setting..." : "Set Default",
+                                icon: Star,
+                                onClick: () => onSetDefault(row.id),
+                                disabled: isSubmitting || settingDefaultId !== null || deletingId !== null,
+                              },
+                            ]),
+                          {
+                            label: "Edit",
+                            icon: Edit3,
+                            onClick: () => onEdit(row.id),
+                            disabled: isSubmitting || settingDefaultId !== null || deletingId !== null,
+                          },
+                          {
+                            label: deletingId === row.id ? "Deleting..." : "Delete",
+                            icon: Trash2,
+                            onClick: () => onDelete(row.id),
+                            disabled: isSubmitting || settingDefaultId !== null || deletingId !== null,
+                            variant: "destructive" as const,
+                          },
+                        ]}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>

@@ -7,7 +7,8 @@ import type {
     ManageAppMutationResponse,
     ManageAppPayload,
 } from "@/core/interfaces/apps.interface";
-import type { PaginationMeta } from "@/core/interfaces/common.interface";
+import type { Paginated, PaginationMeta } from "@/core/interfaces/common.interface";
+import type { LibraryBannerItem } from "@/core/interfaces/banners.interface";
 import { getAppItemId as resolveAppId } from "@/core/interfaces/apps.interface";
 import { ApiError, apiFetch, buildUrl } from "@/core/services/api";
 
@@ -87,10 +88,16 @@ export function normalizeManageAppsList(payload: ManageAppListResponse): ManageA
     return grouped.data.flatMap((group) => group.items as ManageAppApiItem[]);
 }
 
-export async function getManageApps(init?: RequestInit): Promise<ManageAppApiItem[]> {
-    const url = buildUrl("/manage/apps");
-    const response = await apiFetch<ManageAppListResponse>(url, init);
-    return normalizeManageAppsList(response);
+export async function getManageApps(
+    params: { page?: number; limit?: number } = {},
+    init?: RequestInit
+): Promise<Paginated<ManageAppApiItem>> {
+    const url = buildUrl("/manage/apps", {
+        page: params.page,
+        limit: params.limit,
+    });
+    const response = await apiFetch<Paginated<ManageAppApiItem>>(url, init);
+    return response;
 }
 
 export async function createManageApp(
@@ -171,8 +178,8 @@ export async function getManageDashboardStats(
     const { getManageAiModelsResponse } = await import("@/core/services/models.service");
     const { getManageBanners } = await import("@/core/services/banners.service");
 
-    const [apps, aiFirstPage, bannerResponse] = await Promise.all([
-        getManageApps(init),
+    const [appsPage, aiFirstPage, bannerResponse] = await Promise.all([
+        getManageApps({ page: 1, limit: 1000 }, init),
         getManageAiModelsResponse(1, 200, init),
         getManageBanners({ page: 1, limit: 200 }, init).catch(() => ({
             data: [],
@@ -180,6 +187,7 @@ export async function getManageDashboardStats(
         })),
     ]);
 
+    const apps = appsPage.data ?? [];
     const aiModels = [...(aiFirstPage.data ?? [])];
     const totalPages = aiFirstPage.meta?.totalPages ?? 1;
 
@@ -190,18 +198,18 @@ export async function getManageDashboardStats(
 
     const defaultModel = aiModels.find((model) => model.isDefault) ?? null;
     const lastUpdatedAt = pickLatestIsoDate([
-        ...apps.map((app) => app.updatedAt),
+        ...apps.map((app: ManageAppApiItem) => app.updatedAt),
         ...aiModels.map((model) => model.updatedAt),
-        ...bannerResponse.data.map((banner) => banner.updatedAt),
+        ...bannerResponse.data.map((banner: LibraryBannerItem) => banner.updatedAt),
     ]);
 
     return {
-        appCount: apps.length,
-        activeAppCount: apps.filter((app) => app.isActive).length,
+        appCount: getPaginatedTotal(appsPage.meta) ?? apps.length,
+        activeAppCount: apps.filter((app: ManageAppApiItem) => app.isActive).length,
         aiModelCount: getPaginatedTotal(aiFirstPage.meta) ?? aiModels.length,
         activeAiModelCount: aiModels.filter((model) => model.isActive).length,
         bannerCount: getPaginatedTotal(bannerResponse.meta) ?? bannerResponse.data.length,
-        activeBannerCount: bannerResponse.data.filter((b) => b.isActive).length,
+        activeBannerCount: bannerResponse.data.filter((b: LibraryBannerItem) => b.isActive).length,
         defaultAiModelName: defaultModel?.name ?? null,
         lastUpdatedAt,
     };

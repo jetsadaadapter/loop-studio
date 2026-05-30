@@ -9,14 +9,13 @@ import {
   useState,
   startTransition,
 } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, RotateCw, Plus } from "lucide-react";
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
 import { ManagerPagination } from "@/components/manager-pagination";
 import AppBannerCard from "@/components/app-banner-card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -86,7 +85,6 @@ function mapApiItemToRecord(item: LibraryBannerItem): BannerRecord {
 }
 
 const DEFAULT_PAGE_SIZE = 12;
-const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 
 export function ManageBannersClient() {
   const router = useRouter();
@@ -123,24 +121,13 @@ export function ManageBannersClient() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
-  const [mockDates, setMockDates] = useState<{ startsAt: string, endsAt: string } | null>(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
   const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
   const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
-
-  const toggleMockDates = () => {
-    if (!mockDates) {
-      const now = Date.now();
-      setMockDates({
-        startsAt: new Date(now).toISOString(),
-        endsAt: new Date(now + 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000).toISOString()
-      });
-    } else {
-      setMockDates(null);
-    }
-  };
 
   const clearSearchDebounce = useCallback(() => {
     if (searchDebounceRef.current !== null) {
@@ -160,10 +147,17 @@ export function ManageBannersClient() {
     setLoadError("");
     try {
       const response: GetBannersResponse = await getManageBanners({
-        page: 1,
-        limit: 100,
+        page: currentPage,
+        limit: pageSize,
       });
       setBanners((response.data ?? []).map(mapApiItemToRecord));
+      if (response.meta) {
+        setTotal(response.meta.total);
+        setTotalPages(response.meta.totalPages);
+      } else {
+        setTotal(response.data.length);
+        setTotalPages(Math.max(1, Math.ceil(response.data.length / pageSize)));
+      }
       setLastUpdatedAt(new Date());
     } catch {
       setLoadError("Failed to load banners.");
@@ -171,7 +165,7 @@ export function ManageBannersClient() {
       if (silent) setIsRefreshing(false);
       else setIsLoading(false);
     }
-  }, []);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     startTransition(() => {
@@ -207,47 +201,8 @@ export function ManageBannersClient() {
     return sorted;
   }, [banners, search, categoryFilter, statusFilter, sortBy]);
 
-  const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const pageStart = (safeCurrentPage - 1) * pageSize;
-  const pagedBanners = useMemo(() => {
-    return filtered.slice(pageStart, pageStart + pageSize);
-  }, [filtered, pageSize, pageStart]);
-
-  const pageNumbers = useMemo(() => {
-    const pages: number[] = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (safeCurrentPage <= 3) {
-        pages.push(1, 2, 3, 4, -1, totalPages);
-      } else if (safeCurrentPage >= totalPages - 2) {
-        pages.push(
-          1,
-          -1,
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages,
-        );
-      } else {
-        pages.push(
-          1,
-          -1,
-          safeCurrentPage - 1,
-          safeCurrentPage,
-          safeCurrentPage + 1,
-          -1,
-          totalPages,
-        );
-      }
-    }
-    return pages.filter((v, i, arr) => v !== arr[i - 1]);
-  }, [safeCurrentPage, totalPages]);
-
-  const start = total === 0 ? 0 : pageStart + 1;
-  const end = Math.min(pageStart + pageSize, total);
+  const pagedBanners = filtered;
 
   const categoryOptions = useMemo(() => {
     const categories = Array.from(
@@ -296,27 +251,15 @@ export function ManageBannersClient() {
   }
   function onSearchChange(value: string) {
     setSearchInput(value);
-    clearSearchDebounce();
-
-    searchDebounceRef.current = setTimeout(() => {
-      setSearch(value);
-      setCurrentPage(1);
-    }, 300);
+    setSearch(value);
+    setCurrentPage(1);
   }
 
   return (
     <ManagerShell
       title={pageTitle}
       description={pageSubtitle}
-      actions={
-        <Button
-          type="button"
-          disabled={deletingId !== null}
-          onClick={() => router.push("/manage/banners/create")}
-        >
-          Create Banner
-        </Button>
-      }
+      actions={null}
     >
       <div className="overflow-hidden rounded-2xl border bg-card lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="hidden border-r bg-muted/20 p-5 lg:block">
@@ -343,89 +286,84 @@ export function ManageBannersClient() {
         </aside>
 
         <div className="space-y-4 p-5 lg:p-6">
-          <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between select-none">
+            {/* Left side actions and search */}
+            <div className="flex flex-col xl:flex-row xl:items-center gap-3 flex-1">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden shrink-0 size-8 border-slate-200 bg-white"
                 onClick={() => setIsFilterSheetOpen(true)}
               >
                 <SlidersHorizontal className="size-4" />
               </Button>
-              <div>
-                <p className="text-base font-semibold text-foreground">
-                  Filters
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {filtered.length} items found
-                </p>
-              </div>
-            </div>
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:items-center xl:justify-end">
-              <div className="relative w-full sm:col-span-2 xl:w-[320px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+
+              <div className="relative w-full xl:w-80 shrink-0">
+                <Search className="absolute left-3 top-2 size-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
                   value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Search banner title, app, or category"
-                  className="bg-background pl-9"
+                  className="h-8 w-full rounded-sm border border-slate-200 bg-white pl-9.5 pr-3 text-xs shadow-3xs transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand/5 placeholder:text-slate-400"
                 />
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-brand/30 bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand xl:w-auto"
-                disabled={isLoading || isRefreshing}
-                onClick={() => loadBanners({ silent: true })}
-              >
-                {isRefreshing ? "Refreshing..." : "Refresh"}
-              </Button>
-              <Button
-                type="button"
-                variant={mockDates ? "default" : "outline"}
-                className="w-full xl:w-auto hidden"
-                onClick={toggleMockDates}
-              >
-                Mock Dates: {mockDates ? "ON" : "OFF"}
-              </Button>
-              <Select
-                value={sortBy}
-                onValueChange={(v) => v && onSortChange(v)}
-              >
-                <SelectTrigger className="w-full xl:w-40">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="title-asc">Title: A-Z</SelectItem>
-                  <SelectItem value="title-desc">Title: Z-A</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={String(pageSize)}
-                onValueChange={(v) => v && onPageSizeChange(Number(v))}
-              >
-                <SelectTrigger className="w-full xl:w-32">
-                  <SelectValue placeholder="Per page" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAGE_SIZE_OPTIONS.map((sizeOption) => (
-                    <SelectItem key={sizeOption} value={String(sizeOption)}>
-                      {sizeOption} / page
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div className="text-xs text-muted-foreground">
-            {lastUpdatedAt
-              ? `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`
-              : "Not updated yet"}
+              {/* Sort selector adjacent to search */}
+              <div className="flex items-center gap-2 flex-1 xl:flex-initial">
+                <span className="text-xs font-semibold text-slate-500 shrink-0">Sort By</span>
+                <div className="flex-1 xl:w-40">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(v) => v && onSortChange(v)}
+                  >
+                    <SelectTrigger className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 w-full shadow-3xs flex items-center justify-between cursor-pointer">
+                      <SelectValue placeholder="Sort" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="title-asc">Title: A-Z</SelectItem>
+                      <SelectItem value="title-desc">Title: Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side controls matching apps style */}
+            <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
+              {/* Last updated timestamp and refresh button */}
+              <div className="flex items-center gap-2">
+                {lastUpdatedAt && (
+                  <span className="text-[10px] font-medium text-slate-400">
+                    อัพเดทเมื่อ {lastUpdatedAt.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={isLoading || isRefreshing}
+                  onClick={() => loadBanners({ silent: true })}
+                  className="size-8 border-slate-200 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
+                  title="Refresh Banners"
+                >
+                  <RotateCw className={`size-3.5 text-slate-500 ${isRefreshing ? "animate-spin text-brand" : ""}`} />
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                disabled={deletingId !== null}
+                onClick={() => router.push("/manage/banners/create")}
+                className="h-8 bg-brand hover:bg-brand/90 text-white text-xs font-semibold px-4.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-sm shadow-brand/10 transition-all select-none flex-1 xl:flex-none justify-center"
+              >
+                <Plus className="size-4 shrink-0" />
+                Create Banner
+              </Button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -518,8 +456,8 @@ export function ManageBannersClient() {
                         title: row.title,
                         subtitle: row.subtitle,
                         imageId: row.imageId,
-                        startsAt: mockDates ? mockDates.startsAt : row.startsAt,
-                        endsAt: mockDates ? mockDates.endsAt : row.endsAt,
+                        startsAt: row.startsAt,
+                        endsAt: row.endsAt,
                         app: {
                           name: row.appName,
                           category: { name: row.category },
@@ -546,12 +484,10 @@ export function ManageBannersClient() {
 
               <ManagerPagination
                 currentPage={safeCurrentPage}
-                totalPages={totalPages}
-                pageNumbers={pageNumbers}
-                start={start}
-                end={end}
-                total={total}
+                pageSize={pageSize}
+                totalItems={total}
                 onPageChange={onPaginationChange}
+                onPageSizeChange={onPageSizeChange}
               />
             </>
           )}

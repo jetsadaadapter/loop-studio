@@ -9,7 +9,7 @@ import {
   useState,
   startTransition,
 } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, RotateCw, Plus } from "lucide-react";
 
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
@@ -19,7 +19,6 @@ import { ManagerPagination } from "@/components/manager-pagination";
 import { ManagerAppCard } from "@/components/manager-app-card";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -49,7 +48,6 @@ import { deleteManageApp, getManageApps } from "@/core/services/apps.service";
 import {
   applyManageAppsListQuery,
   DEFAULT_PAGE_SIZE,
-  PAGE_SIZE_OPTIONS,
   parseManageAppsListQuery,
   type SortValue,
   type StatusFilterValue,
@@ -111,14 +109,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
   };
 }
 
-function ButtonSpinner() {
-  return (
-    <span
-      aria-hidden
-      className="inline-block size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
-    />
-  );
-}
+
 
 export function ManageAppsClient() {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -131,6 +122,8 @@ export function ManageAppsClient() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const listQuery = useMemo(
     () => parseManageAppsListQuery(searchParams),
     [searchParams],
@@ -165,8 +158,15 @@ export function ManageAppsClient() {
       }
       setLoadError("");
       try {
-        const response = await getManageApps();
-        setApps(response.map(mapApiItemToRecord));
+        const response = await getManageApps({ page: currentPage, limit: pageSize });
+        setApps((response.data ?? []).map(mapApiItemToRecord));
+        if (response.meta) {
+          setTotal(response.meta.total);
+          setTotalPages(response.meta.totalPages);
+        } else {
+          setTotal(response.data.length);
+          setTotalPages(Math.max(1, Math.ceil(response.data.length / pageSize)));
+        }
         setLastUpdatedAt(new Date());
       } catch {
         setLoadError("Failed to load apps.");
@@ -179,15 +179,14 @@ export function ManageAppsClient() {
         }
       }
     },
-    [pushToast],
+    [pushToast, currentPage, pageSize],
   );
 
   useEffect(() => {
     startTransition(() => {
       void loadApps();
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadApps]);
 
   const filtered = useMemo(() => {
     const base = apps
@@ -227,13 +226,9 @@ export function ManageAppsClient() {
     return sorted;
   }, [apps, search, categoryFilter, statusFilter, typeFilter, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  const pagedApps = useMemo(() => {
-    const pageStart = (safeCurrentPage - 1) * pageSize;
-    return filtered.slice(pageStart, pageStart + pageSize);
-  }, [safeCurrentPage, filtered, pageSize]);
+  const pagedApps = filtered;
 
   const categoryOptions = useMemo(() => {
     const categories = Array.from(
@@ -295,25 +290,6 @@ export function ManageAppsClient() {
     categoryFilter !== "all" ||
     statusFilter !== "all" ||
     typeFilter !== "all";
-
-  const pageRange = useMemo(() => {
-    const pages = [] as number[];
-    const start = Math.max(1, safeCurrentPage - 1);
-    const end = Math.min(totalPages, start + 2);
-
-    for (let page = start; page <= end; page += 1) {
-      pages.push(page);
-    }
-
-    if (!pages.includes(1)) pages.unshift(1);
-    if (!pages.includes(totalPages)) pages.push(totalPages);
-
-    return Array.from(new Set(pages));
-  }, [safeCurrentPage, totalPages]);
-
-  const resultStart =
-    filtered.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
-  const resultEnd = Math.min(safeCurrentPage * pageSize, filtered.length);
 
   const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
   const pageTitle = useMemo(
@@ -411,11 +387,7 @@ export function ManageAppsClient() {
 
   function onSearchChange(value: string) {
     setSearchInput(value);
-    clearSearchDebounce();
-    searchDebounceRef.current = setTimeout(() => {
-      syncListQuery({ q: value, page: 1 });
-      searchDebounceRef.current = null;
-    }, 300);
+    syncListQuery({ q: value, page: 1 });
   }
 
   function onCategoryFilterChange(value: string) {
@@ -480,15 +452,7 @@ export function ManageAppsClient() {
     <ManagerShell
       title={pageTitle}
       description={pageSubtitle}
-      actions={
-        <Button
-          type="button"
-          disabled={deletingId !== null}
-          onClick={openCreateForm}
-        >
-          Create App
-        </Button>
-      }
+      actions={null}
     >
       <div className="overflow-hidden rounded-2xl border bg-card lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="hidden border-r bg-muted/20 p-5 lg:block">
@@ -500,89 +464,84 @@ export function ManageAppsClient() {
         </aside>
 
         <div className="space-y-4 p-5 lg:p-6">
-          <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex flex-col gap-3 border-b border-border/70 pb-4 md:gap-4 xl:flex-row xl:items-center xl:justify-between select-none">
+            {/* Left side actions and search */}
+            <div className="flex flex-col xl:flex-row xl:items-center gap-3 flex-1">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden shrink-0 size-8 border-slate-200 bg-white"
                 onClick={() => setIsFilterSheetOpen(true)}
               >
                 <SlidersHorizontal className="size-4" />
               </Button>
-              <div>
-                <p className="text-base font-semibold text-foreground">
-                  Filters
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {filtered.length} items found
-                </p>
-              </div>
-            </div>
 
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:w-auto xl:items-center xl:justify-end">
-              <div className="relative w-full sm:col-span-2 xl:w-[320px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+              <div className="relative w-full xl:w-80 shrink-0">
+                <Search className="absolute left-3 top-2 size-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
                   value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Search app name or category"
-                  className="bg-background pl-9"
+                  className="h-8 w-full rounded-sm border border-slate-200 bg-white pl-9.5 pr-3 text-xs shadow-3xs transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand/5 placeholder:text-slate-400"
                 />
               </div>
+
+              {/* Sort selector adjacent to search */}
+              <div className="flex items-center gap-2 flex-1 xl:flex-initial">
+                <span className="text-xs font-semibold text-slate-500 shrink-0">Sort By</span>
+                <div className="flex-1 xl:w-40">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value) => onSortChange(value as SortValue)}
+                  >
+                    <SelectTrigger className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 w-full shadow-3xs flex items-center justify-between cursor-pointer">
+                      <SelectValue placeholder="Sort" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                      <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side controls matching prompts style */}
+            <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
+              {/* Last updated timestamp and refresh button */}
+              <div className="flex items-center gap-2">
+                {lastUpdatedAt && (
+                  <span className="text-[10px] font-medium text-slate-400">
+                    อัพเดทเมื่อ {lastUpdatedAt.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={isLoading || isRefreshing}
+                  onClick={() => void loadApps({ silent: true })}
+                  className="size-8 border-slate-200 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
+                  title="Refresh Apps"
+                >
+                  <RotateCw className={`size-3.5 text-slate-500 ${isRefreshing ? "animate-spin text-brand" : ""}`} />
+                </Button>
+              </div>
+
               <Button
                 type="button"
-                variant="outline"
-                className="w-full border-brand/30 bg-brand/10 text-brand hover:bg-brand/15 hover:text-brand xl:w-auto"
-                disabled={isLoading || isRefreshing}
-                onClick={() => void loadApps({ silent: true })}
+                disabled={deletingId !== null}
+                onClick={openCreateForm}
+                className="h-8 bg-brand hover:bg-brand/90 text-white text-xs font-semibold px-4.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-sm shadow-brand/10 transition-all select-none flex-1 xl:flex-none justify-center"
               >
-                {isRefreshing ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <ButtonSpinner />
-                    Refreshing...
-                  </span>
-                ) : (
-                  "Refresh"
-                )}
+                <Plus className="size-4 shrink-0" />
+                Create App
               </Button>
-              <Select
-                value={sortBy}
-                onValueChange={(value) => onSortChange(value as SortValue)}
-              >
-                <SelectTrigger className="w-full xl:w-40">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="name-asc">Name: A-Z</SelectItem>
-                  <SelectItem value="name-desc">Name: Z-A</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={String(pageSize)}
-                onValueChange={(value) => onPageSizeChange(Number(value))}
-              >
-                <SelectTrigger className="w-full xl:w-32">
-                  <SelectValue placeholder="Per page" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAGE_SIZE_OPTIONS.map((sizeOption) => (
-                    <SelectItem key={sizeOption} value={String(sizeOption)}>
-                      {sizeOption} / page
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            {lastUpdatedAt
-              ? `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`
-              : "Not updated yet"}
           </div>
 
           {isLoading ? (
@@ -664,12 +623,10 @@ export function ManageAppsClient() {
 
               <ManagerPagination
                 currentPage={safeCurrentPage}
-                totalPages={totalPages}
-                pageNumbers={pageRange}
-                start={resultStart}
-                end={resultEnd}
-                total={filtered.length}
+                pageSize={pageSize}
+                totalItems={total}
                 onPageChange={onPaginationChange}
+                onPageSizeChange={onPageSizeChange}
               />
             </>
           )}

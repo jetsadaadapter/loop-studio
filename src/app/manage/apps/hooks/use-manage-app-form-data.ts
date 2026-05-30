@@ -12,7 +12,7 @@ import {
   parseApiFieldErrors,
   validateAppForm,
 } from "../manage-app-form-utils";
-import type { ManageAppPayload } from "@/core/interfaces/apps.interface";
+import type { ManageAppPayload, ManageAppApiItem } from "@/core/interfaces/apps.interface";
 import type { ManageTagListResponse } from "@/core/interfaces/tags.interface";
 import { createManageApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
 import {
@@ -97,10 +97,10 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
       }
 
       try {
-        const apps = await getManageApps();
+        const appsPage = await getManageApps({ page: 1, limit: 1000 });
         if (cancelled) return;
 
-        const record = apps.map(mapApiItemToRecord).find((item) => item.id === appId.trim());
+        const record = (appsPage.data ?? []).map(mapApiItemToRecord).find((item: AppRecord) => item.id === appId.trim());
         if (!record) {
           setError("App not found.");
           return;
@@ -129,10 +129,10 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
 
     async function loadNextSortOrder() {
       try {
-        const apps = await getManageApps();
+        const appsPage = await getManageApps({ page: 1, limit: 1000 });
         if (cancelled) return;
 
-        const maxSortOrder = apps.reduce((currentMax, item) => {
+        const maxSortOrder = (appsPage.data ?? []).reduce((currentMax: number, item: ManageAppApiItem) => {
           return Number.isInteger(item.sortOrder) ? Math.max(currentMax, item.sortOrder) : currentMax;
         }, -1);
 

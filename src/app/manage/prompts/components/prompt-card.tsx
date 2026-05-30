@@ -30,7 +30,7 @@ export function PromptCard({ promptItem, onEdit, onDelete }: PromptCardProps) {
                 {promptItem.name}
               </h3>
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-100 text-[9px] font-bold text-slate-500 font-mono">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-100 text-[9px] font-bold text-slate-500 font-sans">
                   <Clock className="size-2.5" /> v{promptItem.version}
                 </span>
                 {promptItem.visibility === "public" ? (

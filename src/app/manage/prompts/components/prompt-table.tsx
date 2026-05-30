@@ -87,7 +87,7 @@ export function PromptTable({
                           <span className="text-sm font-bold text-slate-800 tracking-tight">
                             {row.name}
                           </span>
-                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-sm bg-slate-100 text-[8px] font-bold text-slate-500 font-mono">
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-sm bg-slate-100 text-[8px] font-bold text-slate-500 font-sans">
                             <Clock className="size-2" /> v{row.version}
                           </span>
                         </div>

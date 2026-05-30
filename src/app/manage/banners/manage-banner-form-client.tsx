@@ -115,8 +115,8 @@ export function ManageBannerFormClient({
   useEffect(() => {
     async function loadApps() {
       try {
-        const response = await getManageApps();
-        setApps(response);
+        const response = await getManageApps({ page: 1, limit: 1000 });
+        setApps(response.data ?? []);
       } catch (err) {
         console.error(err);
       } finally {

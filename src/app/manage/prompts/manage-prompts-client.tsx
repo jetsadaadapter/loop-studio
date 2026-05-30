@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useTransition } from "react";
-import { Workflow, AlertCircle, Plus, Search, SlidersHorizontal, List, LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { Workflow, AlertCircle, Plus, Search, SlidersHorizontal, List, LayoutGrid, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,12 +18,14 @@ import type { PromptItem, CreatePromptPayload } from "@/core/interfaces/prompt";
 import { PromptTable } from "./components/prompt-table";
 import { PromptFormDrawer } from "./components/prompt-form-drawer";
 import { PromptCard } from "./components/prompt-card";
+import { ManagerPagination } from "@/components/manager-pagination";
 
 export function ManagePromptsClient() {
   const [prompts, setPrompts] = useState<PromptItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   const [, startTransition] = useTransition();
   const { pushToast } = useToast();
 
@@ -34,7 +36,8 @@ export function ManagePromptsClient() {
 
   // Pagination & ViewMode states
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12); // Starting with 12 as standard
+  const [totalItems, setTotalItems] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Reset page when filters or pageSize change
@@ -55,8 +58,15 @@ export function ManagePromptsClient() {
   const loadPrompts = () => {
     setIsLoading(true);
     setErrorMsg("");
-    getManagePrompts()
-      .then((data) => setPrompts(data))
+    getManagePrompts({
+      page: String(currentPage),
+      limit: String(pageSize),
+    })
+      .then((res) => {
+        setPrompts(res.data ?? []);
+        setTotalItems(res.meta?.total ?? 0);
+        setLastUpdated(new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      })
       .catch((err) => {
         console.error("Failed to load prompts:", err);
         setErrorMsg("Failed to retrieve prompts from backend API.");
@@ -69,7 +79,7 @@ export function ManagePromptsClient() {
     startTransition(() => {
       loadPrompts();
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle Edit trigger
   const handleEditClick = (item: PromptItem) => {
@@ -127,7 +137,7 @@ export function ManagePromptsClient() {
     }
   };
 
-  // Filtered prompts computed logic
+  // Client-side local filtering over the fetched page data
   const filteredPrompts = prompts.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,31 +150,10 @@ export function ManagePromptsClient() {
     return matchesSearch && matchesType && matchesVisibility;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  const pagedPrompts = useMemo(() => {
-    const pageStart = (safeCurrentPage - 1) * pageSize;
-    return filteredPrompts.slice(pageStart, pageStart + pageSize);
-  }, [safeCurrentPage, filteredPrompts, pageSize]);
-
-  const pageRange = useMemo(() => {
-    const pages = [] as number[];
-    const start = Math.max(1, safeCurrentPage - 1);
-    const end = Math.min(totalPages, start + 2);
-
-    for (let page = start; page <= end; page += 1) {
-      pages.push(page);
-    }
-
-    if (!pages.includes(1)) pages.unshift(1);
-    if (!pages.includes(totalPages)) pages.push(totalPages);
-
-    return Array.from(new Set(pages));
-  }, [safeCurrentPage, totalPages]);
-
-  const resultStart = filteredPrompts.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
-  const resultEnd = Math.min(safeCurrentPage * pageSize, filteredPrompts.length);
+  const pagedPrompts = filteredPrompts;
 
   return (
     <ManagerShell
@@ -245,7 +234,27 @@ export function ManagePromptsClient() {
         </div>
 
         {/* Right Group */}
-        <div className="flex items-center gap-2 justify-between xl:justify-end shrink-0">
+        <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0 select-none">
+          {/* Last updated timestamp and refresh button */}
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className="text-[10px] font-medium text-slate-400">
+                อัพเดทเมื่อ {lastUpdated}
+              </span>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={isLoading}
+              onClick={loadPrompts}
+              className="size-8 border-slate-200 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
+              title="Refresh Prompts"
+            >
+              <RotateCw className={`size-3.5 text-slate-500 ${isLoading ? "animate-spin text-brand" : ""}`} />
+            </Button>
+          </div>
+
           <Button
             type="button"
             disabled={isLoading || isSaving}
@@ -295,7 +304,7 @@ export function ManagePromptsClient() {
             Retry Loading
           </Button>
         </div>
-      ) : !isLoading && filteredPrompts.length === 0 ? (
+      ) : !isLoading && prompts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white border border-dashed border-slate-200 rounded-sm p-6 select-none">
           <div className="size-12 rounded-sm bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400">
             <Workflow className="size-6" />
@@ -374,71 +383,13 @@ export function ManagePromptsClient() {
 
           {/* Premium Custom Pagination Footer */}
           {!isLoading && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 select-none">
-              {/* Left side: Results descriptor and Page Size dropdown */}
-              <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
-                <span>
-                  Results: {resultStart} - {resultEnd} of {filteredPrompts.length}
-                </span>
-                <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
-                  <span className="font-normal text-slate-400">Page size:</span>
-                  <Select
-                    value={String(pageSize)}
-                    onValueChange={(val) => val && setPageSize(Number(val))}
-                  >
-                    <SelectTrigger className="h-8 w-16 rounded-sm border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-3xs cursor-pointer">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Right side: Modern Pagination Controls */}
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  disabled={safeCurrentPage <= 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="size-8 rounded-sm border border-slate-200/60 hover:bg-slate-50 cursor-pointer text-slate-500 transition-colors shadow-3xs flex items-center justify-center bg-white"
-                >
-                  <ChevronLeft className="size-4" />
-                </Button>
-
-                {pageRange.map((page) => (
-                  <Button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`size-8 text-xs font-bold rounded-sm transition-all flex items-center justify-center cursor-pointer ${
-                      page === safeCurrentPage
-                        ? "bg-brand text-white shadow-sm shadow-brand/10"
-                        : "border border-slate-200/60 text-slate-600 hover:bg-slate-50 hover:text-slate-800 shadow-3xs bg-white"
-                    }`}
-                  >
-                    {page}
-                  </Button>
-                ))}
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  disabled={safeCurrentPage >= totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="size-8 rounded-sm border border-slate-200/60 hover:bg-slate-50 cursor-pointer text-slate-500 transition-colors shadow-3xs flex items-center justify-center bg-white"
-                >
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
-            </div>
+            <ManagerPagination
+              currentPage={safeCurrentPage}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           )}
         </div>
       )}

@@ -5,10 +5,10 @@ import type {
 } from "@/core/interfaces/prompt";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
-export async function getManagePrompts(params?: Record<string, string>, init?: RequestInit): Promise<PromptItem[]> {
+export async function getManagePrompts(params?: Record<string, string>, init?: RequestInit): Promise<PromptsResponse> {
     const url = buildUrl("/manage/prompts", params);
     const response = await apiFetch<PromptsResponse>(url, init);
-    return response.data || [];
+    return response;
 }
 
 export async function createManagePrompt(payload: CreatePromptPayload): Promise<PromptItem> {
