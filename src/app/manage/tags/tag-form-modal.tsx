@@ -175,7 +175,7 @@ export function TagFormModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+              className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -183,7 +183,7 @@ export function TagFormModal({
               type="submit"
               disabled={isSubmitting}
               id={isEdit ? "tag-modal-update-btn" : "tag-modal-create-btn"}
-              className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
+              className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
             >
               {isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
               {isEdit ? "Update Tag" : "Create Tag"}
