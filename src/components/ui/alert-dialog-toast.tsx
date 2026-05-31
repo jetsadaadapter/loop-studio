@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type AlertDialogToastTone = "success" | "error" | "info";
 
@@ -61,44 +62,53 @@ export function AlertDialogToastProvider({
           open={true}
           onOpenChange={() => handleClose(dialog.id)}
         >
-          <DialogContent className="bg-background data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 ring-foreground/10 grid max-w-[calc(100%-2rem)] gap-4 rounded-xl p-4 text-sm ring-1 fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-xs data-open:zoom-in-50! data-closed:zoom-out-50 duration-300">
-            <div className="flex flex-col items-center text-center gap-4 py-2">
+          <DialogContent className="bg-white/95 backdrop-blur-md data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 border border-slate-100/80 grid max-w-[calc(100%-2rem)] gap-4 rounded-2xl p-5 text-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-[320px] data-open:zoom-in-95 data-closed:zoom-out-95 duration-300 shadow-2xl">
+            <div className="flex flex-col items-center text-center gap-5 py-1.5 select-none">
+              {/* Glowing Icon Circle */}
               <div
-                className={`flex items-center justify-center size-16 rounded-full ${
-                  dialog.tone === "success"
-                    ? "bg-teal-400/10 text-teal-400"
-                    : dialog.tone === "error"
-                      ? "bg-red-400/10 text-red-400"
-                      : "bg-blue-400/10 text-blue-400"
-                }`}
+                className={`flex items-center justify-center size-14 rounded-full border shadow-2xs animate-in zoom-in-50 duration-300 ${dialog.tone === "success"
+                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  : dialog.tone === "error"
+                    ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                    : "bg-indigo-500/10 text-indigo-500 border-indigo-500/20"
+                  }`}
               >
                 {dialog.tone === "success" ? (
-                  <CheckCircle className="size-8" />
+                  <CheckCircle className="size-6.5 text-emerald-500" aria-hidden />
                 ) : dialog.tone === "error" ? (
-                  <XCircle className="size-8" />
+                  <XCircle className="size-6.5 text-rose-500" aria-hidden />
                 ) : (
-                  <Info className="size-8" />
+                  <Info className="size-6.5 text-indigo-500" aria-hidden />
                 )}
               </div>
-              <DialogHeader className="gap-2 flex flex-col items-center">
-                <DialogTitle className="font-medium text-lg">
+
+              {/* Title & Message */}
+              <DialogHeader className="gap-1 flex flex-col items-center">
+                <DialogTitle className="text-base font-bold tracking-tight text-slate-800 leading-none">
                   {dialog.tone === "success"
                     ? "Success"
                     : dialog.tone === "error"
                       ? "Error"
                       : "Info"}
                 </DialogTitle>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-slate-500 text-[11px] leading-relaxed font-medium mt-1 select-text max-w-[280px]">
                   {dialog.message}
                 </p>
               </DialogHeader>
-              <button
+
+              {/* Action Button */}
+              <Button
                 type="button"
-                className="rounded-lg border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-3 aria-invalid:ring-3 inline-flex items-center justify-center whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 shrink-0 outline-none group/button select-none bg-primary text-primary-foreground h-8 gap-1.5 px-2.5 w-full cursor-pointer hover:bg-primary/80"
+                className={`px-8 min-w-[100px] h-8.5 rounded-sm text-[11px] font-bold border-none transition-all active:scale-95 duration-200 cursor-pointer ${dialog.tone === "success"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10 hover:shadow-md"
+                  : dialog.tone === "error"
+                    ? "bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/10 hover:shadow-md"
+                    : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-600/10 hover:shadow-md"
+                  }`}
                 onClick={() => handleClose(dialog.id)}
               >
                 Done
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
