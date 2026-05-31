@@ -20,4 +20,10 @@ export type ManageTagApiItem = {
     updatedAt: string;
 };
 
+export type ManageTagPayload = {
+    name: string;
+    color: string;
+};
+
 export type ManageTagListResponse = ManageApiEnvelope<ManageTagApiItem[]>;
+export type ManageTagSingleResponse = ManageApiEnvelope<ManageTagApiItem>;

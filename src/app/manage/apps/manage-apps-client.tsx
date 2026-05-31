@@ -660,6 +660,7 @@ export function ManageAppsClient() {
 
       {deleteTarget ? (
         <ManagerDeleteConfirm
+          itemTypeLabel="app"
           itemName={deleteTarget.name}
           itemId={deleteTarget.id}
           isLoading={deletingId === deleteTarget.id}

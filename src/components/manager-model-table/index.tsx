@@ -91,7 +91,7 @@ export function ManagerModelTable({
 }: ManagerModelTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-      <table className="w-full caption-bottom text-sm min-w-3xl">
+      <table className="w-full caption-bottom text-xs min-w-3xl">
         <thead className="[&_tr]:border-b bg-slate-50/50">
           <tr className="border-b transition-colors hover:bg-transparent">
             <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
@@ -224,8 +224,8 @@ export function ManagerModelTable({
                   <td className="p-3 align-middle whitespace-nowrap">
                     <span
                       className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${row.isActive
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
-                          : "bg-slate-150 text-slate-500 border border-slate-200"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
+                        : "bg-slate-150 text-slate-500 border border-slate-200"
                         }`}
                     >
                       <span

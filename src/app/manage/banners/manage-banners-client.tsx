@@ -36,6 +36,7 @@ import {
   deleteManageBanner,
 } from "@/core/services/banners.service";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
+import { useToast } from "@/components/toast-provider";
 import type {
   GetBannersResponse,
   LibraryBannerItem,
@@ -88,6 +89,7 @@ const DEFAULT_PAGE_SIZE = 12;
 
 export function ManageBannersClient() {
   const router = useRouter();
+  const { pushToast } = useToast();
   const [deleteTarget, setDeleteTarget] = useState<BannerRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string>("");
@@ -99,10 +101,10 @@ export function ManageBannersClient() {
     setDeleteTarget(null);
     try {
       await deleteManageBanner(target.id);
-      // Success toast could be added here
+      pushToast(`"${target.title}" deleted successfully.`, "success");
     } catch {
       setBanners(previous);
-      setDeleteError("เกิดข้อผิดพลาดในการลบแบนเนอร์");
+      pushToast("Failed to delete banner.", "error");
     } finally {
       setDeletingId(null);
     }
@@ -536,6 +538,7 @@ export function ManageBannersClient() {
 
       {deleteTarget ? (
         <ManagerDeleteConfirm
+          itemTypeLabel="banner"
           itemName={deleteTarget.title}
           itemId={deleteTarget.id}
           isLoading={deletingId === deleteTarget.id}

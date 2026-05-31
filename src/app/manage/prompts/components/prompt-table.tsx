@@ -25,7 +25,7 @@ export function PromptTable({
   return (
     <>
       <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-        <table className="w-full caption-bottom text-sm min-w-3xl">
+        <table className="w-full caption-bottom text-xs min-w-3xl">
           <thead className="[&_tr]:border-b bg-slate-50/50">
             <tr className="border-b transition-colors hover:bg-transparent">
               <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
@@ -84,7 +84,7 @@ export function PromptTable({
                     <td className="p-3 align-middle min-w-[240px]">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-bold text-slate-800 tracking-tight">
+                          <span className="text-sm font-semibold text-slate-800 tracking-tight">
                             {row.name}
                           </span>
                           <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-sm bg-slate-100 text-[8px] font-bold text-slate-500 font-sans">
@@ -130,7 +130,7 @@ export function PromptTable({
                         </span>
                       )}
                     </td>
-                     <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
+                    <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
                       <div className="flex justify-end">
                         <ManagerActionsDropdown
                           triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
