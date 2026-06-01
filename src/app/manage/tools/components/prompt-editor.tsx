@@ -112,7 +112,9 @@ export function PromptEditor({
 
   // Helper to insert formatting at selection
   const insertText = (before: string, after: string = "") => {
-    const activeTextarea = isFullscreen ? fullscreenTextareaRef.current : textareaRef.current;
+    const activeTextarea = isFullscreen
+      ? fullscreenTextareaRef.current
+      : textareaRef.current;
     if (!activeTextarea) return;
 
     const start = activeTextarea.selectionStart;
@@ -128,7 +130,7 @@ export function PromptEditor({
       activeTextarea.focus();
       activeTextarea.setSelectionRange(
         start + before.length,
-        start + before.length + selected.length
+        start + before.length + selected.length,
       );
     }, 50);
   };
@@ -196,7 +198,8 @@ export function PromptEditor({
     if (jsonBlocks.length === 0) {
       return {
         isValid: true,
-        message: "No specific JSON schema blocks detected. Standard text flow is active.",
+        message:
+          "No specific JSON schema blocks detected. Standard text flow is active.",
         blocksCount: 0,
       };
     }
@@ -229,7 +232,7 @@ export function PromptEditor({
       const parsed = JSON.parse(value.trim());
       onChange(JSON.stringify(parsed, null, 2));
       return;
-    } catch { }
+    } catch {}
 
     // Smart nested brace-balancing search
     let found = false;
@@ -247,7 +250,9 @@ export function PromptEditor({
                 try {
                   const parsed = JSON.parse(candidate);
                   const formatted = JSON.stringify(parsed, null, 2);
-                  onChange(value.substring(0, i) + formatted + value.substring(j + 1));
+                  onChange(
+                    value.substring(0, i) + formatted + value.substring(j + 1),
+                  );
                   found = true;
                   break;
                 } catch {
@@ -262,7 +267,9 @@ export function PromptEditor({
     }
 
     if (!found) {
-      alert("Cannot auto-format. Please ensure the target JSON block has no syntax errors first (note: double-brace placeholders like {{currentItem}} are safely ignored and must be outside the main JSON block).");
+      alert(
+        "Cannot auto-format. Please ensure the target JSON block has no syntax errors first (note: double-brace placeholders like {{currentItem}} are safely ignored and must be outside the main JSON block).",
+      );
     }
   };
 
@@ -276,10 +283,11 @@ export function PromptEditor({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${editorMode === "write"
-              ? "bg-white text-slate-800 shadow-2xs"
-              : "text-slate-500 hover:text-slate-800"
-              }`}
+            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${
+              editorMode === "write"
+                ? "bg-white text-slate-800 shadow-2xs"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
             onClick={() => setEditorMode("write")}
           >
             <PenLine className="size-3 mr-1" />
@@ -289,10 +297,11 @@ export function PromptEditor({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${editorMode === "preview"
-              ? "bg-white text-slate-800 shadow-2xs"
-              : "text-slate-500 hover:text-slate-800"
-              }`}
+            className={`h-6.5 px-2.5 rounded-md text-[10px] font-bold transition-all border-none shadow-none cursor-pointer ${
+              editorMode === "preview"
+                ? "bg-white text-slate-800 shadow-2xs"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
             onClick={() => setEditorMode("preview")}
           >
             <Eye className="size-3 mr-1" />
@@ -311,6 +320,8 @@ export function PromptEditor({
                 onChange={handleFileUpload}
                 className="hidden"
                 id={`prompt-file-import-${isFullscreen ? "fs" : "normal"}`}
+                aria-label="Import prompt file"
+                title="Import prompt file"
               />
               <Button
                 type="button"
@@ -333,7 +344,11 @@ export function PromptEditor({
             title={isFullscreen ? "Collapse Editor" : "Fullscreen Editor"}
             onClick={() => setIsFullscreen(!isFullscreen)}
           >
-            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+            {isFullscreen ? (
+              <Minimize2 className="size-3.5" />
+            ) : (
+              <Maximize2 className="size-3.5" />
+            )}
           </Button>
         </div>
       </div>
@@ -405,7 +420,7 @@ export function PromptEditor({
             title="Insert JSON configuration structure"
             onClick={() =>
               insertText(
-                '{\n  "startUrls": [\n    ""\n  ],\n  "goal": "",\n  "generatedSystemPrompt": ""\n}'
+                '{\n  "startUrls": [\n    ""\n  ],\n  "goal": "",\n  "generatedSystemPrompt": ""\n}',
               )
             }
             disabled={disabled}
@@ -432,10 +447,13 @@ export function PromptEditor({
   return (
     <div className="space-y-1.5 w-full">
       {/* Editor Container */}
-      <div className={`rounded-xl border bg-white shadow-2xs overflow-hidden flex flex-col transition-all duration-300 ${hasError
-        ? "border-brand focus-within:border-brand-strong focus-within:ring-1 focus-within:ring-brand-strong/20 shadow-sm shadow-brand/10"
-        : "border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand-strong/20"
-        }`}>
+      <div
+        className={`rounded-xl border bg-white shadow-2xs overflow-hidden flex flex-col transition-all duration-300 ${
+          hasError
+            ? "border-brand focus-within:border-brand-strong focus-within:ring-1 focus-within:ring-brand-strong/20 shadow-sm shadow-brand/10"
+            : "border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand-strong/20"
+        }`}
+      >
         {toolbar}
         {editorMode === "preview" ? (
           <div className="p-3.5 bg-slate-50 text-xs min-h-[220px] max-h-[450px] overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
@@ -456,12 +474,13 @@ export function PromptEditor({
 
       {/* Validation status bar */}
       <div
-        className={`flex items-start gap-1.5 p-2 rounded-lg text-[10px] leading-tight font-medium ${jsonStatus.isValid
-          ? jsonStatus.blocksCount > 0
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-            : "bg-slate-50 text-slate-500 border border-slate-100/80"
-          : "bg-brand/5 text-brand border border-brand/10"
-          }`}
+        className={`flex items-start gap-1.5 p-2 rounded-lg text-[10px] leading-tight font-medium ${
+          jsonStatus.isValid
+            ? jsonStatus.blocksCount > 0
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+              : "bg-slate-50 text-slate-500 border border-slate-100/80"
+            : "bg-brand/5 text-brand border border-brand/10"
+        }`}
       >
         {jsonStatus.isValid ? (
           jsonStatus.blocksCount > 0 ? (
@@ -484,7 +503,8 @@ export function PromptEditor({
               Advanced Prompt Editor
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Write, formatting prompt with markdown, and instantly verify JSON schemes with split-second feedback.
+              Write, formatting prompt with markdown, and instantly verify JSON
+              schemes with split-second feedback.
             </DialogDescription>
           </DialogHeader>
 
@@ -510,12 +530,13 @@ export function PromptEditor({
           {/* Expanded Status Bar */}
           <div className="flex items-center justify-between gap-4 pt-1">
             <div
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight shadow-3xs ${jsonStatus.isValid
-                ? jsonStatus.blocksCount > 0
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-150"
-                  : "bg-slate-50 text-slate-500 border border-slate-200"
-                : "bg-brand/5 text-brand border border-brand/10"
-                }`}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold tracking-tight shadow-3xs ${
+                jsonStatus.isValid
+                  ? jsonStatus.blocksCount > 0
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-150"
+                    : "bg-slate-50 text-slate-500 border border-slate-200"
+                  : "bg-brand/5 text-brand border border-brand/10"
+              }`}
             >
               {jsonStatus.isValid ? (
                 jsonStatus.blocksCount > 0 ? (
@@ -554,7 +575,9 @@ function PromptPreview({ text }: { text: string }) {
   }
 
   // Mathematically clean, recursive balanced JSON brace extractor
-  const getSegments = (input: string): { type: "text" | "json"; content: string }[] => {
+  const getSegments = (
+    input: string,
+  ): { type: "text" | "json"; content: string }[] => {
     if (!input) return [];
 
     for (let i = 0; i < input.length; i++) {
@@ -572,7 +595,8 @@ function PromptPreview({ text }: { text: string }) {
                   const prevText = input.substring(0, i);
                   const nextText = input.substring(j + 1);
 
-                  const results: { type: "text" | "json"; content: string }[] = [];
+                  const results: { type: "text" | "json"; content: string }[] =
+                    [];
                   if (prevText) {
                     results.push({ type: "text", content: prevText });
                   }
@@ -616,10 +640,13 @@ function PromptPreview({ text }: { text: string }) {
                     cls = "text-violet-400";
                   }
                   return `<span class="${cls}">${match}</span>`;
-                }
+                },
               );
               return (
-                <div key={lIdx} dangerouslySetInnerHTML={{ __html: highlightedLine }} />
+                <div
+                  key={lIdx}
+                  dangerouslySetInnerHTML={{ __html: highlightedLine }}
+                />
               );
             })}
           </code>
@@ -649,27 +676,66 @@ function PromptPreview({ text }: { text: string }) {
 
       content = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
       content = content.replace(/\*(.*?)\*/g, "<em>$1</em>");
-      content = content.replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-sans text-slate-800 border border-slate-200/50">$1</code>');
+      content = content.replace(
+        /`(.*?)`/g,
+        '<code class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-sans text-slate-800 border border-slate-200/50">$1</code>',
+      );
 
       const innerHtml = { __html: content };
 
       if (isHeader) {
-        if (headerLevel === 1) return <h1 key={idx} className="text-base font-bold text-slate-800 mt-3 mb-1" dangerouslySetInnerHTML={innerHtml} />;
-        if (headerLevel === 2) return <h2 key={idx} className="text-sm font-bold text-slate-800 mt-2.5 mb-1" dangerouslySetInnerHTML={innerHtml} />;
-        return <h3 key={idx} className="text-xs font-bold text-slate-800 mt-2 mb-1" dangerouslySetInnerHTML={innerHtml} />;
+        if (headerLevel === 1)
+          return (
+            <h1
+              key={idx}
+              className="text-base font-bold text-slate-800 mt-3 mb-1"
+              dangerouslySetInnerHTML={innerHtml}
+            />
+          );
+        if (headerLevel === 2)
+          return (
+            <h2
+              key={idx}
+              className="text-sm font-bold text-slate-800 mt-2.5 mb-1"
+              dangerouslySetInnerHTML={innerHtml}
+            />
+          );
+        return (
+          <h3
+            key={idx}
+            className="text-xs font-bold text-slate-800 mt-2 mb-1"
+            dangerouslySetInnerHTML={innerHtml}
+          />
+        );
       }
 
       if (!line.trim()) return <div key={idx} className="h-2" />;
 
       if (/^\d+\.\s+/.test(line)) {
-        return <p key={idx} className="pl-4 -indent-4 text-slate-600 text-xs my-0.5" dangerouslySetInnerHTML={innerHtml} />;
+        return (
+          <p
+            key={idx}
+            className="pl-4 -indent-4 text-slate-600 text-xs my-0.5"
+            dangerouslySetInnerHTML={innerHtml}
+          />
+        );
       }
       if (/^[-*+]\s+/.test(line)) {
-        return <p key={idx} className="pl-4 -indent-4 text-slate-600 text-xs my-0.5" dangerouslySetInnerHTML={innerHtml} />;
+        return (
+          <p
+            key={idx}
+            className="pl-4 -indent-4 text-slate-600 text-xs my-0.5"
+            dangerouslySetInnerHTML={innerHtml}
+          />
+        );
       }
 
       return (
-        <p key={idx} className="text-slate-600 text-xs my-1 leading-relaxed" dangerouslySetInnerHTML={innerHtml} />
+        <p
+          key={idx}
+          className="text-slate-600 text-xs my-1 leading-relaxed"
+          dangerouslySetInnerHTML={innerHtml}
+        />
       );
     });
   };
