@@ -532,7 +532,7 @@ export function PromptEditor({
             <Button
               type="button"
               onClick={() => setIsFullscreen(false)}
-              className="h-8.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800"
+              className="h-8.5 rounded-sm text-xs font-bold bg-slate-900 text-white hover:bg-slate-800"
             >
               Done
             </Button>

@@ -14,6 +14,7 @@ import {
 import { ManageLogo } from "@/components/manage-logo";
 import { getManageMenus } from "@/core/services/menus.service";
 import { getUserProfile } from "@/core/services/users.service";
+import { checkRouteImplemented } from "@/app/manage/actions";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";
@@ -243,15 +244,23 @@ export function ManageSidebarNav() {
     let cancelled = false;
 
     void getManageMenus()
-      .then((menus) => {
+      .then(async (menus) => {
         if (cancelled) return;
+
+        // Dynamic route check using Server Action
+        const checkedItems = await Promise.all(
+          menus.map(async (m) => {
+            const isImplemented = await checkRouteImplemented(m.path);
+            return isImplemented ? m : null;
+          })
+        );
+        const activeMenus = checkedItems.filter((m): m is NonNullable<typeof m> => m !== null);
 
         // Grouping logic:
         // type "main" -> Overview
         // type "manage" -> Workspace
-        const overviewItems = menus.filter((m) => m.type === "main");
-        const manageItems = menus.filter((m) => m.type === "manage");
-
+        const overviewItems = activeMenus.filter((m) => m.type === "main");
+        const manageItems = activeMenus.filter((m) => m.type === "manage");
         const nextSections: MenuSection[] = [];
 
         if (overviewItems.length > 0) {
@@ -261,20 +270,21 @@ export function ManageSidebarNav() {
             icon: LucideIcons.Home,
             items: overviewItems.map((m) => ({
               title: m.name,
-              href: m.path,
+              href: m.path === "/manage/dashboard" ? "/manage" : m.path,
               icon: ICON_MAP[m.icon],
             })),
           });
         }
 
         if (manageItems.length > 0) {
+          const firstPath = manageItems[0].path;
           nextSections.push({
             title: getLocalizedText(MANAGE_PARENT_CRUMB),
-            href: manageItems[0].path,
+            href: firstPath === "/manage/dashboard" ? "/manage" : firstPath,
             icon: LucideIcons.Layers,
             items: manageItems.map((m) => ({
               title: m.name,
-              href: m.path,
+              href: m.path === "/manage/dashboard" ? "/manage" : m.path,
               icon: ICON_MAP[m.icon],
             })),
           });
