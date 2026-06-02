@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Terminal, ArrowLeft,
-  Play, ShieldAlert, ChevronRight, Download,
-  Maximize2, Minimize2
+  Terminal,
+  ArrowLeft,
+  Play,
+  ShieldAlert,
+  ChevronRight,
+  Download,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { RunConsoleSkeleton } from "./run-console-skeleton";
 import Image from "next/image";
@@ -20,7 +25,10 @@ import { ExportDatasetModal } from "../../components/visualizer/export-dataset-m
 import { JobStatusBadge } from "../../components/job-status-badge";
 
 // Reuse existing high-quality visualizer components
-import { ConsoleNavigation, type VisualizerTab } from "../../components/visualizer/console-navigation";
+import {
+  ConsoleNavigation,
+  type VisualizerTab,
+} from "../../components/visualizer/console-navigation";
 import { TabOutput } from "../../components/visualizer/tab-output";
 import { TabLog } from "../../components/visualizer/tab-log";
 import { TabInputStorage } from "../../components/visualizer/tab-input-storage";
@@ -33,13 +41,33 @@ interface RunClientProps {
   runId: string;
 }
 
+const normalizeJobIdentity = (value: unknown): string => {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim();
+  if (!normalized) return "";
+  const lowered = normalized.toLowerCase();
+  if (lowered === "undefined" || lowered === "null" || lowered === "nan") {
+    return "";
+  }
+  return normalized;
+};
+
+const getJobIdentity = (job: ToolJob & { _id?: string }): string =>
+  normalizeJobIdentity(job.jobId || job.id || job._id || "");
+
 // Status color mapping is now fully encapsulated inside the reusable JobStatusBadge component
 
 export function RunClient({ tool, run, runId }: RunClientProps) {
-  const [activeJobId, setActiveJobId] = useState<string>(() => run.jobs[0]?.jobId || "");
+  const [activeJobId, setActiveJobId] = useState<string>(() => {
+    const firstValidJob = run.jobs.find((job) =>
+      Boolean(getJobIdentity(job as ToolJob & { _id?: string })),
+    ) as (ToolJob & { _id?: string }) | undefined;
+    return firstValidJob ? getJobIdentity(firstValidJob) : "";
+  });
   const [fullJob, setFullJob] = useState<ToolJob | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(false);
-  const [activeVisualizerTab, setActiveVisualizerTab] = useState<VisualizerTab>("output");
+  const [activeVisualizerTab, setActiveVisualizerTab] =
+    useState<VisualizerTab>("output");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -63,14 +91,19 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
       }
     };
     fetchJobData();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [activeJobId, tool.id]);
 
-  const overallState = run.jobs.some(j => getJobStatus(j) === "failed")
+  const overallState = run.jobs.some((j) => getJobStatus(j) === "failed")
     ? "failed"
-    : run.jobs.every(j => getJobStatus(j) === "completed")
+    : run.jobs.every((j) => getJobStatus(j) === "completed")
       ? "completed"
-      : run.jobs.some(j => getJobStatus(j) === "active" || getJobStatus(j) === "running")
+      : run.jobs.some(
+            (j) =>
+              getJobStatus(j) === "active" || getJobStatus(j) === "running",
+          )
         ? "active"
         : "queued";
 
@@ -85,13 +118,23 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
     }
   };
 
-
   const activeJobCount = fullJob ? getItemCount(fullJob) : 0;
+  const fullJobIdentity = (() => {
+    const raw = fullJob as (ToolJob & { _id?: string }) | null;
+    return raw ? getJobIdentity(raw) : "";
+  })();
+  const shortFullJobIdentity = fullJobIdentity
+    ? `#${fullJobIdentity.slice(0, 16)}`
+    : "#N/A";
 
   return (
     <div className="pb-10">
       <div className="mb-6">
-        <AppCover src={null} alt={`${tool.name} run cover`} accentColor={tool.accentColor || "#c20019"}>
+        <AppCover
+          src={null}
+          alt={`${tool.name} run cover`}
+          accentColor={tool.accentColor || "#c20019"}
+        >
           <div className="pt-5 sm:pt-8 flex flex-wrap gap-3">
             <Link
               href={`/tool/${tool.id}`}
@@ -122,12 +165,17 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 <div className="p-3 bg-linear-to-br from-brand via-brand-strong to-rose-700 border border-white/20 backdrop-blur-md rounded-2xl shadow-xl shadow-brand/10 shrink-0">
                   <Terminal className="size-6 text-white animate-pulse" />
                 </div>
-                <h1 className="page-hero-title font-black tracking-tight text-white bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
+                <h1 className="page-hero-title font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
                   Execution Console
                 </h1>
               </div>
               <p className="mt-4 text-xs sm:text-[13px] text-slate-300 leading-relaxed max-w-2xl font-medium select-text">
-                Inspecting multi-agent job orchestration pipelines for <span className="text-white font-extrabold bg-white/10 px-1.5 py-0.5 rounded-md border border-white/5 mx-0.5">{tool.name}</span>. Select a sub-job step from the execution list to inspect dynamic outputs and logs.
+                Inspecting multi-agent job orchestration pipelines for{" "}
+                <span className="text-white font-extrabold bg-white/10 px-1.5 py-0.5 rounded-md border border-white/5 mx-0.5">
+                  {tool.name}
+                </span>
+                . Select a sub-job step from the execution list to inspect
+                dynamic outputs and logs.
               </p>
             </div>
           </div>
@@ -137,14 +185,18 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
       {/* Split Pane Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Side: Run Pipeline Summary & Sub-Jobs list */}
-        <div className={cn(
-          "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit",
-          isExpanded ? "hidden lg:hidden" : "block"
-        )}>
+        <div
+          className={cn(
+            "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit",
+            isExpanded ? "hidden lg:hidden" : "block",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <Play className="size-4 text-brand" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">Run Pipeline</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Run Pipeline
+              </h3>
             </div>
             <JobStatusBadge status={overallState} />
           </div>
@@ -152,7 +204,9 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
           {/* Processing Run ID label */}
           {run.runId && (
             <div className="flex items-center gap-1.5 -mt-1 pb-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Processing Run ID</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                Processing Run ID
+              </span>
               <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-all shrink-0 border border-slate-200/40 uppercase">
                 #{run.runId.split("-")[0].toUpperCase().slice(0, 8)}
               </span>
@@ -163,24 +217,30 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
           <div className="space-y-3">
             {run.jobs.map((job, idx) => {
               const jobStatus = getJobStatus(job);
-              const isSelected = activeJobId === job.jobId;
+              const rawJob = job as ToolJob & { _id?: string };
+              const jobIdentity = getJobIdentity(rawJob);
+              const isSelected = activeJobId === jobIdentity;
               const pluginLower = String(job.plugin || "").toLowerCase();
               const pluginConfig = getPluginConfig(pluginLower);
-              const slicedJobId = job.jobId ? `#${job.jobId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
+              const slicedJobId = jobIdentity
+                ? `#${jobIdentity.split("-")[0].toUpperCase().slice(0, 8)}`
+                : "#N/A";
 
               return (
                 <button
-                  key={job.id || job.jobId || idx}
-                  onClick={() => setActiveJobId(job.jobId)}
+                  key={job.id || jobIdentity || idx}
+                  onClick={() => setActiveJobId(jobIdentity)}
+                  disabled={!jobIdentity}
                   className={cn(
                     "w-full text-left p-3.5 rounded-xl border relative overflow-hidden transition-all duration-300 flex items-center justify-between group cursor-pointer",
                     isSelected
                       ? "bg-slate-50 border-brand shadow-xs"
-                      : "bg-white border-slate-150 hover:bg-slate-50/50 hover:border-slate-350"
+                      : "bg-white border-slate-150 hover:bg-slate-50/50 hover:border-slate-350",
+                    !jobIdentity && "opacity-60 cursor-not-allowed",
                   )}
                 >
                   {isSelected && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand to-brand-strong" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-brand to-brand-strong" />
                   )}
 
                   <div className={cn("min-w-0 flex-1", isSelected && "pl-1")}>
@@ -191,7 +251,10 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                           alt={pluginConfig.cardTitle}
                           width={14}
                           height={14}
-                          className={cn("size-3.5 shrink-0 object-contain select-none", pluginConfig.iconAnimate && "animate-pulse")}
+                          className={cn(
+                            "size-3.5 shrink-0 object-contain select-none",
+                            pluginConfig.iconAnimate && "animate-pulse",
+                          )}
                         />
                       ) : (
                         <Terminal className="size-3.5 shrink-0 text-slate-400" />
@@ -212,10 +275,12 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                     </div>
                   </div>
 
-                  <ChevronRight className={cn(
-                    "size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",
-                    isSelected ? "text-brand" : "text-slate-300"
-                  )} />
+                  <ChevronRight
+                    className={cn(
+                      "size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",
+                      isSelected ? "text-brand" : "text-slate-300",
+                    )}
+                  />
                 </button>
               );
             })}
@@ -223,10 +288,12 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
         </div>
 
         {/* Right Side: Run Detail Workspace Area (Inline console tabs) */}
-        <div className={cn(
-          "bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-[500px] transition-all duration-300",
-          isExpanded ? "lg:col-span-3" : "lg:col-span-2"
-        )}>
+        <div
+          className={cn(
+            "bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-125 transition-all duration-300",
+            isExpanded ? "lg:col-span-3" : "lg:col-span-2",
+          )}
+        >
           {isLoadingJob ? (
             <RunConsoleSkeleton />
           ) : fullJob ? (
@@ -235,9 +302,11 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-800 capitalize">{fullJob.plugin} Engine Workspace</span>
+                    <span className="text-xs font-bold text-slate-800 capitalize">
+                      {fullJob.plugin || "Unknown"} Engine Workspace
+                    </span>
                     <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
-                      #{fullJob.jobId.slice(0, 16)}
+                      {shortFullJobIdentity}
                     </span>
                   </div>
                   <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-sm md:max-w-md">
@@ -252,7 +321,9 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                     type="button"
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="h-8 px-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-md text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-3xs text-slate-600 hover:text-slate-800 flex items-center justify-center gap-1.5"
-                    title={isExpanded ? "Show Sidebar" : "Hide Sidebar (100% Width)"}
+                    title={
+                      isExpanded ? "Show Sidebar" : "Hide Sidebar (100% Width)"
+                    }
                   >
                     {isExpanded ? (
                       <>
@@ -288,17 +359,27 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
 
               {/* Visualizer Output Content Area */}
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-4">
-                {activeVisualizerTab === "output" && <TabOutput job={fullJob} />}
+                {activeVisualizerTab === "output" && (
+                  <TabOutput job={fullJob} />
+                )}
                 {activeVisualizerTab === "log" && <TabLog job={fullJob} />}
-                {activeVisualizerTab === "input" && <TabInputStorage job={fullJob} mode="input" />}
-                {activeVisualizerTab === "preprocess" && <TabPreProcess job={fullJob} />}
+                {activeVisualizerTab === "input" && (
+                  <TabInputStorage job={fullJob} mode="input" />
+                )}
+                {activeVisualizerTab === "preprocess" && (
+                  <TabPreProcess job={fullJob} />
+                )}
               </div>
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-white text-slate-400 select-none">
               <ShieldAlert className="size-8 text-rose-500 animate-bounce" />
-              <p className="text-xs font-semibold text-slate-750">Failed to render Job workspace.</p>
-              <p className="text-[10px] text-slate-400">Select a sub-job from the pipeline menu to reinitialize.</p>
+              <p className="text-xs font-semibold text-slate-750">
+                Failed to render Job workspace.
+              </p>
+              <p className="text-[10px] text-slate-400">
+                Select a sub-job from the pipeline menu to reinitialize.
+              </p>
             </div>
           )}
         </div>

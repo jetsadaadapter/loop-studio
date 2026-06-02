@@ -34,6 +34,38 @@ interface ToolClientProps {
   initialJobs: GetToolJobsResponse;
 }
 
+const normalizeJobIdentity = (value: unknown): string => {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim();
+  if (!normalized) return "";
+  const lowered = normalized.toLowerCase();
+  if (lowered === "undefined" || lowered === "null" || lowered === "nan") {
+    return "";
+  }
+  return normalized;
+};
+
+const isDebugMode = process.env.NODE_ENV !== "production";
+
+const logDroppedInvalidJobId = (
+  source: "processing-modal-poll" | "active-job-poll",
+  payload: {
+    rawJobId: unknown;
+    toolId: string;
+    state?: unknown;
+    status?: unknown;
+    runId?: unknown;
+    plugin?: unknown;
+  },
+) => {
+  if (!isDebugMode) return;
+
+  console.debug("[ToolClient][debug] drop invalid job id", {
+    source,
+    ...payload,
+  });
+};
+
 const buildInitialForm = (params: Tool["params"]): Record<string, unknown> => {
   const data: Record<string, unknown> = {};
   params.forEach((param) => {
@@ -47,7 +79,6 @@ const buildInitialForm = (params: Tool["params"]): Record<string, unknown> => {
   return data;
 };
 
-
 export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const router = useRouter();
   const [isTesting, setIsTesting] = useState(false);
@@ -56,7 +87,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   );
   const [jobs, setJobs] = useState<ToolJob[]>(initialJobs.data);
   const [currentPage, setCurrentPage] = useState(initialJobs.meta?.page || 1);
-  const [totalPages, setTotalPages] = useState(initialJobs.meta?.totalPages || 1);
+  const [totalPages, setTotalPages] = useState(
+    initialJobs.meta?.totalPages || 1,
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [isProcessingOpen, setIsProcessingOpen] = useState(false);
   const [isJobComplete, setIsJobComplete] = useState(false);
@@ -70,7 +103,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [isJobLoading, setIsJobLoading] = useState(false);
   const [isVisualizerOpen, setIsVisualizerOpen] = useState(false);
   const [isVisualizerLoading, setIsVisualizerLoading] = useState(false);
-  const [selectedVisualizerJob, setSelectedVisualizerJob] = useState<ToolJob | null>(null);
+  const [selectedVisualizerJob, setSelectedVisualizerJob] =
+    useState<ToolJob | null>(null);
   const [activeTab, setActiveTab] = useState<JobStatus>("all");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { pushDialogToast } = useDialogToast();
@@ -92,23 +126,49 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   // Poll job status while processing modal is open
   useEffect(() => {
     if (!isProcessingOpen) {
-      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
       return;
     }
     pollRef.current = setInterval(async () => {
       try {
         const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
         let latest = res.data[0];
+        const latestJobId = normalizeJobIdentity(latest?.jobId);
 
-        if (latest && latest.state !== "completed" && latest.state !== "failed") {
+        if (latest && !latestJobId) {
+          logDroppedInvalidJobId("processing-modal-poll", {
+            rawJobId: latest.jobId,
+            toolId: tool.id,
+            state: latest.state,
+            status: latest.status,
+            runId: latest.runId,
+            plugin: latest.plugin,
+          });
+        }
+
+        if (
+          latest &&
+          latestJobId &&
+          latest.state !== "completed" &&
+          latest.state !== "failed"
+        ) {
           // Force synchronization and fetch full completed details from backend
-          const updatedJob = await getToolJob(tool.id, latest.jobId);
+          const updatedJob = await getToolJob(tool.id, latestJobId);
           latest = updatedJob;
           res.data[0] = updatedJob;
         }
 
-        if (latest && (latest.state === "completed" || latest.state === "failed")) {
-          if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+        if (
+          latest &&
+          (latest.state === "completed" || latest.state === "failed")
+        ) {
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
           setJobs(res.data);
           setCurrentPage(res.meta?.page || 1);
           setTotalPages(res.meta?.totalPages || 1);
@@ -116,16 +176,26 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         } else {
           setJobs(res.data);
         }
-      } catch { /* silently retry */ }
+      } catch {
+        /* silently retry */
+      }
     }, 5000);
-    return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
   }, [isProcessingOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll active selected jobs (modal or visualizer) to auto-refresh their status and results
   useEffect(() => {
     const activeJob =
-      isJobModalOpen && selectedJob ? selectedJob :
-      isVisualizerOpen && selectedVisualizerJob ? selectedVisualizerJob : null;
+      isJobModalOpen && selectedJob
+        ? selectedJob
+        : isVisualizerOpen && selectedVisualizerJob
+          ? selectedVisualizerJob
+          : null;
 
     if (!activeJob) return;
 
@@ -134,8 +204,20 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
 
     const interval = setInterval(async () => {
       try {
-        const job = await getToolJob(tool.id, activeJob.jobId);
-        
+        const activeJobId = normalizeJobIdentity(activeJob.jobId);
+        if (!activeJobId) {
+          logDroppedInvalidJobId("active-job-poll", {
+            rawJobId: activeJob.jobId,
+            toolId: tool.id,
+            state: activeJob.state,
+            status: activeJob.status,
+            runId: activeJob.runId,
+            plugin: activeJob.plugin,
+          });
+          return;
+        }
+        const job = await getToolJob(tool.id, activeJobId);
+
         if (isJobModalOpen && selectedJob?.jobId === job.jobId) {
           setSelectedJob(job);
         }
@@ -147,11 +229,19 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         setJobs((prev) =>
           prev.map((j) =>
             j.jobId === job.jobId
-              ? { ...j, state: job.state, status: job.status, result: job.result, error: job.error }
-              : j
-          )
+              ? {
+                  ...j,
+                  state: job.state,
+                  status: job.status,
+                  result: job.result,
+                  error: job.error,
+                }
+              : j,
+          ),
         );
-      } catch { /* silently retry */ }
+      } catch {
+        /* silently retry */
+      }
     }, 4000);
 
     return () => clearInterval(interval);
@@ -206,14 +296,22 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   };
 
   const handleViewVisualizer = async (jobId: string) => {
+    const safeJobId = normalizeJobIdentity(jobId);
+    if (!safeJobId) {
+      pushDialogToast("Invalid job id.", "error");
+      return;
+    }
+
     setIsVisualizerOpen(true);
     setIsVisualizerLoading(true);
     setSelectedVisualizerJob(null);
     try {
-      const job = await getToolJob(tool.id, jobId);
+      const job = await getToolJob(tool.id, safeJobId);
       setSelectedVisualizerJob(job);
       setJobs((prev) =>
-        prev.map((j) => (j.jobId === jobId ? { ...j, result: job.result } : j)),
+        prev.map((j) =>
+          j.jobId === safeJobId ? { ...j, result: job.result } : j,
+        ),
       );
     } catch {
       pushDialogToast("Failed to fetch job details.", "error");
@@ -247,7 +345,11 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   return (
     <div className="pb-6">
       <div className="mb-6">
-        <AppCover src={null} alt={`${tool.name} cover`} accentColor={tool.accentColor || "#c20019"}>
+        <AppCover
+          src={null}
+          alt={`${tool.name} cover`}
+          accentColor={tool.accentColor || "#c20019"}
+        >
           <div className="pt-5 sm:pt-8">
             <Link
               href="/apps"
@@ -282,7 +384,9 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                 <div className="p-3 bg-linear-to-br from-brand via-brand-strong to-rose-700 border border-white/20 backdrop-blur-md rounded-2xl shadow-xl shadow-brand/10 shrink-0 hidden sm:flex">
                   <Terminal className="size-6 text-white animate-pulse" />
                 </div>
-                <h1 className="page-hero-title font-black tracking-tight text-white bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">{tool.name}</h1>
+                <h1 className="page-hero-title font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
+                  {tool.name}
+                </h1>
               </div>
               <p className="mt-4 text-xs sm:text-[13px] text-slate-300 leading-relaxed max-w-2xl font-medium select-text">
                 {tool.description ||

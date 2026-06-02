@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import {
-  CheckCircle2,
-  ExternalLink,
-} from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
+import {
+  getAnalysisDisplayPresetForJob,
+  getSchemaHintKeysFromJob,
+} from "../tool-job-utils";
 import type {
   AnalysisResult,
   ScrapedJobItem,
@@ -21,6 +22,8 @@ type JobResultItemProps = {
 };
 
 export function JobResultItem({ item, idx, job }: JobResultItemProps) {
+  const schemaHintKeys = getSchemaHintKeysFromJob(job);
+  const analysisDisplayPreset = getAnalysisDisplayPresetForJob(job);
   const itemText = typeof item.text === "string" ? item.text : "";
   const inputItems =
     (job.input?.previousResults as { items?: SourceItem[] })?.items || [];
@@ -121,13 +124,19 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
             : typeof typedSource.comments === "number"
               ? typedSource.comments
               : undefined;
-  const getFirstThumbnail = (media: Array<{ thumbnail?: string } | null | undefined> | undefined) => {
+  const getFirstThumbnail = (
+    media: Array<{ thumbnail?: string } | null | undefined> | undefined,
+  ) => {
     if (!Array.isArray(media)) return "";
-    const found = media.find((m) => m && typeof m.thumbnail === "string" && m.thumbnail);
+    const found = media.find(
+      (m) => m && typeof m.thumbnail === "string" && m.thumbnail,
+    );
     return found?.thumbnail || "";
   };
   const thumbnail = String(
-    getFirstThumbnail(typedItem.media) || getFirstThumbnail(typedSource.media) || "",
+    getFirstThumbnail(typedItem.media) ||
+      getFirstThumbnail(typedSource.media) ||
+      "",
   );
 
   const displayName = String(
@@ -138,16 +147,19 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
       `Item ${idx + 1}`,
   );
 
-  const postUrl = String(
-    item.url || item.facebookUrl || sourceItem.url || "",
-  );
+  const postUrl = String(item.url || item.facebookUrl || sourceItem.url || "");
 
   const rawTime =
     typedItem.time || typedSource.time || item.time || sourceItem.time;
   const rawTimestamp = typedItem.timestamp || typedSource.timestamp;
 
   const postDateString = (() => {
-    const timeVal = (rawTime || (typeof rawTimestamp === "number" && rawTimestamp > 0 ? (rawTimestamp < 99999999999 ? rawTimestamp * 1000 : rawTimestamp) : null)) as string | number | Date;
+    const timeVal = (rawTime ||
+      (typeof rawTimestamp === "number" && rawTimestamp > 0
+        ? rawTimestamp < 99999999999
+          ? rawTimestamp * 1000
+          : rawTimestamp
+        : null)) as string | number | Date;
     if (timeVal) {
       const parsedDate = new Date(timeVal);
       if (!isNaN(parsedDate.getTime())) {
@@ -206,7 +218,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
           )}
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-slate-900 truncate max-w-[200px] block">
+              <span className="text-sm font-bold text-slate-900 truncate max-w-50 block">
                 {displayName}
               </span>
               <CheckCircle2 className="size-4 text-emerald-500 fill-emerald-50 shrink-0" />
@@ -245,7 +257,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
 
         {/* 3. Media Picture / Video Thumbnail */}
         {thumbnail && (
-          <div className="relative -mx-6 overflow-hidden border-y border-slate-100/80 shadow-xs h-[320px] bg-slate-50 group">
+          <div className="relative -mx-6 overflow-hidden border-y border-slate-100/80 shadow-xs h-80 bg-slate-50 group">
             <Image
               src={thumbnail}
               alt="Post Media Content"
@@ -254,8 +266,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
               sizes="(max-width: 768px) 100vw, 600px"
               className="object-cover"
               onError={(e) => {
-                (e.target as HTMLElement).parentElement!.style.display =
-                  "none";
+                (e.target as HTMLElement).parentElement!.style.display = "none";
               }}
             />
           </div>
@@ -279,9 +290,9 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
         {/* 5. INTEGRATED AI ANALYSIS ZONE */}
         <JobAiAnalysis
           analysis={analysis}
-          comments={
-            Array.isArray(typedItem.comments) ? typedItem.comments : []
-          }
+          comments={Array.isArray(typedItem.comments) ? typedItem.comments : []}
+          schemaHintKeys={schemaHintKeys}
+          analysisDisplayPreset={analysisDisplayPreset}
         />
       </div>
     </div>

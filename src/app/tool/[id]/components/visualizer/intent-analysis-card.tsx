@@ -7,13 +7,24 @@ import {
   MessageCircle,
   ThumbsDown,
   Crown,
+  BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AnalysisResult } from "../../tool-job-utils";
+import {
+  formatAnalysisConfidence,
+  getAnalysisDisplayBlocks,
+  hasIntentAnalysisPayload,
+  normalizeIntentClassification,
+  type AnalysisDisplayPreset,
+  type AnalysisResult,
+} from "../../tool-job-utils";
 
 export interface IntentAnalysisItem {
   postUrl?: string;
   url?: string;
+  facebookUrl?: string;
+  inputUrl?: string;
+  permalink_url?: string;
   sourceKeyValue?: string;
   analysis?: AnalysisResult;
   [key: string]: unknown;
@@ -22,6 +33,9 @@ export interface IntentAnalysisItem {
 interface IntentAnalysisCardProps {
   item: IntentAnalysisItem;
   index: number;
+  schemaHintKeys?: string[];
+  analysisDisplayPreset?: AnalysisDisplayPreset;
+  isGenericMode?: boolean;
 }
 
 const GROUP_CONFIG: Record<
@@ -104,20 +118,48 @@ function getGroupConfig(label: string, idx: number) {
   );
 }
 
-export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
+export function IntentAnalysisCard({
+  item,
+  index,
+  schemaHintKeys = [],
+  analysisDisplayPreset,
+  isGenericMode = false,
+}: IntentAnalysisCardProps) {
   const analysis = item.analysis;
   const postUrl =
-    analysis?.postUrl || item.postUrl || item.url || item.sourceKeyValue || "";
+    analysis?.postUrl ||
+    item.postUrl ||
+    item.facebookUrl ||
+    item.url ||
+    item.inputUrl ||
+    item.permalink_url ||
+    item.sourceKeyValue ||
+    "";
   const groups = analysis?.groups ?? [];
   const verdict = analysis?.verdict ?? "";
-  const summary = analysis?.summary ?? "";
+  const summary = analysis?.summary_of_intent || analysis?.summary || "";
   const keywords = analysis?.keywords ?? "";
   const sentiment = analysis?.sentiment ?? "";
   const isLeader = analysis?.conversionLeader === true;
+  const classification = normalizeIntentClassification(analysis);
+  const confidence = formatAnalysisConfidence(analysis?.confidence_score);
+  const dynamicBlocks = getAnalysisDisplayBlocks(
+    analysis,
+    schemaHintKeys,
+    analysisDisplayPreset,
+    isGenericMode,
+  );
+  const hasIntentPayload = hasIntentAnalysisPayload(analysis);
+  const purchaseSignal = analysis?.purchase_intent_signal;
 
   const totalCount = groups.reduce((acc, g) => acc + g.count, 0);
 
   const displayUrl = postUrl.length > 60 ? `...${postUrl.slice(-50)}` : postUrl;
+  const classificationTone = {
+    Interested: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Neutral: "bg-slate-50 text-slate-600 border-slate-200",
+    Negative: "bg-rose-50 text-rose-700 border-rose-200",
+  } as const;
 
   return (
     <div
@@ -129,7 +171,7 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
       )}
     >
       {/* Card Header */}
-      <div className="px-5 py-3.5 bg-gradient-to-r from-slate-50/60 to-white border-b border-slate-150/80">
+      <div className="px-5 py-3.5 bg-linear-to-r from-slate-50/60 to-white border-b border-slate-150/80">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="size-7 rounded-lg bg-slate-100 border border-slate-200/60 flex items-center justify-center shrink-0 select-none">
@@ -138,22 +180,32 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
-                Post URL
-              </p>
-              {postUrl ? (
-                <a
-                  href={postUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
-                  title={postUrl}
-                >
-                  <span className="truncate">{displayUrl}</span>
-                  <ExternalLink className="size-3 shrink-0 opacity-70" />
-                </a>
+              {isGenericMode ? (
+                <p className="text-xs font-bold text-slate-700">
+                  Result #{index + 1}
+                </p>
               ) : (
-                <span className="text-xs text-slate-400 italic">No URL</span>
+                <>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                    Post URL
+                  </p>
+                  {postUrl ? (
+                    <a
+                      href={postUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                      title={postUrl}
+                    >
+                      <span className="truncate">{displayUrl}</span>
+                      <ExternalLink className="size-3 shrink-0 opacity-70" />
+                    </a>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">
+                      No URL
+                    </span>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -172,6 +224,17 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                 )}
               >
                 {sentiment}
+              </span>
+            )}
+            {hasIntentPayload && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border",
+                  classificationTone[classification],
+                )}
+              >
+                <BadgeCheck className="size-2.5" />
+                {classification}
               </span>
             )}
             {isLeader && (
@@ -198,14 +261,36 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                 const cfg = getGroupConfig(g.label, i);
                 const pct =
                   totalCount > 0 ? (g.count / totalCount) * 100 : g.percentage;
+                const widthClass =
+                  pct <= 0
+                    ? "w-0"
+                    : pct <= 10
+                      ? "w-[10%]"
+                      : pct <= 20
+                        ? "w-[20%]"
+                        : pct <= 30
+                          ? "w-[30%]"
+                          : pct <= 40
+                            ? "w-[40%]"
+                            : pct <= 50
+                              ? "w-1/2"
+                              : pct <= 60
+                                ? "w-[60%]"
+                                : pct <= 70
+                                  ? "w-[70%]"
+                                  : pct <= 80
+                                    ? "w-[80%]"
+                                    : pct <= 90
+                                      ? "w-[90%]"
+                                      : "w-full";
                 return (
                   <div
                     key={`bar-${i}`}
                     className={cn(
-                      "h-full transition-all duration-500",
+                      "h-full transition-all duration-500 shrink-0",
                       cfg.bar,
+                      widthClass,
                     )}
-                    style={{ width: `${pct}%` }}
                     title={`${g.label}: ${g.count} (${g.percentage}%)`}
                   />
                 );
@@ -264,7 +349,10 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
         )}
 
         {/* AI Summary & Keywords */}
-        {(summary || (Array.isArray(keywords) ? keywords.length > 0 : !!keywords)) && (
+        {(summary ||
+          (Array.isArray(keywords) ? keywords.length > 0 : !!keywords) ||
+          hasIntentPayload ||
+          dynamicBlocks.length > 0) && (
           <div className="space-y-3.5">
             {summary && (
               <div className="border-l-3 border-brand pl-3.5 space-y-1">
@@ -277,7 +365,53 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
               </div>
             )}
 
-            {/* Keywords directly underneath summary */}
+            {hasIntentPayload && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div
+                  className={cn(
+                    "rounded-xl border px-3 py-2.5",
+                    classificationTone[classification],
+                  )}
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                    Classification
+                  </p>
+                  <p className="mt-1 text-sm font-black leading-tight">
+                    {classification}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                    Confidence
+                  </p>
+                  <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                    {confidence || "N/A"}
+                  </p>
+                </div>
+                <div
+                  className={cn(
+                    "rounded-xl border px-3 py-2.5",
+                    purchaseSignal === true
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      : purchaseSignal === false
+                        ? "bg-slate-50 border-slate-200 text-slate-600"
+                        : "bg-amber-50 border-amber-200 text-amber-700",
+                  )}
+                >
+                  <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                    Purchase Signal
+                  </p>
+                  <p className="mt-1 text-sm font-black leading-tight">
+                    {purchaseSignal === true
+                      ? "Yes"
+                      : purchaseSignal === false
+                        ? "No"
+                        : "Unknown"}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
               <div className="pl-3.5 flex flex-wrap gap-1.5 pt-0.5">
                 {(Array.isArray(keywords)
@@ -293,6 +427,46 @@ export function IntentAnalysisCard({ item, index }: IntentAnalysisCardProps) {
                       #{kw.replace(/^#/, "")}
                     </span>
                   ))}
+              </div>
+            )}
+
+            {dynamicBlocks.length > 0 && (
+              <div className="space-y-3 pt-1">
+                {dynamicBlocks.map((block) => (
+                  <section
+                    key={block.id}
+                    className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-xs"
+                  >
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      {block.title}
+                    </p>
+                    <p className="mt-1 text-[10px] font-medium text-slate-500">
+                      {block.description}
+                    </p>
+                    <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {block.entries.map((entry) => (
+                        <div
+                          key={`${block.id}-${entry.key}`}
+                          className="rounded-lg border border-slate-200/70 bg-white px-3 py-2.5"
+                        >
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                            {entry.key}
+                          </p>
+                          {entry.valueType === "object" ||
+                          entry.valueType === "array" ? (
+                            <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] font-mono text-slate-700 whitespace-pre-wrap wrap-break-word">
+                              {entry.value}
+                            </pre>
+                          ) : (
+                            <p className="mt-1 text-xs font-semibold text-slate-700 leading-relaxed wrap-break-word">
+                              {entry.value}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
             )}
           </div>

@@ -10,6 +10,19 @@ import type {
     GetToolRunResponse,
 } from "@/core/interfaces/tools.interface";
 
+function normalizeJobIdentity(value: unknown): string {
+    if (typeof value !== "string") return "";
+    const normalized = value.trim();
+    if (!normalized) return "";
+
+    const lowered = normalized.toLowerCase();
+    if (lowered === "undefined" || lowered === "null" || lowered === "nan") {
+        return "";
+    }
+
+    return normalized;
+}
+
 /**
  * Fetch detailed information for a specific tool.
  */
@@ -55,7 +68,12 @@ export async function getToolJob(
     jobId: string,
     init?: RequestInit
 ): Promise<ToolJob> {
-    const url = buildUrl(`/tools/${toolId}/jobs/${jobId}`);
+    const safeJobId = normalizeJobIdentity(jobId);
+    if (!safeJobId) {
+        throw new Error("Invalid job id");
+    }
+
+    const url = buildUrl(`/tools/${toolId}/jobs/${safeJobId}`);
     const response = await apiFetch<ToolJob | GetToolJobDetailResponse>(url, init);
 
     // Flexible handling: check if it's the wrapped response or the job object directly
