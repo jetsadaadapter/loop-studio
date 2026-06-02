@@ -412,6 +412,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             onTestPrompt={handleTestPrompt}
             isTesting={isTesting}
             testResult={testResult}
+            onClearTestResult={() => setTestResult(null)}
           />
         </div>
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">

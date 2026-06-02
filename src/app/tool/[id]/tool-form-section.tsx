@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { FormParamField } from "./components/form/form-param-field";
 import { PromptTestSkeleton } from "./components/prompt-test-skeleton";
-import { PromptTestPreview } from "./components/prompt-test-preview";
+import { PromptTestPreviewModal } from "./components/prompt-test-preview-modal";
 
 interface ToolFormSectionProps {
   params: ToolParam[];
@@ -32,6 +32,7 @@ interface ToolFormSectionProps {
   onTestPrompt?: () => void;
   isTesting?: boolean;
   testResult?: ToolTestPromptResult | null;
+  onClearTestResult?: () => void;
 }
 
 export function ToolFormSection(props: ToolFormSectionProps) {
@@ -45,12 +46,12 @@ export function ToolFormSection(props: ToolFormSectionProps) {
     onTestPrompt,
     isTesting,
     testResult,
+    onClearTestResult,
   } = props;
 
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const [placeholderText, setPlaceholderText] = useState("");
-
-  // Typing animation effect for the prompt textarea
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   useEffect(() => {
     const PROMPTS = [
       "อยากให้ช่วยวิเคราะห์ข้อมูลแบบไหน บอกได้เลยนะครับ...\n\nตัวอย่าง:\n1. https://facebook.com/share/p/1/\n2. https://facebook.com/share/p/2/\n3. https://facebook.com/share/p/3/\n\nช่วยวิเคราะห์ให้หน่อยครับว่า โพสต์ไหนมีแนวโน้มที่คนสนใจจะซื้อสินค้ามากที่สุด? โดยแบ่งกลุ่มคนที่เข้ามาคอมเมนต์ออกเป็น 3 กลุ่มหลัก คือ: 1. กลุ่มที่สนใจซื้อสินค้า 2. กลุ่มที่ไม่สนใจ/ถามเฉยๆ 3. กลุ่มเชิงลบหรือต่อต้าน และช่วยเปรียบเทียบสัดส่วนของแต่ละโพสต์ให้เห็นภาพง่ายที่สุดครับ",
@@ -113,9 +114,9 @@ export function ToolFormSection(props: ToolFormSectionProps) {
       buttonIcon = <Loader2 className="size-4 shrink-0 animate-spin text-white" />;
       buttonAction = undefined;
     } else if (testResult?.success) {
-      buttonLabel = "Run Tool";
+      buttonLabel = "Review & Run";
       buttonIcon = <Play className="size-4 shrink-0 fill-white text-white" />;
-      buttonAction = onRun;
+      buttonAction = () => setIsPreviewModalOpen(true);
       buttonDisabled = isRunning;
       buttonClass =
         "bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-sm hover:shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 active:scale-95 duration-200 transition-all border border-transparent";
@@ -254,14 +255,50 @@ export function ToolFormSection(props: ToolFormSectionProps) {
               )}
             </div>
           )}
+
+          {hasPrompt && isTesting && (
+            <div className="pt-6 mt-6 border-t border-slate-100">
+              <PromptTestSkeleton />
+            </div>
+          )}
+
+          {hasPrompt && testResult && testResult.success && !isTesting && (
+            <div className="pt-6 mt-6 border-t border-slate-100">
+              <button
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="w-full px-6 py-4 rounded-2xl bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 hover:border-emerald-300/80 transition-all hover:shadow-[0_8px_20px_rgba(16,185,129,0.15)] active:scale-95"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-100/60 rounded-lg">
+                      <Sparkles className="size-4 text-emerald-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-emerald-900">Review Prompt Configuration</p>
+                      <p className="text-xs text-emerald-700/70">✓ Successfully tested • Click to view details</p>
+                    </div>
+                  </div>
+                  <ChevronDown className="size-5 text-emerald-600 rotate-180" />
+                </div>
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {hasPrompt && isTesting && <PromptTestSkeleton />}
-
-      {hasPrompt && testResult && testResult.success && !isTesting && (
-        <PromptTestPreview testResult={testResult} />
-      )}
+      <PromptTestPreviewModal
+        testResult={testResult || { success: false }}
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        onRetry={() => {
+          setIsPreviewModalOpen(false);
+          onClearTestResult?.();
+        }}
+        onRun={() => {
+          setIsPreviewModalOpen(false);
+          onRun();
+        }}
+      />
     </div>
   );
 }
