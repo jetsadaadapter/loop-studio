@@ -20,6 +20,7 @@ import { getPlugins } from "@/core/services/manage-tools.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 import { PromptEditor } from "./prompt-editor";
 import { DynamicConfigBuilder } from "./dynamic-config-builder";
+import { syncPromptModelReferences } from "./model-prompt-utils";
 
 
 interface ToolScriptItemProps {
@@ -254,7 +255,24 @@ export function ToolScriptItem({
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600">Model</Label>
-            <Select value={(script.config.model as string) || ""} onValueChange={(v) => v && updateConfig({ ...script.config, model: v })} disabled={isLoadingModels}>
+            <Select
+              value={(script.config.model as string) || ""}
+              onValueChange={(v) => {
+                if (!v) return;
+
+                const previousModel =
+                  typeof script.config.model === "string" ? script.config.model : "";
+                const existingPrompt =
+                  typeof script.config.prompt === "string" ? script.config.prompt : "";
+
+                updateConfig({
+                  ...script.config,
+                  model: v,
+                  prompt: syncPromptModelReferences(existingPrompt, v, previousModel),
+                });
+              }}
+              disabled={isLoadingModels}
+            >
               <SelectTrigger className="h-8 bg-white border-slate-200 text-xs"><SelectValue placeholder="Select AI Model" /></SelectTrigger>
               <SelectContent>
                 {models.map((m) => <SelectItem key={m.id} value={m.modelSlug} className="text-xs">{m.name}</SelectItem>)}

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import type { ParamDraft } from "./types";
 import { getManageAiModels } from "@/core/services/models.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 import { PromptEditor } from "./prompt-editor";
+import { syncPromptModelReferences } from "./model-prompt-utils";
 
 const PARAM_TYPES = [
   { value: "string", label: "String" },
@@ -218,11 +218,11 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
               value={param.configModel}
               onValueChange={(v) => {
                 if (v !== null) {
-                  let newPrompt = param.configPrompt || "";
-                  const modelRegex = /("model"\s*:\s*")[^"]*(")/g;
-                  if (modelRegex.test(newPrompt)) {
-                    newPrompt = newPrompt.replace(modelRegex, `$1${v}$2`);
-                  }
+                  const newPrompt = syncPromptModelReferences(
+                    param.configPrompt || "",
+                    v,
+                    param.configModel,
+                  );
                   update({ 
                     configModel: v,
                     configPrompt: newPrompt
@@ -234,7 +234,7 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
               <SelectTrigger className="h-8 bg-white border-slate-200 text-xs">
                 <SelectValue placeholder={isLoadingModels ? "Loading models..." : "Select AI model"} />
               </SelectTrigger>
-              <SelectContent className="min-w-[260px]">
+              <SelectContent className="min-w-65">
                 {models.map((model) => (
                   <SelectItem key={model.id} value={model.modelSlug} className="text-xs">
                     {model.name} {model.isDefault ? "(Default)" : ""}
