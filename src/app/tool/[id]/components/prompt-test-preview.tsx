@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Sparkles, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
+import { normalizeStartUrls } from "../start-urls-utils";
 
 interface PromptTestPreviewProps {
   testResult: ToolTestPromptResult;
@@ -28,6 +29,7 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
   if (!testResult.success || !testResult.result) return null;
 
   const { result } = testResult;
+  const normalizedStartUrls = normalizeStartUrls(result.preview?.startUrls);
 
   return (
     <div
@@ -35,7 +37,7 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
       className="mt-6 p-6 rounded-2xl bg-white border border-slate-200/60 shadow-xs relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:border-slate-300 space-y-6"
     >
       {/* Left Stripe Accent */}
-      <div className="bg-gradient-to-b from-brand to-indigo-650 absolute left-0 top-0 bottom-0 w-1.5" />
+      <div className="bg-linear-to-b from-brand to-indigo-650 absolute left-0 top-0 bottom-0 w-1.5" />
 
       {/* Header */}
       <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 pl-2">
@@ -50,13 +52,13 @@ export function PromptTestPreview({ testResult }: PromptTestPreviewProps) {
 
       <div className="space-y-5 pl-2">
         {/* Target URLs Section */}
-        {result.preview?.startUrls && result.preview.startUrls.length > 0 && (
+        {normalizedStartUrls.length > 0 && (
           <div className="space-y-2">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
               Target URLs
             </span>
             <ul className="space-y-1.5 pl-4 border-l-2 border-slate-200/80">
-              {result.preview.startUrls.map((url: string, i: number) => (
+              {normalizedStartUrls.map((url, i) => (
                 <li
                   key={i}
                   className="text-xs font-semibold text-slate-650 truncate hover:text-brand transition-colors"

@@ -125,7 +125,7 @@ export interface ToolTestPromptResult {
 }
 
 export interface ToolTestPromptResultPreview {
-    startUrls?: string[];
+    startUrls?: Array<string | { url?: string }>;
     goal?: string;
     generatedSystemPrompt?: string;
     expectedOutputSchema?: unknown;

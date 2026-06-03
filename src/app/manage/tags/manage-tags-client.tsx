@@ -456,7 +456,7 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
                           <span className="text-sm font-semibold text-slate-800 tracking-tight block leading-tight">
                             {tag.name}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 block mt-0.5 leading-none">
+                          <span className="text-[10px] font-sans text-slate-400 block mt-0.5 leading-none">
                             #{tag.id.slice(0, 8)}
                           </span>
                         </div>

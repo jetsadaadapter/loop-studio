@@ -92,14 +92,14 @@ export function PromptPreviewDialog({
             </div>
 
             {/* Scrollable prompt body */}
-            <div className="flex-1 overflow-y-auto p-4.5 min-h-[140px] custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4.5 min-h-35 custom-scrollbar">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-2.5 text-slate-500 font-sans">
                   <div className="size-5.5 rounded-full border-2 border-slate-800 border-t-violet-500 animate-spin" />
                   <span className="text-[9px] font-semibold tracking-wider uppercase text-slate-400">Loading instructions…</span>
                 </div>
               ) : prompt.trim() ? (
-                <pre className="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-slate-200 font-mono antialiased">
+                <pre className="whitespace-pre-wrap wrap-break-word text-[11px] leading-relaxed text-slate-200 font-sans antialiased">
                   {prompt}
                 </pre>
               ) : (
@@ -111,7 +111,7 @@ export function PromptPreviewDialog({
           </div>
 
           {/* Fixed footer tip */}
-          <div className="shrink-0 rounded-xl border border-violet-100/70 bg-gradient-to-r from-violet-50/50 via-white to-indigo-50/20 px-4 py-3.5 text-[10.5px] leading-relaxed text-slate-600 font-medium shadow-3xs">
+          <div className="shrink-0 rounded-xl border border-violet-100/70 bg-linear-to-r from-violet-50/50 via-white to-indigo-50/20 px-4 py-3.5 text-[10.5px] leading-relaxed text-slate-600 font-medium shadow-3xs">
             <span className="text-violet-600 font-bold mr-1 inline-flex items-center gap-1"><Sparkles className="size-3 text-violet-500" /> How it works:</span>
             This custom instruction prompt is sent directly to the designated AI model to guide its analysis, generation, or extraction behavior dynamically during execution.
           </div>

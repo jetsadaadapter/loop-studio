@@ -27,7 +27,7 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">url</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 min-w-[360px]">
+            <th scope="col" className="px-4 py-3 min-w-70">
               <div className="flex flex-col">
                 <span className="text-slate-650">Post text</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">text</span>
@@ -39,31 +39,31 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">sentiment</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 min-w-[360px]">
+            <th scope="col" className="px-4 py-3 min-w-70">
               <div className="flex flex-col">
                 <span className="text-slate-650">AI Summary</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">summary</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 min-w-[200px]">
+            <th scope="col" className="px-4 py-3 min-w-40">
               <div className="flex flex-col">
                 <span className="text-slate-650">Keywords</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">keywords</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-32.5">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of likes</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">likes</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[160px]">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-35">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of comments</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">comments</span>
               </div>
             </th>
-            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-[130px]">
+            <th scope="col" className="px-4 py-3 text-right whitespace-nowrap min-w-32.5">
               <div className="flex flex-col items-end">
                 <span className="text-slate-650">Number of shares</span>
                 <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">shares</span>

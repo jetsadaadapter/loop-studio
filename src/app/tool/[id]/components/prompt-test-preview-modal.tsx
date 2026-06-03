@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
+import { normalizeStartUrls } from "../start-urls-utils";
 
 interface PromptTestPreviewModalProps {
   testResult: ToolTestPromptResult;
@@ -55,6 +56,7 @@ export function PromptTestPreviewModal({
   if (!isOpen || !testResult.success || !testResult.result) return null;
 
   const { result } = testResult;
+  const normalizedStartUrls = normalizeStartUrls(result.preview?.startUrls);
   const currentStep = STEPS[currentStepIndex];
 
   const handleNext = () => {
@@ -92,9 +94,9 @@ export function PromptTestPreviewModal({
       case "urls":
         return (
           <div className="space-y-3">
-            {result.preview?.startUrls && result.preview.startUrls.length > 0 ? (
+            {normalizedStartUrls.length > 0 ? (
               <ul className="space-y-2">
-                {result.preview.startUrls.map((url: string, i: number) => (
+                {normalizedStartUrls.map((url, i) => (
                   <li
                     key={i}
                     className="flex items-center gap-2 p-3 bg-slate-50/60 border border-slate-150/60 rounded-lg hover:bg-slate-50 transition-colors min-w-0"

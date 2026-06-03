@@ -296,6 +296,7 @@ export function ToolFormSection(props: ToolFormSectionProps) {
         }}
         onRun={() => {
           setIsPreviewModalOpen(false);
+          onClearTestResult?.();
           onRun();
         }}
       />

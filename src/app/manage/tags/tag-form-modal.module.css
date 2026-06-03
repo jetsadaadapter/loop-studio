@@ -1,0 +1,7 @@
+.tagIconActive {
+  background-color: var(--color-brand);
+}
+
+.tagIconFallback {
+  background-color: #e2e8f0;
+}

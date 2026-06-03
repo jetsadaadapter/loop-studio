@@ -194,7 +194,7 @@ export function DynamicConfigBuilder({
                       value={(row.value as string) || ""}
                       onChange={(e) => updateRow(idx, { value: e.target.value })}
                       placeholder='{ "key": "value" }'
-                      className="font-mono text-[10px] bg-slate-50/20 border-slate-200 focus-visible:ring-brand focus-visible:border-brand"
+                      className="font-sans text-[10px] bg-slate-50/20 border-slate-200 focus-visible:ring-brand focus-visible:border-brand"
                       rows={3}
                     />
                   ) : (

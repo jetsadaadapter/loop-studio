@@ -275,6 +275,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       return;
     }
     setErrors({});
+    setTestResult(null);
     setIsRunning(true);
     try {
       await runTool(tool.id, formData);

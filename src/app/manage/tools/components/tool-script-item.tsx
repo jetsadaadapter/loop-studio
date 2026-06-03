@@ -301,7 +301,7 @@ export function ToolScriptItem({
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-semibold text-slate-600 font-sans">Input Template (JSON)</Label>
-            <Textarea value={inputTemplateJson} onChange={(e) => handleTemplateChange(e.target.value)} placeholder='{"startUrls": "{{startUrls:urlObjects}}"}' className={`font-mono text-xs placeholder:text-xs bg-white ${templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
+            <Textarea value={inputTemplateJson} onChange={(e) => handleTemplateChange(e.target.value)} placeholder='{"startUrls": "{{startUrls:urlObjects}}"}' className={`font-sans text-xs placeholder:text-xs bg-white ${templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
             {templateError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{templateError}</p>}
           </div>
           <DynamicConfigBuilder label="Additional Parameters" value={script.config} onChange={updateConfig} excludeKeys={["actorId", "inputTemplate"]} />
@@ -314,7 +314,7 @@ export function ToolScriptItem({
             <Terminal className="size-3" /><span>Raw Plugin Configuration</span>
           </div>
           <div className="space-y-1">
-            <Textarea value={rawJson} onChange={(e) => handleJsonChange(e.target.value)} placeholder='{"key": "value"}' className={`font-mono text-xs placeholder:text-xs bg-white ${jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
+            <Textarea value={rawJson} onChange={(e) => handleJsonChange(e.target.value)} placeholder='{"key": "value"}' className={`font-sans text-xs placeholder:text-xs bg-white ${jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
             {jsonError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{jsonError}</p>}
           </div>
         </div>

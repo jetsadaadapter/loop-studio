@@ -184,7 +184,7 @@ export function JobAiAnalysis({
                       </p>
                       {entry.valueType === "object" ||
                       entry.valueType === "array" ? (
-                        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] font-mono text-slate-700 whitespace-pre-wrap wrap-break-word">
+                        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] font-sans text-slate-700 whitespace-pre-wrap wrap-break-word">
                           {entry.value}
                         </pre>
                       ) : (

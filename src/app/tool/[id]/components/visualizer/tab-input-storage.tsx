@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sliders, Settings, Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { normalizeStartUrls } from "../../start-urls-utils";
 
 interface TabInputStorageProps {
   job: ToolJob;
@@ -46,7 +47,8 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const promptVal = promptKey ? job.input?.[promptKey] : undefined;
   const hasInputPrompt = typeof promptVal === "string" && !!promptVal;
 
-  const hasStartUrls = Array.isArray(job.input?.startUrls) && job.input.startUrls.length > 0;
+  const normalizedStartUrls = normalizeStartUrls(job.input?.startUrls);
+  const hasStartUrls = normalizedStartUrls.length > 0;
 
   const inputEntries = Object.entries(job.input || {}).filter(
     ([key]) => key.toLowerCase() !== "prompt" && key.toLowerCase() !== "starturls" && key.toLowerCase() !== "_preprocessconfig"
@@ -174,7 +176,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                           <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
                           {isLongText ? (
                             <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
-                              <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
+                              <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-20">
                                 {valStr}
                               </pre>
                               <button
@@ -202,7 +204,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                            <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap wrap-break-word">
                               {valStr}
                             </span>
                           )}
@@ -255,8 +257,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   <div className="border-t border-slate-100 pt-4 mt-2">
                     <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">startUrls (Targets)</span>
                     <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
-                      {(job.input.startUrls as { url?: string }[]).map((item, idx) => {
-                        const url = item.url || "";
+                      {normalizedStartUrls.map((url, idx) => {
                         const isCopied = copiedUrlIdx === idx;
                         return (
                           <div 
@@ -327,7 +328,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                         <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
                         {isLongText ? (
                           <div className="relative group/long-config mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
-                            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto break-words pr-20">
+                            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-20">
                               {valStr}
                             </pre>
                             <button
@@ -355,7 +356,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap break-words">
+                          <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap wrap-break-word">
                             {valStr}
                           </span>
                         )}

@@ -5,6 +5,7 @@ import { Terminal, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
+import { normalizeStartUrls } from "../../start-urls-utils";
 
 interface TabLogProps {
   job: ToolJob;
@@ -78,17 +79,15 @@ export function TabLog({ job }: TabLogProps) {
       );
     }
 
-    const startUrls = job.input?.startUrls as { url?: string }[] | undefined;
-    if (Array.isArray(startUrls) && startUrls.length > 0) {
+    const startUrls = normalizeStartUrls(job.input?.startUrls);
+    if (startUrls.length > 0) {
       addLog(
         initTimeStr,
         "INFO",
         `System: Dispatched targets queue size: ${startUrls.length}.`,
       );
       startUrls.forEach((u, i) => {
-        if (u.url) {
-          addLog(initTimeStr, "INFO", `Target #${i + 1}: ${u.url}`);
-        }
+        addLog(initTimeStr, "INFO", `Target #${i + 1}: ${u}`);
       });
     }
 

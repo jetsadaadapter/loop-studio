@@ -252,16 +252,16 @@ export function TabOutput({ job }: TabOutputProps) {
   };
 
   const getHeaderColClass = (key: string) => {
-    if (isLongTextKey(key)) return "min-w-90";
-    if (isUrlKey(key)) return "min-w-72";
-    if (key.toLowerCase() === "keywords") return "min-w-56";
+    if (isLongTextKey(key)) return "min-w-72";
+    if (isUrlKey(key)) return "min-w-56";
+    if (key.toLowerCase() === "keywords") return "min-w-44";
     if (isCompactMetaKey(key)) return "min-w-36";
-    return "min-w-44";
+    return "min-w-36";
   };
 
   const getCellColClass = (key: string) => {
-    if (isLongTextKey(key) || isUrlKey(key))
-      return "whitespace-normal align-top";
+    if (isLongTextKey(key)) return "whitespace-normal align-top";
+    if (isUrlKey(key)) return "whitespace-nowrap align-top";
     return "whitespace-nowrap";
   };
 

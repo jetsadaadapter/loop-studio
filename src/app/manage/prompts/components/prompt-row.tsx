@@ -28,7 +28,7 @@ export function PromptRow({ promptItem, onEdit, onDelete }: PromptRowProps) {
             <h3 className="text-sm font-bold text-slate-800 tracking-tight leading-none">
               {promptItem.name}
             </h3>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 font-mono">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 font-sans">
               <Clock className="size-2.5" /> v{promptItem.version}
             </span>
             {promptItem.visibility === "public" ? (

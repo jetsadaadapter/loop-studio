@@ -20,6 +20,10 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     return <span className="text-slate-400">-</span>;
   }
 
+  if (typeof value === "string" && value.trim() === "") {
+    return <span className="text-slate-400">-</span>;
+  }
+
   if (columnKey === "drm_info" || columnKey === "drmInfo") {
     const rawStr = String(value);
     return (
@@ -123,13 +127,18 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     columnKey === "postUrl" ||
     columnKey === "permalink_url"
   ) {
-    const urlStr = String(value);
+    const urlStr = String(value).trim();
+    if (!urlStr) {
+      return <span className="text-slate-400">-</span>;
+    }
+
     return (
       <a
         href={urlStr}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-indigo-650 hover:text-brand hover:underline inline-flex items-center gap-1 max-w-72 truncate font-semibold transition-colors"
+        className="text-indigo-650 hover:text-brand hover:underline inline-flex items-center gap-1 max-w-56 truncate font-semibold transition-colors"
+        title={urlStr}
       >
         <span className="truncate">{urlStr}</span>
         <ExternalLink className="size-3 shrink-0" />
@@ -170,7 +179,7 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     const isLong = textStr.length > limit;
 
     return (
-      <div className="flex flex-col gap-1.5 max-w-125 text-slate-750 leading-relaxed font-normal">
+      <div className="flex flex-col gap-1.5 max-w-96 text-slate-750 leading-relaxed font-normal">
         {authorName && (
           <span className="text-[10px] font-extrabold text-indigo-750 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-md self-start font-sans leading-none tracking-tight">
             {authorName}
@@ -229,7 +238,11 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     );
   }
 
-  return <span>{String(value)}</span>;
+  return (
+    <span className="inline-block max-w-56 truncate align-top" title={String(value)}>
+      {String(value)}
+    </span>
+  );
 }
 
 export function getHeaderLabel(key: string): string {

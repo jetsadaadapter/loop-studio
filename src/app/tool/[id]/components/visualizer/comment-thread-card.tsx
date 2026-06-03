@@ -60,7 +60,7 @@ export function CommentThreadCard({ comment }: CommentThreadCardProps) {
             isReply ? "size-7" : "size-9"
           )}>
             <ImageWithFallback
-              src={item.profilePicture || ""}
+              src={item.profilePicture}
               alt={item.profileName || "User"}
               className="size-full object-cover"
             />
@@ -94,7 +94,7 @@ export function CommentThreadCard({ comment }: CommentThreadCardProps) {
         </div>
 
         {/* Comment Text */}
-        <p className="mt-3.5 text-xs text-slate-700 leading-relaxed font-normal whitespace-pre-wrap break-words select-text">
+        <p className="mt-3.5 text-xs text-slate-700 leading-relaxed font-normal whitespace-pre-wrap wrap-break-word select-text">
           {item.text}
         </p>
 

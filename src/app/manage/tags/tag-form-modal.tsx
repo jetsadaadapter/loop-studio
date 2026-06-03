@@ -6,6 +6,7 @@ import { ManageTagSchema } from "@/core/validators/tags.validator";
 import type { ManageTagFormValues } from "@/core/validators/tags.validator";
 import type { ManageTagApiItem } from "@/core/interfaces/tags.interface";
 import { Input } from "@/components/ui/input";
+import styles from "./tag-form-modal.module.css";
 import {
   Field,
   FieldLabel,
@@ -90,8 +91,9 @@ export function TagFormModal({
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
             <span
-              className="flex size-7 items-center justify-center rounded-lg"
-              style={{ backgroundColor: color || "#e2e8f0" }}
+              className={`flex size-7 items-center justify-center rounded-lg ${
+                color ? styles.tagIconActive : styles.tagIconFallback
+              }`}
             >
               <Tag className="size-3.5 text-white drop-shadow-sm" />
             </span>
@@ -102,6 +104,8 @@ export function TagFormModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close modal"
+            title="Close modal"
             className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
           >
             <X className="size-4" />
@@ -139,6 +143,7 @@ export function TagFormModal({
             </FieldLabel>
             <div className="flex items-center gap-2.5">
               <input
+                title="Choose tag color"
                 id="tag-color"
                 type="color"
                 value={color}
@@ -151,7 +156,7 @@ export function TagFormModal({
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="#6366f1"
                 maxLength={7}
-                className="font-mono"
+                className="font-sans"
               />
             </div>
             <FieldDescription>
