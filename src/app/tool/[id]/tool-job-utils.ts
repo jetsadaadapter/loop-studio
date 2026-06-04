@@ -338,6 +338,49 @@ export const normalizeIntentClassification = (analysis?: AnalysisResult | null):
     return "Neutral";
 };
 
+export const getAnalysisClassificationLabel = (analysis?: AnalysisResult | null): string => {
+    if (!analysis) return "";
+
+    const rawClassification = typeof analysis.classification === "string"
+        ? analysis.classification.trim()
+        : "";
+
+    if (rawClassification.length > 0) return rawClassification;
+
+    if (analysis.purchase_intent_signal === true) return "Interested";
+    if (analysis.purchase_intent_signal === false) return "Not Interested";
+
+    return "";
+};
+
+export const isPurchaseIntentAnalysis = (analysis?: AnalysisResult | null): boolean => {
+    if (!analysis) return false;
+
+    if (
+        analysis.purchase_intent_signal !== undefined ||
+        analysis.groups !== undefined ||
+        analysis.intentRatios !== undefined
+    ) {
+        return true;
+    }
+
+    const normalizedClassification = String(analysis.classification || "").trim().toLowerCase();
+    if (!normalizedClassification) return false;
+
+    return [
+        "interested",
+        "buy",
+        "purchase",
+        "intent",
+        "negative",
+        "opposed",
+        "neutral",
+        "สนใจ",
+        "เชิงลบ",
+        "ต่อต้าน",
+    ].some((token) => normalizedClassification.includes(token));
+};
+
 export const formatAnalysisConfidence = (confidence?: number): string | null => {
     if (typeof confidence !== "number" || Number.isNaN(confidence)) return null;
     const normalized = confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence);

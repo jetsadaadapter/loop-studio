@@ -12,9 +12,9 @@ import {
 import { cn } from "@/lib/utils";
 import {
   formatAnalysisConfidence,
+  getAnalysisClassificationLabel,
   getAnalysisDisplayBlocks,
   hasIntentAnalysisPayload,
-  normalizeIntentClassification,
   type AnalysisDisplayPreset,
   type AnalysisResult,
 } from "../../tool-job-utils";
@@ -141,7 +141,7 @@ export function IntentAnalysisCard({
   const keywords = analysis?.keywords ?? "";
   const sentiment = analysis?.sentiment ?? "";
   const isLeader = analysis?.conversionLeader === true;
-  const classification = normalizeIntentClassification(analysis);
+  const classification = getAnalysisClassificationLabel(analysis);
   const confidence = formatAnalysisConfidence(analysis?.confidence_score);
   const dynamicBlocks = getAnalysisDisplayBlocks(
     analysis,
@@ -150,16 +150,37 @@ export function IntentAnalysisCard({
     isGenericMode,
   );
   const hasIntentPayload = hasIntentAnalysisPayload(analysis);
-  const purchaseSignal = analysis?.purchase_intent_signal;
+  const purchaseSignal = analysis?.purchase_intent === 'interested' 
+  ? true 
+  : analysis?.purchase_intent === 'disinterested' ? false : analysis?.purchase_intent_signal;
 
   const totalCount = groups.reduce((acc, g) => acc + g.count, 0);
 
   const displayUrl = postUrl.length > 60 ? `...${postUrl.slice(-50)}` : postUrl;
-  const classificationTone = {
-    Interested: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    Neutral: "bg-slate-50 text-slate-600 border-slate-200",
-    Negative: "bg-rose-50 text-rose-700 border-rose-200",
-  } as const;
+  const classificationTone = (() => {
+    const normalized = classification.toLowerCase();
+    if (
+      normalized.includes("interested") ||
+      normalized.includes("buy") ||
+      normalized.includes("purchase") ||
+      normalized.includes("positive") ||
+      normalized.includes("สนใจ")
+    ) {
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    }
+
+    if (
+      normalized.includes("negative") ||
+      normalized.includes("opposed") ||
+      normalized.includes("แง่ลบ") ||
+      normalized.includes("เชิงลบ") ||
+      normalized.includes("ต่อต้าน")
+    ) {
+      return "bg-rose-50 text-rose-700 border-rose-200";
+    }
+
+    return "bg-slate-50 text-slate-600 border-slate-200";
+  })();
 
   return (
     <div
@@ -226,11 +247,11 @@ export function IntentAnalysisCard({
                 {sentiment}
               </span>
             )}
-            {hasIntentPayload && (
+            {hasIntentPayload && classification && (
               <span
                 className={cn(
                   "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border",
-                  classificationTone[classification],
+                  classificationTone,
                 )}
               >
                 <BadgeCheck className="size-2.5" />
@@ -367,19 +388,21 @@ export function IntentAnalysisCard({
 
             {hasIntentPayload && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div
-                  className={cn(
-                    "rounded-xl border px-3 py-2.5",
-                    classificationTone[classification],
-                  )}
-                >
-                  <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                    Classification
-                  </p>
-                  <p className="mt-1 text-sm font-black leading-tight">
-                    {classification}
-                  </p>
-                </div>
+                {classification && (
+                  <div
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5",
+                      classificationTone,
+                    )}
+                  >
+                    <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                      Classification
+                    </p>
+                    <p className="mt-1 text-sm font-black leading-tight">
+                      {classification}
+                    </p>
+                  </div>
+                )}
                 <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                     Confidence

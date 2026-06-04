@@ -10,6 +10,7 @@ import {
   getSchemaHintKeysFromJob,
   getMergedGeminiItems,
   groupIntentAnalysisByPost,
+  isPurchaseIntentAnalysis,
 } from "../../tool-job-utils";
 import { TabJsonView } from "./tab-json-view";
 import { OutputCell, getHeaderLabel } from "./cell-renderer";
@@ -61,21 +62,6 @@ export function TabOutput({ job }: TabOutputProps) {
       (item as Record<string, unknown>).commentId ||
       (item as Record<string, unknown>).profileName,
   );
-  const isIntentAnalysis = items.some((item) => {
-    const a = (item as Record<string, unknown>).analysis as
-      | Record<string, unknown>
-      | undefined;
-    return (
-      Array.isArray(a?.keywords) ||
-      Boolean(
-        a?.classification ||
-        a?.summary_of_intent ||
-        a?.purchase_intent_signal ||
-        a?.confidence_score ||
-        a?.groups,
-      )
-    );
-  });
   const hasAnyAnalysis = items.some((item) => {
     const a = (item as Record<string, unknown>).analysis as
       | Record<string, unknown>
@@ -87,8 +73,25 @@ export function TabOutput({ job }: TabOutputProps) {
       Object.keys(a).length > 0
     );
   });
-  const isGenericAnalysis = !isIntentAnalysis && hasAnyAnalysis;
-  const intentGroups = isIntentAnalysis ? groupIntentAnalysisByPost(items) : [];
+  const hasPurchaseIntentShape = items.some((item) =>
+    isPurchaseIntentAnalysis(item.analysis),
+  );
+  const isAnalysisOverview = hasAnyAnalysis;
+  const intentGroups = hasPurchaseIntentShape
+    ? groupIntentAnalysisByPost(items)
+    : [];
+  const showIntentSummary = hasPurchaseIntentShape && intentGroups.length > 0;
+  const hasSourceUrls = items.some((item) => {
+    const raw = item as Record<string, unknown>;
+    return Boolean(
+      raw.postUrl ||
+        raw.facebookUrl ||
+        raw.url ||
+        raw.inputUrl ||
+        raw.permalink_url ||
+        raw.sourceKeyValue,
+    );
+  });
   const schemaHintKeys = getSchemaHintKeysFromJob(job);
   const analysisDisplayPreset = getAnalysisDisplayPresetForJob(job);
 
@@ -280,13 +283,11 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800",
             )}
           >
-            {isIntentAnalysis
-              ? "Intent Analysis"
-              : isGenericAnalysis
-                ? "AI Analysis"
-                : isCommentScraper
-                  ? "Thread view"
-                  : "Overview"}
+            {isAnalysisOverview
+              ? "Analysis"
+              : isCommentScraper
+                ? "Thread view"
+                : "Overview"}
           </button>
           <button
             onClick={() => setInnerTab("all")}
@@ -337,27 +338,15 @@ export function TabOutput({ job }: TabOutputProps) {
         {viewMode === "json" ? (
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (
-          isIntentAnalysis ? (
+          isAnalysisOverview ? (
             <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
               <div className="max-w-5xl mx-auto space-y-5">
-                <IntentAnalysisSummary
-                  groups={intentGroups}
-                  totalItems={items.length}
-                />
-                {paginatedItems.map((item, idx) => (
-                  <IntentAnalysisCard
-                    key={`intent-${startIndex + idx}`}
-                    item={item as unknown as IntentAnalysisItem}
-                    index={startIndex + idx}
-                    schemaHintKeys={schemaHintKeys}
-                    analysisDisplayPreset={analysisDisplayPreset}
+                {showIntentSummary && (
+                  <IntentAnalysisSummary
+                    groups={intentGroups}
+                    totalItems={items.length}
                   />
-                ))}
-              </div>
-            </div>
-          ) : isGenericAnalysis ? (
-            <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-5xl mx-auto space-y-5">
+                )}
                 {paginatedItems.map((item, idx) => (
                   <IntentAnalysisCard
                     key={`analysis-${startIndex + idx}`}
@@ -365,7 +354,7 @@ export function TabOutput({ job }: TabOutputProps) {
                     index={startIndex + idx}
                     schemaHintKeys={schemaHintKeys}
                     analysisDisplayPreset={analysisDisplayPreset}
-                    isGenericMode={true}
+                    isGenericMode={!hasSourceUrls}
                   />
                 ))}
               </div>

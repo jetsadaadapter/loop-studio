@@ -33,6 +33,8 @@ interface ToolFormSectionProps {
   isTesting?: boolean;
   testResult?: ToolTestPromptResult | null;
   onClearTestResult?: () => void;
+  activeModel?: string;
+  onActivityAccess?: () => void;
 }
 
 export function ToolFormSection(props: ToolFormSectionProps) {
@@ -47,6 +49,8 @@ export function ToolFormSection(props: ToolFormSectionProps) {
     isTesting,
     testResult,
     onClearTestResult,
+    activeModel,
+    onActivityAccess,
   } = props;
 
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
@@ -182,6 +186,8 @@ export function ToolFormSection(props: ToolFormSectionProps) {
                 onSend={param.key === "prompt" ? buttonAction : undefined}
                 isSendLoading={param.key === "prompt" ? (isTesting || isRunning) : undefined}
                 testResult={param.key === "prompt" ? testResult : undefined}
+                activeModel={activeModel}
+                onActivityAccess={onActivityAccess}
               />
             ))}
 
@@ -222,6 +228,8 @@ export function ToolFormSection(props: ToolFormSectionProps) {
                         onSend={param.key === "prompt" ? buttonAction : undefined}
                         isSendLoading={param.key === "prompt" ? (isTesting || isRunning) : undefined}
                         testResult={param.key === "prompt" ? testResult : undefined}
+                        activeModel={activeModel}
+                        onActivityAccess={onActivityAccess}
                       />
                     ))}
                   </div>

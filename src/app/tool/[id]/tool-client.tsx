@@ -343,6 +343,16 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
   };
 
+  const activeScript = tool.scripts?.find((s) => s.config?.model);
+  const activeModel = activeScript?.config?.model || "Gemini 1.5 Flash";
+
+  const handleActivityAccess = () => {
+    const sidebar = document.getElementById("tool-history-sidebar");
+    if (sidebar) {
+      sidebar.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="pb-6">
       <div className="mb-6">
@@ -414,9 +424,11 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             isTesting={isTesting}
             testResult={testResult}
             onClearTestResult={() => setTestResult(null)}
+            activeModel={activeModel}
+            onActivityAccess={handleActivityAccess}
           />
         </div>
-        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">
+        <aside id="tool-history-sidebar" className="space-y-6 lg:sticky lg:top-24 lg:self-start lg:h-fit min-w-0">
           <ToolHistorySidebar
             jobs={jobs}
             activeTab={activeTab}

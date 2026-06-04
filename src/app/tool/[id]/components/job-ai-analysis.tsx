@@ -3,10 +3,10 @@
 import { Sparkles, Smile, Frown, Meh } from "lucide-react";
 import {
   formatAnalysisConfidence,
+  getAnalysisClassificationLabel,
   getAnalysisDisplayBlocks,
   type AnalysisDisplayPreset,
   hasIntentAnalysisPayload,
-  normalizeIntentClassification,
   type AnalysisResult,
   type ScrapedComment,
 } from "../tool-job-utils";
@@ -31,7 +31,7 @@ export function JobAiAnalysis({
 }: JobAiAnalysisProps) {
   const sentiment = String(analysis.sentiment || "").toLowerCase();
   const hasIntentPayload = hasIntentAnalysisPayload(analysis);
-  const classification = normalizeIntentClassification(analysis);
+  const classification = getAnalysisClassificationLabel(analysis);
   const confidence = formatAnalysisConfidence(analysis.confidence_score);
   const dynamicBlocks = getAnalysisDisplayBlocks(
     analysis,
@@ -79,14 +79,16 @@ export function JobAiAnalysis({
       <div className="space-y-3">
         {hasIntentPayload && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                Classification
-              </p>
-              <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                {classification}
-              </p>
-            </div>
+            {classification && (
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Classification
+                </p>
+                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                  {classification}
+                </p>
+              </div>
+            )}
             <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
               <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                 Confidence
