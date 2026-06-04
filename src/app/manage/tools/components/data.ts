@@ -22,6 +22,7 @@ export const PARAM_TYPE_BADGE: Record<string, string> = {
   string: "bg-slate-50/60 text-slate-600 border border-slate-200",
   text: "bg-slate-50/60 text-slate-600 border border-slate-200",
   multiline: "bg-slate-50/60 text-slate-600 border border-slate-200",
+  textarea: "bg-slate-50/60 text-slate-600 border border-slate-200",
   number: "bg-amber-50/60 text-amber-650 border border-amber-150",
   select: "bg-rose-50/60 text-rose-650 border border-rose-150",
   date: "bg-teal-50/60 text-teal-650 border border-teal-150",

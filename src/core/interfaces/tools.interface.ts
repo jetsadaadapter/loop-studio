@@ -6,6 +6,7 @@ export enum ParamType {
     NUMBER = "number",
     SELECT = "select",
     MULTILINE = "multiline",
+    TEXTAREA = "textarea",
     DATE = "date",
     BOOLEAN = "boolean",
     JSON = "json",
@@ -20,6 +21,7 @@ export type ToolParamType =
     | "number"
     | "select"
     | "multiline"
+    | "textarea"
     | "date"
     | "boolean"
     | "json"

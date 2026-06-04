@@ -24,6 +24,7 @@ const PARAM_TYPES = [
   { value: ParamType.URL, label: "URL" },
   { value: ParamType.SELECT, label: "Select" },
   { value: ParamType.MULTILINE, label: "Multiline" },
+  { value: ParamType.TEXTAREA, label: "Textarea" },
   { value: ParamType.DATE, label: "Date" },
   { value: ParamType.JSON, label: "JSON" },
   { value: ParamType.PROMPT, label: "Prompt (AI)" },

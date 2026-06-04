@@ -173,6 +173,7 @@ export function FormParamField({
       ) : param.key === "rawInput" ||
         param.key === "text" ||
         param.type === "multiline" ||
+        param.type === "textarea" ||
         param.type === "json" ||
         (param as ToolParam & { multiline?: boolean }).multiline ? (
         <Textarea
