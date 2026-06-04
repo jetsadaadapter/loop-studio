@@ -63,13 +63,13 @@ export function ModelFormFields({
               onChange={(e) => {
                 const val = e.target.value
                   .toLowerCase()
-                  .replace(/[^a-z0-9-]/g, "");
+                  .replace(/[^a-z0-9.-]/g, "");
                 onChange("modelSlug", val);
               }}
             />
             <FieldDescription>
-              Unique identifier for the model. Use lowercase and kebab-case
-              (e.g., gpt-4o).
+              Unique identifier for the model. Use lowercase, kebab-case, or dots
+              (e.g., gemini-3.5-flash).
             </FieldDescription>
             <FieldError
               errors={
