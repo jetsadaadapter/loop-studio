@@ -10,6 +10,14 @@ import { getJobStatus, getItemCount } from "../../tool-job-utils";
 import { JobStatusBadge } from "../job-status-badge";
 import { getPluginConfig } from "../../plugin-config";
 
+const formatPluginSuffix = (plugin: string) => {
+  if (!plugin) return "";
+  const low = plugin.toLowerCase().trim();
+  if (low === "gemini") return "Gemini AI";
+  if (low === "apify") return "Apify";
+  return plugin.charAt(0).toUpperCase() + plugin.slice(1);
+};
+
 interface HistoryJobItemProps {
   job: ToolJob;
   isSelected: boolean;
@@ -36,7 +44,8 @@ export function HistoryJobItem({
 
   const pluginLower = String(job.plugin || "").toLowerCase();
   const pluginConfig = getPluginConfig(pluginLower);
-  const friendlyTitle = job.label || (job as any).script?.label || pluginConfig.cardTitle;
+  const hasCustomLabel = !!(job.label || job.script?.label);
+  const friendlyTitle = job.label || job.script?.label || pluginConfig.cardTitle;
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
   const subJobs = (job as { jobs?: ToolJob[] }).jobs || [];
@@ -100,6 +109,11 @@ export function HistoryJobItem({
             )}
             <h4 className="text-xs font-bold text-slate-800 tracking-tight truncate leading-none">
               {friendlyTitle}
+              {hasCustomLabel && (
+                <span className="text-[9.5px] text-slate-450 font-bold ml-1 opacity-80">
+                  ({formatPluginSuffix(job.plugin)})
+                </span>
+              )}
             </h4>
             {slicedId && (
               <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
@@ -193,7 +207,8 @@ export function HistoryJobItem({
                 const subStatus = getJobStatus(sub);
                 const subPluginLower = String(sub.plugin || "").toLowerCase();
                 const subPluginConfig = getPluginConfig(subPluginLower);
-                const subFriendlyTitle = sub.label || (sub as any).script?.label || subPluginConfig.stepTitle;
+                const hasSubCustomLabel = !!(sub.label || sub.script?.label);
+                const subFriendlyTitle = sub.label || sub.script?.label || subPluginConfig.stepTitle;
 
                 const subTimeStr = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-US", {
                   day: "2-digit",
@@ -239,6 +254,11 @@ export function HistoryJobItem({
                           )}
                           <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none truncate">
                             {subFriendlyTitle}
+                            {hasSubCustomLabel && (
+                              <span className="text-[8.5px] text-slate-450 font-bold ml-1 opacity-85">
+                                ({formatPluginSuffix(sub.plugin)})
+                              </span>
+                            )}
                           </span>
                           {subStatus === "completed" && (
                             <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[8.5px] font-black select-none tracking-wider uppercase shrink-0">

@@ -52,6 +52,14 @@ const normalizeJobIdentity = (value: unknown): string => {
   return normalized;
 };
 
+const formatPluginSuffix = (plugin: string) => {
+  if (!plugin) return "";
+  const low = plugin.toLowerCase().trim();
+  if (low === "gemini") return "Gemini AI";
+  if (low === "apify") return "Apify";
+  return plugin.charAt(0).toUpperCase() + plugin.slice(1);
+};
+
 const getJobIdentity = (job: ToolJob & { _id?: string }): string =>
   normalizeJobIdentity(job.jobId || job.id || job._id || "");
 
@@ -222,6 +230,8 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               const isSelected = activeJobId === jobIdentity;
               const pluginLower = String(job.plugin || "").toLowerCase();
               const pluginConfig = getPluginConfig(pluginLower);
+              const hasCustomLabel = !!(job.label || job.script?.label);
+              const friendlyTitle = job.label || job.script?.label || pluginConfig.cardTitle;
               const slicedJobId = jobIdentity
                 ? `#${jobIdentity.split("-")[0].toUpperCase().slice(0, 8)}`
                 : "#N/A";
@@ -260,7 +270,12 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                         <Terminal className="size-3.5 shrink-0 text-slate-400" />
                       )}
                       <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none">
-                        {job.label || job.script?.label || pluginConfig.cardTitle}
+                        {friendlyTitle}
+                        {hasCustomLabel && (
+                          <span className="text-[9.5px] text-slate-450 font-bold ml-1 opacity-80">
+                            ({formatPluginSuffix(job.plugin)})
+                          </span>
+                        )}
                       </span>
                       <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
                         {slicedJobId}
@@ -304,6 +319,11 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-800 capitalize">
                       {fullJob.label || fullJob.script?.label || `${fullJob.plugin || "Unknown"} Engine Workspace`}
+                      {!!(fullJob.label || fullJob.script?.label) && (
+                        <span className="text-[10px] text-slate-450 font-bold normal-case ml-1.5 opacity-80">
+                          ({formatPluginSuffix(fullJob.plugin)})
+                        </span>
+                      )}
                     </span>
                     <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
                       {shortFullJobIdentity}

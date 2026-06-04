@@ -233,8 +233,8 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
         )}
       </div>
 
-      {/* Grid Footer - Only renders parameters or pipelines if present */}
-      {(tool.params.length > 0 || scripts.length > 0) && (
+      {/* Grid Footer - Renders parameters or pipelines, or a beautiful configuration prompt if empty */}
+      {tool.params.length > 0 || scripts.length > 0 ? (
         <div className="mt-5 pt-4 border-t border-slate-100/85 space-y-3">
           <div className="space-y-2.5">
             {/* Parameters Section */}
@@ -271,6 +271,34 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-5 pt-4 border-t border-slate-100/80 flex flex-col items-center justify-center p-3 text-center bg-slate-50/40 rounded-xl border border-dashed border-slate-200/50">
+          <p className="text-[10px] text-slate-400 font-semibold font-sans">
+            No parameters or pipeline steps defined.
+          </p>
+          <div className="flex items-center gap-1.5 mt-2.5">
+            {onManageParams && (
+              <button
+                type="button"
+                onClick={onManageParams}
+                className="h-7 px-2.5 text-[9px] font-bold bg-white text-slate-700 hover:text-brand border border-slate-200 rounded-lg shadow-2xs hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-1"
+              >
+                <Wrench className="size-2.5" />
+                Add Params
+              </button>
+            )}
+            {onManageScripts && (
+              <button
+                type="button"
+                onClick={onManageScripts}
+                className="h-7 px-2.5 text-[9px] font-bold bg-brand text-white rounded-lg shadow-2xs hover:bg-brand/95 transition-all cursor-pointer flex items-center gap-1"
+              >
+                <Workflow className="size-2.5" />
+                Configure Pipeline
+              </button>
             )}
           </div>
         </div>

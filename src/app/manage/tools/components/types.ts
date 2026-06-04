@@ -10,6 +10,7 @@ export interface ParamDraft {
   sortOrder: number;
   defaultValue: string;
   placeholder: string;
+  transform?: string | null;
   configModel: string;
   configPrompt: string;
   configPromptId?: string;
