@@ -18,23 +18,25 @@ export async function checkRouteImplemented(routePath: string): Promise<boolean>
       return true;
     }
 
-    const relativePath = normalizedPath.replace(/^\//, "");
+    const relativePath = normalizedPath.replace(/^\//, "").replace(/\/$/, "");
 
     // In production, Next.js build output (.next) is used since src/app is typically not deployed
     if (process.env.NODE_ENV === "production") {
       const distDir = ".next";
-      const nextAppPath = path.join(process.cwd(), distDir, "server/app", relativePath);
+      const distPath = path.join(process.cwd(), distDir);
 
-      // Check if compiled files or directory exist inside .next server/app
-      const existsInNext =
-        fs.existsSync(nextAppPath) ||
-        fs.existsSync(`${nextAppPath}.html`) ||
-        fs.existsSync(`${nextAppPath}.rsc`) ||
-        fs.existsSync(path.join(nextAppPath, "page.js")) ||
-        fs.existsSync(path.join(nextAppPath, "page/page.js"));
+      if (fs.existsSync(distPath)) {
+        const nextAppPath = path.join(distPath, "server/app", relativePath);
 
-      if (existsInNext) {
-        return true;
+        // Check if compiled files or directory exist inside .next server/app
+        const existsInNext =
+          fs.existsSync(nextAppPath) ||
+          fs.existsSync(`${nextAppPath}.html`) ||
+          fs.existsSync(`${nextAppPath}.rsc`) ||
+          fs.existsSync(path.join(nextAppPath, "page.js")) ||
+          fs.existsSync(path.join(nextAppPath, "page/page.js"));
+
+        return existsInNext;
       }
 
       // Fallback: If running in production but the .next directory is not located in process.cwd()
