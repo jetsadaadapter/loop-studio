@@ -1,6 +1,6 @@
 import type { Paginated } from "./common.interface";
 
-export type ToolParamType = "string" | "number" | "boolean" | "url" | "select" | "array";
+export type ToolParamType = "string" | "number" | "boolean" | "url" | "select" | "array" | "prompt";
 
 export interface ToolParam {
     id: string;
@@ -14,6 +14,7 @@ export interface ToolParam {
     options: string[] | null;
     required: boolean;
     sortOrder: number;
+    config?: Record<string, unknown> | null;
 }
 
 export interface ToolScript {

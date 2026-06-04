@@ -45,6 +45,21 @@ const normalizeJobIdentity = (value: unknown): string => {
   return normalized;
 };
 
+const formatModelName = (nameOrSlug: string): string => {
+  if (!nameOrSlug) return "";
+  if (/[A-Z]/.test(nameOrSlug) && !nameOrSlug.includes("-")) {
+    return nameOrSlug;
+  }
+  return nameOrSlug
+    .split("-")
+    .map((word) => {
+      if (word === "3.5") return "3.5";
+      if (word === "1.5") return "1.5";
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+};
+
 const isDebugMode = process.env.NODE_ENV !== "production";
 
 const logDroppedInvalidJobId = (
@@ -343,8 +358,26 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
   };
 
+  interface PromptParamConfig {
+    promptId?: string;
+    prompt?: {
+      name?: string;
+      prompt?: string;
+      model?: {
+        name?: string;
+        modelSlug?: string;
+      };
+    };
+    model?: string;
+  }
+
+  const promptParam = tool.params?.find((p) => p.type === "prompt");
+  const promptConfig = (promptParam?.config ?? {}) as PromptParamConfig;
+  const promptModelName = promptConfig?.prompt?.model?.name || promptConfig?.prompt?.model?.modelSlug || promptConfig?.model;
+
   const activeScript = tool.scripts?.find((s) => s.config?.model);
-  const activeModel = activeScript?.config?.model || "Gemini 1.5 Flash";
+  const rawActiveModel = promptModelName || (activeScript?.config?.model as string) || "";
+  const activeModel = formatModelName(rawActiveModel) || "Gemini 1.5 Flash";
 
   const handleActivityAccess = () => {
     const sidebar = document.getElementById("tool-history-sidebar");
