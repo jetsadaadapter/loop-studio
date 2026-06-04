@@ -15,10 +15,84 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+function ArrayValueInput({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (val: string[]) => void;
+}) {
+  const [inputVal, setInputVal] = useState("");
+
+  const handleAdd = () => {
+    const trimmed = inputVal.trim();
+    if (trimmed && !value.includes(trimmed)) {
+      onChange([...value, trimmed]);
+      setInputVal("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  const handleRemove = (itemToRemove: string) => {
+    onChange(value.filter((item) => item !== itemToRemove));
+  };
+
+  return (
+    <div className="space-y-1.5 mt-1">
+      <div className="flex flex-wrap gap-1 min-h-[30px] p-1.5 bg-slate-50/50 border border-slate-200/50 rounded-sm">
+        {value.length === 0 ? (
+          <span className="text-[10px] text-slate-400 self-center pl-1 italic font-sans">
+            No items. Type and press Add/Enter.
+          </span>
+        ) : (
+          value.map((item, idx) => (
+            <span
+              key={`${item}-${idx}`}
+              className="inline-flex items-center gap-1 bg-brand/5 text-brand border border-brand/10 rounded-md px-1.5 py-0.5 text-[10px] font-medium font-sans"
+            >
+              <span>{item}</span>
+              <button
+                type="button"
+                onClick={() => handleRemove(item)}
+                className="hover:text-brand-strong transition-colors size-3 flex items-center justify-center rounded-full hover:bg-brand/10 font-bold"
+              >
+                &times;
+              </button>
+            </span>
+          ))
+        )}
+      </div>
+      <div className="flex gap-1.5">
+        <Input
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type item..."
+          className="h-7 text-xs font-sans placeholder:text-xs placeholder:font-sans bg-slate-50/20 border-slate-200 flex-1"
+        />
+        <Button
+          type="button"
+          onClick={handleAdd}
+          variant="outline"
+          className="h-7 px-2 text-[10px] font-bold text-slate-650 border-slate-200 hover:bg-slate-50"
+        >
+          Add
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 interface ConfigParamRow {
   id: string;
   key: string;
-  type: "string" | "number" | "boolean" | "json";
+  type: "string" | "number" | "boolean" | "json" | "array";
   value: unknown;
 }
 
@@ -39,9 +113,10 @@ export function DynamicConfigBuilder({
     return Object.entries(value || {})
       .filter(([key]) => !excludeKeys.includes(key))
       .map(([key, val]) => {
-        let type: "string" | "number" | "boolean" | "json" = "string";
+        let type: "string" | "number" | "boolean" | "json" | "array" = "string";
         if (typeof val === "boolean") type = "boolean";
         else if (typeof val === "number") type = "number";
+        else if (Array.isArray(val)) type = "array";
         else if (typeof val === "object" && val !== null) type = "json";
         return {
           id: crypto.randomUUID(),
@@ -77,6 +152,8 @@ export function DynamicConfigBuilder({
         } catch {
           obj[trimmedKey] = r.value;
         }
+      } else if (r.type === "array") {
+        obj[trimmedKey] = Array.isArray(r.value) ? r.value : [];
       } else {
         obj[trimmedKey] = String(r.value);
       }
@@ -102,6 +179,7 @@ export function DynamicConfigBuilder({
       if (partial.type === "boolean") target.value = false;
       else if (partial.type === "number") target.value = 0;
       else if (partial.type === "json") target.value = "{}";
+      else if (partial.type === "array") target.value = [];
       else target.value = "";
     }
 
@@ -162,6 +240,7 @@ export function DynamicConfigBuilder({
                       <SelectItem value="string" className="text-xs">String</SelectItem>
                       <SelectItem value="number" className="text-xs">Number</SelectItem>
                       <SelectItem value="boolean" className="text-xs">Boolean</SelectItem>
+                      <SelectItem value="array" className="text-xs">Array</SelectItem>
                       <SelectItem value="json" className="text-xs">JSON</SelectItem>
                     </SelectContent>
                   </Select>
@@ -196,6 +275,11 @@ export function DynamicConfigBuilder({
                       placeholder='{ "key": "value" }'
                       className="font-sans text-[10px] bg-slate-50/20 border-slate-200 focus-visible:ring-brand focus-visible:border-brand"
                       rows={3}
+                    />
+                  ) : row.type === "array" ? (
+                    <ArrayValueInput
+                      value={(row.value as string[]) || []}
+                      onChange={(val) => updateRow(idx, { value: val })}
                     />
                   ) : (
                     <Input
