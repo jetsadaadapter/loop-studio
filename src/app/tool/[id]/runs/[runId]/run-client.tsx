@@ -101,9 +101,9 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
     : run.jobs.every((j) => getJobStatus(j) === "completed")
       ? "completed"
       : run.jobs.some(
-            (j) =>
-              getJobStatus(j) === "active" || getJobStatus(j) === "running",
-          )
+        (j) =>
+          getJobStatus(j) === "active" || getJobStatus(j) === "running",
+      )
         ? "active"
         : "queued";
 
@@ -260,7 +260,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                         <Terminal className="size-3.5 shrink-0 text-slate-400" />
                       )}
                       <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none">
-                        {pluginConfig.cardTitle}
+                        {job.label || job.script?.label || pluginConfig.cardTitle}
                       </span>
                       <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
                         {slicedJobId}
@@ -303,7 +303,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-800 capitalize">
-                      {fullJob.plugin || "Unknown"} Engine Workspace
+                      {fullJob.label || fullJob.script?.label || `${fullJob.plugin || "Unknown"} Engine Workspace`}
                     </span>
                     <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
                       {shortFullJobIdentity}

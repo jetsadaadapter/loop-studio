@@ -36,7 +36,7 @@ export function HistoryJobItem({
 
   const pluginLower = String(job.plugin || "").toLowerCase();
   const pluginConfig = getPluginConfig(pluginLower);
-  const friendlyTitle = pluginConfig.cardTitle;
+  const friendlyTitle = job.label || (job as any).script?.label || pluginConfig.cardTitle;
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
   const subJobs = (job as { jobs?: ToolJob[] }).jobs || [];
@@ -138,25 +138,25 @@ export function HistoryJobItem({
         <div className="flex items-center justify-between gap-3 mt-3 w-full">
           {/* Pipeline Interactive Trigger Button */}
           {subJobs.length > 0 ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsPipelineExpanded(!isPipelineExpanded);
-                }}
-                className={cn(
-                  "group/btn flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 hover:border-slate-350 border border-slate-200/40 rounded-full px-2.5 py-0.5 shadow-3xs select-none cursor-pointer transition-all active:scale-95 duration-200",
-                  isPipelineExpanded && "bg-slate-100 border-slate-350"
-                )}
-              >
-                <span className="text-[7.5px] font-black text-slate-455 uppercase tracking-widest leading-none">Pipeline Steps</span>
-                {isPipelineExpanded ? (
-                  <ChevronUp className="size-2.5 text-slate-400 group-hover/btn:text-slate-500 transition-colors" />
-                ) : (
-                  <ChevronDown className="size-2.5 text-slate-400 group-hover/btn:text-slate-500 transition-colors" />
-                )}
-              </button>
-            ) : <div />}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPipelineExpanded(!isPipelineExpanded);
+              }}
+              className={cn(
+                "group/btn flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 hover:border-slate-350 border border-slate-200/40 rounded-full px-2.5 py-0.5 shadow-3xs select-none cursor-pointer transition-all active:scale-95 duration-200",
+                isPipelineExpanded && "bg-slate-100 border-slate-350"
+              )}
+            >
+              <span className="text-[7.5px] font-black text-slate-455 uppercase tracking-widest leading-none">Pipeline Steps</span>
+              {isPipelineExpanded ? (
+                <ChevronUp className="size-2.5 text-slate-400 group-hover/btn:text-slate-500 transition-colors" />
+              ) : (
+                <ChevronDown className="size-2.5 text-slate-400 group-hover/btn:text-slate-500 transition-colors" />
+              )}
+            </button>
+          ) : <div />}
 
           {/* Time Elapsed */}
           <div className="flex items-center gap-1.5 shrink-0">
@@ -193,7 +193,7 @@ export function HistoryJobItem({
                 const subStatus = getJobStatus(sub);
                 const subPluginLower = String(sub.plugin || "").toLowerCase();
                 const subPluginConfig = getPluginConfig(subPluginLower);
-                const subFriendlyTitle = subPluginConfig.stepTitle;
+                const subFriendlyTitle = sub.label || (sub as any).script?.label || subPluginConfig.stepTitle;
 
                 const subTimeStr = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-US", {
                   day: "2-digit",
@@ -226,40 +226,40 @@ export function HistoryJobItem({
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        {subPluginConfig.iconSrc ? (
-                          <Image
-                            src={subPluginConfig.iconSrc}
-                            alt={subPluginConfig.stepTitle}
-                            width={12}
-                            height={12}
-                            className={cn("size-3 shrink-0 object-contain select-none", subPluginConfig.iconAnimate && "animate-pulse")}
-                          />
-                        ) : (
-                          <Terminal className="size-3 shrink-0 text-slate-400/80" />
-                        )}
-                        <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none truncate">
-                          {subFriendlyTitle}
-                        </span>
-                        {subStatus === "completed" && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[8.5px] font-black select-none tracking-wider uppercase shrink-0">
-                            completed
+                          {subPluginConfig.iconSrc ? (
+                            <Image
+                              src={subPluginConfig.iconSrc}
+                              alt={subPluginConfig.stepTitle}
+                              width={12}
+                              height={12}
+                              className={cn("size-3 shrink-0 object-contain select-none", subPluginConfig.iconAnimate && "animate-pulse")}
+                            />
+                          ) : (
+                            <Terminal className="size-3 shrink-0 text-slate-400/80" />
+                          )}
+                          <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none truncate">
+                            {subFriendlyTitle}
                           </span>
-                        )}
-                        {(subStatus === "active" || subStatus === "running") && (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
-                            running
-                          </span>
-                        )}
-                        {subStatus === "queued" && (
-                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
-                            queued
-                          </span>
-                        )}
-                        {subStatus === "failed" && (
-                          <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[8.5px] font-black select-none tracking-wider uppercase shrink-0">
-                            failed
-                          </span>
-                        )}
+                          {subStatus === "completed" && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[8.5px] font-black select-none tracking-wider uppercase shrink-0">
+                              completed
+                            </span>
+                          )}
+                          {(subStatus === "active" || subStatus === "running") && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
+                              running
+                            </span>
+                          )}
+                          {subStatus === "queued" && (
+                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
+                              queued
+                            </span>
+                          )}
+                          {subStatus === "failed" && (
+                            <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 text-[8.5px] font-black select-none tracking-wider uppercase shrink-0">
+                              failed
+                            </span>
+                          )}
                         </div>
                         <span className="text-[9px] text-slate-400 font-semibold leading-none shrink-0">
                           {subTimeStr}

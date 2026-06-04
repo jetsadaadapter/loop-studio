@@ -89,6 +89,7 @@ export interface ToolJob {
     plugin: string;
     toolId: string;
     userId: string;
+    label?: string | null;
     config?: Record<string, unknown>;
     input: {
         userInput?: string;
@@ -115,6 +116,7 @@ export interface ToolJob {
     createdAt: string;
     updatedAt: string;
     __v?: number;
+    script?: ToolScript | null;
 }
 
 export interface ToolRun {
