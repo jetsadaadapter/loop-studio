@@ -10,14 +10,49 @@ import { getManageToolParams, upsertManageToolParams, deleteManageToolParam } fr
 import { ToolParamBuilder } from "./tool-param-builder";
 import type { ParamDraft } from "./types";
 
-// ── Conversion Helpers ───────────────────────────────────────────────────────
+interface NestedConfig {
+  promptId?: string;
+  prompt?: {
+    name?: string;
+    prompt?: string;
+    model?: {
+      modelSlug?: string;
+    };
+  };
+  model?: string;
+}
 
 function paramToDraft(param: ToolParam): ParamDraft {
-  const config = (param.config ?? {}) as { model?: string; prompt?: string };
+  const config = (param.config ?? {}) as NestedConfig;
+  const configPromptId = config.promptId ?? "";
+  const configPromptName = config?.prompt?.name || "";
+
+  // Try extracting from the new nested object structure first
+  let configModel = config?.prompt?.model?.modelSlug || "";
+  let configPrompt = config?.prompt?.prompt || "";
+
+  // Fallback to the old flat structure if the new one isn't populated
+  if (!configModel && typeof config?.model === "string") {
+    configModel = config.model;
+  }
+  if (!configPrompt && typeof config?.prompt === "string") {
+    configPrompt = config.prompt;
+  }
+
   return {
-    _localId: param.id, id: param.id, key: param.key, label: param.label, type: param.type,
-    required: param.required, sortOrder: param.sortOrder, defaultValue: param.defaultValue ?? "",
-    placeholder: param.placeholder ?? "", configModel: config.model ?? "", configPrompt: config.prompt ?? "",
+    _localId: param.id,
+    id: param.id,
+    key: param.key,
+    label: param.label,
+    type: param.type,
+    required: param.required,
+    sortOrder: param.sortOrder,
+    defaultValue: param.defaultValue ?? "",
+    placeholder: param.placeholder ?? "",
+    configPromptId,
+    configPromptName,
+    configModel,
+    configPrompt,
   };
 }
 
@@ -34,8 +69,7 @@ function draftToPayload(draft: ParamDraft, idx: number): ToolParamPayload {
   if (draft.defaultValue.trim()) payload.defaultValue = draft.defaultValue.trim();
   if (draft.type === "prompt") {
     payload.config = {
-      ...(draft.configModel.trim() && { model: draft.configModel.trim() }),
-      ...(draft.configPrompt.trim() && { prompt: draft.configPrompt.trim() }),
+      ...(draft.configPromptId?.trim() && { promptId: draft.configPromptId.trim() }),
     };
   }
   return payload;

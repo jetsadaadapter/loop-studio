@@ -12,6 +12,8 @@ export interface ParamDraft {
   placeholder: string;
   configModel: string;
   configPrompt: string;
+  configPromptId?: string;
+  configPromptName?: string;
 }
 
 export interface ScriptDraft {

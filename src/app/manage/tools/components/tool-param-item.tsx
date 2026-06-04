@@ -12,10 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ParamDraft } from "./types";
-import { getManageAiModels } from "@/core/services/models.service";
-import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
+import { getManagePrompts } from "@/core/services/prompts.service";
+import type { PromptItem } from "@/core/interfaces/prompt";
 import { PromptEditor } from "./prompt-editor";
-import { syncPromptModelReferences } from "./model-prompt-utils";
 
 const PARAM_TYPES = [
   { value: "string", label: "String" },
@@ -36,8 +35,8 @@ interface ToolParamItemProps {
 
 export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolParamItemProps) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [models, setModels] = useState<ManageAiApiListItem[]>([]);
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [promptsList, setPromptsList] = useState<PromptItem[]>([]);
+  const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const hasFetchedRef = useRef(false);
 
   function update(partial: Partial<ParamDraft>) {
@@ -47,24 +46,28 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
   useEffect(() => {
     if (param.type === "prompt" && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      setIsLoadingModels(true);
-      getManageAiModels()
-        .then((list) => {
-          const activeModels = list.filter((m) => m.isActive);
-          setModels(activeModels);
-          if (!param.configModel && activeModels.length > 0) {
-            const defaultModel = activeModels.find((m) => m.isDefault) || activeModels[0];
-            if (defaultModel) {
-              update({ configModel: defaultModel.modelSlug });
+      setIsLoadingPrompts(true);
+      getManagePrompts()
+        .then((res) => {
+          const data = res.data || [];
+          setPromptsList(data);
+          if (!param.configPromptId && data.length > 0) {
+            const defaultPrompt = data[0];
+            if (defaultPrompt) {
+              update({
+                configPromptId: defaultPrompt.id,
+                configModel: defaultPrompt.model?.modelSlug || "",
+                configPrompt: defaultPrompt.prompt || "",
+              });
             }
           }
         })
         .catch((err) => {
-          console.error("Failed to load models:", err);
+          console.error("Failed to load prompts:", err);
           hasFetchedRef.current = false;
         })
         .finally(() => {
-          setIsLoadingModels(false);
+          setIsLoadingPrompts(false);
         });
     }
   }, [param.type]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -210,60 +213,75 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
       {param.type === "prompt" && (
         <div className="space-y-3 border-l-2 border-brand pl-3.5 pb-3.5">
           <p className="text-[9px] font-bold uppercase tracking-wider text-brand">
-            AI Config
+            AI Prompt Persona
           </p>
           <div className="space-y-1">
-            <Label className="text-xs font-semibold text-slate-600">Model</Label>
+            <Label className={`text-xs font-semibold ${error?.configPrompt ? "text-brand" : "text-slate-600"}`}>
+              Prompt Persona <span className="text-brand">*</span>
+            </Label>
             <Select
-              value={param.configModel}
+              value={param.configPromptId || ""}
               onValueChange={(v) => {
                 if (v !== null) {
-                  const newPrompt = syncPromptModelReferences(
-                    param.configPrompt || "",
-                    v,
-                    param.configModel,
-                  );
-                  update({ 
-                    configModel: v,
-                    configPrompt: newPrompt
+                  const selected = promptsList.find((p) => p.id === v);
+                  update({
+                    configPromptId: v,
+                    configPromptName: selected?.name || "",
+                    configModel: selected?.model?.modelSlug || "",
+                    configPrompt: selected?.prompt || "",
                   });
                 }
               }}
-              disabled={isLoadingModels}
+              disabled={isLoadingPrompts}
             >
-              <SelectTrigger className="h-8 bg-white border-slate-200 text-xs">
-                <SelectValue placeholder={isLoadingModels ? "Loading models..." : "Select AI model"} />
+              <SelectTrigger className="w-full h-8 bg-white border-slate-200 text-xs">
+                <SelectValue placeholder={isLoadingPrompts ? "Loading prompts..." : "Select Prompt Persona"}>
+                  {promptsList.find((p) => p.id === param.configPromptId)?.name ||
+                    param.configPromptName ||
+                    param.configPromptId ||
+                    (isLoadingPrompts ? "Loading prompts..." : "Select Prompt Persona")}
+                </SelectValue>
               </SelectTrigger>
-              <SelectContent className="min-w-65">
-                {models.map((model) => (
-                  <SelectItem key={model.id} value={model.modelSlug} className="text-xs">
-                    {model.name} {model.isDefault ? "(Default)" : ""}
+              <SelectContent>
+                {promptsList.map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                    {p.name} (v{p.version})
                   </SelectItem>
                 ))}
-                {models.length === 0 && !isLoadingModels && (
-                  <SelectItem value="gemini-2.5-flash" disabled className="text-xs">
-                    No models found (Fallback: Gemini 2.5 Flash)
+                {promptsList.length === 0 && !isLoadingPrompts && (
+                  <SelectItem value="none" disabled className="text-xs">
+                    No prompt personas found
                   </SelectItem>
                 )}
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className={`text-xs font-semibold ${error?.configPrompt ? "text-brand" : "text-slate-600"}`}>
-              System Prompt <span className="text-brand">*</span>
-            </Label>
-            <PromptEditor
-              value={param.configPrompt || ""}
-              onChange={(v) => update({ configPrompt: v })}
-              placeholder="Enter system prompt instructions…"
-              disabled={isLoadingModels}
-              hasError={!!error?.configPrompt}
-            />
             {error?.configPrompt && (
               <p className="text-[9px] text-brand font-semibold leading-none mt-1">
                 {error.configPrompt}
               </p>
             )}
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-slate-600">Model</Label>
+            <Input
+              value={
+                promptsList.find((p) => p.id === param.configPromptId)?.model?.name ||
+                (param.configPromptId ? "Loading model..." : "No model linked")
+              }
+              disabled
+              className="h-8 bg-slate-50 border-slate-200 text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs font-semibold text-slate-600">
+              System Prompt <span className="text-slate-400 font-normal">(Read-only template)</span>
+            </Label>
+            <PromptEditor
+              value={param.configPrompt || ""}
+              onChange={() => {}}
+              placeholder="Select a Prompt Persona to load instructions…"
+              disabled={true}
+            />
           </div>
         </div>
       )}

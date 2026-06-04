@@ -43,21 +43,22 @@ export function PromptEditor({
   placeholder = "Enter system prompt instructions…",
   hasError = false,
 }: PromptEditorProps) {
+  const safeValue = typeof value === "string" ? value : "";
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [editorMode, setEditorMode] = useState<"write" | "preview">("write");
   // Undo / Redo History stack
-  const [history, setHistory] = useState<string[]>([value]);
+  const [history, setHistory] = useState<string[]>([safeValue]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const isHistoryActionRef = useRef(false);
   const historyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync history during render when props change externally without keyboard inputs (e.g. initial render)
-  const [prevValue, setPrevValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(safeValue);
 
-  if (value !== prevValue) {
-    setPrevValue(value);
+  if (safeValue !== prevValue) {
+    setPrevValue(safeValue);
     if (history.length === 1 && history[0] === "") {
-      setHistory([value]);
+      setHistory([safeValue]);
       setHistoryIndex(0);
     }
   }
@@ -69,7 +70,7 @@ export function PromptEditor({
       return;
     }
 
-    if (value === history[historyIndex]) return;
+    if (safeValue === history[historyIndex]) return;
 
     if (historyTimeoutRef.current) {
       clearTimeout(historyTimeoutRef.current);
@@ -78,7 +79,7 @@ export function PromptEditor({
     historyTimeoutRef.current = setTimeout(() => {
       setHistory((prev) => {
         const nextHistory = prev.slice(0, historyIndex + 1);
-        return [...nextHistory, value];
+        return [...nextHistory, safeValue];
       });
       setHistoryIndex((prevIdx) => prevIdx + 1);
     }, 400);
@@ -86,7 +87,7 @@ export function PromptEditor({
     return () => {
       if (historyTimeoutRef.current) clearTimeout(historyTimeoutRef.current);
     };
-  }, [value, historyIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [safeValue, historyIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -154,7 +155,7 @@ export function PromptEditor({
 
   // Real-time JSON validation & block extraction computed on the fly during render
   const jsonStatus = (() => {
-    if (!value.trim()) {
+    if (!safeValue.trim()) {
       return { isValid: true, message: "Prompt is empty.", blocksCount: 0 };
     }
 
@@ -164,7 +165,7 @@ export function PromptEditor({
     // 1. Try extracting fenced ```json ... ``` blocks
     const codeBlockRegex = /```json\s*([\s\S]*?)\s*```/g;
     let match;
-    while ((match = codeBlockRegex.exec(value)) !== null) {
+    while ((match = codeBlockRegex.exec(safeValue)) !== null) {
       if (match[1]?.trim()) {
         jsonBlocks.push(match[1].trim());
       }
@@ -174,17 +175,17 @@ export function PromptEditor({
     if (jsonBlocks.length === 0) {
       let openBraces = 0;
       let startIndex = -1;
-      for (let i = 0; i < value.length; i++) {
-        if (value[i] === "{") {
+      for (let i = 0; i < safeValue.length; i++) {
+        if (safeValue[i] === "{") {
           if (openBraces === 0) {
             startIndex = i;
           }
           openBraces++;
-        } else if (value[i] === "}") {
+        } else if (safeValue[i] === "}") {
           if (openBraces > 0) {
             openBraces--;
             if (openBraces === 0 && startIndex !== -1) {
-              const possibleJson = value.substring(startIndex, i + 1);
+              const possibleJson = safeValue.substring(startIndex, i + 1);
               // Avoid matching trivial single characters or non-JSON fragments
               if (possibleJson.length > 5 && possibleJson.includes(":")) {
                 jsonBlocks.push(possibleJson.trim());
@@ -229,29 +230,29 @@ export function PromptEditor({
   const formatJSON = () => {
     // If the entire text is a JSON object, format it directly
     try {
-      const parsed = JSON.parse(value.trim());
+      const parsed = JSON.parse(safeValue.trim());
       onChange(JSON.stringify(parsed, null, 2));
       return;
     } catch {}
 
     // Smart nested brace-balancing search
     let found = false;
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] === "{") {
+    for (let i = 0; i < safeValue.length; i++) {
+      if (safeValue[i] === "{") {
         let bracesCount = 1;
-        for (let j = i + 1; j < value.length; j++) {
-          if (value[j] === "{") bracesCount++;
-          if (value[j] === "}") {
+        for (let j = i + 1; j < safeValue.length; j++) {
+          if (safeValue[j] === "{") bracesCount++;
+          if (safeValue[j] === "}") {
             bracesCount--;
             if (bracesCount === 0) {
-              const candidate = value.substring(i, j + 1);
+              const candidate = safeValue.substring(i, j + 1);
               // Avoid auto-formatting trivial text or template tags e.g. {currentItem}
               if (candidate.length > 5 && candidate.includes(":")) {
                 try {
                   const parsed = JSON.parse(candidate);
                   const formatted = JSON.stringify(parsed, null, 2);
                   onChange(
-                    value.substring(0, i) + formatted + value.substring(j + 1),
+                    safeValue.substring(0, i) + formatted + safeValue.substring(j + 1),
                   );
                   found = true;
                   break;
@@ -457,12 +458,12 @@ export function PromptEditor({
         {toolbar}
         {editorMode === "preview" ? (
           <div className="p-3.5 bg-slate-50 text-xs min-h-[220px] max-h-[450px] overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
-            <PromptPreview text={value} />
+            <PromptPreview text={safeValue} />
           </div>
         ) : (
           <Textarea
             ref={textareaRef}
-            value={value}
+            value={safeValue}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={10}
@@ -513,12 +514,12 @@ export function PromptEditor({
             {toolbar}
             {editorMode === "preview" ? (
               <div className="p-5 bg-slate-50 text-xs flex-1 overflow-y-auto rounded-b-xl border-t border-slate-100/60 select-text">
-                <PromptPreview text={value} />
+                <PromptPreview text={safeValue} />
               </div>
             ) : (
               <Textarea
                 ref={fullscreenTextareaRef}
-                value={value}
+                value={safeValue}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}

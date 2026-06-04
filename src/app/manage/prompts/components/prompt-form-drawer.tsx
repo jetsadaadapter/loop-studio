@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PromptEditor } from "@/app/manage/tools/components/prompt-editor";
+import { syncPromptModelReferences } from "@/app/manage/tools/components/model-prompt-utils";
 import { getManageAiModels } from "@/core/services/models.service";
 import type { ManageAiApiListItem } from "@/core/interfaces/models.interface";
 import type { PromptItem, CreatePromptPayload } from "@/core/interfaces/prompt";
@@ -239,7 +240,26 @@ export function PromptFormDrawer({
                 <Label className={`text-xs font-semibold ${errors.modelId ? "text-brand" : "text-slate-600"}`}>
                   Target Model <span className="text-brand">*</span>
                 </Label>
-                <Select value={modelId} onValueChange={(val) => setModelId(val || "")} disabled={isLoadingModels}>
+                <Select
+                  value={modelId}
+                  onValueChange={(val) => {
+                    const nextId = val || "";
+                    const prevModel = models.find((m) => m.id === modelId) || promptItem?.model;
+                    const nextModel = models.find((m) => m.id === nextId);
+
+                    const prevSlug = prevModel?.modelSlug || "";
+                    const nextSlug = nextModel?.modelSlug || "";
+
+                    setModelId(nextId);
+
+                    if (nextSlug) {
+                      setPromptText((prev) =>
+                        syncPromptModelReferences(prev, nextSlug, prevSlug)
+                      );
+                    }
+                  }}
+                  disabled={isLoadingModels}
+                >
                   <SelectTrigger className={`h-8.5 bg-white text-xs ${errors.modelId ? "border-brand" : "border-slate-200"}`}>
                     <SelectValue placeholder={isLoadingModels ? "Loading models..." : "Select AI model"}>
                       {models.find((m) => m.id === modelId)?.name || promptItem?.model?.name || modelId || (isLoadingModels ? "Loading models..." : "Select AI model")}
