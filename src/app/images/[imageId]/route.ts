@@ -1,9 +1,34 @@
+import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
-function buildProxyTargetUrl(request: NextRequest, imageId: string): URL {
-    const target = new URL(`/api/library/images/${encodeURIComponent(imageId)}`, request.url);
-    target.search = request.nextUrl.search;
-    return target;
+const TOKEN_COOKIE_KEY = "zt_token";
+
+const UPSTREAM_BASE_URL =
+    process.env.SERVER_API_BASE_URL || process.env.NEXT_PUBLIC_STORE_API_BASE_URL;
+
+function getPrimaryAndFallbackUrls(imageId: string): {
+    primaryUrl: string;
+    fallbackUrl?: string;
+} {
+    if (!UPSTREAM_BASE_URL) {
+        throw new Error("Missing SERVER_API_BASE_URL or NEXT_PUBLIC_STORE_API_BASE_URL");
+    }
+
+    const base = UPSTREAM_BASE_URL.endsWith("/")
+        ? UPSTREAM_BASE_URL.slice(0, -1)
+        : UPSTREAM_BASE_URL;
+
+    const primaryUrl = `${base}/images/${encodeURIComponent(imageId)}`;
+    const baseWithoutApi = base.replace(/\/api\/?$/i, "");
+
+    if (baseWithoutApi !== base) {
+        return {
+            primaryUrl,
+            fallbackUrl: `${baseWithoutApi}/images/${encodeURIComponent(imageId)}`,
+        };
+    }
+
+    return { primaryUrl };
 }
 
 function copyImageHeaders(source: Headers): Headers {
@@ -33,17 +58,37 @@ async function proxyImage(
     context: { params: Promise<{ imageId: string }> },
 ): Promise<NextResponse> {
     const { imageId } = await context.params;
-    const target = buildProxyTargetUrl(request, imageId);
 
-    const upstream = await fetch(target, {
+    // Get the auth token from cookies
+    const token = (await cookies()).get(TOKEN_COOKIE_KEY)?.value;
+    if (!token) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { primaryUrl, fallbackUrl } = getPrimaryAndFallbackUrls(imageId);
+
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${token}`);
+    const accept = request.headers.get("accept");
+    if (accept) {
+        headers.set("accept", accept);
+    }
+
+    let upstream = await fetch(primaryUrl, {
         method: request.method,
-        headers: {
-            accept: request.headers.get("accept") ?? "*/*",
-            cookie: request.headers.get("cookie") ?? "",
-        },
+        headers,
         cache: "no-store",
         redirect: "follow",
     });
+
+    if (upstream.status === 404 && fallbackUrl) {
+        upstream = await fetch(fallbackUrl, {
+            method: request.method,
+            headers,
+            cache: "no-store",
+            redirect: "follow",
+        });
+    }
 
     return new NextResponse(upstream.body, {
         status: upstream.status,
