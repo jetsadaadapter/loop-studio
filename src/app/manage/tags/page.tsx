@@ -3,6 +3,8 @@ import type { ManageTagApiItem } from "@/core/interfaces/tags.interface";
 import { getManageTags } from "@/core/services/tags.service";
 import { ManageTagsClient } from "./manage-tags-client";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Manage Tags — ADT Library",
   description: "Manage tags for apps and content inside ADT Library",

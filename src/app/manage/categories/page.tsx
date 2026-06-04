@@ -3,6 +3,8 @@ import type { CategoryInfo } from "@/core/interfaces/categories.interface";
 import { getManageCategories } from "@/core/services/categories.service";
 import { ManageCategoriesClient } from "./manage-categories-client";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Manage Categories — ADT Library",
   description: "Manage categories for apps and content inside ADT Library",
