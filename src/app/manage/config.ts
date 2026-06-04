@@ -98,6 +98,15 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
         },
         crumb: { th: "Tags", en: "Tags" },
     },
+    {
+        href: "/manage/categories",
+        title: { th: "Categories", en: "Categories" },
+        subtitle: {
+            th: "Manage categories for apps and content",
+            en: "Manage categories for apps and content",
+        },
+        crumb: { th: "Categories", en: "Categories" },
+    },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [

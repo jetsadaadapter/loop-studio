@@ -9,3 +9,9 @@ export type CategoryInfo = {
 };
 
 export type ManageCategoryListResponse = ManageApiEnvelope<CategoryInfo[]>;
+
+export type ManageCategoryPayload = {
+    name: string;
+};
+
+export type ManageCategorySingleResponse = ManageApiEnvelope<CategoryInfo>;
