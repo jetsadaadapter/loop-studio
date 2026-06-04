@@ -941,8 +941,33 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
         itemIndex?: number,
     ): AnalysisResult | undefined => {
         const direct = rawItem.analysis;
-        if (direct && typeof direct === "object") {
-            return direct as AnalysisResult;
+
+        // Helper to unwrap nested analysis key (e.g. { analysis: { ... } })
+        const unwrapAnalysis = (obj: Record<string, unknown>): Record<string, unknown> => {
+            const keys = Object.keys(obj);
+            if (keys.length === 1 && keys[0].toLowerCase() === "analysis") {
+                const nested = obj[keys[0]];
+                if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+                    return nested as Record<string, unknown>;
+                }
+            }
+            return obj;
+        };
+
+        if (direct) {
+            if (typeof direct === "object" && !Array.isArray(direct)) {
+                return unwrapAnalysis(direct as Record<string, unknown>) as AnalysisResult;
+            }
+            if (typeof direct === "string") {
+                try {
+                    const parsed = JSON.parse(direct);
+                    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                        return unwrapAnalysis(parsed as Record<string, unknown>) as AnalysisResult;
+                    }
+                } catch {
+                    // Ignore JSON parsing errors and fallback to regex/signal detection
+                }
+            }
         }
 
         const hasSignal = ANALYSIS_SIGNAL_KEYS.some((key) => rawItem[key] !== undefined);
@@ -975,21 +1000,24 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             return undefined;
         }
 
-        const validation = validateDynamicAnalysisPayload(payload);
+        const unwrappedPayload = unwrapAnalysis(payload);
+        const unwrappedKeys = Object.keys(unwrappedPayload);
+
+        const validation = validateDynamicAnalysisPayload(unwrappedPayload);
         if (!validation.isValid) {
             logAnalysisSynthesis(source, {
                 itemIndex,
                 reason: `validation-issues:${validation.issues.join(" | ")}`,
-                synthesizedKeys,
+                synthesizedKeys: unwrappedKeys,
             });
         }
 
         logAnalysisSynthesis(source, {
             itemIndex,
             reason: "synthesized-from-top-level-fields",
-            synthesizedKeys,
+            synthesizedKeys: unwrappedKeys,
         });
-        return payload as AnalysisResult;
+        return unwrappedPayload as AnalysisResult;
     };
 
     // If it's not a Gemini job, just return result.items or empty list
@@ -1017,9 +1045,44 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
     }
 
     const previousItems = (job.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
-    const geminiItems = job.result?.items || [];
+    let geminiItems: any[] = job.result?.items || [];
+    const hasFlatResult = !!(job.result && typeof job.result === "object" && !Array.isArray(job.result) && !("items" in job.result));
+
+    if (hasFlatResult && geminiItems.length === 0) {
+        geminiItems = [job.result as Record<string, unknown>];
+    }
+
     const wrapResult = (job.config as Record<string, unknown> | undefined)?.wrapResult === true;
+    const isAggregate = (job.config as Record<string, unknown> | undefined)?.mode === "aggregate";
     const usedGeminiIndexes = new Set<number>();
+
+    if ((isAggregate || hasFlatResult) && geminiItems.length > 0) {
+        return geminiItems.map((item, idx) => {
+            const raw = item as Record<string, unknown>;
+            const fallbackUrl =
+                getStringValue(raw.postUrl) ||
+                getStringValue(raw.facebookUrl) ||
+                getStringValue(raw.url) ||
+                getStringValue(raw.inputUrl) ||
+                getStringValue(raw.permalink_url) ||
+                getStringValue(raw.sourceKeyValue);
+
+            const normalizedAnalysis = wrapResult
+                ? extractAnalysisPayload(raw, isAggregate ? "gemini-aggregate-wrapResult" : "gemini-flat-wrapResult", idx)
+                : ((raw.analysis as AnalysisResult | undefined) || extractAnalysisPayload(raw, isAggregate ? "gemini-aggregate-fallback" : "gemini-flat-fallback", idx));
+
+            return {
+                ...raw,
+                sourceIndex: idx,
+                sourceKey: isAggregate ? "aggregate" : "flat-result",
+                sourceKeyValue: isAggregate ? "aggregate" : "flat-result",
+                analysis: normalizedAnalysis,
+                postUrl: getStringValue(raw.postUrl) || fallbackUrl,
+                url: getStringValue(raw.url) || fallbackUrl,
+                facebookUrl: getStringValue(raw.facebookUrl) || fallbackUrl,
+            } as unknown as ScrapedJobItem;
+        });
+    }
 
     if (previousItems.length === 0 && geminiItems.length > 0) {
         return geminiItems.map((item, idx) => {
