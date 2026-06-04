@@ -20,8 +20,12 @@ export const PARAM_TYPE_BADGE: Record<string, string> = {
   url: "bg-sky-50/60 text-sky-650 border border-sky-150",
   boolean: "bg-emerald-50/60 text-emerald-650 border border-emerald-150",
   string: "bg-slate-50/60 text-slate-600 border border-slate-200",
+  text: "bg-slate-50/60 text-slate-600 border border-slate-200",
+  multiline: "bg-slate-50/60 text-slate-600 border border-slate-200",
   number: "bg-amber-50/60 text-amber-650 border border-amber-150",
   select: "bg-rose-50/60 text-rose-650 border border-rose-150",
+  date: "bg-teal-50/60 text-teal-650 border border-teal-150",
+  json: "bg-indigo-50/60 text-indigo-650 border border-indigo-150",
 };
 
 // ── Derived display helpers ───────────────────────────────────────────────────

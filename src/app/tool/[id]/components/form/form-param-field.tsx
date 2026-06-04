@@ -157,7 +157,7 @@ export function FormParamField({
           placeholder={param.placeholder}
           hasError={!!error}
         />
-      ) : isPromptField ? (
+      ) : isPromptField || param.type === "prompt" ? (
         <PromptInputField
           id={param.key}
           value={String(value || "")}
@@ -172,6 +172,8 @@ export function FormParamField({
         />
       ) : param.key === "rawInput" ||
         param.key === "text" ||
+        param.type === "multiline" ||
+        param.type === "json" ||
         (param as ToolParam & { multiline?: boolean }).multiline ? (
         <Textarea
           id={param.key}
@@ -188,6 +190,7 @@ export function FormParamField({
       ) : (
         <Input
           id={param.key}
+          type={param.type === "number" ? "number" : param.type === "date" ? "date" : "text"}
           placeholder={
             param.placeholder || `Enter ${param.label.toLowerCase()}...`
           }

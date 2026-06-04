@@ -1,6 +1,29 @@
 import type { Paginated } from "./common.interface";
 
-export type ToolParamType = "string" | "number" | "boolean" | "url" | "select" | "array" | "prompt";
+export enum ParamType {
+    TEXT = "text",
+    URL = "url",
+    NUMBER = "number",
+    SELECT = "select",
+    MULTILINE = "multiline",
+    DATE = "date",
+    BOOLEAN = "boolean",
+    JSON = "json",
+    PROMPT = "prompt",
+}
+
+export type ToolParamType =
+    | "string"
+    | "array"
+    | "text"
+    | "url"
+    | "number"
+    | "select"
+    | "multiline"
+    | "date"
+    | "boolean"
+    | "json"
+    | "prompt";
 
 export interface ToolParam {
     id: string;

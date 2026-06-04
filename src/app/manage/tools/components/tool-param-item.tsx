@@ -15,14 +15,18 @@ import type { ParamDraft } from "./types";
 import { getManagePrompts } from "@/core/services/prompts.service";
 import type { PromptItem } from "@/core/interfaces/prompt";
 import { PromptEditor } from "./prompt-editor";
+import { ParamType } from "@/core/interfaces/tools.interface";
 
 const PARAM_TYPES = [
-  { value: "string", label: "String" },
-  { value: "number", label: "Number" },
-  { value: "boolean", label: "Boolean" },
-  { value: "url", label: "URL" },
-  { value: "select", label: "Select" },
-  { value: "prompt", label: "Prompt (AI)" },
+  { value: ParamType.TEXT, label: "Text" },
+  { value: ParamType.NUMBER, label: "Number" },
+  { value: ParamType.BOOLEAN, label: "Boolean" },
+  { value: ParamType.URL, label: "URL" },
+  { value: ParamType.SELECT, label: "Select" },
+  { value: ParamType.MULTILINE, label: "Multiline" },
+  { value: ParamType.DATE, label: "Date" },
+  { value: ParamType.JSON, label: "JSON" },
+  { value: ParamType.PROMPT, label: "Prompt (AI)" },
 ];
 
 interface ToolParamItemProps {

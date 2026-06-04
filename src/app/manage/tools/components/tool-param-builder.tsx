@@ -9,7 +9,7 @@ function createEmptyParam(sortOrder: number): ParamDraft {
     _localId: crypto.randomUUID(),
     key: "",
     label: "",
-    type: "string",
+    type: "text",
     required: false,
     sortOrder,
     defaultValue: "",
