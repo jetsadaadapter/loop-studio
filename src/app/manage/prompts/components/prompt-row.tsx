@@ -2,9 +2,35 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Eye, Edit3, Trash2, Globe, Lock, Clock, Sparkles } from "lucide-react";
+import { Eye, Edit3, Trash2, Globe, Lock, Clock, Sparkles, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PromptItem } from "@/core/interfaces/prompt";
+
+const CopyableIdBadge = ({ id }: { id: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <span
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-[8px] font-bold text-slate-500 font-sans cursor-pointer hover:bg-slate-200 hover:text-slate-700 transition-colors select-none"
+      title={`Copy Prompt ID: ${id}`}
+    >
+      <span>ID: {id.slice(0, 8)}...</span>
+      {copied ? (
+        <span className="text-[8px] text-emerald-600 font-sans font-extrabold uppercase tracking-tight">Copied!</span>
+      ) : (
+        <Copy className="size-2 shrink-0 opacity-60" />
+      )}
+    </span>
+  );
+};
 import { PromptPreviewDialog } from "@/app/manage/tools/components/prompt-preview-dialog";
 
 interface PromptRowProps {
@@ -31,6 +57,7 @@ export function PromptRow({ promptItem, onEdit, onDelete }: PromptRowProps) {
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 font-sans">
               <Clock className="size-2.5" /> v{promptItem.version}
             </span>
+            <CopyableIdBadge id={promptItem.id} />
             {promptItem.visibility === "public" ? (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100/50">
                 <Globe className="size-2.5" /> Public
