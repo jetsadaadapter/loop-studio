@@ -100,13 +100,17 @@ export function ManagePromptsClient() {
       if (editingItem) {
         // PATCH Update
         const updated = await updateManagePrompt(editingItem.id, payload);
-        setPrompts((prev) => prev.map((p) => (p.id === editingItem.id ? updated : p)));
         pushToast(`"${updated.name}" saved successfully.`, "success");
+        loadPrompts();
       } else {
         // POST Create
         const created = await createManagePrompt(payload);
-        setPrompts((prev) => [created, ...prev]);
         pushToast(`"${created.name}" created successfully.`, "success");
+        if (currentPage === 1) {
+          loadPrompts();
+        } else {
+          setCurrentPage(1);
+        }
       }
       setIsDrawerOpen(false);
     } catch (err) {
@@ -127,8 +131,8 @@ export function ManagePromptsClient() {
     if (!deleteId) return;
     try {
       await deleteManagePrompt(deleteId);
-      setPrompts((prev) => prev.filter((p) => p.id !== deleteId));
       pushToast("Prompt deleted successfully.", "success");
+      loadPrompts();
     } catch (err) {
       console.error("Failed to delete prompt:", err);
       pushToast("Failed to delete prompt.", "error");
