@@ -57,6 +57,15 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
                 configPrompt: defaultPrompt.prompt || "",
               });
             }
+          } else if (param.configPromptId && !param.configPrompt) {
+            const selected = data.find((p) => p.id === param.configPromptId);
+            if (selected) {
+              update({
+                configPromptName: selected.name || "",
+                configModel: selected.model?.modelSlug || "",
+                configPrompt: selected.prompt || "",
+              });
+            }
           }
         })
         .catch((err) => {

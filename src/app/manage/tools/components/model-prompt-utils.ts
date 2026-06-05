@@ -31,3 +31,31 @@ export function syncPromptModelReferences(
 
   return normalizedPrompt;
 }
+
+export interface NestedConfig {
+  promptId?: string;
+  prompt?: {
+    name?: string;
+    prompt?: string;
+    model?: {
+      modelSlug?: string;
+    };
+  };
+  model?: string;
+}
+
+export function resolvePromptPreview(config?: any) {
+  const cfg = (config || {}) as NestedConfig;
+  let model = cfg.prompt?.model?.modelSlug || "";
+  let prompt = cfg.prompt?.prompt || "";
+  if (!model && typeof cfg.model === "string") {
+    model = cfg.model;
+  }
+  if (!prompt && typeof cfg.prompt === "string") {
+    prompt = cfg.prompt;
+  }
+  if (!model) {
+    model = "gemini-1.5-flash";
+  }
+  return { model, prompt };
+}

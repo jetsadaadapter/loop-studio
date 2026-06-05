@@ -221,7 +221,7 @@ export function FormParamField({
             value={String(value || "")}
             onChange={(e) => onChange(param.key, e.target.value)}
             className={cn(
-              "h-8 bg-transparent border-slate-200/60 focus:bg-transparent focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 shadow-none hover:border-slate-300",
+              "h-8 bg-transparent border-slate-200/60 focus:bg-transparent focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs md:text-xs placeholder:text-xs font-normal rounded-md px-4 shadow-none hover:border-slate-300",
               error && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent",
             )}
           />

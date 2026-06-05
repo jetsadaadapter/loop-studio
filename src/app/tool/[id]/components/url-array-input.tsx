@@ -161,7 +161,7 @@ export function UrlArrayInput({
               id={`quick-add-${id}`}
               placeholder={placeholder || "พิมพ์หรือวางลิงก์โพสต์ (เช่น https://www.facebook.com/...)"}
               className={cn(
-                "h-8 bg-transparent border-slate-200/80 focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 flex-1 shadow-2xs hover:border-slate-300",
+                "h-8 bg-transparent border-slate-200/80 focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs md:text-xs placeholder:text-xs font-normal rounded-md px-4 flex-1 shadow-2xs hover:border-slate-300",
                 hasError && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent"
               )}
               onKeyDown={(e) => {

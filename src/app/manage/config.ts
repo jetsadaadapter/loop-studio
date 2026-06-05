@@ -107,6 +107,15 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
         },
         crumb: { th: "Categories", en: "Categories" },
     },
+    {
+        href: "/manage/users",
+        title: { th: "Users", en: "Users" },
+        subtitle: {
+            th: "Manage user profiles, roles, and departments",
+            en: "Manage user profiles, roles, and departments",
+        },
+        crumb: { th: "Users", en: "Users" },
+    },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [
