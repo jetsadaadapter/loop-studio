@@ -14,6 +14,7 @@ function createEmptyParam(sortOrder: number): ParamDraft {
     sortOrder,
     defaultValue: "",
     placeholder: "",
+    options: [],
     configModel: "",
     configPrompt: "",
   };

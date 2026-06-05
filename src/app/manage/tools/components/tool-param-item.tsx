@@ -16,19 +16,9 @@ import { getManagePrompts } from "@/core/services/prompts.service";
 import type { PromptItem } from "@/core/interfaces/prompt";
 import { PromptEditor } from "./prompt-editor";
 import { ParamType } from "@/core/interfaces/tools.interface";
-
-const PARAM_TYPES = [
-  { value: ParamType.TEXT, label: "Text" },
-  { value: ParamType.NUMBER, label: "Number" },
-  { value: ParamType.BOOLEAN, label: "Boolean" },
-  { value: ParamType.URL, label: "URL" },
-  { value: ParamType.SELECT, label: "Select" },
-  { value: ParamType.MULTILINE, label: "Multiline" },
-  { value: ParamType.TEXTAREA, label: "Textarea" },
-  { value: ParamType.DATE, label: "Date" },
-  { value: ParamType.JSON, label: "JSON" },
-  { value: ParamType.PROMPT, label: "Prompt (AI)" },
-];
+import { PARAM_TYPE_CONFIGS } from "@/core/config/param-types";
+import { ParamOptionManager } from "./param-option-manager";
+import { ParamDefaultValueInput } from "./param-default-value-input";
 
 interface ToolParamItemProps {
   param: ParamDraft;
@@ -43,6 +33,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
   const [promptsList, setPromptsList] = useState<PromptItem[]>([]);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const hasFetchedRef = useRef(false);
+
+  const typeConfig = PARAM_TYPE_CONFIGS[param.type as ParamType] || PARAM_TYPE_CONFIGS[ParamType.TEXT];
 
   function update(partial: Partial<ParamDraft>) {
     onChange({ ...param, ...partial });
@@ -180,8 +172,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {PARAM_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
+              {Object.values(PARAM_TYPE_CONFIGS).map((t) => (
+                <SelectItem key={t.type} value={t.type} className="text-xs">
                   {t.label}
                 </SelectItem>
               ))}
@@ -201,8 +193,8 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
         </div>
       </div>
 
-      {/* Placeholder — non-prompt types */}
-      {param.type !== "prompt" && (
+      {/* Dynamic Placeholder field based on Config */}
+      {typeConfig.hasPlaceholder && (
         <div className="space-y-1">
           <Label className="text-xs font-semibold text-slate-600">Placeholder</Label>
           <Input
@@ -210,6 +202,33 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             onChange={(e) => update({ placeholder: e.target.value })}
             placeholder="Optional hint shown to user"
             className="h-8 bg-white border-slate-200 text-xs"
+          />
+        </div>
+      )}
+
+      {/* Dynamic Options Manager based on Config */}
+      {typeConfig.hasOptions && (
+        <ParamOptionManager
+          options={param.options || []}
+          onChange={(opts) => update({ options: opts })}
+          onOptionRemoved={(opt) => {
+            if (param.defaultValue === opt) {
+              update({ defaultValue: "" });
+            }
+          }}
+        />
+      )}
+
+      {/* Dynamic Default Value input based on Config */}
+      {typeConfig.hasDefaultValue && (
+        <div className="space-y-1">
+          <Label className="text-xs font-semibold text-slate-600">Default Value</Label>
+          <ParamDefaultValueInput
+            _localId={param._localId}
+            defaultValue={param.defaultValue}
+            onChange={(val) => update({ defaultValue: val })}
+            defaultValueType={typeConfig.defaultValueType}
+            options={param.options || []}
           />
         </div>
       )}

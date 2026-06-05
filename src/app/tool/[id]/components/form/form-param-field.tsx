@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/select";
 import { UrlArrayInput } from "../url-array-input";
 import { PromptInputField } from "./prompt-input-field";
+import { PARAM_TYPE_CONFIGS } from "@/core/config/param-types";
+import { ParamType } from "@/core/interfaces/tools.interface";
 
 const PARAM_HELPERS: Record<string, string> = {
   starturls:
@@ -30,8 +32,6 @@ const PARAM_HELPERS: Record<string, string> = {
   onlyolderthan:
     "Scrape posts from the analyzed date to the past YYYY-MM-DD format.",
 };
-
-// ...existing code...
 
 function getHelperText(param: ToolParam): string {
   const key = param.key.toLowerCase();
@@ -81,10 +81,18 @@ export function FormParamField({
   onActivityAccess,
 }: FormParamFieldProps) {
   const helperText = getHelperText(param);
-  const isPromptField = param.key === "prompt";
+
+  const typeConfig = PARAM_TYPE_CONFIGS[param.type as ParamType] || PARAM_TYPE_CONFIGS[ParamType.TEXT];
+  const renderType = typeConfig.renderType;
+  const isPromptField = param.key === "prompt" || renderType === "prompt";
+  const isTextarea =
+    renderType === "textarea" ||
+    param.key === "rawInput" ||
+    param.key === "text" ||
+    (param as ToolParam & { multiline?: boolean }).multiline;
 
   return (
-    <Field className="space-y-2.5">
+    <Field className="space-y-2.5 w-full">
       <div className="space-y-1">
         <FieldLabel
           htmlFor={param.key}
@@ -99,7 +107,7 @@ export function FormParamField({
         {helperText && !error && (
           <span
             className={cn(
-              "text-slate-400 font-semibold block leading-normal select-none transition-all duration-300",
+              "text-slate-400 font-normal block leading-normal select-none transition-all duration-300",
               isPromptField ? "text-[11.5px]" : "text-[10.5px]",
             )}
           >
@@ -108,115 +116,117 @@ export function FormParamField({
         )}
       </div>
 
-      {param.type === "boolean" ? (
-        <div className="flex items-center py-2 px-1">
-          <label className="flex items-center gap-3 cursor-pointer select-none group">
-            <Switch
-              id={param.key}
-              checked={!!value}
-              onCheckedChange={(val) => onChange(param.key, val)}
-            />
-            <span className="text-xs font-bold text-slate-650 group-hover:text-slate-900 transition-colors">
-              Enabled
-            </span>
-          </label>
-        </div>
-      ) : param.type === "select" ? (
-        <Select
-          value={String(value || "")}
-          onValueChange={(val) => onChange(param.key, val)}
-        >
-          <SelectTrigger
-            id={param.key}
-            className={cn(
-              "h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-bold rounded-xl cursor-pointer shadow-xs hover:border-slate-300",
-              error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
-            )}
+      <div className={typeConfig.widthClass}>
+        {renderType === "boolean" ? (
+          <div className="flex items-center py-2 px-1">
+            <label className="flex items-center gap-3 cursor-pointer select-none group">
+              <Switch
+                id={param.key}
+                checked={!!value}
+                onCheckedChange={(val) => onChange(param.key, val)}
+              />
+              <span className="text-xs font-bold text-slate-650 group-hover:text-slate-900 transition-colors">
+                Enabled
+              </span>
+            </label>
+          </div>
+        ) : renderType === "select" ? (
+          <Select
+            value={String(value || "")}
+            onValueChange={(val) => onChange(param.key, val)}
           >
-            <SelectValue
-              placeholder={param.placeholder || "Select an option..."}
-            />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl shadow-lg border-slate-100">
-            {param.options?.map((option, idx) => (
-              <SelectItem
-                key={`${option}-${idx}`}
-                value={option}
-                className="py-2.5 cursor-pointer rounded-lg text-xs font-semibold"
-              >
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ) : param.transform === "urlArray" || param.type === "url" ? (
-        <UrlArrayInput
-          id={param.key}
-          value={(() => {
-            if (Array.isArray(value)) return value as string[];
-            if (typeof value === "string") {
-              const trimmed = value.trim();
-              if (!trimmed) return [];
-              if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-                try {
-                  const parsed = JSON.parse(trimmed);
-                  if (Array.isArray(parsed)) return parsed.map(String);
-                } catch (e) {}
+            <SelectTrigger
+              id={param.key}
+              className={cn(
+                "h-8 bg-transparent border-slate-200 focus:bg-transparent focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs font-normal rounded-md cursor-pointer shadow-none hover:border-slate-300",
+                error && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent",
+              )}
+            >
+              <SelectValue
+                placeholder={param.placeholder || "Select an option..."}
+              />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl shadow-lg border-slate-100">
+              {param.options?.map((option, idx) => {
+                // Standardize options to string values
+                const optionStr = typeof option === "object" && option !== null ? String((option as { value?: string }).value || "") : String(option);
+                const optionLabel = typeof option === "object" && option !== null ? String((option as { label?: string }).label || "") : String(option);
+                return (
+                  <SelectItem
+                    key={`${optionStr}-${idx}`}
+                    value={optionStr}
+                    className="py-2.5 cursor-pointer rounded-lg text-xs font-semibold"
+                  >
+                    {optionLabel}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        ) : renderType === "url" ? (
+          <UrlArrayInput
+            id={param.key}
+            value={(() => {
+              if (Array.isArray(value)) return value as string[];
+              if (typeof value === "string") {
+                const trimmed = value.trim();
+                if (!trimmed) return [];
+                if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                  try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) return parsed.map(String);
+                  } catch (e) { }
+                }
+                return [trimmed];
               }
-              return [trimmed];
+              return [];
+            })()}
+            onChange={(val) => onChange(param.key, val)}
+            placeholder={param.placeholder}
+            hasError={!!error}
+          />
+        ) : isPromptField ? (
+          <PromptInputField
+            id={param.key}
+            value={String(value || "")}
+            onChange={(val) => onChange(param.key, val)}
+            placeholderText={placeholderText}
+            onSend={onSend}
+            isSendLoading={isSendLoading}
+            testResult={testResult}
+            activeModel={activeModel}
+            error={error}
+            onActivityAccess={onActivityAccess}
+          />
+        ) : isTextarea ? (
+          <Textarea
+            id={param.key}
+            placeholder={
+              param.placeholder || `Enter ${param.label.toLowerCase()}...`
             }
-            return [];
-          })()}
-          onChange={(val) => onChange(param.key, val)}
-          placeholder={param.placeholder}
-          hasError={!!error}
-        />
-      ) : isPromptField || param.type === "prompt" ? (
-        <PromptInputField
-          id={param.key}
-          value={String(value || "")}
-          onChange={(val) => onChange(param.key, val)}
-          placeholderText={placeholderText}
-          onSend={onSend}
-          isSendLoading={isSendLoading}
-          testResult={testResult}
-          activeModel={activeModel}
-          error={error}
-          onActivityAccess={onActivityAccess}
-        />
-      ) : param.key === "rawInput" ||
-        param.key === "text" ||
-        param.type === "multiline" ||
-        param.type === "textarea" ||
-        param.type === "json" ||
-        (param as ToolParam & { multiline?: boolean }).multiline ? (
-        <Textarea
-          id={param.key}
-          placeholder={
-            param.placeholder || `Enter ${param.label.toLowerCase()}...`
-          }
-          value={String(value || "")}
-          onChange={(e) => onChange(param.key, e.target.value)}
-          className={cn(
-            "min-h-30 py-3 bg-slate-50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-semibold rounded-xl px-4 resize-none shadow-2xs hover:border-slate-300",
-            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
-          )}
-        />
-      ) : (
-        <Input
-          id={param.key}
-          type={param.type === "number" ? "number" : param.type === "date" ? "date" : "text"}
-          placeholder={
-            param.placeholder || `Enter ${param.label.toLowerCase()}...`
-          }
-          value={String(value || "")}
-          onChange={(e) => onChange(param.key, e.target.value)}
-          className={cn(
-            "h-11 bg-slate-50 border-slate-200/60 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs font-semibold rounded-xl px-4 shadow-2xs hover:border-slate-300",
-            error && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
-          )}
-        />
-      )}
+            value={String(value || "")}
+            onChange={(e) => onChange(param.key, e.target.value)}
+            className={cn(
+              "min-h-30 py-3 bg-transparent border-slate-200/60 focus:bg-transparent focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 resize-none shadow-none hover:border-slate-300",
+              error && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent",
+            )}
+          />
+        ) : (
+          <Input
+            id={param.key}
+            type={renderType === "number" ? "number" : renderType === "date" ? "date" : "text"}
+            placeholder={
+              param.placeholder || `Enter ${param.label.toLowerCase()}...`
+            }
+            value={String(value || "")}
+            onChange={(e) => onChange(param.key, e.target.value)}
+            className={cn(
+              "h-8 bg-transparent border-slate-200/60 focus:bg-transparent focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 shadow-none hover:border-slate-300",
+              error && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent",
+            )}
+          />
+        )}
+      </div>
       <FieldError
         errors={error ? [{ message: error }] : []}
         className="text-[11px] -mt-2 font-normal text-red-500 flex items-center gap-1"

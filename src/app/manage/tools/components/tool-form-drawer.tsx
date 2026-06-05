@@ -70,6 +70,8 @@ function paramToDraft(param: ToolParam): ParamDraft {
     sortOrder: param.sortOrder,
     defaultValue: param.defaultValue ?? "",
     placeholder: param.placeholder ?? "",
+    transform: param.transform ?? null,
+    options: param.options ? param.options.map(String) : [],
     configPromptId,
     configPromptName,
     configModel,
@@ -88,6 +90,8 @@ function draftToPayload(draft: ParamDraft, idx: number): ToolParamPayload {
   if (draft.id) payload.id = draft.id;
   if (draft.placeholder.trim()) payload.placeholder = draft.placeholder.trim();
   if (draft.defaultValue.trim()) payload.defaultValue = draft.defaultValue.trim();
+  if (draft.transform) payload.transform = draft.transform;
+  if (draft.options && draft.options.length > 0) payload.options = draft.options;
   if (draft.type === "prompt") {
     payload.config = {
       ...(draft.configPromptId?.trim() && { promptId: draft.configPromptId.trim() }),

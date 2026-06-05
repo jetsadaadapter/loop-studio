@@ -56,7 +56,7 @@ export function UrlArrayInput({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 px-3 rounded-xl text-[11px] font-semibold text-slate-700 hover:text-brand hover:bg-brand/5 border border-slate-200 shadow-xs bg-white transition-colors duration-200 cursor-pointer"
+          className="h-8 px-3 rounded-md text-[11px] font-semibold text-slate-700 hover:text-brand hover:bg-brand/5 border border-slate-200 shadow-xs bg-white transition-colors duration-200 cursor-pointer"
           onClick={() =>
             isBulk
               ? handleBulkCancel()
@@ -75,7 +75,7 @@ export function UrlArrayInput({
         </Button>
       </div>
       {isBulk ? (
-        <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/50 border border-slate-200/60 shadow-xs">
+        <div className="space-y-3.5 p-4 rounded-md bg-slate-50/50 border border-slate-200/60 shadow-xs">
           <Textarea
             value={bulkValue}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -83,13 +83,13 @@ export function UrlArrayInput({
             }
             placeholder="Paste your URLs here (one per line or comma-separated)..."
             className={cn(
-              "min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50 text-xs placeholder:text-xs resize-none",
-              hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
+              "min-h-40 bg-transparent border-slate-200 focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-sm rounded-md resize-y px-4 py-3 shadow-inner shadow-slate-50 text-xs placeholder:text-xs resize-none",
+              hasError && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent",
             )}
           />
 
           {/* Premium inline technical formatting advisor */}
-          <div className="flex items-center gap-1.5 px-3 py-2 bg-brand/5 border border-brand/10 rounded-xl text-[10px] text-slate-600 font-bold select-none">
+          <div className="flex items-center gap-1.5 px-3 py-2 bg-brand/5 border border-brand/10 rounded-md text-[10px] text-slate-600 font-bold select-none">
             <Sparkles className="size-3.5 text-brand shrink-0 animate-pulse" />
             <span>
               Format: Paste one Facebook URL link per line, or separate links
@@ -100,7 +100,7 @@ export function UrlArrayInput({
           <div className="flex gap-2">
             <Button
               size="sm"
-              className="h-9 rounded-xl bg-brand hover:bg-brand/90 text-white text-xs px-5 shadow-sm shadow-brand/10 font-semibold transition-colors duration-200 cursor-pointer"
+              className="h-9 rounded-md bg-brand hover:bg-brand/90 text-white text-xs px-5 shadow-sm shadow-brand/10 font-semibold transition-colors duration-200 cursor-pointer"
               onClick={handleBulkSave}
             >
               Apply Changes
@@ -108,7 +108,7 @@ export function UrlArrayInput({
             <Button
               size="sm"
               variant="outline"
-              className="h-9 rounded-xl text-xs px-5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold shadow-xs transition-colors duration-200 cursor-pointer"
+              className="h-9 rounded-md text-xs px-5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold shadow-xs transition-colors duration-200 cursor-pointer"
               onClick={handleBulkCancel}
             >
               Cancel
@@ -116,10 +116,10 @@ export function UrlArrayInput({
           </div>
         </div>
       ) : value.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-6 text-center bg-slate-50/30 rounded-2xl border border-dashed border-slate-200 shadow-xs relative overflow-hidden select-none group min-h-35 transition-all duration-300 hover:border-brand/40">
+        <div className="flex flex-col items-center justify-center p-6 text-center bg-slate-50/30 rounded-md border border-dashed border-slate-200 shadow-xs relative overflow-hidden select-none group min-h-35 transition-all duration-300 hover:border-brand/40">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand/5 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
-          <div className="p-3 bg-white border border-slate-100 rounded-xl shadow-xs text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all duration-300 relative z-10 shrink-0 mb-3">
+          <div className="p-3 bg-white border border-slate-100 rounded-md shadow-xs text-slate-400 group-hover:text-brand group-hover:scale-110 transition-all duration-300 relative z-10 shrink-0 mb-3">
             <Link2 className="size-5 transition-transform duration-500 group-hover:rotate-45" />
           </div>
 
@@ -135,7 +135,7 @@ export function UrlArrayInput({
             <Button
               variant="outline"
               size="sm"
-              className="h-8.5 px-3 rounded-xl border-slate-200 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-none cursor-pointer"
+              className="h-8.5 px-3 rounded-md border-slate-200 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-none cursor-pointer"
               onClick={handleAdd}
             >
               <Plus className="mr-1 size-3.5" /> Add URL
@@ -143,7 +143,7 @@ export function UrlArrayInput({
             <Button
               variant="outline"
               size="sm"
-              className="h-8.5 px-3 rounded-xl border-brand/20 bg-brand/5 text-[11px] font-semibold text-brand hover:bg-brand/10 hover:border-brand/30 transition-colors shadow-none cursor-pointer"
+              className="h-8.5 px-3 rounded-md border-brand/20 bg-brand/5 text-[11px] font-semibold text-brand hover:bg-brand/10 hover:border-brand/30 transition-colors shadow-none cursor-pointer"
               onClick={() => {
                 setBulkValue(value.join("\n"));
                 setIsBulk(true);
@@ -161,8 +161,8 @@ export function UrlArrayInput({
               id={`quick-add-${id}`}
               placeholder={placeholder || "พิมพ์หรือวางลิงก์โพสต์ (เช่น https://www.facebook.com/...)"}
               className={cn(
-                "h-8 bg-slate-50/50 border-slate-200/80 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 flex-1 shadow-2xs hover:border-slate-300",
-                hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
+                "h-8 bg-transparent border-slate-200/80 focus:border-brand focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 flex-1 shadow-2xs hover:border-slate-300",
+                hasError && "border-red-500 focus:ring-0 focus:ring-transparent focus-visible:ring-0 focus-visible:ring-transparent bg-transparent"
               )}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {

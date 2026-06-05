@@ -142,8 +142,8 @@ export function PromptInputField({
       {/* ChatGPT-style Unified Capsule Container */}
       <div
         className={cn(
-          "group/prompt relative border border-slate-200/80 bg-slate-50/15 focus-within:bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10 transition-all rounded-2xl flex flex-col shadow-[0_8px_30px_rgba(15,23,42,0.01)] overflow-hidden",
-          error && "border-red-500 focus-within:ring-red-500/20 bg-red-50/10"
+          "group/prompt relative border border-slate-200/80 bg-transparent focus-within:bg-transparent focus-within:border-brand focus-within:ring-0 focus-within:ring-transparent transition-all rounded-2xl flex flex-col shadow-none overflow-hidden",
+          error && "border-red-500 focus-within:ring-0 focus-within:ring-transparent bg-transparent"
         )}
       >
         <Textarea

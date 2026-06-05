@@ -11,6 +11,7 @@ export interface ParamDraft {
   defaultValue: string;
   placeholder: string;
   transform?: string | null;
+  options?: string[];
   configModel: string;
   configPrompt: string;
   configPromptId?: string;
