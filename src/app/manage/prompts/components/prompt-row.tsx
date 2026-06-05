@@ -32,17 +32,23 @@ export function PromptRow({ promptItem, onEdit, onDelete }: PromptRowProps) {
               <Clock className="size-2.5" /> v{promptItem.version}
             </span>
             {promptItem.visibility === "public" ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-[9px] font-bold text-emerald-600 border border-emerald-100/50">
                 <Globe className="size-2.5" /> Public
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 text-[9px] font-bold text-rose-600 border border-rose-100/50">
                 <Lock className="size-2.5" /> Private
               </span>
             )}
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-brand/10 text-[9px] font-bold text-brand border border-brand/20">
-              <Sparkles className="size-2.5" /> {promptItem.type === "system" ? "System Persona" : "User Prompt"}
-            </span>
+            {promptItem.type === "system" ? (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-[9px] font-bold text-amber-600 border border-amber-100/50">
+                <Sparkles className="size-2.5" /> System Persona
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-50 text-[9px] font-bold text-blue-600 border border-blue-100/40">
+                <Sparkles className="size-2.5" /> User Prompt
+              </span>
+            )}
           </div>
 
           <p className="text-xs text-slate-500 font-normal line-clamp-2">

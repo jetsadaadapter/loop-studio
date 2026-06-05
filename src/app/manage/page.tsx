@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Cpu, Layers, Image as ImageIcon, Plus, Wrench, Tag, FolderOpen } from "lucide-react";
+import { ArrowRight, Sparkles, Cpu, Layers, Image as ImageIcon, Plus, Wrench, Tag, FolderOpen, Users } from "lucide-react";
 
 import {
   MANAGE_DASHBOARD_FLAGS,
@@ -247,6 +247,7 @@ export default async function ManageOverviewPage() {
             const isTools = item.href.includes("tools");
             const isTags = item.href.includes("tags");
             const isCategories = item.href.includes("categories");
+            const isUsers = item.href.includes("users");
 
             return (
               <Link
@@ -261,6 +262,7 @@ export default async function ManageOverviewPage() {
                   isTools ? "border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-50/10 via-white to-white hover:border-l-amber-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   isTags ? "border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-50/10 via-white to-white hover:border-l-rose-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   isCategories ? "border-l-4 border-l-sky-500 bg-gradient-to-r from-sky-50/10 via-white to-white hover:border-l-sky-600 hover:border-r-slate-300 hover:border-y-slate-300" :
+                  isUsers ? "border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50/10 via-white to-white hover:border-l-blue-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   "border-l-4 border-l-slate-400 bg-white"
                 }`}>
                   <CardHeader className="pb-3">
@@ -273,6 +275,7 @@ export default async function ManageOverviewPage() {
                           isTools ? "bg-amber-100/50 text-amber-600 group-hover:bg-amber-100" :
                           isTags ? "bg-rose-100/50 text-rose-600 group-hover:bg-rose-100" :
                           isCategories ? "bg-sky-100/50 text-sky-600 group-hover:bg-sky-100" :
+                          isUsers ? "bg-blue-100/50 text-blue-600 group-hover:bg-blue-100" :
                           "bg-slate-50 text-slate-600"
                         } transition`}>
                           {isApps && <Layers className="size-4" />}
@@ -281,6 +284,7 @@ export default async function ManageOverviewPage() {
                           {isTools && <Wrench className="size-4" />}
                           {isTags && <Tag className="size-4" />}
                           {isCategories && <FolderOpen className="size-4" />}
+                          {isUsers && <Users className="size-4" />}
                         </div>
                         <div>
                           <CardTitle className="text-base font-bold text-slate-900">

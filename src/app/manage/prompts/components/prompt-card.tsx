@@ -34,11 +34,11 @@ export function PromptCard({ promptItem, onEdit, onDelete }: PromptCardProps) {
                   <Clock className="size-2.5" /> v{promptItem.version}
                 </span>
                 {promptItem.visibility === "public" ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100/40">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100/50">
                     <Globe className="size-2.5" /> Public
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-200/60">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-[10px] font-bold text-rose-600 border border-rose-100/50">
                     <Lock className="size-2.5" /> Private
                   </span>
                 )}
@@ -46,11 +46,11 @@ export function PromptCard({ promptItem, onEdit, onDelete }: PromptCardProps) {
             </div>
             
             {promptItem.type === "system" ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100/50 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100/50 shrink-0">
                 <Sparkles className="size-2.5" /> System
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100/50 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100/40 shrink-0">
                 <Sparkles className="size-2.5" /> User
               </span>
             )}

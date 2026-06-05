@@ -82,27 +82,36 @@ export function PromptTable({
                       {index + 1}
                     </td>
                     <td className="p-3 align-middle min-w-[240px]">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-semibold text-slate-800 tracking-tight">
-                            {row.name}
-                          </span>
-                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-sm bg-slate-100 text-[8px] font-bold text-slate-500 font-sans">
-                            <Clock className="size-2" /> v{row.version}
-                          </span>
+                      <div className="flex items-center gap-3">
+                        <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg border shadow-3xs ${
+                          row.type === "system"
+                            ? "bg-amber-50/50 border-amber-100/50 text-amber-600"
+                            : "bg-blue-50/50 border-blue-100/40 text-blue-600"
+                        }`}>
+                          <Sparkles className="size-4 drop-shadow-xs" />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-semibold text-slate-800 tracking-tight block leading-tight">
+                              {row.name}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-sm bg-slate-100 text-[8px] font-bold text-slate-500 font-sans">
+                              <Clock className="size-2" /> v{row.version}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-normal line-clamp-1 mt-0.5 leading-none">
+                            {row.description || "No description provided."}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-400 font-normal line-clamp-1">
-                          {row.description || "No description provided."}
-                        </p>
                       </div>
                     </td>
                     <td className="p-3 align-middle whitespace-nowrap">
                       {row.type === "system" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100/50">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100/50">
                           <Sparkles className="size-2.5" /> System Persona
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100/50">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100/40">
                           <Sparkles className="size-2.5" /> User Prompt
                         </span>
                       )}
@@ -121,11 +130,11 @@ export function PromptTable({
                     </td>
                     <td className="p-3 align-middle whitespace-nowrap">
                       {row.visibility === "public" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100/40">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100/50">
                           <Globe className="size-2.5" /> Public
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-200/60">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-[10px] font-bold text-rose-600 border border-rose-100/50">
                           <Lock className="size-2.5" /> Private
                         </span>
                       )}

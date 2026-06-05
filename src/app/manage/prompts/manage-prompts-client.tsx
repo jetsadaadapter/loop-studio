@@ -19,6 +19,7 @@ import { PromptTable } from "./components/prompt-table";
 import { PromptFormDrawer } from "./components/prompt-form-drawer";
 import { PromptCard } from "./components/prompt-card";
 import { ManagerPagination } from "@/components/manager-pagination";
+import { PromptStats } from "./components/prompt-stats";
 
 export function ManagePromptsClient() {
   const [prompts, setPrompts] = useState<PromptItem[]>([]);
@@ -165,6 +166,9 @@ export function ManagePromptsClient() {
       description="Manage, test, and configure dynamic instructions to control the personas and behaviors of your target AI models."
       actions={null}
     >
+      {/* Prompt Statistics Summary Overview */}
+      {!isLoading && <PromptStats prompts={prompts} />}
+
       {/* Search and Filters Bar */}
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none">
         {/* Left Group */}
