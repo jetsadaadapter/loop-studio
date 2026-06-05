@@ -48,9 +48,9 @@ function getRoleBadgeStyle(role: string) {
     return "bg-indigo-50/80 text-indigo-700 border-indigo-100/50 hover:bg-indigo-100/30";
   }
   if (r.includes("admin")) {
-    return "bg-violet-50/80 text-violet-700 border-violet-100/50 hover:bg-violet-100/30";
+    return "bg-rose-50/80 text-rose-700 border-rose-100/50 hover:bg-rose-100/30";
   }
-  if (r.includes("editor")) {
+  if (r.includes("user") || r.includes("editor")) {
     return "bg-amber-50/80 text-amber-700 border-amber-100/50 hover:bg-amber-100/30";
   }
   return "bg-slate-50/80 text-slate-600 border-slate-100/50 hover:bg-slate-100/30";
@@ -61,35 +61,47 @@ function UserTableSkeletonRows() {
     <>
       {Array.from({ length: 5 }).map((_, i) => (
         <tr key={`skeleton-user-row-${i}`} className="animate-pulse">
+          {/* # */}
           <td className="p-3 px-4">
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
+          {/* User Profile */}
           <td className="p-3">
             <div className="flex items-center gap-3">
               <div className="size-8 rounded-full bg-slate-100 shrink-0" />
               <div className="space-y-1.5 min-w-0 flex-1">
-                <div className="h-4 w-32 bg-slate-100 rounded" />
-                <div className="h-3 w-40 bg-slate-100 rounded" />
+                <div className="h-3.5 w-32 bg-slate-100 rounded" />
+                <div className="h-2.5 w-40 bg-slate-100 rounded" />
               </div>
             </div>
           </td>
+          {/* Employee ID */}
           <td className="p-3">
-            <div className="h-4 w-24 bg-slate-100 rounded" />
+            <div className="h-3.5 w-16 bg-slate-100 rounded" />
           </td>
+          {/* Department / Position */}
           <td className="p-3">
-            <div className="h-4 w-28 bg-slate-100 rounded" />
-          </td>
-          <td className="p-3">
-            <div className="flex gap-1.5">
-              <div className="h-5 w-14 bg-slate-100 rounded-full" />
-              <div className="h-5 w-12 bg-slate-100 rounded-full" />
+            <div className="space-y-1.5">
+              <div className="h-3.5 w-28 bg-slate-100 rounded" />
+              <div className="h-2.5 w-20 bg-slate-100 rounded" />
             </div>
           </td>
+          {/* Security Roles */}
           <td className="p-3">
-            <div className="h-4 w-20 bg-slate-100 rounded" />
+            <div className="flex gap-1.5">
+              <div className="h-5 w-16 bg-slate-100 rounded-full" />
+              <div className="h-5 w-14 bg-slate-100 rounded-full" />
+            </div>
           </td>
+          {/* Last Updated */}
+          <td className="p-3">
+            <div className="h-3.5 w-20 bg-slate-100 rounded" />
+          </td>
+          {/* Actions */}
           <td className="p-3 px-4 text-right">
-            <div className="h-7 w-7 bg-slate-100 rounded-sm ml-auto" />
+            <div className="flex justify-end pr-1">
+              <div className="h-7 w-7 bg-slate-100 rounded-sm" />
+            </div>
           </td>
         </tr>
       ))}

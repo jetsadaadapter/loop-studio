@@ -66,22 +66,27 @@ function TagTableSkeletonRows() {
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
           <td className="p-3">
-            <div className="flex items-center gap-2.5">
-              <div className="size-3.5 rounded-full bg-slate-100 shrink-0" />
-              <div className="h-4 w-32 bg-slate-100 rounded" />
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-lg bg-slate-100 shrink-0" />
+              <div className="min-w-0 space-y-1.5 flex-1">
+                <div className="h-3.5 w-32 bg-slate-100 rounded" />
+                <div className="h-2.5 w-16 bg-slate-100 rounded" />
+              </div>
             </div>
           </td>
           <td className="p-3">
-            <div className="h-5 w-20 bg-slate-100 rounded-full" />
+            <div className="h-5.5 w-20 bg-slate-100 rounded-full" />
           </td>
           <td className="p-3">
-            <div className="h-4 w-20 bg-slate-100 rounded" />
+            <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
           <td className="p-3">
-            <div className="h-4 w-20 bg-slate-100 rounded" />
+            <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
-          <td className="p-3">
-            <div className="h-7 w-7 bg-slate-100 rounded-sm" />
+          <td className="p-3 pr-4">
+            <div className="flex justify-end pr-1">
+              <div className="h-7 w-7 bg-slate-100 rounded-sm" />
+            </div>
           </td>
         </tr>
       ))}

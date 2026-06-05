@@ -23,25 +23,39 @@ function formatDate(iso?: string) {
 function CategoryTableSkeletonRows() {
   return (
     <>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <tr key={`skeleton-row-${i}`} className="animate-pulse">
-          <td className="p-3 px-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <tr key={`skeleton-row-${i}`} className="animate-pulse border-b last:border-0">
+          {/* # */}
+          <td className="p-3 px-4 align-middle whitespace-nowrap">
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
-          <td className="p-3">
-            <div className="flex items-center gap-2.5">
-              <div className="size-3.5 rounded-lg bg-slate-100 shrink-0" />
-              <div className="h-4 w-32 bg-slate-100 rounded" />
+
+          {/* Name */}
+          <td className="p-3 align-middle min-w-[200px]">
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-lg bg-slate-100 border border-slate-100/50 shrink-0" />
+              <div className="min-w-0 space-y-1.5 flex-1">
+                <div className="h-3.5 w-24 bg-slate-100 rounded" />
+                <div className="h-2.5 w-16 bg-slate-100 rounded" />
+              </div>
             </div>
           </td>
-          <td className="p-3">
-            <div className="h-4 w-20 bg-slate-100 rounded" />
+
+          {/* Created */}
+          <td className="p-3 align-middle whitespace-nowrap">
+            <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
-          <td className="p-3">
-            <div className="h-4 w-20 bg-slate-100 rounded" />
+
+          {/* Updated */}
+          <td className="p-3 align-middle whitespace-nowrap">
+            <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
-          <td className="p-3">
-            <div className="h-7 w-7 bg-slate-100 rounded-sm" />
+
+          {/* Actions */}
+          <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
+            <div className="flex justify-end">
+              <div className="h-7 w-7 bg-slate-100 rounded-sm" />
+            </div>
           </td>
         </tr>
       ))}
