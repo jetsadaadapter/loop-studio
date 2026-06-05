@@ -48,7 +48,6 @@ export function ToolScriptItem({
   const [plugins, setPlugins] = useState<{ value: string; label: string }[]>([
     { value: "gemini", label: "Gemini AI" },
     { value: "apify", label: "Apify" },
-    { value: "custom", label: "Custom Plugin" },
   ]);
   const [models, setModels] = useState<ManageAiApiListItem[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -68,7 +67,6 @@ export function ToolScriptItem({
             }
             return { value: p.name, label };
           });
-          mapped.push({ value: "custom", label: "Custom Plugin" });
           setPlugins(mapped);
         }
       })
@@ -157,6 +155,15 @@ export function ToolScriptItem({
   const isApify = script.plugin === "apify";
   const isCustom = !isGemini && !isApify;
 
+  const displayPlugins = [...plugins];
+  if (script.plugin && !displayPlugins.some((p) => p.value === script.plugin)) {
+    let label = script.plugin;
+    if (script.plugin.length > 0) {
+      label = script.plugin.charAt(0).toUpperCase() + script.plugin.slice(1);
+    }
+    displayPlugins.push({ value: script.plugin, label });
+  }
+
   return (
     <div className="space-y-3.5 rounded-xl border border-slate-200/50 bg-slate-50/30 p-4 shadow-sm hover:border-slate-350 hover:shadow-md hover:shadow-indigo-500/2 transition-all duration-300">
       {showConfirm && (
@@ -215,7 +222,8 @@ export function ToolScriptItem({
 
         <div className="space-y-1 col-span-2 sm:col-span-1">
           <Label className="text-xs font-semibold text-slate-600">Plugin Type <span className="text-brand">*</span></Label>
-          <Select value={isGemini ? "gemini" : isApify ? "apify" : "custom"} onValueChange={(v) => {
+          <Select value={script.plugin || ""} onValueChange={(v) => {
+            if (!v) return;
             if (v === "gemini") {
               update({ plugin: "gemini", config: { model: "", prompt: "" } });
             } else if (v === "apify") {
@@ -225,22 +233,15 @@ export function ToolScriptItem({
             } else {
               setRawJson(JSON.stringify({}, null, 2));
               setJsonError(null);
-              update({ plugin: "custom", config: {} });
+              update({ plugin: v, config: {} });
             }
           }}>
-            <SelectTrigger className="h-8 bg-white border-slate-200 text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 bg-white border-slate-200 text-xs w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {plugins.map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
+              {displayPlugins.map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
-
-        {isCustom && (
-          <div className="space-y-1 col-span-2">
-            <Label className="text-xs font-semibold text-slate-600">Custom Plugin Identifier <span className="text-brand">*</span></Label>
-            <Input value={script.plugin === "custom" ? "" : script.plugin} onChange={(e) => update({ plugin: e.target.value.trim() })} placeholder="e.g. my-custom-plugin" className="h-8 bg-white border-slate-200 text-xs" />
-          </div>
-        )}
 
         <div className="space-y-1 col-span-2">
           <Label className="text-xs font-semibold text-slate-600">Description</Label>
