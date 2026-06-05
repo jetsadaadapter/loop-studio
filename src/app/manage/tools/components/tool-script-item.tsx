@@ -84,7 +84,7 @@ export function ToolScriptItem({
   });
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [inputTemplateJson, setInputTemplateJson] = useState(() => {
-    if (script.plugin === "apify" && script.config.inputTemplate) {
+    if (script.config.inputTemplate) {
       return JSON.stringify(script.config.inputTemplate, null, 2);
     }
     return "";
@@ -148,6 +148,29 @@ export function ToolScriptItem({
       updateConfig(parsed);
     } catch (err: unknown) {
       setJsonError(err instanceof Error ? err.message : "Invalid JSON");
+    }
+  }
+
+  const [editMode, setEditMode] = useState<"visual" | "raw">("visual");
+
+  const [prevPlugin, setPrevPlugin] = useState<string>(script.plugin);
+  const [prevInputTemplate, setPrevInputTemplate] = useState<unknown>(script.config.inputTemplate);
+  const [prevConfig, setPrevConfig] = useState<unknown>(script.config);
+
+  if (prevPlugin !== script.plugin) {
+    setPrevPlugin(script.plugin);
+    setEditMode("visual");
+  }
+
+  if (JSON.stringify(prevInputTemplate) !== JSON.stringify(script.config.inputTemplate)) {
+    setPrevInputTemplate(script.config.inputTemplate);
+    setInputTemplateJson(script.config.inputTemplate ? JSON.stringify(script.config.inputTemplate, null, 2) : "");
+  }
+
+  if (JSON.stringify(prevConfig) !== JSON.stringify(script.config)) {
+    setPrevConfig(script.config);
+    if (script.plugin !== "gemini" && script.plugin !== "apify") {
+      setRawJson(JSON.stringify(script.config, null, 2));
     }
   }
 
@@ -310,14 +333,81 @@ export function ToolScriptItem({
       )}
 
       {isCustom && (
-        <div className="space-y-3 border-l-2 border-slate-400 pl-3.5 pb-2">
-          <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-            <Terminal className="size-3" /><span>Raw Plugin Configuration</span>
+        <div className="space-y-3.5 border-l-2 border-slate-400 pl-3.5 pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              <Terminal className="size-3.5 shrink-0" /><span>Plugin Configuration</span>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/40">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setRawJson(JSON.stringify(script.config, null, 2));
+                  setEditMode("visual");
+                }}
+                className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${
+                  editMode === "visual"
+                    ? "bg-white text-slate-800 shadow-2xs"
+                    : "text-slate-400 hover:text-slate-700"
+                }`}
+              >
+                Visual Builder
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setRawJson(JSON.stringify(script.config, null, 2));
+                  setEditMode("raw");
+                }}
+                className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${
+                  editMode === "raw"
+                    ? "bg-white text-slate-800 shadow-2xs"
+                    : "text-slate-400 hover:text-slate-700"
+                }`}
+              >
+                Raw JSON
+              </Button>
+            </div>
           </div>
-          <div className="space-y-1">
-            <Textarea value={rawJson} onChange={(e) => handleJsonChange(e.target.value)} placeholder='{"key": "value"}' className={`font-sans text-xs placeholder:text-xs bg-white ${jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"}`} rows={4} />
-            {jsonError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{jsonError}</p>}
-          </div>
+
+          {editMode === "visual" ? (
+            <div className="space-y-3.5">
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-600 font-sans">Input Template (JSON)</Label>
+                <Textarea
+                  value={inputTemplateJson}
+                  onChange={(e) => handleTemplateChange(e.target.value)}
+                  placeholder='{"url": "{{url}}"}'
+                  className={`font-sans text-xs placeholder:text-xs bg-white ${
+                    templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
+                  }`}
+                  rows={4}
+                />
+                {templateError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{templateError}</p>}
+              </div>
+              <DynamicConfigBuilder
+                label="Additional Parameters"
+                value={script.config}
+                onChange={updateConfig}
+                excludeKeys={["inputTemplate"]}
+              />
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <Textarea
+                value={rawJson}
+                onChange={(e) => handleJsonChange(e.target.value)}
+                placeholder='{"key": "value"}'
+                className={`font-sans text-xs placeholder:text-xs bg-white ${
+                  jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
+                }`}
+                rows={5}
+              />
+              {jsonError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{jsonError}</p>}
+            </div>
+          )}
         </div>
       )}
     </div>

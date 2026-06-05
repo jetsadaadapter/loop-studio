@@ -261,7 +261,9 @@ function ToolParamsDrawerInner({
               errors={errors}
               onChange={async (newParams) => {
                 const removed = params.find((p) => !newParams.some((np) => np._localId === p._localId));
+                console.log("[ToolParamsDrawer] onChange: params =", params, "newParams =", newParams, "removed =", removed);
                 if (removed?.id && !removed.id.startsWith("local-") && removed.id.length > 8) {
+                  console.log("[ToolParamsDrawer] Deleting parameter from server. ID:", removed.id);
                   try {
                     await deleteManageToolParam(removed.id);
                     pushToast("Parameter deleted successfully.", "success");
