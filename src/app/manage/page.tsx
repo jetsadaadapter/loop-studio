@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Cpu, Layers, Image as ImageIcon, Plus } from "lucide-react";
+import { ArrowRight, Sparkles, Cpu, Layers, Image as ImageIcon, Plus, Wrench, Tag, FolderOpen } from "lucide-react";
 
 import {
   MANAGE_DASHBOARD_FLAGS,
@@ -244,6 +244,9 @@ export default async function ManageOverviewPage() {
             const isApps = item.href.includes("apps");
             const isModels = item.href.includes("models");
             const isBanners = item.href.includes("banners");
+            const isTools = item.href.includes("tools");
+            const isTags = item.href.includes("tags");
+            const isCategories = item.href.includes("categories");
 
             return (
               <Link
@@ -255,6 +258,9 @@ export default async function ManageOverviewPage() {
                   isApps ? "border-l-4 border-l-indigo-500 bg-gradient-to-r from-indigo-50/10 via-white to-white hover:border-l-indigo-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   isModels ? "border-l-4 border-l-violet-500 bg-gradient-to-r from-violet-50/10 via-white to-white hover:border-l-violet-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   isBanners ? "border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-50/10 via-white to-white hover:border-l-emerald-600 hover:border-r-slate-300 hover:border-y-slate-300" :
+                  isTools ? "border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-50/10 via-white to-white hover:border-l-amber-600 hover:border-r-slate-300 hover:border-y-slate-300" :
+                  isTags ? "border-l-4 border-l-rose-500 bg-gradient-to-r from-rose-50/10 via-white to-white hover:border-l-rose-600 hover:border-r-slate-300 hover:border-y-slate-300" :
+                  isCategories ? "border-l-4 border-l-sky-500 bg-gradient-to-r from-sky-50/10 via-white to-white hover:border-l-sky-600 hover:border-r-slate-300 hover:border-y-slate-300" :
                   "border-l-4 border-l-slate-400 bg-white"
                 }`}>
                   <CardHeader className="pb-3">
@@ -264,11 +270,17 @@ export default async function ManageOverviewPage() {
                           isApps ? "bg-indigo-100/50 text-indigo-600 group-hover:bg-indigo-100" :
                           isModels ? "bg-violet-100/50 text-violet-600 group-hover:bg-violet-100" :
                           isBanners ? "bg-emerald-100/50 text-emerald-600 group-hover:bg-emerald-100" :
+                          isTools ? "bg-amber-100/50 text-amber-600 group-hover:bg-amber-100" :
+                          isTags ? "bg-rose-100/50 text-rose-600 group-hover:bg-rose-100" :
+                          isCategories ? "bg-sky-100/50 text-sky-600 group-hover:bg-sky-100" :
                           "bg-slate-50 text-slate-600"
                         } transition`}>
                           {isApps && <Layers className="size-4" />}
                           {isModels && <Cpu className="size-4" />}
                           {isBanners && <ImageIcon className="size-4" />}
+                          {isTools && <Wrench className="size-4" />}
+                          {isTags && <Tag className="size-4" />}
+                          {isCategories && <FolderOpen className="size-4" />}
                         </div>
                         <div>
                           <CardTitle className="text-base font-bold text-slate-900">

@@ -8,6 +8,10 @@ import {
   ThumbsDown,
   Crown,
   BadgeCheck,
+  Sparkles,
+  Activity,
+  Database,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -118,6 +122,25 @@ function getGroupConfig(label: string, idx: number) {
   );
 }
 
+const formatEntryKey = (key: string): string => {
+  let formatted = key
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ");
+
+  if (!formatted.includes(" ")) {
+    formatted = formatted
+      .replace(/(post|page|summary|analysis|time|date|id|name|text|likes|shares|score|count|ratio|sentiment|intent|purchase)/gi, " $1")
+      .trim();
+  }
+
+  return formatted
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 export function IntentAnalysisCard({
   item,
   index,
@@ -150,9 +173,9 @@ export function IntentAnalysisCard({
     isGenericMode,
   );
   const hasIntentPayload = hasIntentAnalysisPayload(analysis);
-  const purchaseSignal = analysis?.purchase_intent === 'interested' 
-  ? true 
-  : analysis?.purchase_intent === 'disinterested' ? false : analysis?.purchase_intent_signal;
+  const purchaseSignal = analysis?.purchase_intent === 'interested'
+    ? true
+    : analysis?.purchase_intent === 'disinterested' ? false : analysis?.purchase_intent_signal;
 
   const totalCount = groups.reduce((acc, g) => acc + g.count, 0);
 
@@ -374,126 +397,189 @@ export function IntentAnalysisCard({
           (Array.isArray(keywords) ? keywords.length > 0 : !!keywords) ||
           hasIntentPayload ||
           dynamicBlocks.length > 0) && (
-          <div className="space-y-3.5">
-            {summary && (
-              <div className="border-l-3 border-brand pl-3.5 space-y-1">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  AI Analysis Summary
-                </p>
-                <p className="text-xs text-slate-650 leading-relaxed font-medium">
-                  {summary}
-                </p>
-              </div>
-            )}
+            <div className="space-y-3.5">
+              {summary && (
+                <div className="border-l-3 border-brand pl-3.5 space-y-1">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                    AI Analysis Summary
+                  </p>
+                  <p className="text-xs text-slate-650 leading-relaxed font-medium">
+                    {summary}
+                  </p>
+                </div>
+              )}
 
-            {hasIntentPayload && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {classification && (
+              {hasIntentPayload && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {classification && (
+                    <div
+                      className={cn(
+                        "rounded-xl border px-3 py-2.5",
+                        classificationTone,
+                      )}
+                    >
+                      <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                        Classification
+                      </p>
+                      <p className="mt-1 text-sm font-black leading-tight">
+                        {classification}
+                      </p>
+                    </div>
+                  )}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      Confidence
+                    </p>
+                    <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                      {confidence || "N/A"}
+                    </p>
+                  </div>
                   <div
                     className={cn(
                       "rounded-xl border px-3 py-2.5",
-                      classificationTone,
+                      purchaseSignal === true
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : purchaseSignal === false
+                          ? "bg-slate-50 border-slate-200 text-slate-600"
+                          : "bg-amber-50 border-amber-200 text-amber-700",
                     )}
                   >
                     <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                      Classification
+                      Purchase Signal
                     </p>
                     <p className="mt-1 text-sm font-black leading-tight">
-                      {classification}
+                      {purchaseSignal === true
+                        ? "Yes"
+                        : purchaseSignal === false
+                          ? "No"
+                          : "Unknown"}
                     </p>
                   </div>
-                )}
-                <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Confidence
-                  </p>
-                  <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                    {confidence || "N/A"}
-                  </p>
                 </div>
-                <div
-                  className={cn(
-                    "rounded-xl border px-3 py-2.5",
-                    purchaseSignal === true
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                      : purchaseSignal === false
-                        ? "bg-slate-50 border-slate-200 text-slate-600"
-                        : "bg-amber-50 border-amber-200 text-amber-700",
-                  )}
-                >
-                  <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                    Purchase Signal
-                  </p>
-                  <p className="mt-1 text-sm font-black leading-tight">
-                    {purchaseSignal === true
-                      ? "Yes"
-                      : purchaseSignal === false
-                        ? "No"
-                        : "Unknown"}
-                  </p>
+              )}
+
+              {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
+                <div className="pl-3.5 flex flex-wrap gap-1.5 pt-0.5">
+                  {(Array.isArray(keywords)
+                    ? keywords
+                    : String(keywords).split(/\s+/)
+                  )
+                    .filter((kw: string) => kw.trim().length > 0)
+                    .map((kw: string, i: number) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default"
+                      >
+                        #{kw.replace(/^#/, "")}
+                      </span>
+                    ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
-              <div className="pl-3.5 flex flex-wrap gap-1.5 pt-0.5">
-                {(Array.isArray(keywords)
-                  ? keywords
-                  : String(keywords).split(/\s+/)
-                )
-                  .filter((kw: string) => kw.trim().length > 0)
-                  .map((kw: string, i: number) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default"
-                    >
-                      #{kw.replace(/^#/, "")}
-                    </span>
-                  ))}
-              </div>
-            )}
+              {dynamicBlocks.length > 0 && (
+                <div className="space-y-4 pt-1">
+                  {dynamicBlocks.map((block) => {
+                    const isSummary = block.id === "summary";
+                    const isMetrics = block.id === "metrics";
+                    const isEvidence = block.id === "evidence";
 
-            {dynamicBlocks.length > 0 && (
-              <div className="space-y-3 pt-1">
-                {dynamicBlocks.map((block) => (
-                  <section
-                    key={block.id}
-                    className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-xs"
-                  >
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      {block.title}
-                    </p>
-                    <p className="mt-1 text-[10px] font-medium text-slate-500">
-                      {block.description}
-                    </p>
-                    <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {block.entries.map((entry) => (
-                        <div
-                          key={`${block.id}-${entry.key}`}
-                          className="rounded-lg border border-slate-200/70 bg-white px-3 py-2.5"
-                        >
-                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                            {entry.key}
-                          </p>
-                          {entry.valueType === "object" ||
-                          entry.valueType === "array" ? (
-                            <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] font-sans text-slate-700 whitespace-pre-wrap wrap-break-word">
-                              {entry.value}
-                            </pre>
-                          ) : (
-                            <p className="mt-1 text-xs font-semibold text-slate-700 leading-relaxed wrap-break-word">
-                              {entry.value}
+                    const theme = isSummary
+                      ? {
+                          border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
+                          bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
+                          titleColor: "text-violet-750",
+                          icon: Sparkles,
+                        }
+                      : isMetrics
+                        ? {
+                            border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
+                            bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
+                            titleColor: "text-amber-750",
+                            icon: Activity,
+                          }
+                        : isEvidence
+                          ? {
+                              border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
+                              bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
+                              titleColor: "text-emerald-750",
+                              icon: Database,
+                            }
+                          : {
+                              border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
+                              bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
+                              titleColor: "text-sky-750",
+                              icon: Info,
+                            };
+
+                    const HeaderIcon = theme.icon;
+
+                    return (
+                      <section
+                        key={block.id}
+                        className={cn(
+                          "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white",
+                          theme.border,
+                          theme.bg
+                        )}
+                      >
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                          <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
+                          <div className="space-y-0.5">
+                            <h4 className={cn("text-xs font-extrabold uppercase tracking-wider leading-none", theme.titleColor)}>
+                              {block.title}
+                            </h4>
+                            <p className="text-[10px] font-medium text-slate-400">
+                              {block.description}
                             </p>
-                          )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          {block.entries.map((entry) => {
+                            const formattedKey = formatEntryKey(entry.key);
+                            const isLongVal = typeof entry.value === "string" && (entry.value.length > 120 || entry.value.includes("\n"));
+                            const isFullWidth = isLongVal || entry.valueType === "object" || entry.valueType === "array";
+
+                            return (
+                              <div
+                                key={`${block.id}-${entry.key}`}
+                                className={cn(
+                                  "rounded-xl border border-slate-150/70 bg-white p-4 transition-all duration-200 hover:border-slate-300 hover:shadow-3xs flex flex-col justify-between gap-2.5",
+                                  isFullWidth ? "sm:col-span-2" : "col-span-1"
+                                )}
+                              >
+                                <div className="space-y-1">
+                                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 select-none">
+                                    {formattedKey}
+                                  </p>
+                                  {entry.valueType === "object" || entry.valueType === "array" ? (
+                                    <pre className="mt-1.5 max-h-56 overflow-auto rounded-xl bg-slate-950 p-4 text-[10.5px] font-mono text-slate-200 leading-relaxed border border-slate-850 shadow-inner select-text">
+                                      {entry.value}
+                                    </pre>
+                                  ) : isMetrics ? (
+                                    <p className="mt-1 text-2xl font-black text-slate-800 tracking-tight select-text leading-none py-1">
+                                      {entry.value}
+                                    </p>
+                                  ) : (
+                                    <p className={cn(
+                                      "mt-1 text-xs text-slate-700 leading-relaxed select-text wrap-break-word font-semibold",
+                                      isLongVal ? "font-normal bg-slate-50/50 p-3 rounded-lg border border-slate-100/60" : ""
+                                    )}>
+                                      {entry.value}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Verdict */}
         {verdict && (

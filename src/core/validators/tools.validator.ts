@@ -32,7 +32,9 @@ export function createToolExecutionSchema(params: ToolParam[]) {
                 }
                 break;
             case "url":
-                schema = z.string({ message: `${param.label} is required` }).url(`${param.label} must be a valid URL`);
+                schema = z.array(z.string().url("Must be a valid URL"), {
+                    message: `${param.label} is required`,
+                }).min(param.required ? 1 : 0, `At least one ${param.label.toLowerCase()} is required`);
                 break;
             case "json":
                 schema = z.string({ message: `${param.label} is required` }).refine(

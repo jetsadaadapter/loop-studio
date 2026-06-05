@@ -678,7 +678,7 @@ export const getAnalysisDisplayBlocks = (
         {
             id: "additional" as const,
             title: "Additional Fields",
-            description: "Other dynamic fields found in item.analysis",
+            description: "Other dynamic fields found in result",
             entries: additionalEntries,
         },
     ].filter((block) => block.entries.length > 0);
@@ -1059,13 +1059,37 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
     if ((isAggregate || hasFlatResult) && geminiItems.length > 0) {
         return geminiItems.map((item, idx) => {
             const raw = item as Record<string, unknown>;
+            const rawPostId = getStringValue(raw.postId) || getStringValue(raw.id) || getStringValue(raw._id);
+            let prevMatchUrl = "";
+            if (rawPostId && previousItems.length > 0) {
+                if (idx < previousItems.length) {
+                    const candidate = previousItems[idx];
+                    const candPostId = getStringValue(candidate.postId) || getStringValue(candidate.id) || getStringValue(candidate._id);
+                    if (candPostId === rawPostId) {
+                        prevMatchUrl = getCanonicalPostUrl(candidate);
+                    }
+                }
+                if (!prevMatchUrl) {
+                    const match = previousItems.find(
+                        (p) =>
+                            getStringValue(p.postId) === rawPostId ||
+                            getStringValue(p.id) === rawPostId ||
+                            getStringValue(p._id) === rawPostId
+                    );
+                    if (match) {
+                        prevMatchUrl = getCanonicalPostUrl(match);
+                    }
+                }
+            }
+
             const fallbackUrl =
                 getStringValue(raw.postUrl) ||
                 getStringValue(raw.facebookUrl) ||
                 getStringValue(raw.url) ||
+                prevMatchUrl ||
                 getStringValue(raw.inputUrl) ||
                 getStringValue(raw.permalink_url) ||
-                getStringValue(raw.sourceKeyValue);
+                (getStringValue(raw.sourceKeyValue) !== "aggregate" && getStringValue(raw.sourceKeyValue) !== "flat-result" ? getStringValue(raw.sourceKeyValue) : "");
 
             const normalizedAnalysis = wrapResult
                 ? extractAnalysisPayload(raw, isAggregate ? "gemini-aggregate-wrapResult" : "gemini-flat-wrapResult", idx)
@@ -1157,6 +1181,19 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             const sourceVal = getStringValue(g.sourceKeyValue);
             if (!sourceVal) continue;
             if (identityValues.includes(sourceVal)) {
+                usedGeminiIndexes.add(i);
+                return g;
+            }
+        }
+
+        // 4) Fallback: match by postId
+        for (let i = 0; i < geminiItems.length; i++) {
+            if (usedGeminiIndexes.has(i)) continue;
+            const g = geminiItems[i];
+            const gPostId = getStringValue(g.postId) || getStringValue(g.id) || getStringValue(g._id);
+            if (!gPostId) continue;
+            const prevPostId = getStringValue(prevItem.postId) || getStringValue(prevItem.id) || getStringValue(prevItem._id);
+            if (gPostId === prevPostId) {
                 usedGeminiIndexes.add(i);
                 return g;
             }

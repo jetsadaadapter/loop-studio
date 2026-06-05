@@ -149,10 +149,24 @@ export function FormParamField({
             ))}
           </SelectContent>
         </Select>
-      ) : param.transform === "urlArray" ? (
+      ) : param.transform === "urlArray" || param.type === "url" ? (
         <UrlArrayInput
           id={param.key}
-          value={(value as string[]) || []}
+          value={(() => {
+            if (Array.isArray(value)) return value as string[];
+            if (typeof value === "string") {
+              const trimmed = value.trim();
+              if (!trimmed) return [];
+              if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                try {
+                  const parsed = JSON.parse(trimmed);
+                  if (Array.isArray(parsed)) return parsed.map(String);
+                } catch (e) {}
+              }
+              return [trimmed];
+            }
+            return [];
+          })()}
           onChange={(val) => onChange(param.key, val)}
           placeholder={param.placeholder}
           hasError={!!error}

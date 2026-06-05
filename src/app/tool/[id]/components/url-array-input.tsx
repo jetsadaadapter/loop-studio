@@ -83,7 +83,7 @@ export function UrlArrayInput({
             }
             placeholder="Paste your URLs here (one per line or comma-separated)..."
             className={cn(
-              "min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50 resize-none",
+              "min-h-40 bg-white border-slate-200 focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all text-sm rounded-xl resize-y px-4 py-3 shadow-inner shadow-slate-50 text-xs placeholder:text-xs resize-none",
               hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30",
             )}
           />
@@ -161,7 +161,7 @@ export function UrlArrayInput({
               id={`quick-add-${id}`}
               placeholder={placeholder || "พิมพ์หรือวางลิงก์โพสต์ (เช่น https://www.facebook.com/...)"}
               className={cn(
-                "h-10.5 bg-slate-50/50 border-slate-200/80 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-[11px] font-normal rounded-xl px-4 flex-1 shadow-2xs hover:border-slate-300",
+                "h-8 bg-slate-50/50 border-slate-200/80 focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-xs placeholder:text-xs font-normal rounded-md px-4 flex-1 shadow-2xs hover:border-slate-300",
                 hasError && "border-red-500 focus:ring-red-500/20 bg-red-50/30"
               )}
               onKeyDown={(e) => {
@@ -182,7 +182,7 @@ export function UrlArrayInput({
             />
             <Button
               type="button"
-              className="h-10.5 px-4.5 bg-brand hover:bg-brand/95 active:scale-95 text-white font-bold rounded-xl text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm shrink-0 cursor-pointer"
+              className="h-8 px-4.5 bg-brand hover:bg-brand/95 active:scale-95 text-white font-bold rounded-md text-xs flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm shrink-0 cursor-pointer"
               title="เพิ่มลิงก์"
               aria-label="เพิ่มลิงก์"
               onClick={() => {

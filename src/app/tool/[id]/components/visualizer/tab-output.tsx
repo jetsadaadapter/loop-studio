@@ -180,27 +180,31 @@ export function TabOutput({ job }: TabOutputProps) {
     ),
   ];
 
-  const allKeys = hasAnalysis
-    ? [
-        ...baseKeys.filter(
-          (k) =>
-            k !== "likes" &&
-            k !== "likesCount" &&
-            k !== "comments" &&
-            k !== "commentsCount" &&
-            k !== "shares",
-        ),
-        ...orderedAnalysisKeys,
-        ...baseKeys.filter(
-          (k) =>
-            k === "likes" ||
-            k === "likesCount" ||
-            k === "comments" ||
-            k === "commentsCount" ||
-            k === "shares",
-        ),
-      ]
-    : baseKeys;
+  const allKeys = Array.from(
+    new Set(
+      hasAnalysis
+        ? [
+            ...baseKeys.filter(
+              (k) =>
+                k !== "likes" &&
+                k !== "likesCount" &&
+                k !== "comments" &&
+                k !== "commentsCount" &&
+                k !== "shares",
+            ),
+            ...orderedAnalysisKeys,
+            ...baseKeys.filter(
+              (k) =>
+                k === "likes" ||
+                k === "likesCount" ||
+                k === "comments" ||
+                k === "commentsCount" ||
+                k === "shares",
+            ),
+          ]
+        : baseKeys
+    )
+  );
 
   const getValue = (item: ScrapedJobItem, key: string) => {
     const rawItem = item as Record<string, unknown>;
