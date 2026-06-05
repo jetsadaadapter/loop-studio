@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function ManageUsersPage() {
   let initialUsers: UserProfile[] = [];
   try {
-    initialUsers = await getManageUsers();
+    initialUsers = await getManageUsers({ page: 1, limit: 10 });
   } catch (err) {
     console.error("Failed to load initial users in server component:", err);
     // Client component will handle fallback, re-fetch, and error display

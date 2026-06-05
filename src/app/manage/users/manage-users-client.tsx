@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
   startTransition,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -14,11 +15,13 @@ import { ManagerShell } from "@/components/manager-shell";
 import { useToast } from "@/components/toast-provider";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import type { ManageUserFormValues } from "@/core/validators/users.validator";
-import { getManageUsers, updateManageUser } from "@/core/services/users.service";
+import { getManageUsers, getManageUsersResponse, updateManageUser } from "@/core/services/users.service";
 
 import { UserSearchFilters } from "./components/user-search-filters";
 import { UserTable } from "./components/user-table";
 import { UserFormModal } from "./components/user-form-modal";
+import { UserStats } from "./components/user-stats";
+import { ManagerPagination } from "@/components/manager-pagination";
 
 interface ManageUsersClientProps {
   initialUsers?: UserProfile[];
@@ -35,10 +38,24 @@ export function ManageUsersClient({
 
   // Data states
   const [users, setUsers] = useState<UserProfile[]>(initialUsers);
+  const [allUsersForStats, setAllUsersForStats] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(initialUsers.length === 0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const isInitialMount = useRef(true);
+
+  // Load all users once for calculations in statistics cards
+  useEffect(() => {
+    getManageUsers({ page: 1, limit: 1000 })
+      .then((data) => {
+        setAllUsersForStats(data);
+        setTotalItems((prev) => (prev === 0 ? data.length : prev));
+      })
+      .catch((err) => console.error("Failed to load users for statistics:", err));
+  }, []);
 
   useEffect(() => {
     if (initialUsers.length > 0) {
@@ -50,6 +67,15 @@ export function ManageUsersClient({
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "department">("name-asc");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset page when search, sort order, or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, sortBy, pageSize]);
+
   // Modal edit states
   const [editTarget, setEditTarget] = useState<UserProfile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,8 +86,13 @@ export function ManageUsersClient({
     else setIsLoading(true);
     setLoadError("");
     try {
-      const data = await getManageUsers();
-      setUsers(data);
+      const response = await getManageUsersResponse({ page: currentPage, limit: pageSize });
+      setUsers(response.data ?? []);
+      if (response.meta) {
+        setTotalItems(response.meta.total);
+      } else {
+        setTotalItems((response.data ?? []).length);
+      }
       setLastUpdatedAt(new Date());
     } catch {
       setLoadError("Unable to load user directory at this time.");
@@ -70,14 +101,19 @@ export function ManageUsersClient({
       if (options?.silent) setIsRefreshing(false);
       else setIsLoading(false);
     }
-  }, [pushToast]);
+  }, [pushToast, currentPage, pageSize]);
 
   useEffect(() => {
-    if (initialUsers.length === 0) {
-      startTransition(() => {
-        void loadUsers();
-      });
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      if (initialUsers.length > 0) {
+        return;
+      }
     }
+
+    startTransition(() => {
+      void loadUsers();
+    });
   }, [loadUsers, initialUsers.length]);
 
   // Client-side filtering & sorting
@@ -116,6 +152,9 @@ export function ManageUsersClient({
     return list;
   }, [users, search, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
   async function handleUpdateSubmit(values: ManageUserFormValues) {
     if (!editTarget) return;
     setIsSubmitting(true);
@@ -124,6 +163,9 @@ export function ManageUsersClient({
       const updated = await updateManageUser(editTarget.empid, values);
 
       setUsers((prev) =>
+        prev.map((u) => (u.empid === updated.empid ? updated : u))
+      );
+      setAllUsersForStats((prev) =>
         prev.map((u) => (u.empid === updated.empid ? updated : u))
       );
 
@@ -139,6 +181,9 @@ export function ManageUsersClient({
 
   return (
     <ManagerShell title={pageTitle} description={pageSubtitle} actions={null}>
+      {/* User Statistics Overview */}
+      {!isLoading && <UserStats users={allUsersForStats.length > 0 ? allUsersForStats : users} />}
+
       {/* Search and Filters Bar */}
       <UserSearchFilters
         search={search}
@@ -152,13 +197,25 @@ export function ManageUsersClient({
       />
 
       {/* Users Data Table */}
-      <UserTable
-        users={filteredUsers}
-        isLoading={isLoading}
-        loadError={loadError}
-        onRetry={() => void loadUsers()}
-        onEdit={setEditTarget}
-      />
+      <div className="space-y-4">
+        <UserTable
+          users={filteredUsers}
+          isLoading={isLoading}
+          loadError={loadError}
+          onRetry={() => void loadUsers()}
+          onEdit={setEditTarget}
+        />
+
+        {!isLoading && totalItems > 0 && (
+          <ManagerPagination
+            currentPage={safeCurrentPage}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
+      </div>
 
       {/* User edit modal */}
       {editTarget && (

@@ -31,17 +31,21 @@ export async function getUserProfile(init?: RequestInit): Promise<UserProfile> {
 }
 
 export async function getManageUsersResponse(
+    params?: { page?: number; limit?: number },
     init?: RequestInit,
 ): Promise<ManageUserListResponse> {
     const url = buildUrl("/manage/users", {
-        page: 1,
-        limit: 100,
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
     });
     return apiFetch<ManageUserListResponse>(url, init);
 }
 
-export async function getManageUsers(init?: RequestInit): Promise<UserProfile[]> {
-    const response = await getManageUsersResponse(init);
+export async function getManageUsers(
+    params?: { page?: number; limit?: number },
+    init?: RequestInit,
+): Promise<UserProfile[]> {
+    const response = await getManageUsersResponse(params, init);
     return response.data ?? [];
 }
 
