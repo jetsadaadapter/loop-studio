@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, Smile, Frown, Meh } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   formatAnalysisConfidence,
   getAnalysisClassificationLabel,
@@ -10,6 +11,7 @@ import {
   type AnalysisResult,
   type ScrapedComment,
 } from "../tool-job-utils";
+import { AnalysisBlockEntry } from "./visualizer/analysis-block-entry";
 import {
   RatioVisualizer,
   MultiLabelVisualizer,
@@ -33,6 +35,15 @@ export function JobAiAnalysis({
   const hasIntentPayload = hasIntentAnalysisPayload(analysis);
   const classification = getAnalysisClassificationLabel(analysis);
   const confidence = formatAnalysisConfidence(analysis.confidence_score);
+  const purchaseSignal = analysis?.purchase_intent === 'interested'
+    ? true
+    : analysis?.purchase_intent === 'disinterested' ? false : (analysis?.purchase_intent_signal as boolean | undefined);
+
+  const showClassification = !!classification;
+  const showConfidence = confidence !== null && confidence !== undefined;
+  const showPurchaseSignal = purchaseSignal === true || purchaseSignal === false;
+  const visibleBoxesCount = [showClassification, showConfidence, showPurchaseSignal].filter(Boolean).length;
+
   const dynamicBlocks = getAnalysisDisplayBlocks(
     analysis,
     schemaHintKeys,
@@ -77,10 +88,10 @@ export function JobAiAnalysis({
 
       {/* Sentiment and visualizers stacked beautifully */}
       <div className="space-y-3">
-        {hasIntentPayload && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {classification && (
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
+        {hasIntentPayload && visibleBoxesCount > 0 && (
+          <div className="flex flex-wrap gap-2.5">
+            {showClassification && (
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                   Classification
                 </p>
@@ -89,26 +100,26 @@ export function JobAiAnalysis({
                 </p>
               </div>
             )}
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                Confidence
-              </p>
-              <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                {confidence || "N/A"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                Purchase Signal
-              </p>
-              <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                {analysis.purchase_intent_signal === true
-                  ? "Yes"
-                  : analysis.purchase_intent_signal === false
-                    ? "No"
-                    : "Unknown"}
-              </p>
-            </div>
+            {showConfidence && (
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Confidence
+                </p>
+                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                  {confidence}
+                </p>
+              </div>
+            )}
+            {showPurchaseSignal && (
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Purchase Signal
+                </p>
+                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                  {purchaseSignal === true ? "Yes" : "No"}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -175,28 +186,38 @@ export function JobAiAnalysis({
                 <p className="mt-1 text-[10px] font-medium text-slate-500">
                   {block.description}
                 </p>
-                <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {block.entries.map((entry) => (
+                {/* Grid with dynamic columns layout */}
+                {(() => {
+                  const isSingleCol =
+                    block.entries.length === 1 ||
+                    block.entries.some((entry) => {
+                      const isLongVal =
+                        typeof entry.value === "string" &&
+                        (entry.value.length > 150 || entry.value.includes("\n"));
+                      return (
+                        isLongVal ||
+                        entry.valueType === "object" ||
+                        entry.valueType === "array"
+                      );
+                    });
+
+                  return (
                     <div
-                      key={`${block.id}-${entry.key}`}
-                      className="rounded-lg border border-slate-200/70 bg-white px-3 py-2.5"
-                    >
-                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        {entry.key}
-                      </p>
-                      {entry.valueType === "object" ||
-                      entry.valueType === "array" ? (
-                        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] font-sans text-slate-700 whitespace-pre-wrap wrap-break-word">
-                          {entry.value}
-                        </pre>
-                      ) : (
-                        <p className="mt-1 text-xs font-semibold text-slate-700 leading-relaxed wrap-break-word">
-                          {entry.value}
-                        </p>
+                      className={cn(
+                        "mt-2.5 grid gap-3.5",
+                        isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
                       )}
+                    >
+                      {block.entries.map((entry) => (
+                        <AnalysisBlockEntry
+                          key={`${block.id}-${entry.key}`}
+                          entry={entry}
+                          blockId={block.id}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </section>
             ))}
           </div>

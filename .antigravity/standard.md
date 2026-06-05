@@ -105,5 +105,7 @@ All UI elements, execution controls, and information grids built within this rep
   - Avoid rendering basic dashed triggers or empty boxes when a configuration list is uninitialized. Always present a clean, illustrative placeholder comprising a floating, glassmorphic icon with clear instructions and immediate call-to-actions.
 - **Technical Typography Alignment**:
   - Raw UUID hashes must never serve as primary title cards. Always render descriptive, human-readable titles (e.g. *"Apify Post Scraper"* or *"Gemini AI Analysis"*) and scale raw hashes down as inline technical label badges (e.g. `#f9ab5e1b` styled as text-xs bold tracking-wider).
+- **Typography Alignment**:
+  - Enforce UI typography using `font-sans` only. Do NOT use `font-mono` for standard UI text, numbers, metrics, or tags to maintain consistent branding.
 - **Cumulative Layout Shift (CLS) Mitigation**:
   - When fetching data asynchronously, always implement high-fidelity custom skeletons matching the exact physical layout of final components, preventing layout shifting and preserving user scroll states.

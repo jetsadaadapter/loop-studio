@@ -22,6 +22,7 @@ import {
   type AnalysisDisplayPreset,
   type AnalysisResult,
 } from "../../tool-job-utils";
+import { AnalysisBlockEntry } from "./analysis-block-entry";
 
 export interface IntentAnalysisItem {
   postUrl?: string;
@@ -122,25 +123,6 @@ function getGroupConfig(label: string, idx: number) {
   );
 }
 
-const formatEntryKey = (key: string): string => {
-  let formatted = key
-    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
-    .replace(/([a-z\d])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ");
-
-  if (!formatted.includes(" ")) {
-    formatted = formatted
-      .replace(/(post|page|summary|analysis|time|date|id|name|text|likes|shares|score|count|ratio|sentiment|intent|purchase)/gi, " $1")
-      .trim();
-  }
-
-  return formatted
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-};
-
 export function IntentAnalysisCard({
   item,
   index,
@@ -175,7 +157,12 @@ export function IntentAnalysisCard({
   const hasIntentPayload = hasIntentAnalysisPayload(analysis);
   const purchaseSignal = analysis?.purchase_intent === 'interested'
     ? true
-    : analysis?.purchase_intent === 'disinterested' ? false : analysis?.purchase_intent_signal;
+    : analysis?.purchase_intent === 'disinterested' ? false : (analysis?.purchase_intent_signal as boolean | undefined);
+
+  const showClassification = !!classification;
+  const showConfidence = confidence !== null && confidence !== undefined;
+  const showPurchaseSignal = purchaseSignal === true || purchaseSignal === false;
+  const visibleBoxesCount = [showClassification, showConfidence, showPurchaseSignal].filter(Boolean).length;
 
   const totalCount = groups.reduce((acc, g) => acc + g.count, 0);
 
@@ -409,12 +396,12 @@ export function IntentAnalysisCard({
                 </div>
               )}
 
-              {hasIntentPayload && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {classification && (
+              {hasIntentPayload && visibleBoxesCount > 0 && (
+                <div className="flex flex-wrap gap-2.5">
+                  {showClassification && (
                     <div
                       className={cn(
-                        "rounded-xl border px-3 py-2.5",
+                        "rounded-xl border px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]",
                         classificationTone,
                       )}
                     >
@@ -426,35 +413,33 @@ export function IntentAnalysisCard({
                       </p>
                     </div>
                   )}
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      Confidence
-                    </p>
-                    <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                      {confidence || "N/A"}
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      "rounded-xl border px-3 py-2.5",
-                      purchaseSignal === true
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                        : purchaseSignal === false
-                          ? "bg-slate-50 border-slate-200 text-slate-600"
-                          : "bg-amber-50 border-amber-200 text-amber-700",
-                    )}
-                  >
-                    <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                      Purchase Signal
-                    </p>
-                    <p className="mt-1 text-sm font-black leading-tight">
-                      {purchaseSignal === true
-                        ? "Yes"
-                        : purchaseSignal === false
-                          ? "No"
-                          : "Unknown"}
-                    </p>
-                  </div>
+                  {showConfidence && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                        Confidence
+                      </p>
+                      <p className="mt-1 text-sm font-black leading-tight text-slate-800">
+                        {confidence}
+                      </p>
+                    </div>
+                  )}
+                  {showPurchaseSignal && (
+                    <div
+                      className={cn(
+                        "rounded-xl border px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]",
+                        purchaseSignal === true
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                          : "bg-slate-50 border-slate-200 text-slate-600",
+                      )}
+                    >
+                      <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                        Purchase Signal
+                      </p>
+                      <p className="mt-1 text-sm font-black leading-tight">
+                        {purchaseSignal === true ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -485,31 +470,31 @@ export function IntentAnalysisCard({
 
                     const theme = isSummary
                       ? {
-                          border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
-                          bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
-                          titleColor: "text-violet-750",
-                          icon: Sparkles,
-                        }
+                        border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
+                        bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
+                        titleColor: "text-violet-750",
+                        icon: Sparkles,
+                      }
                       : isMetrics
                         ? {
-                            border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
-                            bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
-                            titleColor: "text-amber-750",
-                            icon: Activity,
-                          }
+                          border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
+                          bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
+                          titleColor: "text-amber-750",
+                          icon: Activity,
+                        }
                         : isEvidence
                           ? {
-                              border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
-                              bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
-                              titleColor: "text-emerald-750",
-                              icon: Database,
-                            }
+                            border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
+                            bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
+                            titleColor: "text-emerald-750",
+                            icon: Database,
+                          }
                           : {
-                              border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
-                              bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
-                              titleColor: "text-sky-750",
-                              icon: Info,
-                            };
+                            border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
+                            bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
+                            titleColor: "text-sky-750",
+                            icon: Info,
+                          };
 
                     const HeaderIcon = theme.icon;
 
@@ -534,45 +519,38 @@ export function IntentAnalysisCard({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          {block.entries.map((entry) => {
-                            const formattedKey = formatEntryKey(entry.key);
-                            const isLongVal = typeof entry.value === "string" && (entry.value.length > 120 || entry.value.includes("\n"));
-                            const isFullWidth = isLongVal || entry.valueType === "object" || entry.valueType === "array";
+                        {/* Grid with dynamic columns layout */}
+                        {(() => {
+                          const isSingleCol =
+                            block.entries.length === 1 ||
+                            block.entries.some((entry) => {
+                              const isLongVal =
+                                typeof entry.value === "string" &&
+                                (entry.value.length > 150 || entry.value.includes("\n"));
+                              return (
+                                isLongVal ||
+                                entry.valueType === "object" ||
+                                entry.valueType === "array"
+                              );
+                            });
 
-                            return (
-                              <div
-                                key={`${block.id}-${entry.key}`}
-                                className={cn(
-                                  "rounded-xl border border-slate-150/70 bg-white p-4 transition-all duration-200 hover:border-slate-300 hover:shadow-3xs flex flex-col justify-between gap-2.5",
-                                  isFullWidth ? "sm:col-span-2" : "col-span-1"
-                                )}
-                              >
-                                <div className="space-y-1">
-                                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 select-none">
-                                    {formattedKey}
-                                  </p>
-                                  {entry.valueType === "object" || entry.valueType === "array" ? (
-                                    <pre className="mt-1.5 max-h-56 overflow-auto rounded-xl bg-slate-950 p-4 text-[10.5px] font-mono text-slate-200 leading-relaxed border border-slate-850 shadow-inner select-text">
-                                      {entry.value}
-                                    </pre>
-                                  ) : isMetrics ? (
-                                    <p className="mt-1 text-2xl font-black text-slate-800 tracking-tight select-text leading-none py-1">
-                                      {entry.value}
-                                    </p>
-                                  ) : (
-                                    <p className={cn(
-                                      "mt-1 text-xs text-slate-700 leading-relaxed select-text wrap-break-word font-semibold",
-                                      isLongVal ? "font-normal bg-slate-50/50 p-3 rounded-lg border border-slate-100/60" : ""
-                                    )}>
-                                      {entry.value}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                          return (
+                            <div
+                              className={cn(
+                                "grid gap-3.5",
+                                isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                              )}
+                            >
+                              {block.entries.map((entry) => (
+                                <AnalysisBlockEntry
+                                  key={`${block.id}-${entry.key}`}
+                                  entry={entry}
+                                  blockId={block.id}
+                                />
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </section>
                     );
                   })}
