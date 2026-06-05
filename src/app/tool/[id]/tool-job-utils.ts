@@ -835,8 +835,13 @@ export const getJobStatus = (job: ToolJob): JobStatus => {
 };
 
 export const getItemCount = (job: ToolJob): number => {
-    if (job.result?.itemCount && job.result.itemCount > 0) return job.result.itemCount;
-    if (Array.isArray(job.result?.items) && job.result.items.length > 0) return job.result.items.length;
+    if (!job.result) return 0;
+    if (Array.isArray(job.result)) return job.result.length;
+    if (typeof job.result === "object") {
+        if (typeof job.result.itemCount === 'number' && job.result.itemCount > 0) return job.result.itemCount;
+        if (Array.isArray(job.result.items)) return job.result.items.length;
+        if (!("items" in job.result)) return 1; // Flat data (single object)
+    }
 
     const input = job.input || {};
     if (Array.isArray(input.startUrls)) return input.startUrls.length;
@@ -1022,7 +1027,18 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
 
     // If it's not a Gemini job, just return result.items or empty list
     if (pluginLower !== "gemini") {
-        const rawItems = (job.result?.items || []) as ScrapedJobItem[];
+        let rawItems: unknown[] = [];
+        if (job.result) {
+            if (Array.isArray(job.result)) {
+                rawItems = job.result;
+            } else if (typeof job.result === "object") {
+                if (Array.isArray(job.result.items)) {
+                    rawItems = job.result.items;
+                } else if (!("items" in job.result)) {
+                    rawItems = [job.result];
+                }
+            }
+        }
         const previousItems = (job.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
 
         return rawItems.map((item, idx) => {
@@ -1045,12 +1061,19 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
     }
 
     const previousItems = (job.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
-    let geminiItems: any[] = job.result?.items || [];
-    const hasFlatResult = !!(job.result && typeof job.result === "object" && !Array.isArray(job.result) && !("items" in job.result));
-
-    if (hasFlatResult && geminiItems.length === 0) {
-        geminiItems = [job.result as Record<string, unknown>];
+    let geminiItems: Record<string, unknown>[] = [];
+    if (job.result) {
+        if (Array.isArray(job.result)) {
+            geminiItems = job.result as Record<string, unknown>[];
+        } else if (typeof job.result === "object") {
+            if (Array.isArray(job.result.items)) {
+                geminiItems = job.result.items as Record<string, unknown>[];
+            } else if (!("items" in job.result)) {
+                geminiItems = [job.result as Record<string, unknown>];
+            }
+        }
     }
+    const hasFlatResult = !!(job.result && typeof job.result === "object" && !Array.isArray(job.result) && !("items" in job.result));
 
     const wrapResult = (job.config as Record<string, unknown> | undefined)?.wrapResult === true;
     const isAggregate = (job.config as Record<string, unknown> | undefined)?.mode === "aggregate";
