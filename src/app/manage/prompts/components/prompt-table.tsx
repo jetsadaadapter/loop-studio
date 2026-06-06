@@ -51,22 +51,22 @@ export function PromptTable({
   return (
     <>
       <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-        <table className="w-full caption-bottom text-xs min-w-3xl">
+        <table className="w-full caption-bottom text-xs min-w-full md:min-w-3xl">
           <thead className="[&_tr]:border-b bg-slate-50/50">
             <tr className="border-b transition-colors hover:bg-transparent">
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12 hidden xs:table-cell">
                 #
               </th>
               <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
                 Prompt Name
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40 hidden md:table-cell">
                 Persona Type
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-48">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-48 hidden md:table-cell">
                 Target Model
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
                 Visibility
               </th>
               <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
@@ -77,17 +77,23 @@ export function PromptTable({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  <td className="p-3 px-4"><div className="h-4 w-4 bg-slate-100 rounded" /></td>
+                  <td className="p-3 px-4 hidden xs:table-cell"><div className="h-4 w-4 bg-slate-100 rounded" /></td>
                   <td className="p-3">
                     <div className="space-y-1.5">
                       <div className="h-4 w-40 bg-slate-100 rounded" />
                       <div className="h-3 w-60 bg-slate-100 rounded" />
+                      {/* Mobile-only loading attributes skeleton */}
+                      <div className="flex gap-1.5 mt-1.5 md:hidden">
+                        <div className="h-3.5 w-12 bg-slate-100 rounded-sm" />
+                        <div className="h-3.5 w-16 bg-slate-100 rounded-sm" />
+                        <div className="h-3.5 w-12 bg-slate-100 rounded-sm" />
+                      </div>
                     </div>
                   </td>
-                  <td className="p-3"><div className="h-6 w-24 bg-slate-100 rounded-full" /></td>
-                  <td className="p-3"><div className="h-6 w-32 bg-slate-100 rounded-full" /></td>
-                  <td className="p-3"><div className="h-6 w-20 bg-slate-100 rounded-full" /></td>
-                  <td className="p-3"><div className="h-8 w-32 bg-slate-100 rounded" /></td>
+                  <td className="p-3 hidden md:table-cell"><div className="h-6 w-24 bg-slate-100 rounded-full" /></td>
+                  <td className="p-3 hidden md:table-cell"><div className="h-6 w-32 bg-slate-100 rounded-full" /></td>
+                  <td className="p-3 hidden md:table-cell"><div className="h-6 w-20 bg-slate-100 rounded-full" /></td>
+                  <td className="p-3 px-4 text-right"><div className="h-8 w-8 ml-auto bg-slate-100 rounded" /></td>
                 </tr>
               ))
             ) : prompts.length === 0 ? (
@@ -104,10 +110,10 @@ export function PromptTable({
                     key={row.id}
                     className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
                   >
-                    <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                    <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                       {index + 1}
                     </td>
-                    <td className="p-3 align-middle min-w-[240px]">
+                    <td className="p-3 align-middle min-w-0 sm:min-w-[240px]">
                       <div className="flex items-center gap-3">
                         <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg border shadow-3xs ${
                           row.type === "system"
@@ -116,8 +122,8 @@ export function PromptTable({
                         }`}>
                           <Sparkles className="size-4 drop-shadow-xs" />
                         </span>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-sm font-semibold text-slate-800 tracking-tight block leading-tight">
                               {row.name}
                             </span>
@@ -129,10 +135,34 @@ export function PromptTable({
                           <p className="text-[10px] text-slate-400 font-normal line-clamp-1 mt-0.5 leading-none">
                             {row.description || "No description provided."}
                           </p>
+                          {/* Mobile-only inline attributes */}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
+                            {row.type === "system" ? (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-amber-50 text-[8px] font-bold text-amber-600 border border-amber-100/30">
+                                System
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-blue-50 text-[8px] font-bold text-blue-600 border border-blue-100/30">
+                                User
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1 rounded-sm bg-slate-50 px-1.5 py-0.5 text-[8px] font-bold text-slate-600 border border-slate-200">
+                              {modelName}
+                            </span>
+                            {row.visibility === "public" ? (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-emerald-50 text-[8px] font-bold text-emerald-600 border border-emerald-100/30">
+                                Public
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-rose-50 text-[8px] font-bold text-rose-600 border border-rose-100/30">
+                                Private
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="p-3 align-middle whitespace-nowrap">
+                    <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                       {row.type === "system" ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100/50">
                           <Sparkles className="size-2.5" /> System Persona
@@ -143,7 +173,7 @@ export function PromptTable({
                         </span>
                       )}
                     </td>
-                    <td className="p-3 align-middle whitespace-nowrap">
+                    <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200">
                         <Image
                           src="/images/icons/gemini-color.svg"
@@ -155,7 +185,7 @@ export function PromptTable({
                         {modelName}
                       </span>
                     </td>
-                    <td className="p-3 align-middle whitespace-nowrap">
+                    <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                       {row.visibility === "public" ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 border border-emerald-100/50">
                           <Globe className="size-2.5" /> Public

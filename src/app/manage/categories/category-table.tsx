@@ -26,7 +26,7 @@ function CategoryTableSkeletonRows() {
       {Array.from({ length: 5 }).map((_, i) => (
         <tr key={`skeleton-row-${i}`} className="animate-pulse border-b last:border-0">
           {/* # */}
-          <td className="p-3 px-4 align-middle whitespace-nowrap">
+          <td className="p-3 px-4 align-middle whitespace-nowrap hidden xs:table-cell">
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
 
@@ -37,17 +37,22 @@ function CategoryTableSkeletonRows() {
               <div className="min-w-0 space-y-1.5 flex-1">
                 <div className="h-3.5 w-24 bg-slate-100 rounded" />
                 <div className="h-2.5 w-16 bg-slate-100 rounded" />
+                {/* Mobile-only timestamps skeleton */}
+                <div className="flex gap-1.5 mt-1.5 md:hidden">
+                  <div className="h-3.5 w-16 bg-slate-100 rounded-sm" />
+                  <div className="h-3.5 w-16 bg-slate-100 rounded-sm" />
+                </div>
               </div>
             </div>
           </td>
 
           {/* Created */}
-          <td className="p-3 align-middle whitespace-nowrap">
+          <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
 
           {/* Updated */}
-          <td className="p-3 align-middle whitespace-nowrap">
+          <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
 
@@ -74,19 +79,19 @@ export function CategoryTable({
 }: CategoryTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-      <table className="w-full caption-bottom text-xs min-w-2xl">
+      <table className="w-full caption-bottom text-xs min-w-full md:min-w-2xl">
         <thead className="[&_tr]:border-b bg-slate-50/50">
           <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10 hidden xs:table-cell">
               #
             </th>
             <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
               Category Name
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40 hidden md:table-cell">
               Created
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40 hidden md:table-cell">
               Updated
             </th>
             <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12"></th>
@@ -143,7 +148,7 @@ export function CategoryTable({
                 className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
               >
                 {/* # */}
-                <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                   {index + 1}
                 </td>
 
@@ -160,17 +165,23 @@ export function CategoryTable({
                       <span className="text-[10px] font-sans text-slate-400 block mt-0.5 leading-none">
                         #{cat.id.slice(0, 8)}
                       </span>
+                      {/* Mobile-only timestamps */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden text-[9px] text-slate-400 font-sans">
+                        <span>Created: {formatDate(cat.createdAt)}</span>
+                        <span>•</span>
+                        <span>Updated: {formatDate(cat.updatedAt)}</span>
+                      </div>
                     </div>
                   </div>
                 </td>
 
                 {/* Created */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500">
+                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                   {formatDate(cat.createdAt)}
                 </td>
 
                 {/* Updated */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500">
+                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                   {formatDate(cat.updatedAt)}
                 </td>
 

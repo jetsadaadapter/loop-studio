@@ -236,7 +236,7 @@ function ManageSidebarFooter() {
 
 export function ManageSidebarNav() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
@@ -309,6 +309,12 @@ export function ManageSidebarNav() {
       cancelled = true;
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (isMobile && setOpenMobile) {
+      setOpenMobile(false);
+    }
+  }, [pathname, isMobile, setOpenMobile]);
 
   const isCollapsed = state === "collapsed";
 

@@ -62,7 +62,7 @@ function TagTableSkeletonRows() {
     <>
       {Array.from({ length: 6 }).map((_, i) => (
         <tr key={`skeleton-row-${i}`} className="animate-pulse">
-          <td className="p-3 px-4">
+          <td className="p-3 px-4 hidden xs:table-cell">
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
           <td className="p-3">
@@ -71,16 +71,21 @@ function TagTableSkeletonRows() {
               <div className="min-w-0 space-y-1.5 flex-1">
                 <div className="h-3.5 w-32 bg-slate-100 rounded" />
                 <div className="h-2.5 w-16 bg-slate-100 rounded" />
+                {/* Mobile-only attributes skeletons */}
+                <div className="flex gap-1.5 mt-1.5 md:hidden">
+                  <div className="h-3.5 w-12 bg-slate-100 rounded-sm" />
+                  <div className="h-3.5 w-16 bg-slate-100 rounded-sm" />
+                </div>
               </div>
             </div>
           </td>
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="h-5.5 w-20 bg-slate-100 rounded-full" />
           </td>
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
           <td className="p-3 pr-4">
@@ -364,22 +369,22 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
 
       {/* Table */}
       <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-        <table className="w-full caption-bottom text-xs min-w-2xl">
+        <table className="w-full caption-bottom text-xs min-w-full md:min-w-2xl">
           <thead className="[&_tr]:border-b bg-slate-50/50">
             <tr className="border-b transition-colors hover:bg-transparent">
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10 hidden xs:table-cell">
                 #
               </th>
               <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
                 Tag Name
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-32">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-32 hidden md:table-cell">
                 Color
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
                 Created
               </th>
-              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+              <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
                 Updated
               </th>
               <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12"></th>
@@ -444,7 +449,7 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
                     className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
                   >
                     {/* # */}
-                    <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                    <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                       {index + 1}
                     </td>
 
@@ -464,12 +469,34 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
                           <span className="text-[10px] font-sans text-slate-400 block mt-0.5 leading-none">
                             #{tag.id.slice(0, 8)}
                           </span>
+                          {/* Mobile-only inline attributes */}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
+                            {tagColor ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[8px] font-bold border"
+                                style={{
+                                  backgroundColor: `${tagColor}18`,
+                                  color: tagColor,
+                                  borderColor: `${tagColor}30`,
+                                }}
+                              >
+                                {tag.color.toUpperCase()}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-slate-50 text-[8px] font-bold text-slate-400 border border-slate-200/60">
+                                No color
+                              </span>
+                            )}
+                            <span className="text-[9px] text-slate-400 font-sans">
+                              Created: {formatDate(tag.createdAt)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </td>
 
                     {/* Color badge */}
-                    <td className="p-3 align-middle whitespace-nowrap">
+                    <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                       {tagColor ? (
                         <span
                           className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold border"
@@ -493,12 +520,12 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
                     </td>
 
                     {/* Created */}
-                    <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500">
+                    <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                       {formatDate(tag.createdAt)}
                     </td>
 
                     {/* Updated */}
-                    <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500">
+                    <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                       {formatDate(tag.updatedAt)}
                     </td>
 

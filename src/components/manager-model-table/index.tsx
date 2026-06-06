@@ -91,19 +91,19 @@ export function ManagerModelTable({
 }: ManagerModelTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-      <table className="w-full caption-bottom text-xs min-w-3xl">
+      <table className="w-full caption-bottom text-xs min-w-full md:min-w-3xl">
         <thead className="[&_tr]:border-b bg-slate-50/50">
           <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12 hidden xs:table-cell">
               #
             </th>
             <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
               Model Name
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-40 hidden md:table-cell">
               Provider
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
               Status
             </th>
             <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
@@ -114,7 +114,7 @@ export function ManagerModelTable({
           {isLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
               <tr key={i} className="animate-pulse">
-                <td className="p-3 px-4">
+                <td className="p-3 px-4 hidden xs:table-cell">
                   <Skeleton className="h-4 w-4 rounded" />
                 </td>
                 <td className="p-3">
@@ -123,13 +123,18 @@ export function ManagerModelTable({
                     <div className="space-y-1">
                       <Skeleton className="h-4 w-32" />
                       <Skeleton className="h-3 w-20" />
+                      {/* Mobile-only attributes skeletons */}
+                      <div className="flex gap-1.5 mt-1.5 md:hidden">
+                        <Skeleton className="h-3.5 w-12 rounded-sm" />
+                        <Skeleton className="h-3.5 w-14 rounded-sm" />
+                      </div>
                     </div>
                   </div>
                 </td>
-                <td className="p-3">
+                <td className="p-3 hidden md:table-cell">
                   <Skeleton className="h-6 w-20 rounded-full" />
                 </td>
-                <td className="p-3">
+                <td className="p-3 hidden md:table-cell">
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-2 w-2 rounded-full" />
                     <Skeleton className="h-4 w-16" />
@@ -184,7 +189,7 @@ export function ManagerModelTable({
                   key={row.id}
                   className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
                 >
-                  <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                  <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                     {index + 1}
                   </td>
                   <td className="p-3 align-middle min-w-[240px]">
@@ -199,7 +204,7 @@ export function ManagerModelTable({
                           <Brain className="size-4.5 text-indigo-500" aria-hidden="true" />
                         )}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-semibold text-slate-800 tracking-tight truncate">
                             {row.name}
@@ -213,15 +218,33 @@ export function ManagerModelTable({
                         <p className="text-xs text-slate-400 font-sans truncate mt-0.5">
                           {row.modelSlug}
                         </p>
+                        {/* Mobile-only inline attributes */}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-slate-50 text-[8px] font-bold text-slate-700 border border-slate-200">
+                            {row.provider}
+                          </span>
+                          <span
+                            className={`inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${row.isActive
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-slate-150 text-slate-500 border border-slate-200"
+                              }`}
+                          >
+                            <span
+                              className={`size-1 rounded-full ${row.isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}
+                              aria-hidden
+                            />
+                            {row.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 align-middle whitespace-nowrap">
+                  <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-50 text-[10px] font-bold text-slate-700 border border-slate-200">
                       {row.provider}
                     </span>
                   </td>
-                  <td className="p-3 align-middle whitespace-nowrap">
+                  <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
                     <span
                       className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${row.isActive
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"

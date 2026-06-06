@@ -10,7 +10,7 @@ interface OutputOverviewTableProps {
 
 export function OutputOverviewTable({ items, startIndex }: OutputOverviewTableProps) {
   return (
-    <div className="min-w-full inline-block align-middle">
+    <div className="min-w-full inline-block align-middle overflow-x-auto bg-white">
       <table className="min-w-full divide-y divide-slate-100 border-b border-slate-200">
         <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10.5px] font-bold text-slate-500 tracking-wider uppercase border-b border-slate-200">
           <tr>

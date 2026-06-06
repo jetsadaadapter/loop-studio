@@ -62,7 +62,7 @@ function UserTableSkeletonRows() {
       {Array.from({ length: 5 }).map((_, i) => (
         <tr key={`skeleton-user-row-${i}`} className="animate-pulse">
           {/* # */}
-          <td className="p-3 px-4">
+          <td className="p-3 px-4 hidden xs:table-cell">
             <div className="h-4 w-4 bg-slate-100 rounded" />
           </td>
           {/* User Profile */}
@@ -72,29 +72,35 @@ function UserTableSkeletonRows() {
               <div className="space-y-1.5 min-w-0 flex-1">
                 <div className="h-3.5 w-32 bg-slate-100 rounded" />
                 <div className="h-2.5 w-40 bg-slate-100 rounded" />
+                {/* Mobile-only attributes skeletons */}
+                <div className="flex flex-wrap gap-1.5 mt-1.5 md:hidden">
+                  <div className="h-3.5 w-12 bg-slate-100 rounded-sm" />
+                  <div className="h-3.5 w-24 bg-slate-100 rounded-sm" />
+                  <div className="h-3.5 w-16 bg-slate-100 rounded-sm" />
+                </div>
               </div>
             </div>
           </td>
           {/* Employee ID */}
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="h-3.5 w-16 bg-slate-100 rounded" />
           </td>
           {/* Department / Position */}
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="space-y-1.5">
               <div className="h-3.5 w-28 bg-slate-100 rounded" />
               <div className="h-2.5 w-20 bg-slate-100 rounded" />
             </div>
           </td>
           {/* Security Roles */}
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="flex gap-1.5">
               <div className="h-5 w-16 bg-slate-100 rounded-full" />
               <div className="h-5 w-14 bg-slate-100 rounded-full" />
             </div>
           </td>
           {/* Last Updated */}
-          <td className="p-3">
+          <td className="p-3 hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
           </td>
           {/* Actions */}
@@ -118,25 +124,25 @@ export function UserTable({
 }: UserTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-      <table className="w-full caption-bottom text-xs min-w-4xl">
+      <table className="w-full caption-bottom text-xs min-w-full md:min-w-4xl">
         <thead className="[&_tr]:border-b bg-slate-50/50">
           <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10 hidden xs:table-cell">
               #
             </th>
             <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
               User Profile
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
               Employee ID
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-48">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-48 hidden md:table-cell">
               Department / Position
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-44">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-44 hidden md:table-cell">
               Security Roles
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
               Last Updated
             </th>
             <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12"></th>
@@ -186,7 +192,7 @@ export function UserTable({
                 className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
               >
                 {/* # */}
-                <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400">
+                <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                   {index + 1}
                 </td>
 
@@ -196,24 +202,50 @@ export function UserTable({
                     <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold shadow-3xs ${getAvatarBgColor(user.empid)}`}>
                       {getInitials(user.firstName, user.lastName)}
                     </span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <span className="text-sm font-semibold text-slate-800 tracking-tight block leading-tight">
                         {user.firstName} {user.lastName}
                       </span>
                       <span className="text-[10px] font-sans text-slate-400 block mt-0.5 leading-none">
                         {user.email}
                       </span>
+                      {/* Mobile-only inline attributes */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
+                        <span className="inline-flex items-center rounded-sm bg-slate-50 px-1.5 py-0.5 text-[8px] font-bold text-slate-600 border border-slate-200">
+                          ID: {user.empid}
+                        </span>
+                        {(user.department || user.position) && (
+                          <span className="inline-flex items-center rounded-sm bg-slate-50 px-1.5 py-0.5 text-[8px] font-bold text-slate-600 border border-slate-200">
+                            {[user.department, user.position].filter(Boolean).join(" / ")}
+                          </span>
+                        )}
+                        {user.roles && user.roles.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.map((role) => (
+                              <span
+                                key={role}
+                                className={`inline-flex items-center rounded-full border px-1.5 py-0.2 text-[7px] font-bold uppercase tracking-wider ${getRoleBadgeStyle(role)}`}
+                              >
+                                {role}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <span className="text-[9px] text-slate-400 font-sans ml-auto">
+                          Updated: {formatDate(user.updatedAt)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </td>
 
                 {/* Emp ID */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs font-sans text-slate-500">
+                <td className="p-3 align-middle whitespace-nowrap text-xs font-sans text-slate-500 hidden md:table-cell">
                   {user.empid}
                 </td>
 
                 {/* Dept / Pos */}
-                <td className="p-3 align-middle min-w-[160px]">
+                <td className="p-3 align-middle min-w-[160px] hidden md:table-cell">
                   <span className="text-xs font-semibold text-slate-700 block leading-tight">
                     {user.department}
                   </span>
@@ -223,7 +255,7 @@ export function UserTable({
                 </td>
 
                 {/* Roles */}
-                <td className="p-3 align-middle">
+                <td className="p-3 align-middle hidden md:table-cell">
                   <div className="flex flex-wrap gap-1">
                     {user.roles && user.roles.length > 0 ? (
                       user.roles.map((role) => (
@@ -241,7 +273,7 @@ export function UserTable({
                 </td>
 
                 {/* Updated */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500">
+                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                   {formatDate(user.updatedAt)}
                 </td>
 
