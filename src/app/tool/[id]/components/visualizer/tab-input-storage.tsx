@@ -51,9 +51,15 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
   const hasStartUrls = normalizedStartUrls.length > 0;
 
   const inputEntries = Object.entries(job.input || {}).filter(
-    ([key]) => key.toLowerCase() !== "prompt" && key.toLowerCase() !== "starturls" && key.toLowerCase() !== "_preprocessconfig"
+    ([key, val]) => 
+      key.toLowerCase() !== "prompt" && 
+      key.toLowerCase() !== "starturls" && 
+      key.toLowerCase() !== "_preprocessconfig" &&
+      val !== undefined && 
+      val !== null && 
+      val !== ""
   );
-  const hasScalarInputs = inputEntries.some(([, val]) => typeof val !== "object" && val !== undefined && val !== null);
+  const hasScalarInputs = inputEntries.some(([, val]) => typeof val !== "object");
 
   const hasAnyInput = hasScalarInputs || hasInputPrompt || hasStartUrls;
 
@@ -95,6 +101,138 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
 
       return `<span class="${cls}">${match}</span>`;
     });
+  };
+
+  const isApify = Boolean(job.plugin?.toLowerCase().includes("apify"));
+
+  const scalarConfigEntries = configEntries.filter(
+    ([key, val]) => 
+      typeof val !== "object" && 
+      val !== undefined && 
+      val !== null && 
+      val !== "" && 
+      key.toLowerCase() !== "prompt"
+  );
+  const promptConfigEntry = configEntries.find(([key]) => key.toLowerCase() === "prompt");
+  const hasPromptConfig = promptConfigEntry && typeof promptConfigEntry[1] === "string" && !!promptConfigEntry[1];
+  const hasRenderableConfig = scalarConfigEntries.length > 0 || !!hasPromptConfig;
+
+  const renderScalarValue = (key: string, val: unknown) => {
+    if (val === undefined || val === null || val === "") return null;
+    if (typeof val === "object") return null;
+
+    const valStr = typeof val === "boolean" ? String(val) : String(val);
+    const isUrl = valStr.startsWith("http://") || valStr.startsWith("https://");
+    const isLongText = valStr.length > 80 || valStr.includes("\n");
+    
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(valStr);
+    const isTechnicalId = isUuid || 
+      key.toLowerCase().includes("id") || 
+      key.toLowerCase().includes("guid") || 
+      key.toLowerCase().includes("token") || 
+      key.toLowerCase().includes("key");
+
+    const useFullWidth = isLongText || (isUrl && valStr.length > 40);
+
+    return (
+      <div 
+        key={`field-${key}`}
+        className={cn("min-w-0", useFullWidth ? "col-span-full" : "col-span-1")}
+      >
+        <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
+        {isUrl ? (
+          <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/url-input">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
+              {valStr}
+            </span>
+            <div className="flex items-center gap-1 shrink-0">
+              <a
+                href={valStr}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-650 transition-all cursor-pointer shadow-3xs active:scale-90"
+                title="Open link in new window"
+              >
+                <ExternalLink className="size-3.5" />
+              </a>
+              <button
+                onClick={() => handleCopyKey(valStr, key)}
+                className={cn(
+                  "p-1 rounded-lg border text-xs transition-all active:scale-90 cursor-pointer shadow-3xs",
+                  copiedKey === key
+                    ? "bg-emerald-50 border-emerald-250 text-emerald-700"
+                    : "bg-white border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-655"
+                )}
+                title="Copy to clipboard"
+                type="button"
+              >
+                {copiedKey === key ? (
+                  <Check className="size-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
+              </button>
+            </div>
+          </div>
+        ) : isLongText ? (
+          <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
+            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-20">
+              {valStr}
+            </pre>
+            <button
+              onClick={() => handleCopyKey(valStr, key)}
+              className={cn(
+                "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
+                copiedKey === key
+                  ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
+                  : "bg-white border-slate-250 hover:bg-slate-50 text-slate-650 hover:text-slate-800"
+              )}
+              type="button"
+              title="Copy to clipboard"
+            >
+              {copiedKey === key ? (
+                <>
+                  <Check className="size-3 text-emerald-600" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3 text-slate-400" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
+        ) : isTechnicalId ? (
+          <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/short-input">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
+              {valStr}
+            </span>
+            <button
+              onClick={() => handleCopyKey(valStr, key)}
+              className={cn(
+                "p-1 rounded-lg border text-xs transition-all active:scale-90 cursor-pointer shadow-3xs shrink-0",
+                copiedKey === key
+                  ? "bg-emerald-50 border-emerald-250 text-emerald-700"
+                  : "bg-white border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-655"
+              )}
+              title="Copy to clipboard"
+              type="button"
+            >
+              {copiedKey === key ? (
+                <Check className="size-3.5 text-emerald-600" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
+            </button>
+          </div>
+        ) : (
+          <span className="text-xs font-normal text-slate-700 mt-1.5 block leading-relaxed whitespace-pre-wrap wrap-break-word">
+            {valStr}
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -164,53 +302,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
 
                 {hasScalarInputs && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {inputEntries.map(([key, val]) => {
-                      if (typeof val === "object") return null; // skip startUrls and complex arrays
-                      const valStr = typeof val === "boolean" ? String(val) : String(val || "-");
-                      const isLongText = valStr.length > 80 || valStr.includes("\n");
-                      return (
-                        <div 
-                          key={`input-${key}`}
-                          className={cn("min-w-0", isLongText && "col-span-full")}
-                        >
-                          <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
-                          {isLongText ? (
-                            <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
-                              <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-20">
-                                {valStr}
-                              </pre>
-                              <button
-                                onClick={() => handleCopyKey(valStr, key)}
-                                className={cn(
-                                  "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
-                                  copiedKey === key
-                                    ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
-                                    : "bg-white border-slate-250 hover:bg-slate-50 text-slate-650 hover:text-slate-800"
-                                )}
-                                type="button"
-                                title="Copy to clipboard"
-                              >
-                                {copiedKey === key ? (
-                                  <>
-                                    <Check className="size-3 text-emerald-600" />
-                                    <span>Copied</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="size-3 text-slate-400" />
-                                    <span>Copy</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap wrap-break-word">
-                              {valStr}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
+                    {inputEntries.map(([key, val]) => renderScalarValue(key, val))}
                   </div>
                 )}
 
@@ -307,63 +399,17 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
             )}
 
             {/* Section: Actor Configuration */}
-            {configEntries.length > 0 && (
+            {hasRenderableConfig && (
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-xs space-y-4">
                 <h3 className="text-xs font-bold text-slate-750 flex items-center gap-2 uppercase tracking-wider">
                   <Settings className="size-4 text-purple-650" />
-                  <span>Actor Engine Settings</span>
+                  <span>{isApify ? "Actor Engine Settings" : "Settings"}</span>
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {configEntries.map(([key, val]) => {
-                    if (typeof val === "object") return null;
-                    if (key.toLowerCase() === "prompt") return null; // skip prompt from top grid
-                    const valStr = String(val || "-");
-                    const isLongText = valStr.length > 80 || valStr.includes("\n");
-
-                    return (
-                      <div 
-                        key={`config-${key}`}
-                        className={cn("min-w-0", isLongText && "col-span-full")}
-                      >
-                        <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
-                        {isLongText ? (
-                          <div className="relative group/long-config mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
-                            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-20">
-                              {valStr}
-                            </pre>
-                            <button
-                              onClick={() => handleCopyKey(valStr, key)}
-                              className={cn(
-                                "absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all active:scale-95 cursor-pointer shadow-xs",
-                                copiedKey === key
-                                  ? "bg-emerald-50 border-emerald-250 text-emerald-700 font-extrabold"
-                                  : "bg-white border-slate-250 hover:bg-slate-50 text-slate-655 hover:text-slate-800"
-                              )}
-                              type="button"
-                              title="Copy to clipboard"
-                            >
-                              {copiedKey === key ? (
-                                <>
-                                  <Check className="size-3 text-emerald-600" />
-                                  <span>Copied</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="size-3 text-slate-400" />
-                                  <span>Copy</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs font-normal text-slate-700 mt-1 block leading-relaxed whitespace-pre-wrap wrap-break-word">
-                            {valStr}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                {scalarConfigEntries.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {scalarConfigEntries.map(([key, val]) => renderScalarValue(key, val))}
+                  </div>
+                )}
 
                 {/* Prompt specialized bottom copy box */}
                 {(() => {

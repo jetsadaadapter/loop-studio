@@ -39,33 +39,51 @@ export function RunConsoleSkeleton() {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 space-y-2.5"
+            className="w-full border-b border-slate-100 last:border-b-0 pb-2 space-y-1"
           >
-            {/* Card header row */}
-            <div className="flex items-center gap-2">
-              <div className="size-6 rounded-full bg-slate-200 shrink-0" />
-              <div className="h-3.5 w-1/3 rounded-full bg-slate-200" />
-              <div className="h-3 w-10 rounded-md bg-slate-100 ml-auto" />
+            {/* Primary Comment Skeleton */}
+            <div className="flex gap-2.5 py-2">
+              <div className="size-8 rounded-full bg-slate-200 shrink-0" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-28 rounded bg-slate-200" />
+                  <div className="h-2.5 w-16 rounded bg-slate-100" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-3 w-full rounded bg-slate-100" />
+                  <div className="h-3 w-4/5 rounded bg-slate-100" />
+                </div>
+                <div className="flex items-center gap-3.5 pt-1">
+                  <div className="h-3.5 w-8 rounded bg-slate-100" />
+                  <div className="h-3.5 w-8 rounded bg-slate-100" />
+                  <div className="h-3.5 w-10 rounded bg-slate-100" />
+                </div>
+              </div>
             </div>
 
-            {/* Text lines */}
-            <div className="space-y-1.5 pl-8">
-              <div className="h-3 w-full rounded-full bg-slate-100" />
-              <div className="h-3 w-5/6 rounded-full bg-slate-100" />
-              <div className="h-3 w-3/5 rounded-full bg-slate-100" />
-            </div>
-
-            {/* Media block for first card */}
+            {/* Nested Reply Skeleton */}
             {i === 1 && (
-              <div className="h-28 rounded-lg bg-slate-200 -mx-0.5 mt-1" />
+              <div className="relative pl-[42px] mt-1 space-y-1 pb-1">
+                <div className="absolute left-[16px] top-0 bottom-6 w-0.5 bg-slate-150 rounded-full" />
+                <div className="absolute -left-[26px] top-5 w-[26px] h-0.5 bg-slate-150" />
+                
+                <div className="flex gap-2.5 py-1.5">
+                  <div className="size-7 rounded-full bg-slate-200 shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-20 rounded bg-slate-200" />
+                      <div className="h-2.5 w-12 rounded bg-slate-100" />
+                    </div>
+                    <div className="h-3 w-3/4 rounded bg-slate-100" />
+                    <div className="flex items-center gap-3.5 pt-1">
+                      <div className="h-3.5 w-8 rounded bg-slate-100" />
+                      <div className="h-3.5 w-8 rounded bg-slate-100" />
+                      <div className="h-3.5 w-10 rounded bg-slate-100" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-
-            {/* Stats row */}
-            <div className="flex items-center gap-4 pt-2 border-t border-slate-100/80">
-              <div className="h-2.5 w-10 rounded-full bg-slate-100" />
-              <div className="h-2.5 w-10 rounded-full bg-slate-100" />
-              <div className="h-2.5 w-10 rounded-full bg-slate-100" />
-            </div>
           </div>
         ))}
       </div>

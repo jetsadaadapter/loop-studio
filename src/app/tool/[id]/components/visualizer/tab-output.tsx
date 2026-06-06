@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Table2, FileCode, Sparkles } from "lucide-react";
-import Markdown from "react-markdown";
+import { Table2, FileCode } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import {
   getAnalysisDisplayPresetForJob,
@@ -14,15 +13,16 @@ import {
   isPurchaseIntentAnalysis,
 } from "../../tool-job-utils";
 import { TabJsonView } from "./tab-json-view";
-import { OutputCell, getHeaderLabel } from "./cell-renderer";
 import { TablePagination } from "./table-pagination";
-import { OutputOverviewTable } from "./output-overview-table";
-import { CommentThreadCard, type CommentItem } from "./comment-thread-card";
 import {
-  IntentAnalysisCard,
-  type IntentAnalysisItem,
-} from "./intent-analysis-card";
-import { IntentAnalysisSummary } from "./intent-analysis-summary";
+  parseSingleTextSummary,
+  getAllKeys,
+  isCommentScraperItem,
+  normalizeCommentItem,
+} from "./tab-output-helpers";
+import { ExecutionSummarySection } from "./execution-summary-section";
+import { TabOutputOverview } from "./tab-output-overview";
+import { AllFieldsTable } from "./all-fields-table";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -36,84 +36,49 @@ export function TabOutput({ job }: TabOutputProps) {
   const [pageSize, setPageSize] = useState(50);
   const [activeSummaryTab, setActiveSummaryTab] = useState(0);
 
-  const items = getMergedGeminiItems(job);
+  const rawItems = getMergedGeminiItems(job);
 
-  const firstItem = items[0] as Record<string, unknown> | undefined;
-  const summaryCandidateKeys = [
-    "text",
-    "summary",
-    "message",
-    "result",
-    "output",
-    "content",
-    "response",
-  ];
-  const textKey = firstItem
-    ? summaryCandidateKeys.find(
-        (key) =>
-          typeof firstItem[key] === "string" &&
-          (firstItem[key] as string).trim().length > 0,
+  const isCommentScraper = rawItems.some(isCommentScraperItem);
+  const isExportCommentsJob = rawItems.some((item) => {
+    const raw = item as Record<string, unknown>;
+    return (
+      Array.isArray(raw.ecGuids) ||
+      Boolean(
+        job.plugin &&
+        job.plugin.toLowerCase().includes("exportcomments") &&
+        !isCommentScraper
       )
-    : undefined;
-  const singleTextValue = textKey ? (firstItem?.[textKey] as string) : "";
-
-  const excludedKeys = [
-    "sourceIndex",
-    "sourceKey",
-    "sourceKeyValue",
-    "analysis",
-    "id",
-    "_id",
-    "createdAt",
-    "updatedAt",
-    "jobId",
-    "postId",
-    "url",
-    "facebookUrl",
-    "postUrl",
-    "permalink_url",
-    "inputUrl",
-    "time",
-    "timestamp",
-    ...summaryCandidateKeys,
-  ];
-
-  const remainingKeys = firstItem
-    ? Object.keys(firstItem).filter((key) => {
-        if (excludedKeys.includes(key)) return false;
-        const val = firstItem[key];
-        if (val === null || val === undefined || val === "") return false;
-        return true;
-      })
-    : [];
-
-  const isSingleTextSummary =
-    items.length === 1 &&
-    textKey !== undefined &&
-    typeof singleTextValue === "string" &&
-    singleTextValue.trim().length > 0 &&
-    remainingKeys.length === 0;
-
-  // Split summary if a separator exists
-  const summaryParts = isSingleTextSummary && singleTextValue.includes("|")
-    ? singleTextValue.split("|").map((part) => part.trim()).filter(Boolean)
-    : [];
-
-  const hasMultipleSummaryTabs = summaryParts.length > 1;
-
-  const summaryTabLabels = summaryParts.map((text) => {
-    const hasThai = /[\u0e00-\u0e7f]/.test(text);
-    return hasThai ? "Thai" : "English";
+    );
   });
 
-  const uniqueSummaryTabLabels = summaryTabLabels.map((label, idx) => {
-    const count = summaryTabLabels.filter((l, i) => l === label && i <= idx).length;
-    const total = summaryTabLabels.filter((l) => l === label).length;
-    if (total > 1) {
-      return `${label} ${count}`;
-    }
-    return label;
-  });
+  const isExportCommentsFetchJob = Boolean(
+    job.plugin &&
+    job.plugin.toLowerCase().includes("exportcomments") &&
+    isCommentScraper
+  );
+
+  const isGeminiSummaryJob = Boolean(
+    job.plugin &&
+    job.plugin.toLowerCase().includes("gemini") &&
+    !(
+      job.result &&
+      (Array.isArray(job.result) ||
+        (typeof job.result === "object" &&
+          ("items" in job.result || "itemCount" in job.result)))
+    )
+  );
+
+  const items = isCommentScraper
+    ? (rawItems.map((item) => normalizeCommentItem(item as Record<string, unknown>)) as unknown as ScrapedJobItem[])
+    : rawItems;
+
+  const {
+    isSingleTextSummary,
+    singleTextValue,
+    summaryParts,
+    hasMultipleSummaryTabs,
+    uniqueSummaryTabLabels,
+  } = parseSingleTextSummary(items);
 
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
@@ -140,11 +105,7 @@ export function TabOutput({ job }: TabOutputProps) {
     );
   }
 
-  const isCommentScraper = items.some(
-    (item) =>
-      (item as Record<string, unknown>).commentId ||
-      (item as Record<string, unknown>).profileName,
-  );
+
   const hasAnyAnalysis = items.some((item) => {
     const a = (item as Record<string, unknown>).analysis as
       | Record<string, unknown>
@@ -204,156 +165,7 @@ export function TabOutput({ job }: TabOutputProps) {
     setCurrentPage(1);
   };
 
-  // Collect all unique keys for "All Fields"
-  // Filter out analysis object and keys whose values contain nested objects/arrays (not primitive data)
-  const baseKeys = Array.from(
-    new Set(items.flatMap((item) => Object.keys(item))),
-  ).filter((k) => {
-    if (k === "analysis") return false; // Filter out analysis object to keep table clean
-    if (k === "media") return true; // Explicitly preserve media because we have a premium interactive popover for it
-
-    // Show only primitive fields that are NOT object/array children (null counts as primitive)
-    return !items.some((item) => {
-      const val = (item as Record<string, unknown>)[k];
-      return val !== null && typeof val === "object";
-    });
-  });
-
-  // Inject AI analysis columns if at least one item has AI analysis results
-  const hasAnalysis = items.some((item) => item.analysis);
-  const analysisKeys = Array.from(
-    new Set(
-      items.flatMap((item) => {
-        const analysis = (item as Record<string, unknown>).analysis as
-          | Record<string, unknown>
-          | undefined;
-        if (!analysis || typeof analysis !== "object") return [];
-        return Object.keys(analysis).filter((key) => {
-          const value = analysis[key];
-          if (value === null || value === undefined) return false;
-          if (Array.isArray(value)) return true;
-          if (typeof value === "object") {
-            return schemaHintKeys.includes(key.toLowerCase());
-          }
-          return true;
-        });
-      }),
-    ),
-  );
-
-  const prioritizedAnalysisKeys = [
-    "classification",
-    "confidence_score",
-    "purchase_intent_signal",
-    "sentiment",
-    "summary_of_intent",
-    "summary",
-    "keywords",
-  ];
-
-  const orderedAnalysisKeys = [
-    ...prioritizedAnalysisKeys.filter((key) => analysisKeys.includes(key)),
-    ...schemaHintKeys.filter(
-      (key) =>
-        analysisKeys.includes(key) && !prioritizedAnalysisKeys.includes(key),
-    ),
-    ...analysisKeys.filter(
-      (key) =>
-        !prioritizedAnalysisKeys.includes(key) && !schemaHintKeys.includes(key),
-    ),
-  ];
-
-  const allKeys = Array.from(
-    new Set(
-      hasAnalysis
-        ? [
-            ...baseKeys.filter(
-              (k) =>
-                k !== "likes" &&
-                k !== "likesCount" &&
-                k !== "comments" &&
-                k !== "commentsCount" &&
-                k !== "shares",
-            ),
-            ...orderedAnalysisKeys,
-            ...baseKeys.filter(
-              (k) =>
-                k === "likes" ||
-                k === "likesCount" ||
-                k === "comments" ||
-                k === "commentsCount" ||
-                k === "shares",
-            ),
-          ]
-        : baseKeys
-    )
-  );
-
-  const getValue = (item: ScrapedJobItem, key: string) => {
-    const rawItem = item as Record<string, unknown>;
-    if (rawItem[key] !== undefined) return rawItem[key];
-
-    const analysis = rawItem.analysis as Record<string, unknown> | undefined;
-    if (analysis && analysis[key] !== undefined) return analysis[key];
-
-    return rawItem[key];
-  };
-
-  const isLongTextKey = (key: string) => {
-    const normalized = key.toLowerCase();
-    return (
-      normalized === "text" ||
-      normalized === "summary" ||
-      normalized === "summary_of_intent" ||
-      normalized === "caption" ||
-      normalized === "message" ||
-      normalized === "posttitle" ||
-      normalized === "previewtitle" ||
-      normalized === "previewdescription"
-    );
-  };
-
-  const isUrlKey = (key: string) => {
-    const normalized = key.toLowerCase();
-    return (
-      normalized === "url" ||
-      normalized === "facebookurl" ||
-      normalized === "commenturl" ||
-      normalized === "inputurl" ||
-      normalized === "posturl" ||
-      normalized === "permalink_url"
-    );
-  };
-
-  const isCompactMetaKey = (key: string) => {
-    const normalized = key.toLowerCase();
-    return (
-      normalized === "classification" ||
-      normalized === "sentiment" ||
-      normalized === "confidence_score" ||
-      normalized === "purchase_intent_signal" ||
-      normalized === "likes" ||
-      normalized === "likescount" ||
-      normalized === "comments" ||
-      normalized === "commentscount" ||
-      normalized === "shares" ||
-      normalized === "viewscount"
-    );
-  };
-
-  const getHeaderColClass = (key: string) => {
-    if (isLongTextKey(key)) return "min-w-72";
-    if (isUrlKey(key)) return "min-w-56";
-    if (key.toLowerCase() === "keywords") return "min-w-44";
-    if (isCompactMetaKey(key)) return "min-w-36";
-    return "min-w-36";
-  };
-
-  const getCellColClass = (key: string) => {
-    if (isLongTextKey(key)) return "whitespace-normal align-top";
-    if (isUrlKey(key)) return "whitespace-nowrap align-top";
-    return "whitespace-nowrap";
-  };
+  const allKeys = getAllKeys(items, schemaHintKeys);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-white text-slate-700">
@@ -370,11 +182,15 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800",
             )}
           >
-            {isAnalysisOverview
-              ? "Analysis"
-              : isCommentScraper
-                ? "Thread view"
-                : "Overview"}
+            {isGeminiSummaryJob
+              ? "Summary"
+              : isExportCommentsFetchJob
+                ? "Overview"
+                : isAnalysisOverview
+                  ? "Analysis"
+                  : isCommentScraper
+                    ? "Comments"
+                    : "Overview"}
           </button>
           <button
             onClick={() => setInnerTab("all")}
@@ -426,162 +242,36 @@ export function TabOutput({ job }: TabOutputProps) {
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (
           isSingleTextSummary ? (
-            <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-brand/5 text-brand rounded-xl border border-brand/10">
-                        <Sparkles className="size-4 animate-pulse" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800 tracking-tight font-sans">Execution Summary</h3>
-                        <p className="text-[10px] text-slate-400 font-medium leading-none mt-0.5 font-sans">AI-generated overview of the execution result</p>
-                      </div>
-                    </div>
-                    {hasMultipleSummaryTabs && (
-                      <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60 self-start sm:self-auto select-none shadow-2xs">
-                        {uniqueSummaryTabLabels.map((label, idx) => (
-                          <button
-                            key={`summary-tab-${idx}`}
-                            onClick={() => setActiveSummaryTab(idx)}
-                            className={cn(
-                              "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer font-sans",
-                              activeSummaryTab === idx
-                                ? "bg-white text-slate-850 shadow-xs"
-                                : "text-slate-500 hover:text-slate-800",
-                            )}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-700 leading-relaxed font-normal font-sans">
-                    <Markdown
-                      components={{
-                        h1: ({ children, ...props }) => <h1 className="text-base font-bold text-slate-900 mt-4 mb-2 first:mt-0 font-sans" {...props}>{children}</h1>,
-                        h2: ({ children, ...props }) => <h2 className="text-sm font-bold text-slate-800 mt-3.5 mb-1.5 font-sans" {...props}>{children}</h2>,
-                        h3: ({ children, ...props }) => <h3 className="text-xs font-bold text-slate-700 mt-3 mb-1 font-sans" {...props}>{children}</h3>,
-                        p: ({ children, ...props }) => <p className="text-xs text-slate-650 leading-relaxed mb-3 last:mb-0 font-sans" {...props}>{children}</p>,
-                        ul: ({ children, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1 text-xs text-slate-650 font-sans" {...props}>{children}</ul>,
-                        ol: ({ children, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-xs text-slate-650 font-sans" {...props}>{children}</ol>,
-                        li: ({ children, ...props }) => <li className="leading-relaxed font-sans" {...props}>{children}</li>,
-                        blockquote: ({ children, ...props }) => (
-                          <blockquote className="border-l-3 border-slate-200 pl-3.5 italic text-slate-500 my-3 bg-slate-50/50 py-1 rounded-r-md font-sans" {...props}>{children}</blockquote>
-                        ),
-                        code: ({ className, children, ...props }: React.HTMLAttributes<HTMLElement>) => {
-                          const isBlock = className?.includes("language-") || (children && String(children).includes("\n"));
-                          return isBlock ? (
-                            <code className="block overflow-x-auto rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 font-sans my-2" {...props}>{children}</code>
-                          ) : (
-                            <code className="bg-slate-100 px-1 py-0.5 rounded text-[10.5px] font-sans font-semibold text-slate-800 border border-slate-200/50" {...props}>{children}</code>
-                          );
-                        },
-                        pre: ({ children, ...props }) => <pre className="bg-transparent p-0 my-0 font-sans" {...props}>{children}</pre>,
-                        a: ({ children, ...props }) => <a className="text-brand underline hover:text-brand/80 font-sans" {...props}>{children}</a>,
-                      }}
-                    >
-                      {displayedSummaryText}
-                    </Markdown>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : isAnalysisOverview ? (
-            <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-5xl mx-auto space-y-5">
-                {showIntentSummary && (
-                  <IntentAnalysisSummary
-                    groups={intentGroups}
-                    totalItems={items.length}
-                  />
-                )}
-                {paginatedItems.map((item, idx) => (
-                  <IntentAnalysisCard
-                    key={`analysis-${startIndex + idx}`}
-                    item={item as unknown as IntentAnalysisItem}
-                    index={startIndex + idx}
-                    schemaHintKeys={schemaHintKeys}
-                    analysisDisplayPreset={analysisDisplayPreset}
-                    isGenericMode={!hasSourceUrls}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : isCommentScraper ? (
-            <div className="bg-slate-50 p-6 flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-4xl mx-auto space-y-6">
-                {paginatedItems.map((item, idx) => (
-                  <CommentThreadCard
-                    key={`comment-${(item as Record<string, unknown>).id || idx}`}
-                    comment={item as unknown as CommentItem}
-                  />
-                ))}
-              </div>
-            </div>
+            <ExecutionSummarySection
+              displayedSummaryText={displayedSummaryText}
+              hasMultipleSummaryTabs={hasMultipleSummaryTabs}
+              uniqueSummaryTabLabels={uniqueSummaryTabLabels}
+              activeSummaryTab={activeSummaryTab}
+              setActiveSummaryTab={setActiveSummaryTab}
+            />
           ) : (
-            <OutputOverviewTable
-              items={paginatedItems}
+            <TabOutputOverview
+              items={items}
+              paginatedItems={paginatedItems}
               startIndex={startIndex}
+              isAnalysisOverview={isAnalysisOverview}
+              isCommentScraper={isCommentScraper}
+              showIntentSummary={showIntentSummary}
+              intentGroups={intentGroups}
+              schemaHintKeys={schemaHintKeys}
+              analysisDisplayPreset={analysisDisplayPreset}
+              hasSourceUrls={hasSourceUrls}
+              isExportCommentsJob={isExportCommentsJob}
+              isExportCommentsFetchJob={isExportCommentsFetchJob}
+              job={job}
             />
           )
         ) : (
-          /* All Fields View */
-          <div className="min-w-full inline-block align-middle overflow-x-auto bg-white">
-            <table className="min-w-full divide-y divide-slate-100 border-b border-slate-200">
-              <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10.5px] font-bold text-slate-500 tracking-wider uppercase border-b border-slate-200">
-                <tr>
-                  <th
-                    scope="col"
-                    className="w-12 px-4 py-3 text-slate-400 text-center"
-                  >
-                    #
-                  </th>
-                  {allKeys.map((key) => (
-                    <th
-                      key={`all-header-${key}`}
-                      scope="col"
-                      className={cn("px-4 py-3", getHeaderColClass(key))}
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-slate-650">
-                          {getHeaderLabel(key)}
-                        </span>
-                        <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">
-                          {key}
-                        </span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white text-xs font-semibold text-slate-700">
-                {paginatedItems.map((item, idx) => (
-                  <tr
-                    key={`all-row-${idx}`}
-                    className="hover:bg-slate-50/60 transition-colors even:bg-slate-50/20"
-                  >
-                    <td className="px-4 py-3.5 text-slate-400 font-bold text-center border-r border-slate-150 bg-slate-50/30 select-none">
-                      {startIndex + idx + 1}
-                    </td>
-                    {allKeys.map((key) => (
-                      <td
-                        key={`all-cell-${idx}-${key}`}
-                        className={cn("px-4 py-3.5", getCellColClass(key))}
-                      >
-                        <OutputCell
-                          value={getValue(item, key)}
-                          columnKey={key}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AllFieldsTable
+            paginatedItems={paginatedItems}
+            allKeys={allKeys}
+            startIndex={startIndex}
+          />
         )}
       </div>
 

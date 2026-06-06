@@ -63,7 +63,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "play-lh.googleusercontent.com",
+        hostname: "*.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.ggpht.com",
       },
       {
         protocol: "https",
