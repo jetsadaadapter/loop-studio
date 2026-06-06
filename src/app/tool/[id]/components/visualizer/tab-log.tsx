@@ -142,7 +142,7 @@ export function TabLog({ job }: TabLogProps) {
   };
 
   return (
-    <div className="flex-1 h-full min-h-0 bg-slate-50 p-4 flex flex-col overflow-hidden relative select-none">
+    <div className="flex-1 h-full min-h-0 bg-slate-50 p-3 sm:p-4 flex flex-col overflow-hidden relative select-none">
       {/* Log Header Toolbar */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
@@ -171,8 +171,8 @@ export function TabLog({ job }: TabLogProps) {
       </div>
 
       {/* Log Box */}
-      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-        <pre className="font-sans text-[11px] leading-relaxed text-slate-600 select-text">
+      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-3 sm:p-5 shadow-xs">
+        <pre className="font-sans text-[11.5px] sm:text-xs leading-relaxed text-slate-600 select-text">
           {logs.map((line, i) => {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");

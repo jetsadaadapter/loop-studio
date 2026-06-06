@@ -103,6 +103,21 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
       isMounted = false;
     };
   }, [activeJobId, tool.id]);
+  
+  const handleJobClick = (jobIdentity: string) => {
+    setActiveJobId(jobIdentity);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      const el = document.getElementById("workspace-console");
+      if (el) {
+        const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = elementPosition - 80; // 80px offset to clear the h-16 sticky navbar
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }
+  };
 
   const overallState = run.jobs.some((j) => getJobStatus(j) === "failed")
     ? "failed"
@@ -132,7 +147,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
     return raw ? getJobIdentity(raw) : "";
   })();
   const shortFullJobIdentity = fullJobIdentity
-    ? `#${fullJobIdentity.slice(0, 16)}`
+    ? `#${fullJobIdentity.split("-")[0].slice(0, 8).toUpperCase()}`
     : "#N/A";
 
   return (
@@ -195,7 +210,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
         {/* Left Side: Run Pipeline Summary & Sub-Jobs list */}
         <div
           className={cn(
-            "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit",
+            "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit order-2 lg:order-1",
             isExpanded ? "hidden lg:hidden" : "block",
           )}
         >
@@ -239,7 +254,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               return (
                 <button
                   key={job.id || jobIdentity || idx}
-                  onClick={() => setActiveJobId(jobIdentity)}
+                  onClick={() => handleJobClick(jobIdentity)}
                   disabled={!jobIdentity}
                   className={cn(
                     "w-full text-left p-3.5 rounded-xl border relative overflow-hidden transition-all duration-300 flex items-center justify-between group cursor-pointer",
@@ -304,8 +319,9 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
 
         {/* Right Side: Run Detail Workspace Area (Inline console tabs) */}
         <div
+          id="workspace-console"
           className={cn(
-            "bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-125 transition-all duration-300",
+            "bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-125 transition-all duration-300 order-1 lg:order-2 scroll-mt-6",
             isExpanded ? "lg:col-span-3" : "lg:col-span-2",
           )}
         >
@@ -314,22 +330,22 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
           ) : fullJob ? (
             <div className="flex-1 flex flex-col h-full overflow-hidden">
               {/* Inline Header Details */}
-              <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-800 capitalize">
+              <div className="p-3 sm:p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div className="space-y-0.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-bold text-slate-800 capitalize truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">
                       {fullJob.label || fullJob.script?.label || `${fullJob.plugin || "Unknown"} Engine Workspace`}
                       {!!(fullJob.label || fullJob.script?.label) && (
-                        <span className="text-[10px] text-slate-450 font-bold normal-case ml-1.5 opacity-80">
+                        <span className="text-[10px] text-slate-455 font-bold normal-case ml-1.5 opacity-80">
                           ({formatPluginSuffix(fullJob.plugin)})
                         </span>
                       )}
                     </span>
-                    <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none">
+                    <span className="text-[9px] font-sans font-bold text-slate-400 uppercase select-none shrink-0 bg-slate-100 border border-slate-200/40 px-1 py-0.5 rounded-sm">
                       {shortFullJobIdentity}
                     </span>
                   </div>
-                  <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-sm md:max-w-md">
+                  <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-xs sm:max-w-md">
                     Input: {fullJob.input?.userInput || "N/A"}
                   </p>
                 </div>
@@ -378,7 +394,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               />
 
               {/* Visualizer Output Content Area */}
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-4">
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-3 sm:p-4">
                 {activeVisualizerTab === "output" && (
                   <TabOutput job={fullJob} />
                 )}

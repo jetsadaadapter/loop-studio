@@ -30,12 +30,12 @@ export function ExportCommentsCreateOverview({ items }: ExportCommentsCreateOver
   const isCompleted = status.toLowerCase() === "completed" || status.toLowerCase() === "success";
 
   return (
-    <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
+    <div className="bg-slate-50/60 p-3 xs:p-4 sm:p-6 md:p-8 flex-1 min-h-0 overflow-y-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Main Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100/80 pb-5">
             <div>
               <h3 className="text-base font-bold text-slate-800 tracking-tight font-sans">
                 Export Comments Job
@@ -112,7 +112,7 @@ export function ExportCommentsCreateOverview({ items }: ExportCommentsCreateOver
                   return (
                     <div
                       key={guid}
-                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
+                      className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
                     >
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2">

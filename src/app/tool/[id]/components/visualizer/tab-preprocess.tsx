@@ -78,7 +78,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
   const isGemini = modelLower.includes("gemini");
 
   return (
-    <div className="flex-1 h-full min-h-0 bg-slate-50 p-6 flex flex-col select-none overflow-hidden">
+    <div className="flex-1 h-full min-h-0 bg-slate-50 p-3 sm:p-6 flex flex-col select-none overflow-hidden">
       {/* View Mode Toggle (Top Left) */}
       <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60 self-start mb-5 shrink-0">
         <button
@@ -125,7 +125,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-28">
+            <pre className="font-sans text-xs sm:text-sm leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
@@ -134,15 +134,15 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
           </div>
         ) : (
           <div className="w-full space-y-6">
-            <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-xs space-y-5">
-              <h3 className="text-xs font-bold text-slate-750 flex items-center gap-2 uppercase tracking-wider">
+            <div className="bg-white border border-slate-200/60 rounded-xl p-4 sm:p-5 shadow-xs space-y-4 sm:space-y-5">
+              <h3 className="text-xs font-bold text-slate-755 flex items-center gap-2 uppercase tracking-wider">
                 <Sparkles className="size-4 text-emerald-600 animate-pulse" />
                 <span>AI Pre-processing Agent Settings</span>
               </h3>
 
               {preProcessConfig.model && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
                     LLM Analytics Model
                   </span>
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-lg select-none">
@@ -166,11 +166,11 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
 
               {preProcessConfig.prompt && (
                 <div className="border-t border-slate-100 pt-4 space-y-2.5">
-                  <span className="text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-405 font-sans block uppercase tracking-wider">
                     Analyst System Prompt & Instructions
                   </span>
                   <div className="relative group/prompt-preprocess rounded-xl border border-slate-200 bg-slate-50/40 hover:bg-slate-50/70 transition-all duration-200 shadow-xs hover:border-slate-350">
-                    <pre className="p-4 pr-24 text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-96 overflow-y-auto">
+                    <pre className="p-3 sm:p-4 pr-16 sm:pr-24 text-xs sm:text-sm font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-96 overflow-y-auto">
                       {preProcessConfig.prompt}
                     </pre>
                     <button

@@ -33,10 +33,10 @@ export function ExportCommentsFetchOverview({
     items.length;
 
   return (
-    <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
+    <div className="bg-slate-50/60 p-3 xs:p-4 sm:p-6 md:p-8 flex-1 min-h-0 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Summary Dashboard Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
@@ -136,9 +136,8 @@ export function ExportCommentsFetchOverview({
           )}
         </div>
 
-        {/* Preview Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-2">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider font-sans">
               Comments ({startIndex + 1} - {Math.min(startIndex + paginatedItems.length, itemCount)} of {itemCount})
             </h4>
