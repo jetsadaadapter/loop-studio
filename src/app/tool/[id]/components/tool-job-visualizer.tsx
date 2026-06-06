@@ -50,7 +50,7 @@ export function ToolJobVisualizer({ open, isLoading, job, toolName, onOpenChange
               activeTab={activeTab} 
               itemCount={itemCount} 
               onTabChange={setActiveTab} 
-              hasPreProcess={!!job?.input?._preProcessConfig}
+              hasPreProcess={!!job?.input?._preProcessConfig || !!(job?.result as Record<string, unknown> | undefined)?.config}
             />
 
             {/* Main Active Tab Content */}

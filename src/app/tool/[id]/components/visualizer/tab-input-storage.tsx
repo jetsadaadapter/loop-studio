@@ -121,16 +121,19 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
     if (val === undefined || val === null || val === "") return null;
     if (typeof val === "object") return null;
 
+    const isUserInput = key.toLowerCase() === "userinput";
     const valStr = typeof val === "boolean" ? String(val) : String(val);
-    const isUrl = valStr.startsWith("http://") || valStr.startsWith("https://");
-    const isLongText = valStr.length > 80 || valStr.includes("\n");
+    const isUrl = !isUserInput && (valStr.startsWith("http://") || valStr.startsWith("https://"));
+    const isLongText = isUserInput || valStr.length > 80 || valStr.includes("\n");
     
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(valStr);
-    const isTechnicalId = isUuid || 
+    const isTechnicalId = !isUserInput && (
+      isUuid || 
       key.toLowerCase().includes("id") || 
       key.toLowerCase().includes("guid") || 
       key.toLowerCase().includes("token") || 
-      key.toLowerCase().includes("key");
+      key.toLowerCase().includes("key")
+    );
 
     const useFullWidth = isLongText || (isUrl && valStr.length > 40);
 

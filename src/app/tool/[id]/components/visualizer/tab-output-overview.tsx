@@ -11,6 +11,7 @@ import { IntentAnalysisSummary } from "./intent-analysis-summary";
 import { OutputOverviewTable } from "./output-overview-table";
 import { ExportCommentsCreateOverview } from "./exportcomments-create-overview";
 import { ExportCommentsFetchOverview } from "./exportcomments-fetch-overview";
+import { PreProcessOverview, type PreProcessResult } from "./preprocess-overview";
 
 interface TabOutputOverviewProps {
   items: ScrapedJobItem[];
@@ -43,6 +44,17 @@ export function TabOutputOverview({
   isExportCommentsFetchJob,
   job,
 }: TabOutputOverviewProps) {
+  const isPreProcessResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    ("preview" in job.result || "config" in job.result)
+  );
+
+  if (isPreProcessResult) {
+    return <PreProcessOverview result={job.result as unknown as PreProcessResult} />;
+  }
+
   if (isExportCommentsFetchJob) {
     return (
       <ExportCommentsFetchOverview

@@ -68,8 +68,24 @@ export function TabOutput({ job }: TabOutputProps) {
     )
   );
 
+  const isPreProcessResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    ("preview" in job.result || "config" in job.result)
+  );
+
   const items = isCommentScraper
-    ? (rawItems.map((item) => normalizeCommentItem(item as Record<string, unknown>)) as unknown as ScrapedJobItem[])
+    ? (rawItems
+        .map((item) => normalizeCommentItem(item as Record<string, unknown>))
+        .filter((item) => {
+          const pId = item.profileId || item.profile_id;
+          const fId = item.facebookId || item.facebook_id;
+          return Boolean(
+            (pId !== undefined && pId !== null && String(pId).trim() !== "" && String(pId) !== "null" && String(pId) !== "undefined") ||
+            (fId !== undefined && fId !== null && String(fId).trim() !== "" && String(fId) !== "null" && String(fId) !== "undefined")
+          );
+        }) as unknown as ScrapedJobItem[])
     : rawItems;
 
   const {
@@ -182,15 +198,17 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800",
             )}
           >
-            {isGeminiSummaryJob
-              ? "Summary"
-              : isExportCommentsFetchJob
-                ? "Overview"
-                : isAnalysisOverview
-                  ? "Analysis"
-                  : isCommentScraper
-                    ? "Comments"
-                    : "Overview"}
+            {isPreProcessResult
+              ? "Pre-processing"
+              : isGeminiSummaryJob
+                ? "Summary"
+                : isExportCommentsFetchJob
+                  ? "Overview"
+                  : isAnalysisOverview
+                    ? "Analysis"
+                    : isCommentScraper
+                      ? "Comments"
+                      : "Overview"}
           </button>
           <button
             onClick={() => setInnerTab("all")}

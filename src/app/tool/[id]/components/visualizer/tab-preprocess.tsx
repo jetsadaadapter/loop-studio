@@ -16,7 +16,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
   const [copiedJson, setCopiedJson] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
-  const preProcessConfig = job.input?._preProcessConfig as { model?: string; prompt?: string } | undefined;
+  const preProcessConfig = (job.input?._preProcessConfig || (job.result as Record<string, unknown> | undefined)?.config) as { model?: string; prompt?: string } | undefined;
   
   if (!preProcessConfig) {
     return (

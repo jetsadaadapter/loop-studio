@@ -272,7 +272,18 @@ export function normalizeCommentItem(item: Record<string, unknown>): Record<stri
   }
 
   const rawReplies = (item.comments || item.replies) as Record<string, unknown>[] | undefined;
-  const comments = Array.isArray(rawReplies) ? rawReplies.map(normalizeCommentItem) : undefined;
+  const comments = Array.isArray(rawReplies)
+    ? rawReplies
+        .map(normalizeCommentItem)
+        .filter((reply) => {
+          const pId = reply.profileId || reply.profile_id;
+          const fId = reply.facebookId || reply.facebook_id;
+          return Boolean(
+            (pId !== undefined && pId !== null && String(pId).trim() !== "" && String(pId) !== "null" && String(pId) !== "undefined") ||
+            (fId !== undefined && fId !== null && String(fId).trim() !== "" && String(fId) !== "null" && String(fId) !== "undefined")
+          );
+        })
+    : undefined;
 
   return {
     ...item,

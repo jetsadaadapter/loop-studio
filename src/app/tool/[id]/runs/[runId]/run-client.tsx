@@ -374,7 +374,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 activeTab={activeVisualizerTab}
                 itemCount={activeJobCount}
                 onTabChange={setActiveVisualizerTab}
-                hasPreProcess={!!fullJob?.input?._preProcessConfig}
+                hasPreProcess={!!fullJob?.input?._preProcessConfig || !!(fullJob?.result as Record<string, unknown> | undefined)?.config}
               />
 
               {/* Visualizer Output Content Area */}
