@@ -46,10 +46,11 @@ export function HistoryJobItem({
 
   const subJobs = job.jobs || [];
   const firstJob = subJobs[0];
-  const pluginLower = String(firstJob?.plugin || "").toLowerCase();
+  const lastJob = subJobs[subJobs.length - 1] ?? firstJob;
+  const pluginLower = String(lastJob?.plugin || "").toLowerCase();
   const pluginConfig = getPluginConfig(pluginLower);
-  const hasCustomLabel = !!(firstJob?.label || firstJob?.script?.label);
-  const friendlyTitle = firstJob?.label || firstJob?.script?.label || "Automation Run";
+  const hasCustomLabel = !!(lastJob?.label || lastJob?.script?.label);
+  const friendlyTitle = lastJob?.label || lastJob?.script?.label || "Automation Run";
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
 
@@ -112,9 +113,9 @@ export function HistoryJobItem({
             )}
             <h4 className="text-xs font-bold text-slate-800 tracking-tight truncate leading-none">
               {friendlyTitle}
-              {hasCustomLabel && firstJob && (
+              {hasCustomLabel && lastJob && (
                 <span className="text-[9.5px] text-slate-455 font-bold ml-1 opacity-80">
-                  ({formatPluginSuffix(firstJob.plugin)})
+                  ({formatPluginSuffix(lastJob.plugin)})
                 </span>
               )}
             </h4>
