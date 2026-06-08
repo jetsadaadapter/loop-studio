@@ -24,6 +24,10 @@ const STATUS_CLASSES: Record<string, { bg: string; dot: string }> = {
     bg: "bg-blue-50/60 border-blue-200/50 text-blue-600 shadow-[0_0_8px_rgba(59,130,246,0.08)] animate-pulse",
     dot: "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] animate-pulse"
   },
+  waiting: {
+    bg: "bg-purple-50/60 border-purple-200/50 text-purple-600 shadow-[0_0_8px_rgba(168,85,247,0.08)] animate-pulse",
+    dot: "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.7)] animate-pulse"
+  },
   failed: {
     bg: "bg-rose-50/60 border-rose-200/50 text-rose-600 shadow-[0_0_8px_rgba(244,63,94,0.08)]",
     dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]"

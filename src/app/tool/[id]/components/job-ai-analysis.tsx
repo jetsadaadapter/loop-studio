@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Smile, Frown, Meh } from "lucide-react";
+import { Sparkles, Smile, Frown, Meh, Activity, Database, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   formatAnalysisConfidence,
@@ -174,52 +174,103 @@ export function JobAiAnalysis({
         </div>
 
         {dynamicBlocks.length > 0 && (
-          <div className="space-y-3">
-            {dynamicBlocks.map((block) => (
-              <section
-                key={block.id}
-                className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-xs"
-              >
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  {block.title}
-                </p>
-                <p className="mt-1 text-[10px] font-medium text-slate-500">
-                  {block.description}
-                </p>
-                {/* Grid with dynamic columns layout */}
-                {(() => {
-                  const isSingleCol =
-                    block.entries.length === 1 ||
-                    block.entries.some((entry) => {
-                      const isLongVal =
-                        typeof entry.value === "string" &&
-                        (entry.value.length > 150 || entry.value.includes("\n"));
-                      return (
-                        isLongVal ||
-                        entry.valueType === "object" ||
-                        entry.valueType === "array"
-                      );
-                    });
+          <div className="relative space-y-6 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
+            {dynamicBlocks.map((block) => {
+              const isSummary = block.id === "summary";
+              const isMetrics = block.id === "metrics";
+              const isEvidence = block.id === "evidence";
 
-                  return (
-                    <div
-                      className={cn(
-                        "mt-2.5 grid gap-3.5",
-                        isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                      )}
-                    >
-                      {block.entries.map((entry) => (
-                        <AnalysisBlockEntry
-                          key={`${block.id}-${entry.key}`}
-                          entry={entry}
-                          blockId={block.id}
-                        />
-                      ))}
+              const theme = isSummary
+                ? {
+                  border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
+                  bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
+                  titleColor: "text-violet-750",
+                  icon: Sparkles,
+                  dot: "bg-violet-500 ring-4 ring-violet-50/50",
+                }
+                : isMetrics
+                  ? {
+                    border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
+                    bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
+                    titleColor: "text-amber-750",
+                    icon: Activity,
+                    dot: "bg-amber-500 ring-4 ring-amber-50/50",
+                  }
+                  : isEvidence
+                    ? {
+                      border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
+                      bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
+                      titleColor: "text-emerald-750",
+                      icon: Database,
+                      dot: "bg-emerald-500 ring-4 ring-emerald-50/50",
+                    }
+                    : {
+                      border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
+                      bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
+                      titleColor: "text-sky-750",
+                      icon: Info,
+                      dot: "bg-sky-500 ring-4 ring-sky-50/50",
+                    };
+
+              const HeaderIcon = theme.icon;
+
+              return (
+                <section
+                  key={block.id}
+                  className={cn(
+                    "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white relative",
+                    theme.border,
+                    theme.bg
+                  )}
+                >
+                  <div className={cn("absolute -left-[21px] top-[24px] size-2.5 rounded-full border border-white z-10 shadow-3xs", theme.dot)} />
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
+                    <div className="space-y-0.5">
+                      <h4 className={cn("text-xs font-extrabold uppercase tracking-wider leading-none", theme.titleColor)}>
+                        {block.title}
+                      </h4>
+                      <p className="text-[10px] font-medium text-slate-400">
+                        {block.description}
+                      </p>
                     </div>
-                  );
-                })()}
-              </section>
-            ))}
+                  </div>
+
+                  {/* Grid with dynamic columns layout */}
+                  {(() => {
+                    const isSingleCol =
+                      block.entries.length === 1 ||
+                      block.entries.some((entry) => {
+                        const isLongVal =
+                          typeof entry.value === "string" &&
+                          (entry.value.length > 150 || entry.value.includes("\n"));
+                        return (
+                          isLongVal ||
+                          entry.valueType === "object" ||
+                          entry.valueType === "array"
+                        );
+                      });
+
+                    return (
+                      <div
+                        className={cn(
+                          "grid gap-3.5",
+                          isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                        )}
+                      >
+                        {block.entries.map((entry) => (
+                          <AnalysisBlockEntry
+                            key={`${block.id}-${entry.key}`}
+                            entry={entry}
+                            blockId={block.id}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </section>
+              );
+            })}
           </div>
         )}
 

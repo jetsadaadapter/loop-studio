@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ToolJob } from "@/core/interfaces/tools.interface";
+import type { ToolRunGrouped } from "@/core/interfaces/tools.interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { History, Clock, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,11 +12,10 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 
 interface ToolHistorySidebarProps {
-  jobs: ToolJob[];
+  jobs: ToolRunGrouped[];
   activeTab: JobStatus;
   selectedJobId?: string;
   isRefreshing?: boolean;
@@ -34,6 +33,7 @@ const STATUS_COLORS: Record<string, { base: string; active: string }> = {
   active: { base: "bg-amber-550 animate-pulse", active: "bg-amber-550 animate-pulse" },
   running: { base: "bg-amber-550 animate-pulse", active: "bg-amber-550 animate-pulse" },
   queued: { base: "bg-blue-500/80 animate-pulse", active: "bg-blue-400 animate-pulse" },
+  waiting: { base: "bg-purple-500/80 animate-pulse", active: "bg-purple-400 animate-pulse" },
   failed: { base: "bg-rose-500", active: "bg-rose-400 animate-pulse" },
   all: { base: "bg-indigo-500", active: "bg-indigo-400 animate-pulse" },
 };
@@ -59,7 +59,7 @@ export function ToolHistorySidebar({
 
   const runningCount = jobs.filter(j => {
     const status = getJobStatus(j);
-    return status === "active" || status === "running" || status === "queued";
+    return status === "active" || status === "running" || status === "queued" || status === "waiting";
   }).length;
 
   const tabs = ["all", ...Array.from(new Set(jobs.map((j) => getJobStatus(j))))];
@@ -90,14 +90,14 @@ export function ToolHistorySidebar({
           <button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
           >
             <ChevronLeft className="size-3.5" />
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
           >
             <ChevronRight className="size-3.5" />
           </button>
@@ -157,7 +157,7 @@ export function ToolHistorySidebar({
                       className={cn(
                         "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
                         isActive
-                          ? "bg-brand border-brand text-white shadow-sm"
+                           ? "bg-brand border-brand text-white shadow-sm"
                           : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
                       )}
                     >
@@ -198,7 +198,7 @@ export function ToolHistorySidebar({
               ) : (
                 <div className="p-3 md:p-4 space-y-3 max-h-[600px] overflow-y-auto bg-slate-50/20">
                   {filtered.map((job, index) => {
-                    const id = job.jobId || job._id || (job as unknown as Record<string, string>).id || `job-index-${index}`;
+                    const id = job.runId || `run-index-${index}`;
                     return (
                       <HistoryJobItem
                         key={id}
@@ -324,7 +324,7 @@ export function ToolHistorySidebar({
               </div>
             ) : (
               filtered.map((job, index) => {
-                const id = job.jobId || job._id || (job as unknown as Record<string, string>).id || `job-index-${index}`;
+                const id = job.runId || `run-index-${index}`;
                 return (
                   <HistoryJobItem
                     key={id}

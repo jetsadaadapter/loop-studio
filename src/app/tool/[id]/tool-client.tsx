@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type {
   Tool,
   ToolJob,
+  ToolRunGrouped,
   GetToolJobsResponse,
   ToolTestPromptResult,
 } from "@/core/interfaces/tools.interface";
@@ -100,7 +101,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [testResult, setTestResult] = useState<ToolTestPromptResult | null>(
     null,
   );
-  const [jobs, setJobs] = useState<ToolJob[]>(initialJobs.data);
+  const [jobs, setJobs] = useState<ToolRunGrouped[]>(initialJobs.data);
   const [currentPage, setCurrentPage] = useState(initialJobs.meta?.page || 1);
   const [totalPages, setTotalPages] = useState(
     initialJobs.meta?.totalPages || 1,
@@ -115,7 +116,6 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   );
   const [selectedJob, setSelectedJob] = useState<ToolJob | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
-  const [isJobLoading, setIsJobLoading] = useState(false);
   const [isVisualizerOpen, setIsVisualizerOpen] = useState(false);
   const [isVisualizerLoading, setIsVisualizerLoading] = useState(false);
   const [selectedVisualizerJob, setSelectedVisualizerJob] =
@@ -150,31 +150,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     pollRef.current = setInterval(async () => {
       try {
         const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
-        let latest = res.data[0];
-        const latestJobId = normalizeJobIdentity(latest?.jobId);
-
-        if (latest && !latestJobId) {
-          logDroppedInvalidJobId("processing-modal-poll", {
-            rawJobId: latest.jobId,
-            toolId: tool.id,
-            state: latest.state,
-            status: latest.status,
-            runId: latest.runId,
-            plugin: latest.plugin,
-          });
-        }
-
-        if (
-          latest &&
-          latestJobId &&
-          latest.state !== "completed" &&
-          latest.state !== "failed"
-        ) {
-          // Force synchronization and fetch full completed details from backend
-          const updatedJob = await getToolJob(tool.id, latestJobId);
-          latest = updatedJob;
-          res.data[0] = updatedJob;
-        }
+        const latest = res.data[0];
 
         if (
           latest &&
@@ -242,17 +218,36 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
 
         // Also update the job in the main list
         setJobs((prev) =>
-          prev.map((j) =>
-            j.jobId === job.jobId
-              ? {
-                  ...j,
-                  state: job.state,
-                  status: job.status,
-                  result: job.result,
-                  error: job.error,
-                }
-              : j,
-          ),
+          prev.map((run) => {
+            if (run.runId === job.runId) {
+              const updatedJobs = run.jobs.map((j) =>
+                j.jobId === job.jobId
+                  ? {
+                      ...j,
+                      state: job.state,
+                      status: job.status,
+                      result: job.result,
+                      error: job.error,
+                    }
+                  : j
+              );
+              const hasFailed = updatedJobs.some((j) => getJobStatus(j) === "failed");
+              const allCompleted = updatedJobs.every((j) => getJobStatus(j) === "completed");
+              const hasRunning = updatedJobs.some((j) => getJobStatus(j) === "active" || getJobStatus(j) === "running");
+              const hasWaiting = updatedJobs.some((j) => getJobStatus(j) === "waiting");
+              let runState = run.state;
+              if (hasFailed) runState = "failed";
+              else if (allCompleted) runState = "completed";
+              else if (hasRunning) runState = "running";
+              else if (hasWaiting) runState = "waiting";
+              return {
+                ...run,
+                state: runState,
+                jobs: updatedJobs,
+              };
+            }
+            return run;
+          }),
         );
       } catch {
         /* silently retry */
@@ -325,9 +320,17 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       const job = await getToolJob(tool.id, safeJobId);
       setSelectedVisualizerJob(job);
       setJobs((prev) =>
-        prev.map((j) =>
-          j.jobId === safeJobId ? { ...j, result: job.result } : j,
-        ),
+        prev.map((run) => {
+          if (run.jobs?.some((sub) => sub.jobId === safeJobId)) {
+            return {
+              ...run,
+              jobs: run.jobs.map((sub) =>
+                sub.jobId === safeJobId ? { ...sub, result: job.result } : sub
+              ),
+            };
+          }
+          return run;
+        })
       );
     } catch {
       pushDialogToast("Failed to fetch job details.", "error");
@@ -480,7 +483,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
 
       <ToolJobModal
         open={isJobModalOpen}
-        isLoading={isJobLoading}
+        isLoading={false}
         job={selectedJob}
         onOpenChange={setIsJobModalOpen}
         onOpenVisualizer={(jobId) => {
@@ -496,19 +499,28 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         toolName={tool.name}
         onOpenChange={setIsVisualizerOpen}
       />
-      <ProcessingModal
-        key={isProcessingOpen ? "open" : "closed"}
-        open={isProcessingOpen}
-        onOpenChange={async (open) => {
-          setIsProcessingOpen(open);
-          if (!open) {
-            setIsJobComplete(false);
-            await refreshJobs(1);
-          }
-        }}
-        toolName={tool.name}
-        isJobComplete={isJobComplete}
-      />
+      {(() => {
+        const activeRun = jobs.find((j) => {
+          const status = getJobStatus(j);
+          return status === "active" || status === "running" || status === "queued" || status === "waiting";
+        }) || jobs[0];
+        return (
+          <ProcessingModal
+            key={isProcessingOpen ? "open" : "closed"}
+            open={isProcessingOpen}
+            onOpenChange={async (open) => {
+              setIsProcessingOpen(open);
+              if (!open) {
+                setIsJobComplete(false);
+                await refreshJobs(1);
+              }
+            }}
+            toolName={tool.name}
+            isJobComplete={isJobComplete}
+            activeRun={activeRun}
+          />
+        );
+      })()}
     </div>
   );
 }

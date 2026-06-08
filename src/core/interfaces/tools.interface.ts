@@ -110,18 +110,27 @@ export interface ToolJob {
     resultId?: string | null;
     runId?: string;
     processed?: string | null;
-    status?: 'running' | 'completed' | 'failed' | 'queued';
+    status?: 'running' | 'completed' | 'failed' | 'queued' | 'waiting';
     state: string;
     error?: string | null | Record<string, unknown>;
     createdAt: string;
     updatedAt: string;
     __v?: number;
     script?: ToolScript | null;
+    sortOrder?: number;
 }
 
 export interface ToolRun {
     runId: string;
     toolId: string;
+    jobs: ToolJob[];
+}
+
+export interface ToolRunGrouped {
+    runId: string;
+    createdAt: string;
+    updatedAt?: string;
+    state: 'running' | 'completed' | 'failed' | 'queued' | 'waiting' | string;
     jobs: ToolJob[];
 }
 
@@ -131,7 +140,7 @@ export interface GetToolRunResponse {
     data: ToolRun;
 }
 
-export type GetToolJobsResponse = Paginated<ToolJob>;
+export type GetToolJobsResponse = Paginated<ToolRunGrouped>;
 export interface GetToolJobDetailResponse {
     success: boolean;
     message: string;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import type { ToolJob } from "@/core/interfaces/tools.interface";
+import type { ToolRunGrouped } from "@/core/interfaces/tools.interface";
 import { ChevronRight, ChevronDown, ChevronUp, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -19,7 +19,7 @@ const formatPluginSuffix = (plugin: string) => {
 };
 
 interface HistoryJobItemProps {
-  job: ToolJob;
+  job: ToolRunGrouped;
   isSelected: boolean;
   isMobile?: boolean;
   onSelect: (jobId: string) => void;
@@ -40,15 +40,18 @@ export function HistoryJobItem({
         ? "bg-rose-300"
         : status === "queued" || status === "active" || status === "running"
           ? "bg-amber-300"
-          : "bg-slate-200";
+          : status === "waiting"
+            ? "bg-purple-300"
+            : "bg-slate-200";
 
-  const pluginLower = String(job.plugin || "").toLowerCase();
+  const subJobs = job.jobs || [];
+  const firstJob = subJobs[0];
+  const pluginLower = String(firstJob?.plugin || "").toLowerCase();
   const pluginConfig = getPluginConfig(pluginLower);
-  const hasCustomLabel = !!(job.label || job.script?.label);
-  const friendlyTitle = job.label || job.script?.label || pluginConfig.cardTitle;
+  const hasCustomLabel = !!(firstJob?.label || firstJob?.script?.label);
+  const friendlyTitle = firstJob?.label || firstJob?.script?.label || "Automation Run";
   const runId = job.runId || "";
   const slicedId = job.runId ? `#${job.runId.split("-")[0].toUpperCase().slice(0, 8)}` : "";
-  const subJobs = (job as { jobs?: ToolJob[] }).jobs || [];
 
   // Plugin icons are rendered directly using SVG Image components below
 
@@ -109,9 +112,9 @@ export function HistoryJobItem({
             )}
             <h4 className="text-xs font-bold text-slate-800 tracking-tight truncate leading-none">
               {friendlyTitle}
-              {hasCustomLabel && (
-                <span className="text-[9.5px] text-slate-450 font-bold ml-1 opacity-80">
-                  ({formatPluginSuffix(job.plugin)})
+              {hasCustomLabel && firstJob && (
+                <span className="text-[9.5px] text-slate-455 font-bold ml-1 opacity-80">
+                  ({formatPluginSuffix(firstJob.plugin)})
                 </span>
               )}
             </h4>
@@ -138,7 +141,8 @@ export function HistoryJobItem({
                         subStatus === "completed" ? "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.25)]" :
                           subStatus === "active" || subStatus === "running" ? "bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.25)] animate-pulse" :
                             subStatus === "queued" ? "bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.25)] animate-pulse" :
-                              subStatus === "failed" ? "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.25)]" : "bg-slate-200"
+                              subStatus === "waiting" ? "bg-purple-500 shadow-[0_0_4px_rgba(168,85,247,0.25)] animate-pulse" :
+                                subStatus === "failed" ? "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.25)]" : "bg-slate-200"
                       )}
                     />
                   );
@@ -187,7 +191,7 @@ export function HistoryJobItem({
             <ChevronRight
               className={cn(
                 "size-3.5 transition-all duration-300 group-hover:translate-x-0.5",
-                isSelected ? "text-brand" : "text-slate-300 group-hover:text-slate-450",
+                isSelected ? "text-brand" : "text-slate-300 group-hover:text-slate-455",
               )}
             />
           </div>
@@ -232,7 +236,8 @@ export function HistoryJobItem({
                           subStatus === "completed" ? "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]" :
                             subStatus === "active" || subStatus === "running" ? "bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.5)] animate-pulse" :
                               subStatus === "queued" ? "bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.5)] animate-pulse" :
-                                subStatus === "failed" ? "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.5)]" : "bg-slate-300"
+                                subStatus === "waiting" ? "bg-purple-500 shadow-[0_0_4px_rgba(168,85,247,0.5)] animate-pulse" :
+                                  subStatus === "failed" ? "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.5)]" : "bg-slate-300"
                         )}
                       />
                     </div>
@@ -250,12 +255,12 @@ export function HistoryJobItem({
                               className={cn("size-3 shrink-0 object-contain select-none", subPluginConfig.iconAnimate && "animate-pulse")}
                             />
                           ) : (
-                            <Terminal className="size-3 shrink-0 text-slate-400/80" />
+                            <Terminal className="size-3 shrink-0 text-slate-450/80" />
                           )}
                           <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none truncate">
                             {subFriendlyTitle}
                             {hasSubCustomLabel && (
-                              <span className="text-[8.5px] text-slate-450 font-bold ml-1 opacity-85">
+                              <span className="text-[8.5px] text-slate-455 font-bold ml-1 opacity-85">
                                 ({formatPluginSuffix(sub.plugin)})
                               </span>
                             )}
@@ -273,6 +278,11 @@ export function HistoryJobItem({
                           {subStatus === "queued" && (
                             <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
                               queued
+                            </span>
+                          )}
+                          {subStatus === "waiting" && (
+                            <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60 text-[8.5px] font-black select-none tracking-wider uppercase animate-pulse shrink-0">
+                              waiting
                             </span>
                           )}
                           {subStatus === "failed" && (

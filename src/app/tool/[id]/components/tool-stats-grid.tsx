@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import { Clock, CheckCircle2, Sparkles, HelpCircle } from "lucide-react";
-import type { Tool, ToolJob } from "@/core/interfaces/tools.interface";
+import type { Tool, ToolRunGrouped } from "@/core/interfaces/tools.interface";
 import { getJobStatus } from "../tool-job-utils";
 
 interface ToolStatsGridProps {
   tool: Tool;
-  jobs: ToolJob[];
+  jobs: ToolRunGrouped[];
 }
 
 // Generates a stable pseudo-random value based on a seed string
@@ -61,9 +61,11 @@ export function ToolStatsGrid({ tool, jobs }: ToolStatsGridProps) {
     if (jobs.length > 0) {
       const validDurations = completedJobs
         .map((j) => {
-          if (!j.createdAt || !j.updatedAt) return 0;
-          const start = new Date(j.createdAt).getTime();
-          const end = new Date(j.updatedAt).getTime();
+          const createdAt = j.createdAt;
+          const updatedAt = j.updatedAt || (j.jobs && j.jobs.length > 0 ? j.jobs[j.jobs.length - 1].updatedAt : null);
+          if (!createdAt || !updatedAt) return 0;
+          const start = new Date(createdAt).getTime();
+          const end = new Date(updatedAt).getTime();
           return (end - start) / 1000; // in seconds
         })
         .filter((d) => d > 0 && d < 3600); // Filter out outliers (e.g. over 1 hour)

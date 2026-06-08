@@ -119,16 +119,20 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
     }
   };
 
-  const overallState = run.jobs.some((j) => getJobStatus(j) === "failed")
-    ? "failed"
-    : run.jobs.every((j) => getJobStatus(j) === "completed")
-      ? "completed"
-      : run.jobs.some(
-        (j) =>
-          getJobStatus(j) === "active" || getJobStatus(j) === "running",
-      )
-        ? "active"
-        : "queued";
+  const overallState = (run as { state?: string }).state || (
+    run.jobs.some((j) => getJobStatus(j) === "failed")
+      ? "failed"
+      : run.jobs.every((j) => getJobStatus(j) === "completed")
+        ? "completed"
+        : run.jobs.some(
+          (j) =>
+            getJobStatus(j) === "active" || getJobStatus(j) === "running",
+        )
+          ? "active"
+          : run.jobs.some((j) => getJobStatus(j) === "waiting")
+            ? "waiting"
+            : "queued"
+  );
 
   const formattedTime = (createdAtStr: string) => {
     if (!createdAtStr) return "just now";

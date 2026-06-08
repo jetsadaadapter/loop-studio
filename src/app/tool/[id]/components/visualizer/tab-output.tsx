@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Table2, FileCode } from "lucide-react";
+import { Table2, FileCode, Presentation } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import {
   getAnalysisDisplayPresetForJob,
@@ -23,6 +23,7 @@ import {
 import { ExecutionSummarySection } from "./execution-summary-section";
 import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "./all-fields-table";
+import { SlidePresentationView } from "./slide-presentation-view";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -31,6 +32,7 @@ interface TabOutputProps {
 export function TabOutput({ job }: TabOutputProps) {
   const [innerTab, setInnerTab] = useState<"overview" | "all">("overview");
   const [viewMode, setViewMode] = useState<"table" | "json">("table");
+  const [isSlideMode, setIsSlideMode] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -149,7 +151,7 @@ export function TabOutput({ job }: TabOutputProps) {
         raw.url ||
         raw.inputUrl ||
         raw.permalink_url ||
-        raw.sourceKeyValue,
+        (raw.sourceKeyValue !== "aggregate" && raw.sourceKeyValue !== "flat-result" ? raw.sourceKeyValue : ""),
     );
   });
   const schemaHintKeys = getSchemaHintKeysFromJob(job);
@@ -182,6 +184,21 @@ export function TabOutput({ job }: TabOutputProps) {
   };
 
   const allKeys = getAllKeys(items, schemaHintKeys);
+
+  if (isSlideMode) {
+    return (
+      <SlidePresentationView
+        items={items}
+        intentGroups={intentGroups}
+        displayedSummaryText={displayedSummaryText}
+        isSingleTextSummary={isSingleTextSummary}
+        schemaHintKeys={schemaHintKeys}
+        analysisDisplayPreset={analysisDisplayPreset}
+        job={job}
+        onBack={() => setIsSlideMode(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-white text-slate-700">
@@ -223,8 +240,20 @@ export function TabOutput({ job }: TabOutputProps) {
           </button>
         </div>
 
-        {/* View Toggles (Right) */}
+        {/* View Toggles + Slide Report Button (Right) */}
         <div className="flex items-center gap-2">
+          {/* Slide Report Button — separated from tabs, theme-color outline style */}
+          {innerTab === "overview" && (isAnalysisOverview || isSingleTextSummary) && (
+            <button
+              onClick={() => setIsSlideMode(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand/50 text-brand bg-brand/5 hover:bg-brand/10 hover:border-brand text-xs font-black transition-all cursor-pointer shadow-3xs"
+              title="View Presentation Slide Report"
+            >
+              <Presentation className="size-3.5" />
+              <span>Slide Report</span>
+            </button>
+          )}
+
           <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
             <button
               onClick={() => setViewMode("table")}

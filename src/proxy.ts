@@ -29,6 +29,7 @@ const TRUSTED_IMG_SRCS = [
     "https://library-api.adapterdigital.com",
     "https://*.googleusercontent.com",
     "https://*.ggpht.com",
+    "https://*.google.com",
     "https://images.unsplash.com",
     "https://source.unsplash.com",
     "https://ui-avatars.com",

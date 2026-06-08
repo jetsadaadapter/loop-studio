@@ -1,4 +1,4 @@
-import type { ToolJob } from "@/core/interfaces/tools.interface";
+import type { ToolJob, ToolRunGrouped } from "@/core/interfaces/tools.interface";
 
 export interface PreviousResultsItem {
     facebookUrl?: string;
@@ -151,7 +151,12 @@ const resolveSourceItemByKey = (
             const raw = (item as Record<string, unknown>)[sourceKey];
             return getStringValue(raw) === targetValue;
         });
-        if (matchedByDeclaredKey) return matchedByDeclaredKey;
+        if (matchedByDeclaredKey) {
+            if (!matchedByDeclaredKey.sourceKey) {
+                matchedByDeclaredKey.sourceKey = sourceKey;
+            }
+            return matchedByDeclaredKey;
+        }
     }
 
     if (targetValue) {
@@ -160,7 +165,25 @@ const resolveSourceItemByKey = (
                 const raw = (item as Record<string, unknown>)[key];
                 return getStringValue(raw) === targetValue;
             });
-            if (matched) return matched;
+            if (matched) {
+                if (!matched.sourceKey) {
+                    matched.sourceKey = key;
+                }
+                return matched;
+            }
+        }
+
+        // Dynamic fallback: scan all fields of previousItems to find a matching value
+        for (const item of previousItems) {
+            for (const key of Object.keys(item)) {
+                const raw = (item as Record<string, unknown>)[key];
+                if (getStringValue(raw) === targetValue) {
+                    if (!item.sourceKey) {
+                        item.sourceKey = key;
+                    }
+                    return item;
+                }
+            }
         }
     }
 
@@ -818,19 +841,19 @@ export const groupIntentAnalysisByPost = (items: ScrapedJobItem[]): IntentAnalys
     });
 };
 
-export const getJobStatus = (job: ToolJob): JobStatus => {
-    if (job.status) {
+export const getJobStatus = (job: ToolJob | ToolRunGrouped): JobStatus => {
+    if ('status' in job && job.status) {
         const normalized = job.status.toLowerCase();
         if (normalized === 'running') return 'active';
         return normalized;
     }
-    if (job.error) return 'failed';
+    if ('error' in job && job.error) return 'failed';
     if (job.state) {
         const normalized = job.state.toLowerCase();
         if (normalized === 'running') return 'active';
         return normalized;
     }
-    if (job.processed) return 'completed';
+    if ('processed' in job && job.processed) return 'completed';
     return 'active';
 };
 
@@ -1206,6 +1229,23 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             if (identityValues.includes(sourceVal)) {
                 usedGeminiIndexes.add(i);
                 return g;
+            }
+        }
+
+        // 3.5) Dynamic scan fallback: match if sourceKeyValue matches any field value in prevItem
+        for (let i = 0; i < geminiItems.length; i++) {
+            if (usedGeminiIndexes.has(i)) continue;
+            const g = geminiItems[i];
+            const sourceVal = getStringValue(g.sourceKeyValue);
+            if (!sourceVal) continue;
+
+            for (const key of Object.keys(prevItem)) {
+                const val = getStringValue((prevItem as Record<string, unknown>)[key]);
+                if (val && val === sourceVal) {
+                    g.sourceKey = key;
+                    usedGeminiIndexes.add(i);
+                    return g;
+                }
             }
         }
 

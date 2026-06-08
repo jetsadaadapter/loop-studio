@@ -143,11 +143,12 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
     (typeof item.pageName === "string" ? item.pageName : "") ||
       sourceItem.pageName ||
       item.postId ||
-      item.sourceKeyValue ||
+      (item.sourceKeyValue !== "aggregate" && item.sourceKeyValue !== "flat-result" ? item.sourceKeyValue : "") ||
       `Item ${idx + 1}`,
   );
 
   const postUrl = String(item.url || item.facebookUrl || sourceItem.url || "");
+  const isLink = postUrl.startsWith("http://") || postUrl.startsWith("https://");
 
   const rawTime =
     typedItem.time || typedSource.time || item.time || sourceItem.time;
@@ -230,17 +231,17 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {postUrl && (
-            <a
-              href={postUrl}
-              target="_blank"
-              rel="noreferrer"
-              title="Open original post"
-              className="p-2 text-slate-400 hover:text-brand hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm bg-slate-50/50"
-            >
-              <ExternalLink className="size-4" />
-            </a>
-          )}
+        {postUrl && isLink && (
+          <a
+            href={postUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Open original post"
+            className="p-2 text-slate-400 hover:text-brand hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100 shadow-sm bg-slate-50/50"
+          >
+            <ExternalLink className="size-4" />
+          </a>
+        )}
         </div>
       </div>
 

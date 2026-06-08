@@ -138,8 +138,9 @@ export function IntentAnalysisCard({
     item.url ||
     item.inputUrl ||
     item.permalink_url ||
-    item.sourceKeyValue ||
+    (item.sourceKeyValue !== "aggregate" && item.sourceKeyValue !== "flat-result" ? item.sourceKeyValue : "") ||
     "";
+  const isLink = typeof postUrl === "string" && (postUrl.startsWith("http://") || postUrl.startsWith("https://"));
   const groups = analysis?.groups ?? [];
   const verdict = analysis?.verdict ?? "";
   const summary = analysis?.summary_of_intent || analysis?.summary || "";
@@ -221,16 +222,22 @@ export function IntentAnalysisCard({
                     Post URL
                   </p>
                   {postUrl ? (
-                    <a
-                      href={postUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
-                      title={postUrl}
-                    >
-                      <span className="truncate">{displayUrl}</span>
-                      <ExternalLink className="size-3 shrink-0 opacity-70" />
-                    </a>
+                    isLink ? (
+                      <a
+                        href={postUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                        title={postUrl}
+                      >
+                        <span className="truncate">{displayUrl}</span>
+                        <ExternalLink className="size-3 shrink-0 opacity-70" />
+                      </a>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-650 truncate max-w-full" title={postUrl}>
+                        {postUrl === "aggregate" ? "Aggregate Analysis" : postUrl}
+                      </span>
+                    )
                   ) : (
                     <span className="text-xs text-slate-400 italic">
                       No URL
@@ -462,7 +469,7 @@ export function IntentAnalysisCard({
               )}
 
               {dynamicBlocks.length > 0 && (
-                <div className="space-y-4 pt-1">
+                <div className="relative space-y-6 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
                   {dynamicBlocks.map((block) => {
                     const isSummary = block.id === "summary";
                     const isMetrics = block.id === "metrics";
@@ -474,6 +481,7 @@ export function IntentAnalysisCard({
                         bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
                         titleColor: "text-violet-750",
                         icon: Sparkles,
+                        dot: "bg-violet-500 ring-4 ring-violet-50/50",
                       }
                       : isMetrics
                         ? {
@@ -481,6 +489,7 @@ export function IntentAnalysisCard({
                           bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
                           titleColor: "text-amber-750",
                           icon: Activity,
+                          dot: "bg-amber-500 ring-4 ring-amber-50/50",
                         }
                         : isEvidence
                           ? {
@@ -488,12 +497,14 @@ export function IntentAnalysisCard({
                             bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
                             titleColor: "text-emerald-750",
                             icon: Database,
+                            dot: "bg-emerald-500 ring-4 ring-emerald-50/50",
                           }
                           : {
                             border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
                             bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
                             titleColor: "text-sky-750",
                             icon: Info,
+                            dot: "bg-sky-500 ring-4 ring-sky-50/50",
                           };
 
                     const HeaderIcon = theme.icon;
@@ -502,11 +513,12 @@ export function IntentAnalysisCard({
                       <section
                         key={block.id}
                         className={cn(
-                          "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white",
+                          "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white relative",
                           theme.border,
                           theme.bg
                         )}
                       >
+                        <div className={cn("absolute -left-[21px] top-[24px] size-2.5 rounded-full border border-white z-10 shadow-3xs", theme.dot)} />
                         <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
                           <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
                           <div className="space-y-0.5">
