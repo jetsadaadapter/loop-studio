@@ -118,6 +118,8 @@ export function PromptFormDrawer({
     if (!promptText.trim()) nextErrors.promptText = "Prompt text is required";
     if (!modelId) nextErrors.modelId = "Target model is required";
     if (!version.trim()) nextErrors.version = "Version is required";
+    if (!description.trim()) nextErrors.description = "Description is required";
+    if (!remark.trim()) nextErrors.remark = "Remark is required";
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -319,24 +321,30 @@ export function PromptFormDrawer({
 
               {/* Description */}
               <div className="space-y-1.5 col-span-2">
-                <Label className="text-xs font-semibold text-slate-600">Description</Label>
+                <Label className={`text-xs font-semibold ${errors.description ? "text-brand" : "text-slate-600"}`}>
+                  Description <span className="text-brand">*</span>
+                </Label>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe what this prompt is designed to accomplish"
-                  className="h-8.5 text-xs bg-white border-slate-200"
+                  className={`h-8.5 text-xs bg-white ${errors.description ? "border-brand focus-visible:ring-brand/20" : "border-slate-200"}`}
                 />
+                {errors.description && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{errors.description}</p>}
               </div>
 
               {/* Remark */}
               <div className="space-y-1.5 col-span-2">
-                <Label className="text-xs font-semibold text-slate-600">Remark</Label>
+                <Label className={`text-xs font-semibold ${errors.remark ? "text-brand" : "text-slate-600"}`}>
+                  Remark <span className="text-brand">*</span>
+                </Label>
                 <Input
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
                   placeholder="e.g. Deployed in customer widget"
-                  className="h-8.5 text-xs bg-white border-slate-200"
+                  className={`h-8.5 text-xs bg-white ${errors.remark ? "border-brand focus-visible:ring-brand/20" : "border-slate-200"}`}
                 />
+                {errors.remark && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{errors.remark}</p>}
               </div>
             </div>
 
