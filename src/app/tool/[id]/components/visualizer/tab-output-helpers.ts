@@ -60,6 +60,17 @@ export function extractLabelFromText(text: string, fallback: string): string {
     }
   }
 
+  // 4. Heuristic: if first line is short and followed by an empty line, or is the only line
+  const lines = text.split("\n").map(l => l.trim());
+  if (lines.length > 0) {
+    const firstLineText = lines[0];
+    if (firstLineText.length > 0 && firstLineText.length < 30) {
+      if (lines.length === 1 || lines[1] === "") {
+        return firstLineText;
+      }
+    }
+  }
+
   return fallback;
 }
 
@@ -91,10 +102,20 @@ export function parseSingleTextSummary(items: ScrapedJobItem[]) {
     singleTextValue.trim().length > 0 &&
     remainingKeys.length === 0;
 
-  // Split summary if a separator exists
-  const summaryParts = isSingleTextSummary && singleTextValue.includes("|")
-    ? singleTextValue.split("|").map((part) => part.trim()).filter(Boolean)
-    : [];
+  // Split summary if a separator exists, avoiding splitting markdown tables
+  const standalonePipeRegex = /\r?\n\s*\|\s*\r?\n/;
+  let summaryParts: string[] = [];
+  if (isSingleTextSummary) {
+    if (standalonePipeRegex.test(singleTextValue)) {
+      summaryParts = singleTextValue.split(standalonePipeRegex).map((part) => part.trim()).filter(Boolean);
+    } else if (singleTextValue.includes("|") && !/\|[ \t]*:?-+:?[ \t]*\|/.test(singleTextValue)) {
+      const parts = singleTextValue.split("|").map((part) => part.trim()).filter(Boolean);
+      // Only split if we have at least 2 parts and each part is substantial (e.g., > 20 chars) to avoid sentence fragments
+      if (parts.length > 1 && parts.every(p => p.length > 20)) {
+        summaryParts = parts;
+      }
+    }
+  }
 
   const hasMultipleSummaryTabs = summaryParts.length > 1;
 
