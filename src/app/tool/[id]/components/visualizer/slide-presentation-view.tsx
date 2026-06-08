@@ -55,9 +55,9 @@ export function SlidePresentationView({
     const el = document.getElementById("slide-presentation-root");
     if (!el) return;
     if (!document.fullscreenElement) {
-      el.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      el.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { });
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => { });
     }
   };
 
@@ -197,7 +197,7 @@ export function SlidePresentationView({
 
         {/* Slide Body (3 Columns) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6 flex-1 items-stretch min-h-0">
-          
+
           {/* Column 1: Executive Digest & Verdict */}
           <div className={cn(
             "rounded-2xl p-5 border flex flex-col justify-between min-h-0 gap-4",
@@ -365,7 +365,7 @@ export function SlidePresentationView({
               </div>
             )}
           </div>
-          
+
         </div>
 
         {/* Slide Footer */}

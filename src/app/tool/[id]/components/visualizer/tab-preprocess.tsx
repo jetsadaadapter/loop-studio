@@ -125,7 +125,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-sans text-xs sm:text-sm leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
+            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
@@ -170,7 +170,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                     Analyst System Prompt & Instructions
                   </span>
                   <div className="relative group/prompt-preprocess rounded-xl border border-slate-200 bg-slate-50/40 hover:bg-slate-50/70 transition-all duration-200 shadow-xs hover:border-slate-350">
-                    <pre className="p-3 sm:p-4 pr-16 sm:pr-24 text-xs sm:text-sm font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-96 overflow-y-auto">
+                    <pre className="p-3 sm:p-4 pr-16 sm:pr-24 text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-96 overflow-y-auto">
                       {preProcessConfig.prompt}
                     </pre>
                     <button

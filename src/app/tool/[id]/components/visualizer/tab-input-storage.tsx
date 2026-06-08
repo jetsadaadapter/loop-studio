@@ -145,7 +145,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
         <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
         {isUrl ? (
           <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/url-input">
-            <span className="flex-1 truncate select-text text-xs sm:text-sm text-slate-700 font-sans">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
               {valStr}
             </span>
             <div className="flex items-center gap-1 shrink-0">
@@ -179,7 +179,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
           </div>
         ) : isLongText ? (
           <div className="relative group/long-input mt-2 rounded-xl border border-slate-200 bg-slate-50/45 p-4 shadow-xs hover:border-slate-350 transition-all duration-200">
-            <pre className="text-xs sm:text-sm font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-16 sm:pr-20">
+            <pre className="text-xs font-sans font-normal text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto wrap-break-word pr-16 sm:pr-20">
               {valStr}
             </pre>
             <button
@@ -208,7 +208,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
           </div>
         ) : isTechnicalId ? (
           <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/short-input">
-            <span className="flex-1 truncate select-text text-xs sm:text-sm text-slate-700 font-sans">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
               {valStr}
             </span>
             <button
@@ -230,7 +230,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
             </button>
           </div>
         ) : (
-          <span className="text-xs sm:text-sm font-normal text-slate-700 mt-1.5 block leading-relaxed whitespace-pre-wrap wrap-break-word">
+          <span className="text-xs font-normal text-slate-700 mt-1.5 block leading-relaxed whitespace-pre-wrap wrap-break-word">
             {valStr}
           </span>
         )}
@@ -286,7 +286,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-sans text-xs sm:text-sm leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
+            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
@@ -314,7 +314,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                   <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
                     <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{promptKey}</span>
                     <div className="relative group/prompt rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
-                      <pre className="p-4 pr-16 sm:pr-24 text-xs sm:text-sm font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
+                      <pre className="p-4 pr-16 sm:pr-24 text-xs font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-60 overflow-y-auto">
                         {promptVal}
                       </pre>
                       <button
@@ -424,7 +424,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                         <div className="border-t border-slate-100 pt-4 mt-2 space-y-2">
                           <span className="text-[10px] font-bold text-slate-450 font-sans block uppercase">{key}</span>
                           <div className="relative group/prompt-config rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50/80 transition-all duration-200 shadow-xs hover:border-slate-350">
-                            <pre className="p-3.5 pr-16 sm:pr-24 text-xs sm:text-sm font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-40 overflow-y-auto">
+                            <pre className="p-3.5 pr-16 sm:pr-24 text-xs font-sans font-normal text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-40 overflow-y-auto">
                               {val}
                             </pre>
                             <button
