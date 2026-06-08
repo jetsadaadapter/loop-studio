@@ -153,6 +153,20 @@ export function PromptEditor({
     e.target.value = "";
   };
 
+  // Helper: mask {{placeholder}} variables with safe tokens before JSON.parse
+  // Returns { masked: string, restore: (s: string) => string }
+  const maskPlaceholders = (text: string) => {
+    const tokens: string[] = [];
+    const masked = text.replace(/\{\{[^}]*\}\}/g, (match) => {
+      const idx = tokens.length;
+      tokens.push(match);
+      return `"__PLACEHOLDER_${idx}__"`;
+    });
+    const restore = (s: string) =>
+      s.replace(/"__PLACEHOLDER_(\d+)__"/g, (_, i) => tokens[Number(i)] ?? `""`);
+    return { masked, restore };
+  };
+
   // Real-time JSON validation & block extraction computed on the fly during render
   const jsonStatus = (() => {
     if (!safeValue.trim()) {
@@ -172,20 +186,22 @@ export function PromptEditor({
     }
 
     // 2. If no fenced blocks, try finding raw curly braces { ... }
+    // Mask {{placeholders}} first so they don't interfere with brace counting
     if (jsonBlocks.length === 0) {
+      const { masked } = maskPlaceholders(safeValue);
       let openBraces = 0;
       let startIndex = -1;
-      for (let i = 0; i < safeValue.length; i++) {
-        if (safeValue[i] === "{") {
+      for (let i = 0; i < masked.length; i++) {
+        if (masked[i] === "{") {
           if (openBraces === 0) {
             startIndex = i;
           }
           openBraces++;
-        } else if (safeValue[i] === "}") {
+        } else if (masked[i] === "}") {
           if (openBraces > 0) {
             openBraces--;
             if (openBraces === 0 && startIndex !== -1) {
-              const possibleJson = safeValue.substring(startIndex, i + 1);
+              const possibleJson = masked.substring(startIndex, i + 1);
               // Avoid matching trivial single characters or non-JSON fragments
               if (possibleJson.length > 5 && possibleJson.includes(":")) {
                 jsonBlocks.push(possibleJson.trim());
@@ -205,10 +221,24 @@ export function PromptEditor({
       };
     }
 
-    // Validate each detected block
+    // Validate each detected block (mask placeholders before parsing)
+    // Skip blocks that are schema/template annotations (contain pipe | union types or range text)
+    const isSchemaAnnotationBlock = (block: string) => {
+      // Detect pipe | used as union type: "value" | "other"
+      if (/"\s*\|\s*"/.test(block)) return true;
+      // Detect range descriptions like: 0.0 to 1.0
+      if (/\d+(\.\d+)?\s+to\s+\d+(\.\d+)?/.test(block)) return true;
+      return false;
+    };
+
+    let validatedCount = 0;
     for (let idx = 0; idx < jsonBlocks.length; idx++) {
+      // Skip schema/template annotation blocks — they are intentional format examples
+      if (isSchemaAnnotationBlock(jsonBlocks[idx])) continue;
       try {
-        JSON.parse(jsonBlocks[idx]);
+        const { masked } = maskPlaceholders(jsonBlocks[idx]);
+        JSON.parse(masked);
+        validatedCount++;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Invalid JSON";
         return {
@@ -221,39 +251,47 @@ export function PromptEditor({
 
     return {
       isValid: true,
-      message: `Verified: All ${jsonBlocks.length} JSON configuration blocks are syntactically valid!`,
+      message:
+        validatedCount > 0
+          ? `Verified: ${validatedCount} JSON data block${validatedCount > 1 ? "s are" : " is"} syntactically valid!`
+          : "JSON schema/template blocks detected — format examples are not validated.",
       blocksCount: jsonBlocks.length,
     };
   })();
 
   // Pretty-print any JSON block inside the editor using a smart brace-balancing parser
+  // Handles {{placeholder}} template variables by masking them before parse and restoring after
   const formatJSON = () => {
+    const { masked, restore } = maskPlaceholders(safeValue);
+
     // If the entire text is a JSON object, format it directly
     try {
-      const parsed = JSON.parse(safeValue.trim());
-      onChange(JSON.stringify(parsed, null, 2));
+      const parsed = JSON.parse(masked.trim());
+      onChange(restore(JSON.stringify(parsed, null, 2)));
       return;
     } catch {}
 
-    // Smart nested brace-balancing search
+    // Smart nested brace-balancing search on masked text
     let found = false;
-    for (let i = 0; i < safeValue.length; i++) {
-      if (safeValue[i] === "{") {
+    for (let i = 0; i < masked.length; i++) {
+      if (masked[i] === "{") {
         let bracesCount = 1;
-        for (let j = i + 1; j < safeValue.length; j++) {
-          if (safeValue[j] === "{") bracesCount++;
-          if (safeValue[j] === "}") {
+        for (let j = i + 1; j < masked.length; j++) {
+          if (masked[j] === "{") bracesCount++;
+          if (masked[j] === "}") {
             bracesCount--;
             if (bracesCount === 0) {
-              const candidate = safeValue.substring(i, j + 1);
+              const candidate = masked.substring(i, j + 1);
               // Avoid auto-formatting trivial text or template tags e.g. {currentItem}
               if (candidate.length > 5 && candidate.includes(":")) {
                 try {
                   const parsed = JSON.parse(candidate);
-                  const formatted = JSON.stringify(parsed, null, 2);
-                  onChange(
-                    safeValue.substring(0, i) + formatted + safeValue.substring(j + 1),
-                  );
+                  const formattedMasked = JSON.stringify(parsed, null, 2);
+                  // Restore placeholders in the formatted segment, then rebuild full text
+                  const formattedRestored = restore(formattedMasked);
+                  const prefix = restore(masked.substring(0, i));
+                  const suffix = restore(masked.substring(j + 1));
+                  onChange(prefix + formattedRestored + suffix);
                   found = true;
                   break;
                 } catch {
@@ -269,7 +307,7 @@ export function PromptEditor({
 
     if (!found) {
       alert(
-        "Cannot auto-format. Please ensure the target JSON block has no syntax errors first (note: double-brace placeholders like {{currentItem}} are safely ignored and must be outside the main JSON block).",
+        "Cannot auto-format. Please ensure the target JSON block has no syntax errors first (note: double-brace placeholders like {{variable}} are supported and will be preserved after formatting).",
       );
     }
   };
