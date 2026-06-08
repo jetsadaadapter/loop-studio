@@ -31,6 +31,38 @@ export const excludedKeys = [
   ...summaryCandidateKeys,
 ];
 
+export function extractLabelFromText(text: string, fallback: string): string {
+  // 1. Try to find markdown headings (e.g. ### English Summary, # Thai)
+  const headingMatch = text.match(/^\s*(?:#+\s*|\*\*|\*)\s*([^:\n\*\#]+?)(?::\s*|\*\*|\*|\n|$)/);
+  if (headingMatch) {
+    const candidate = headingMatch[1].trim();
+    if (candidate.length > 0 && candidate.length < 25) {
+      return candidate;
+    }
+  }
+
+  // 2. Try to find bold starts like **English Version**
+  const boldMatch = text.match(/^\s*\*\*([^\*]+)\*\*/);
+  if (boldMatch) {
+    const candidate = boldMatch[1].replace(/[:：]/g, "").trim();
+    if (candidate.length > 0 && candidate.length < 25) {
+      return candidate;
+    }
+  }
+
+  // 3. Try to find a colon-separated label at the start of the first line (e.g., "English: ...")
+  const firstLine = text.split("\n")[0] || "";
+  const colonIdx = firstLine.indexOf(":");
+  if (colonIdx > 0 && colonIdx < 25) {
+    const candidate = firstLine.substring(0, colonIdx).replace(/[\*\#]/g, "").trim();
+    if (candidate.length > 0 && candidate.length < 20) {
+      return candidate;
+    }
+  }
+
+  return fallback;
+}
+
 export function parseSingleTextSummary(items: ScrapedJobItem[]) {
   const firstItem = items[0] as Record<string, unknown> | undefined;
   
@@ -67,8 +99,13 @@ export function parseSingleTextSummary(items: ScrapedJobItem[]) {
   const hasMultipleSummaryTabs = summaryParts.length > 1;
 
   const summaryTabLabels = summaryParts.map((text) => {
-    const hasThai = /[\u0e00-\u0e7f]/.test(text);
-    return hasThai ? "Thai" : "English";
+    // Count Thai characters
+    const thaiChars = (text.match(/[\u0e00-\u0e7f]/g) || []).length;
+    // Count Latin/English alphabetical characters
+    const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
+    
+    const fallback = thaiChars > englishChars ? "Thai" : "English";
+    return extractLabelFromText(text, fallback);
   });
 
   const uniqueSummaryTabLabels = summaryTabLabels.map((label, idx) => {
