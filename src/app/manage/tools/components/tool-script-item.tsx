@@ -152,8 +152,10 @@ export function ToolScriptItem({
           if (script.config.promptId) {
             setPromptMode("central");
             const selected = data.find((p) => p.id === script.config.promptId);
-            const resolvedPrompt = selected ? selected.prompt : (script.config.prompt as string) || "";
-            const resolvedModel = selected ? selected.model?.modelSlug || "" : (script.config.model as string) || "";
+            const savedPrompt = (script.config.prompt as string) || "";
+            const savedModel = (script.config.model as string) || "";
+            const resolvedPrompt = savedPrompt;
+            const resolvedModel = savedModel || (selected ? selected.model?.modelSlug || "" : "");
 
             initialConfigRef.current = {
               promptMode: "central",
@@ -532,7 +534,7 @@ export function ToolScriptItem({
                         updateConfig({
                           ...script.config,
                           promptId: v,
-                          prompt: selected.prompt,
+                          prompt: (script.config.prompt as string) || "",
                           ...(selected.model?.modelSlug && { model: selected.model.modelSlug }),
                         });
                       }
@@ -563,18 +565,16 @@ export function ToolScriptItem({
 
               <div className="space-y-1">
                 <Label className={`text-xs font-semibold ${error?.config ? "text-brand" : "text-slate-600"}`}>
-                  System Prompt {promptMode === "central" && <span className="text-slate-400 font-normal ml-1">(Read-only template)</span>}
+                  Instruction Prompt
                 </Label>
                 <PromptEditor
                   value={(script.config.prompt as string) || ""}
                   onChange={(v) => {
-                    if (promptMode === "customize") {
-                      updateConfig({ ...script.config, prompt: v });
-                    }
+                    updateConfig({ ...script.config, prompt: v });
                   }}
-                  placeholder={promptMode === "central" ? "Select a Prompt Persona to load instructions…" : "System Prompt instructions..."}
+                  placeholder={promptMode === "central" ? "Enter additional instructions to append to the central prompt..." : "Instruction Prompt instructions..."}
                   hasError={!!error?.config}
-                  disabled={promptMode === "central"}
+                  disabled={false}
                 />
                 {error?.config && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.config}</p>}
               </div>
