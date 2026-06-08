@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, startTransition } from "react";
-import { Wrench } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/toast-provider";
@@ -9,6 +9,7 @@ import type { ManageToolApiItem, ToolParam, ToolParamPayload } from "@/core/inte
 import { getManageToolParams, upsertManageToolParams, deleteManageToolParam } from "@/core/services/manage-tools.service";
 import { ToolParamBuilder } from "./tool-param-builder";
 import type { ParamDraft } from "./types";
+import { getToolIconData } from "./tool-row";
 
 interface NestedConfig {
   promptId?: string;
@@ -212,7 +213,7 @@ function ToolParamsDrawerInner({
     <div className="flex flex-col h-full bg-white">
       <SheetHeader className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/60 px-6 py-4 space-y-0">
         <div className="flex items-center gap-2 text-brand">
-          <Wrench className="size-4.5" />
+          <SlidersHorizontal className="size-4.5" />
           <SheetTitle className="text-base font-bold text-slate-800 tracking-tight">
             Manage Parameters
           </SheetTitle>
@@ -222,10 +223,21 @@ function ToolParamsDrawerInner({
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {/* Tool Header Context Info */}
-        <div className="mb-6 rounded-xl bg-slate-50/50 border border-slate-200/40 p-3">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Target Tool</span>
-          <p className="text-sm font-bold text-slate-800 tracking-tight">{tool?.name}</p>
-          <p className="font-sans text-[9px] text-slate-500 mt-0.5">id: {tool?.id}</p>
+        <div className="mb-6 rounded-xl bg-slate-50/50 border border-slate-200/40 p-3.5 flex items-center gap-3">
+          {tool && (
+            <div className="size-10 rounded-lg flex items-center justify-center shrink-0 border bg-white shadow-3xs">
+              {(() => {
+                const { Icon, bgActive } = getToolIconData(tool);
+                const iconColorClass = bgActive.split(" ").find((c) => c.startsWith("text-")) || "text-slate-600";
+                return <Icon className={`size-5 ${iconColorClass}`} />;
+              })()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <span className="block text-[8px] font-black uppercase tracking-wider text-slate-400/95 leading-none mb-1.5 font-sans">Target Tool</span>
+            <p className="text-sm font-extrabold text-slate-800 tracking-tight leading-none truncate">{tool?.name}</p>
+            <p className="font-sans text-[9px] text-slate-450 mt-1.5 leading-none">id: {tool?.id}</p>
+          </div>
         </div>
 
         {isLoading ? (

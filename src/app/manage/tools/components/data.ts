@@ -9,9 +9,14 @@ export const PLUGIN_META: Record<string, { color: string; dot: string; label: st
     label: "Apify",
   },
   gemini: {
+    color: "text-sky-600",
+    dot: "bg-sky-400",
+    label: "Gemini AI",
+  },
+  exportcomments: {
     color: "text-violet-600",
     dot: "bg-violet-400",
-    label: "Gemini AI",
+    label: "Export Comments",
   },
 };
 

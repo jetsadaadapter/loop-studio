@@ -243,6 +243,15 @@ export function ToolScriptItem({
   const isApify = script.plugin === "apify";
   const isCustom = !isGemini && !isApify;
 
+  const pluginKey = (script.plugin || "").toLowerCase().trim();
+  const badgeStyles = pluginKey.startsWith("exportcomments")
+    ? { bg: "bg-violet-50/70", border: "border-violet-100/40", text: "text-violet-600" }
+    : pluginKey === "gemini"
+    ? { bg: "bg-sky-50/70", border: "border-sky-100/40", text: "text-sky-600" }
+    : pluginKey === "apify"
+    ? { bg: "bg-orange-50/70", border: "border-orange-100/40", text: "text-orange-600" }
+    : { bg: "bg-slate-100", border: "border-slate-200/50", text: "text-slate-500" };
+
   const displayPlugins = [...plugins];
   if (script.plugin && !displayPlugins.some((p) => p.value === script.plugin)) {
     let label = script.plugin;
@@ -314,7 +323,7 @@ export function ToolScriptItem({
             {script.label || <span className="text-slate-400 italic">(No label)</span>}
           </span>
 
-          <span className="inline-flex items-center rounded-sm bg-slate-100 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-500 font-sans select-none shrink-0 border border-slate-200/50">
+          <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[8px] font-bold uppercase font-sans select-none shrink-0 border ${badgeStyles.bg} ${badgeStyles.border} ${badgeStyles.text}`}>
             {script.plugin}
           </span>
 
@@ -408,8 +417,8 @@ export function ToolScriptItem({
           </div>
 
           {isGemini && (
-            <div className="space-y-3 border-l-2 border-violet-500 pl-3.5 pb-2">
-              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-violet-600">
+            <div className="space-y-3 border-l-2 border-sky-500 pl-3.5 pb-2">
+              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-sky-600">
                 <Image src="/images/icons/gemini-color.svg" width={14} height={14} className="size-3.5 shrink-0" alt="Gemini" /><span>Gemini AI Processor</span>
               </div>
               <div className="space-y-1">
@@ -631,9 +640,13 @@ export function ToolScriptItem({
           )}
 
           {isCustom && (
-            <div className="space-y-3.5 border-l-2 border-slate-400 pl-3.5 pb-2">
+            <div className={`space-y-3.5 border-l-2 pl-3.5 pb-2 ${
+              pluginKey.startsWith("exportcomments") ? "border-violet-500" : "border-slate-400"
+            }`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                <div className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider ${
+                  pluginKey.startsWith("exportcomments") ? "text-violet-600" : "text-slate-500"
+                }`}>
                   <Terminal className="size-3.5 shrink-0" /><span>Plugin Configuration</span>
                 </div>
                 <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/40">

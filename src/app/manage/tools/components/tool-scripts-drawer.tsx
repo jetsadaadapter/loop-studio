@@ -14,6 +14,7 @@ import {
 } from "@/core/services/manage-tools.service";
 import { ToolScriptBuilder } from "./tool-script-builder";
 import type { ScriptDraft } from "./types";
+import { getToolIconData } from "./tool-row";
 
 // ── Conversion Helpers ───────────────────────────────────────────────────────
 
@@ -201,10 +202,21 @@ function ToolScriptsDrawerInner({
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {/* Tool Header Context Info */}
-        <div className="mb-6 rounded-xl bg-slate-50/50 border border-slate-200/40 p-3">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Target Tool</span>
-          <p className="text-sm font-bold text-slate-800 tracking-tight">{tool?.name}</p>
-          <p className="font-sans text-[9px] text-slate-500 mt-0.5">id: {tool?.id}</p>
+        <div className="mb-6 rounded-xl bg-slate-50/50 border border-slate-200/40 p-3.5 flex items-center gap-3">
+          {tool && (
+            <div className="size-10 rounded-lg flex items-center justify-center shrink-0 border bg-white shadow-3xs">
+              {(() => {
+                const { Icon, bgActive } = getToolIconData(tool);
+                const iconColorClass = bgActive.split(" ").find((c) => c.startsWith("text-")) || "text-slate-600";
+                return <Icon className={`size-5 ${iconColorClass}`} />;
+              })()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <span className="block text-[8px] font-black uppercase tracking-wider text-slate-400/95 leading-none mb-1.5 font-sans">Target Tool</span>
+            <p className="text-sm font-extrabold text-slate-800 tracking-tight leading-none truncate">{tool?.name}</p>
+            <p className="font-sans text-[9px] text-slate-450 mt-1.5 leading-none">id: {tool?.id}</p>
+          </div>
         </div>
 
         {isLoading ? (

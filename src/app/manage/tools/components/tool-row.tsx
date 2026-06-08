@@ -1,7 +1,6 @@
 "use client";
 
-import { Wrench, Sparkles, Globe, LineChart, Ellipsis, Pencil, Trash2, Workflow } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
@@ -12,7 +11,7 @@ import {
 
 // ── Automatic dynamic tool icon resolver based on plugin type or name keywords ───
 
-function getToolIconData(tool: ManageToolApiItem) {
+export function getToolIconData(tool: ManageToolApiItem) {
   const name = tool.name.toLowerCase();
   const scripts = tool.scripts || [];
   const firstPlugin = scripts[0]?.plugin?.toLowerCase() || "";
@@ -104,13 +103,15 @@ function ParamBadge({ param, onClick }: { param: ToolParam; onClick?: () => void
 }
 
 function PipelineStep({ script, isLast }: { script: ToolScript; isLast: boolean }) {
-  const meta = PLUGIN_META[script.plugin.toLowerCase()];
+  const pluginKey = script.plugin.toLowerCase();
+  const meta = pluginKey.startsWith("exportcomments")
+    ? PLUGIN_META["exportcomments"]
+    : PLUGIN_META[pluginKey];
+  const dotColor = meta ? meta.dot : "bg-slate-400";
   return (
     <div className="flex items-center gap-1">
       <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-slate-50/60 px-2.5 py-0.75 text-[10px] font-semibold text-slate-600 transition-all hover:bg-white hover:border-slate-350 shadow-3xs cursor-default">
-        {meta && (
-          <span className={`size-1.5 rounded-full ${meta.dot} animate-pulse`} aria-hidden />
-        )}
+        <span className={`size-1.5 rounded-full ${dotColor} animate-pulse`} aria-hidden />
         <span>{script.label}</span>
       </span>
       {!isLast && (
@@ -198,7 +199,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                 ? [
                     {
                       label: "Manage params",
-                      icon: Wrench,
+                      icon: SlidersHorizontal,
                       onClick: onManageParams,
                     },
                   ]
@@ -286,7 +287,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                 onClick={onManageParams}
                 className="h-7 px-2.5 text-[9px] font-bold bg-white text-slate-700 hover:text-brand border border-slate-200 rounded-lg shadow-2xs hover:bg-slate-50 transition-all cursor-pointer flex items-center gap-1"
               >
-                <Wrench className="size-2.5" />
+                <SlidersHorizontal className="size-2.5" />
                 Add Params
               </button>
             )}
