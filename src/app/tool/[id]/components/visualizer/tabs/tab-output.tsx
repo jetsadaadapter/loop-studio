@@ -11,19 +11,19 @@ import {
   getMergedGeminiItems,
   groupIntentAnalysisByPost,
   isPurchaseIntentAnalysis,
-} from "../../tool-job-utils";
+} from "../../../tool-job-utils";
 import { TabJsonView } from "./tab-json-view";
-import { TablePagination } from "./table-pagination";
+import { TablePagination } from "../table/table-pagination";
 import {
   parseSingleTextSummary,
   getAllKeys,
   isCommentScraperItem,
   normalizeCommentItem,
 } from "./tab-output-helpers";
-import { ExecutionSummarySection } from "./execution-summary-section";
+import { ExecutionSummarySection } from "../overview/execution-summary-section";
 import { TabOutputOverview } from "./tab-output-overview";
-import { AllFieldsTable } from "./all-fields-table";
-import { SlidePresentationView } from "./slide-presentation-view";
+import { AllFieldsTable } from "../table/all-fields-table";
+import { SlidePresentationView } from "../presentation/slide-presentation-view";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -201,18 +201,18 @@ export function TabOutput({ job }: TabOutputProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-white text-slate-700">
+    <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
       {/* Visualizer Controls Bar */}
-      <div className="bg-white border-b border-slate-200/80 px-4 py-2 flex items-center justify-between shrink-0 select-none shadow-xs">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-200/60 px-5 py-3 flex items-center justify-between shrink-0 select-none">
         {/* Inner Tabs (Left) */}
-        <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
+        <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
           <button
             onClick={() => setInnerTab("overview")}
             className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
+              "px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
               innerTab === "overview"
-                ? "bg-white text-slate-800 shadow-xs"
-                : "text-slate-500 hover:text-slate-800",
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
             )}
           >
             {isPreProcessResult
@@ -230,10 +230,10 @@ export function TabOutput({ job }: TabOutputProps) {
           <button
             onClick={() => setInnerTab("all")}
             className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
+              "px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
               innerTab === "all"
-                ? "bg-white text-slate-800 shadow-xs"
-                : "text-slate-500 hover:text-slate-800",
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
             )}
           >
             All fields
@@ -241,27 +241,27 @@ export function TabOutput({ job }: TabOutputProps) {
         </div>
 
         {/* View Toggles + Slide Report Button (Right) */}
-        <div className="flex items-center gap-2">
-          {/* Slide Report Button — separated from tabs, theme-color outline style */}
+        <div className="flex items-center gap-3">
+          {/* Slide Report Button */}
           {innerTab === "overview" && (isAnalysisOverview || isSingleTextSummary) && (
             <button
               onClick={() => setIsSlideMode(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand/50 text-brand bg-brand/5 hover:bg-brand/10 hover:border-brand text-xs font-black transition-all cursor-pointer shadow-3xs"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand/30 text-brand bg-brand/5 hover:bg-brand/10 hover:border-brand/50 text-xs font-bold transition-all duration-200 cursor-pointer"
               title="View Presentation Slide Report"
             >
-              <Presentation className="size-3.5" />
+              <Presentation className="size-4" />
               <span>Slide Report</span>
             </button>
           )}
 
-          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
+          <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
             <button
               onClick={() => setViewMode("table")}
               className={cn(
-                "p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
+                "p-2 rounded-lg transition-all duration-200 cursor-pointer",
                 viewMode === "table"
-                  ? "bg-white text-brand shadow-xs"
-                  : "text-slate-400 hover:text-slate-600",
+                  ? "bg-white text-brand shadow-sm"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
               )}
               title="Table view"
             >
@@ -270,10 +270,10 @@ export function TabOutput({ job }: TabOutputProps) {
             <button
               onClick={() => setViewMode("json")}
               className={cn(
-                "p-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
+                "p-2 rounded-lg transition-all duration-200 cursor-pointer",
                 viewMode === "json"
-                  ? "bg-white text-brand shadow-xs"
-                  : "text-slate-400 hover:text-slate-600",
+                  ? "bg-white text-brand shadow-sm"
+                  : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
               )}
               title="JSON view"
             >
@@ -284,7 +284,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-auto min-h-0 bg-white">
+      <div className="flex-1 overflow-auto min-h-0">
         {viewMode === "json" ? (
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (

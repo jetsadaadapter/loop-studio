@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown, MessageSquare, ExternalLink } from "lucide-react";
-import { ImageWithFallback } from "./image-with-fallback";
-import { cn } from "../../../../../lib/utils";
+import { ImageWithFallback } from "../shared/image-with-fallback";
+import { cn } from "@/lib/utils";
 import { formatDate, renderCommentText } from "./comment-helpers";
 
 export interface CommentItem {

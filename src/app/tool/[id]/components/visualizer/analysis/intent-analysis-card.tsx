@@ -8,10 +8,6 @@ import {
   ThumbsDown,
   Crown,
   BadgeCheck,
-  Sparkles,
-  Activity,
-  Database,
-  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -19,10 +15,19 @@ import {
   getAnalysisClassificationLabel,
   getAnalysisDisplayBlocks,
   hasIntentAnalysisPayload,
+  groupMetricsByPostId,
   type AnalysisDisplayPreset,
   type AnalysisResult,
-} from "../../tool-job-utils";
+} from "../../../tool-job-utils";
 import { AnalysisBlockEntry } from "./analysis-block-entry";
+import { MetricsPostCard } from "./metrics-post-card";
+import { AnalysisInfoBoxes } from "./analysis-info-boxes";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface IntentAnalysisItem {
   postUrl?: string;
@@ -196,29 +201,29 @@ export function IntentAnalysisCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-2xl border shadow-xs overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
+        "bg-white/90 backdrop-blur-sm rounded-2xl border overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
         isLeader
-          ? "border-emerald-300 ring-2 ring-emerald-100"
-          : "border-slate-200/60",
+          ? "border-emerald-300/60 ring-1 ring-emerald-200/40 shadow-sm"
+          : "border-slate-200/60 shadow-xs",
       )}
     >
       {/* Card Header */}
-      <div className="px-5 py-3.5 bg-linear-to-r from-slate-50/60 to-white border-b border-slate-150/80">
+      <div className="px-6 py-4 bg-gradient-to-r from-slate-50/40 to-white/60 border-b border-slate-200/60">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="size-7 rounded-lg bg-slate-100 border border-slate-200/60 flex items-center justify-center shrink-0 select-none">
-              <span className="text-[10px] font-black text-slate-500">
+          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+            <div className="size-8 rounded-xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center shrink-0 select-none">
+              <span className="text-xs font-black text-slate-500">
                 #{index + 1}
               </span>
             </div>
             <div className="min-w-0 flex-1">
               {isGenericMode ? (
-                <p className="text-xs font-bold text-slate-700">
+                <p className="text-sm font-bold text-slate-800">
                   Result #{index + 1}
                 </p>
               ) : (
                 <>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                     Post URL
                   </p>
                   {postUrl ? (
@@ -227,14 +232,14 @@ export function IntentAnalysisCard({
                         href={postUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                        className="text-xs font-semibold text-brand hover:text-brand-strong hover:underline inline-flex items-center gap-1.5 truncate max-w-full"
                         title={postUrl}
                       >
                         <span className="truncate">{displayUrl}</span>
-                        <ExternalLink className="size-3 shrink-0 opacity-70" />
+                        <ExternalLink className="size-3 shrink-0" />
                       </a>
                     ) : (
-                      <span className="text-xs font-bold text-slate-650 truncate max-w-full" title={postUrl}>
+                      <span className="text-xs font-semibold text-slate-700 truncate max-w-full" title={postUrl}>
                         {postUrl === "aggregate" ? "Aggregate Analysis" : postUrl}
                       </span>
                     )
@@ -253,12 +258,12 @@ export function IntentAnalysisCard({
             {sentiment && (
               <span
                 className={cn(
-                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border",
+                  "inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border",
                   String(sentiment).toLowerCase() === "positive"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
                     : String(sentiment).toLowerCase() === "negative"
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-slate-50 text-slate-600 border-slate-200",
+                      ? "bg-rose-50 text-rose-700 border-rose-200/60"
+                      : "bg-slate-50 text-slate-600 border-slate-200/60",
                 )}
               >
                 {sentiment}
@@ -267,17 +272,17 @@ export function IntentAnalysisCard({
             {hasIntentPayload && classification && (
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border",
+                  "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border",
                   classificationTone,
                 )}
               >
-                <BadgeCheck className="size-2.5" />
+                <BadgeCheck className="size-3" />
                 {classification}
               </span>
             )}
             {isLeader && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-extrabold uppercase tracking-wider">
-                <Crown className="size-2.5" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/60 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
+                <Crown className="size-3" />
                 Top Performer
               </span>
             )}
@@ -285,16 +290,16 @@ export function IntentAnalysisCard({
         </div>
       </div>
 
-      <div className="p-5 space-y-5">
+      <div className="p-4 space-y-4">
         {/* Groups Breakdown */}
         {groups.length > 0 && (
           <div className="space-y-3">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-              Intent Breakdown
+            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+              Purchase Intent Analysis
             </p>
 
             {/* Stacked bar */}
-            <div className="flex rounded-full overflow-hidden h-2.5 w-full gap-0.5 bg-slate-100">
+            <div className="flex rounded-full overflow-hidden h-2 w-full gap-0.5 bg-slate-100/80">
               {groups.map((g, i) => {
                 const cfg = getGroupConfig(g.label, i);
                 const pct =
@@ -336,53 +341,39 @@ export function IntentAnalysisCard({
             </div>
 
             {/* Group chips */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {groups.map((g, i) => {
-                const cfg = getGroupConfig(g.label, i);
-                const Icon = cfg.icon;
-                return (
-                  <div
-                    key={`group-${i}`}
-                    className={cn(
-                      "flex flex-col gap-1 p-3 rounded-xl border bg-slate-50/20",
-                      cfg.bg,
-                      cfg.border,
-                    )}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Icon className={cn("size-3 shrink-0", cfg.color)} />
-                      <span
-                        className={cn(
-                          "text-[9px] font-bold uppercase tracking-wider leading-tight",
-                          cfg.color,
-                        )}
-                      >
-                        {g.label}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span
-                        className={cn(
-                          "text-base font-black leading-none tabular-nums",
-                          cfg.color,
-                        )}
-                      >
-                        {g.count.toLocaleString()}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-[9px] font-bold",
-                          cfg.color,
-                          "opacity-75",
-                        )}
-                      >
-                        {g.percentage}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <TooltipProvider delay={200}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {groups.map((g, i) => {
+                  return (
+                    <Tooltip key={`group-${i}`}>
+                      <TooltipTrigger className="w-full text-left cursor-help">
+                        <div className="flex flex-col gap-1.5 p-3 rounded-lg border border-slate-200/60 bg-white hover:border-slate-300 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider leading-tight text-slate-700">
+                              {g.label}
+                            </span>
+                          </div>
+                          <div className="flex items-baseline gap-2 mt-0.5">
+                            <span className="text-base font-black leading-none tabular-nums text-slate-800">
+                              {g.count.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500">
+                              ({g.percentage}%)
+                            </span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-xs font-semibold">{g.label}</p>
+                        <p className="text-xs text-slate-300">
+                          {g.count} comments ({g.percentage}% of total {totalCount})
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </TooltipProvider>
           </div>
         )}
 
@@ -391,67 +382,30 @@ export function IntentAnalysisCard({
           (Array.isArray(keywords) ? keywords.length > 0 : !!keywords) ||
           hasIntentPayload ||
           dynamicBlocks.length > 0) && (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {summary && (
-                <div className="border-l-3 border-brand pl-3.5 space-y-1">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                <div className="border-l-3 border-brand/60 pl-4 space-y-1.5">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     AI Analysis Summary
                   </p>
-                  <p className="text-xs text-slate-650 leading-relaxed font-medium">
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
                     {summary}
                   </p>
                 </div>
               )}
 
               {hasIntentPayload && visibleBoxesCount > 0 && (
-                <div className="flex flex-wrap gap-2.5">
-                  {showClassification && (
-                    <div
-                      className={cn(
-                        "rounded-xl border px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]",
-                        classificationTone,
-                      )}
-                    >
-                      <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                        Classification
-                      </p>
-                      <p className="mt-1 text-sm font-black leading-tight">
-                        {classification}
-                      </p>
-                    </div>
-                  )}
-                  {showConfidence && (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
-                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        Confidence
-                      </p>
-                      <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                        {confidence}
-                      </p>
-                    </div>
-                  )}
-                  {showPurchaseSignal && (
-                    <div
-                      className={cn(
-                        "rounded-xl border px-3 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]",
-                        purchaseSignal === true
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                          : "bg-slate-50 border-slate-200 text-slate-600",
-                      )}
-                    >
-                      <p className="text-[9px] font-bold uppercase tracking-wider opacity-75">
-                        Purchase Signal
-                      </p>
-                      <p className="mt-1 text-sm font-black leading-tight">
-                        {purchaseSignal === true ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <AnalysisInfoBoxes
+                  classification={classification}
+                  confidence={confidence}
+                  purchaseSignal={purchaseSignal}
+                  variant="semantic"
+                  classificationTone={classificationTone}
+                />
               )}
 
               {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
-                <div className="pl-3.5 flex flex-wrap gap-1.5 pt-0.5">
+                <div className="pl-4 flex flex-wrap gap-2 pt-1">
                   {(Array.isArray(keywords)
                     ? keywords
                     : String(keywords).split(/\s+/)
@@ -460,7 +414,7 @@ export function IntentAnalysisCard({
                     .map((kw: string, i: number) => (
                       <span
                         key={i}
-                        className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default"
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100/80 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default border border-slate-200/60"
                       >
                         #{kw.replace(/^#/, "")}
                       </span>
@@ -469,60 +423,18 @@ export function IntentAnalysisCard({
               )}
 
               {dynamicBlocks.length > 0 && (
-                <div className="relative space-y-6 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
+                <div className="relative space-y-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
                   {dynamicBlocks.map((block) => {
-                    const isSummary = block.id === "summary";
                     const isMetrics = block.id === "metrics";
-                    const isEvidence = block.id === "evidence";
-
-                    const theme = isSummary
-                      ? {
-                        border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
-                        bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
-                        titleColor: "text-violet-750",
-                        icon: Sparkles,
-                        dot: "bg-violet-500 ring-4 ring-violet-50/50",
-                      }
-                      : isMetrics
-                        ? {
-                          border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
-                          bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
-                          titleColor: "text-amber-750",
-                          icon: Activity,
-                          dot: "bg-amber-500 ring-4 ring-amber-50/50",
-                        }
-                        : isEvidence
-                          ? {
-                            border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
-                            bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
-                            titleColor: "text-emerald-750",
-                            icon: Database,
-                            dot: "bg-emerald-500 ring-4 ring-emerald-50/50",
-                          }
-                          : {
-                            border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
-                            bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
-                            titleColor: "text-sky-750",
-                            icon: Info,
-                            dot: "bg-sky-500 ring-4 ring-sky-50/50",
-                          };
-
-                    const HeaderIcon = theme.icon;
 
                     return (
                       <section
                         key={block.id}
-                        className={cn(
-                          "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white relative",
-                          theme.border,
-                          theme.bg
-                        )}
+                        className="rounded-2xl border border-slate-200/60 p-5 shadow-sm hover:shadow-md transition-all duration-300 space-y-4 bg-white relative"
                       >
-                        <div className={cn("absolute -left-[21px] top-[24px] size-2.5 rounded-full border border-white z-10 shadow-3xs", theme.dot)} />
                         <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
-                          <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
                           <div className="space-y-0.5">
-                            <h4 className={cn("text-xs font-extrabold uppercase tracking-wider leading-none", theme.titleColor)}>
+                            <h4 className="text-xs font-extrabold uppercase tracking-wider leading-none text-slate-700">
                               {block.title}
                             </h4>
                             <p className="text-[10px] font-medium text-slate-400">
@@ -533,6 +445,33 @@ export function IntentAnalysisCard({
 
                         {/* Grid with dynamic columns layout */}
                         {(() => {
+                          // Special handling for metrics block - group by post ID
+                          if (isMetrics) {
+                            const groupedByPost = groupMetricsByPostId(block.entries);
+
+                            return (
+                              <div className="space-y-7">
+                                {Object.entries(groupedByPost)
+                                  .sort(([a], [b]) => {
+                                    if (a === '_ungrouped') return 1;
+                                    if (b === '_ungrouped') return -1;
+                                    return a.localeCompare(b);
+                                  })
+                                  .map(([postId, entries], idx) => (
+                                    <MetricsPostCard
+                                      key={postId}
+                                      postId={postId}
+                                      entries={entries}
+                                      idx={idx}
+                                      blockId={block.id}
+                                      variant="minimal"
+                                    />
+                                  ))}
+                              </div>
+                            );
+                          }
+
+                          // Default rendering for non-metrics blocks
                           const isSingleCol =
                             block.entries.length === 1 ||
                             block.entries.some((entry) => {
@@ -573,11 +512,11 @@ export function IntentAnalysisCard({
 
         {/* Verdict */}
         {verdict && (
-          <div className="bg-sky-50/30 border border-sky-100/50 rounded-xl p-4 border-l-3 border-l-sky-500/80 shadow-2xs">
-            <p className="text-[9px] font-bold text-sky-600 uppercase tracking-wider mb-1">
+          <div className="bg-sky-50/40 border border-sky-200/50 rounded-xl p-4 border-l-3 border-l-sky-500">
+            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider mb-1.5">
               Verdict
             </p>
-            <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+            <p className="text-sm text-slate-700 leading-relaxed font-medium">
               {verdict}
             </p>
           </div>
@@ -585,9 +524,9 @@ export function IntentAnalysisCard({
 
         {/* Total comments analyzed */}
         {totalCount > 0 && (
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-            <Users className="size-3 text-slate-450" />
-            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2 pt-3 border-t border-slate-200/60">
+            <Users className="size-3.5 text-slate-400" />
+            <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
               {totalCount.toLocaleString()} comments analyzed
             </span>
           </div>

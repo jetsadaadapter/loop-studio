@@ -13,8 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/toast-provider";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { getJobStatus, getItemCount } from "../../tool-job-utils";
-import { ExportDatasetModal } from "./export-dataset-modal";
+import { getJobStatus, getItemCount } from "../../../tool-job-utils";
+import { ExportDatasetModal } from "../export/export-dataset-modal";
 
 interface ConsoleHeaderProps {
   job: ToolJob;

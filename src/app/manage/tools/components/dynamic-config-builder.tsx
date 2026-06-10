@@ -171,7 +171,7 @@ function ArrayObjectInput({
         value={rawJson}
         onChange={(e) => handleChange(e.target.value)}
         placeholder='[{ "key1": "value1", "key2": "value2" }]'
-        className="font-mono text-[10px] bg-slate-50/20 border-slate-200 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand min-h-[80px] w-full px-3 py-2"
+        className="font-sans text-[10px] bg-slate-50/20 border-slate-200 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand min-h-[80px] w-full px-3 py-2"
         minRows={4}
         spellCheck={false}
       />

@@ -138,7 +138,14 @@ const getStringValue = (value: unknown): string => {
     return typeof value === "string" ? value.trim() : "";
 };
 
+const parsePct = (val: unknown): number => {
+    if (typeof val === "string") return parseInt(val.replace('%', ''), 10) || 0;
+    if (typeof val === "number") return val;
+    return 0;
+};
+
 const resolveSourceItemByKey = (
+
     previousItems: SourceItem[],
     sourceKey?: string,
     sourceKeyValue?: string,
@@ -1295,3 +1302,84 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
         } as unknown as ScrapedJobItem;
     });
 };
+
+export const groupFlatAnalysis = (analysis?: AnalysisResult | null): Array<{ id: string, analysis: AnalysisResult }> => {
+    if (!analysis) return [];
+
+    const groups = new Map<string, Record<string, object>>();
+    const keys = Object.keys(analysis);
+
+    keys.forEach(key => {
+        const match = key.match(/^post_([^_]+)_(.*)$/);
+        if (match) {
+            const [, id, field] = match;
+            if (!groups.has(id)) groups.set(id, {});
+            groups.get(id)![field] = analysis[key] as object;
+        }
+    });
+
+    if (groups.size === 0) return [];
+
+    return Array.from(groups.entries()).map(([id, data]) => {
+        const result: AnalysisResult = { ...data };
+
+        if (data.purchase_intent) result.classification = String(data.purchase_intent);
+        if (data.summary) result.summary = String(data.summary);
+
+        const buy = parsePct(data.ratio_want_to_buy);
+        const neutral = parsePct(data.ratio_indifferent);
+        const negative = parsePct(data.ratio_negative);
+
+        if (buy !== 0 || neutral !== 0 || negative !== 0) {
+            result.intentRatios = {
+                buyIntent: buy,
+                notInterested: neutral,
+                negative: negative
+            };
+        }
+
+        return { id, analysis: result };
+    });
+};
+
+export const groupMetricsByPostId = (
+    entries: AnalysisDisplayEntry[]
+): Record<string, Array<AnalysisDisplayEntry & { field?: string }>> => {
+    return entries.reduce((acc, entry) => {
+        const match = entry.key.match(/^post_([^_]+)_(.+)$/);
+        if (match) {
+            const [, postId, field] = match;
+            if (!acc[postId]) acc[postId] = [];
+            acc[postId].push({ ...entry, field });
+        } else {
+            if (!acc['_ungrouped']) acc['_ungrouped'] = [];
+            acc['_ungrouped'].push(entry);
+        }
+        return acc;
+    }, {} as Record<string, Array<AnalysisDisplayEntry & { field?: string }>>);
+};
+
+export interface BuyIntentAnalysis {
+    value: number;
+    color: 'emerald' | 'amber' | 'orange' | 'slate';
+    entry?: AnalysisDisplayEntry;
+}
+
+export function calculateBuyIntent(
+    entries: Array<AnalysisDisplayEntry & { field?: string }>
+): BuyIntentAnalysis {
+    const buyIntentEntry = entries.find(e =>
+        e.key.toLowerCase().includes('want_to_buy') ||
+        e.key.toLowerCase().includes('buy')
+    );
+
+    const value = buyIntentEntry ?
+        parseInt(String(buyIntentEntry.value).replace('%', ''), 10) : 0;
+
+    const color =
+        value >= 70 ? 'emerald' :
+            value >= 40 ? 'amber' :
+                value > 0 ? 'orange' : 'slate';
+
+    return { value, color, entry: buyIntentEntry };
+}

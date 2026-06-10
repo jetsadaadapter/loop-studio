@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { ConsoleHeader } from "./visualizer/console-header";
-import { ConsoleNavigation, type VisualizerTab } from "./visualizer/console-navigation";
-import { TabOutput } from "./visualizer/tab-output";
-import { TabLog } from "./visualizer/tab-log";
-import { TabInputStorage } from "./visualizer/tab-input-storage";
-import { TabPreProcess } from "./visualizer/tab-preprocess";
+import { ConsoleHeader } from "./visualizer/console/console-header";
+import { ConsoleNavigation, type VisualizerTab } from "./visualizer/console/console-navigation";
+import { TabOutput } from "./visualizer/tabs/tab-output";
+import { TabLog } from "./visualizer/tabs/tab-log";
+import { TabInputStorage } from "./visualizer/tabs/tab-input-storage";
+import { TabPreProcess } from "./visualizer/tabs/tab-preprocess";
 import { Loader2 } from "lucide-react";
 import { getItemCount } from "../tool-job-utils";
 

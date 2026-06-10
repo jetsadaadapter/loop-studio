@@ -21,18 +21,18 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { getJobStatus, getItemCount } from "../../tool-job-utils";
-import { ExportDatasetModal } from "../../components/visualizer/export-dataset-modal";
+import { ExportDatasetModal } from "../../components/visualizer/export/export-dataset-modal";
 import { JobStatusBadge } from "../../components/job-status-badge";
 
 // Reuse existing high-quality visualizer components
 import {
   ConsoleNavigation,
   type VisualizerTab,
-} from "../../components/visualizer/console-navigation";
-import { TabOutput } from "../../components/visualizer/tab-output";
-import { TabLog } from "../../components/visualizer/tab-log";
-import { TabInputStorage } from "../../components/visualizer/tab-input-storage";
-import { TabPreProcess } from "../../components/visualizer/tab-preprocess";
+} from "../../components/visualizer/console/console-navigation";
+import { TabOutput } from "../../components/visualizer/tabs/tab-output";
+import { TabLog } from "../../components/visualizer/tabs/tab-log";
+import { TabInputStorage } from "../../components/visualizer/tabs/tab-input-storage";
+import { TabPreProcess } from "../../components/visualizer/tabs/tab-preprocess";
 import { getPluginConfig } from "../../plugin-config";
 
 interface RunClientProps {

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
-import { ImageWithFallback } from "./image-with-fallback";
-import { MediaCell } from "./media-cell";
+import { ImageWithFallback } from "../shared/image-with-fallback";
+import { MediaCell } from "../shared/media-cell";
 
 interface OutputCellProps {
   value: unknown;

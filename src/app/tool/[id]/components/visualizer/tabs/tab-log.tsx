@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Terminal, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { getJobStatus, getItemCount } from "../../tool-job-utils";
-import { normalizeStartUrls } from "../../start-urls-utils";
+import { getJobStatus, getItemCount } from "../../../tool-job-utils";
+import { normalizeStartUrls } from "../../../start-urls-utils";
 
 interface TabLogProps {
   job: ToolJob;

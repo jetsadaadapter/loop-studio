@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { getJobStatus, getItemCount, getMergedGeminiItems } from "./tool-job-utils";
 import { JobDetailSkeleton } from "./components/job-detail-skeleton";
 import { JobResultItem } from "./components/job-result-item";
-import { ExportDatasetModal } from "./components/visualizer/export-dataset-modal";
+import { ExportDatasetModal } from "./components/visualizer/export/export-dataset-modal";
 
 interface ToolJobModalProps {
     open: boolean;

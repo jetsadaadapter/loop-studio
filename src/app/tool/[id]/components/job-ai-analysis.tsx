@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Sparkles, Smile, Frown, Meh, Activity, Database, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -8,15 +9,20 @@ import {
   getAnalysisDisplayBlocks,
   type AnalysisDisplayPreset,
   hasIntentAnalysisPayload,
+  groupFlatAnalysis,
+  groupMetricsByPostId,
   type AnalysisResult,
   type ScrapedComment,
 } from "../tool-job-utils";
-import { AnalysisBlockEntry } from "./visualizer/analysis-block-entry";
+import { AnalysisBlockEntry } from "./visualizer/analysis/analysis-block-entry";
 import {
   RatioVisualizer,
   MultiLabelVisualizer,
   AccordionVisualizer,
 } from "../visualizer-strategies";
+import { GroupedPostAnalysis } from "./grouped-post-analysis";
+import { MetricsPostCard } from "./visualizer/analysis/metrics-post-card";
+import { AnalysisInfoBoxes } from "./visualizer/analysis/analysis-info-boxes";
 
 type JobAiAnalysisProps = {
   analysis: AnalysisResult;
@@ -38,6 +44,9 @@ export function JobAiAnalysis({
   const purchaseSignal = analysis?.purchase_intent === 'interested'
     ? true
     : analysis?.purchase_intent === 'disinterested' ? false : (analysis?.purchase_intent_signal as boolean | undefined);
+
+  const groupedResults = groupFlatAnalysis(analysis);
+  const isGrouped = groupedResults.length > 0;
 
   const showClassification = !!classification;
   const showConfidence = confidence !== null && confidence !== undefined;
@@ -89,38 +98,12 @@ export function JobAiAnalysis({
       {/* Sentiment and visualizers stacked beautifully */}
       <div className="space-y-3">
         {hasIntentPayload && visibleBoxesCount > 0 && (
-          <div className="flex flex-wrap gap-2.5">
-            {showClassification && (
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Classification
-                </p>
-                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                  {classification}
-                </p>
-              </div>
-            )}
-            {showConfidence && (
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Confidence
-                </p>
-                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                  {confidence}
-                </p>
-              </div>
-            )}
-            {showPurchaseSignal && (
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs flex-1 sm:flex-initial sm:min-w-[180px] sm:max-w-[240px]">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Purchase Signal
-                </p>
-                <p className="mt-1 text-sm font-black leading-tight text-slate-800">
-                  {purchaseSignal === true ? "Yes" : "No"}
-                </p>
-              </div>
-            )}
-          </div>
+          <AnalysisInfoBoxes
+            classification={classification}
+            confidence={confidence}
+            purchaseSignal={purchaseSignal}
+            variant="plain"
+          />
         )}
 
         {analysis.sentiment && (
@@ -173,130 +156,163 @@ export function JobAiAnalysis({
           )}
         </div>
 
+        {isGrouped && <GroupedPostAnalysis groupedResults={groupedResults} />}
+
         {dynamicBlocks.length > 0 && (
-          <div className="relative space-y-6 pl-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
-            {dynamicBlocks.map((block) => {
-              const isSummary = block.id === "summary";
-              const isMetrics = block.id === "metrics";
-              const isEvidence = block.id === "evidence";
+          <div className="relative space-y-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
+                {dynamicBlocks.map((block) => {
+                  const isSummary = block.id === "summary";
+                  const isMetrics = block.id === "metrics";
+                  const isEvidence = block.id === "evidence";
 
-              const theme = isSummary
-                ? {
-                  border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
-                  bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
-                  titleColor: "text-violet-750",
-                  icon: Sparkles,
-                  dot: "bg-violet-500 ring-4 ring-violet-50/50",
-                }
-                : isMetrics
-                  ? {
-                    border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
-                    bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
-                    titleColor: "text-amber-750",
-                    icon: Activity,
-                    dot: "bg-amber-500 ring-4 ring-amber-50/50",
-                  }
-                  : isEvidence
+                  const theme = isSummary
                     ? {
-                      border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
-                      bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
-                      titleColor: "text-emerald-750",
-                      icon: Database,
-                      dot: "bg-emerald-500 ring-4 ring-emerald-50/50",
+                      border: "border-l-3 border-l-violet-500 border-y-slate-200/60 border-r-slate-200/60",
+                      bg: "bg-linear-to-b from-violet-500/[0.015] to-white/40",
+                      titleColor: "text-violet-750",
+                      icon: Sparkles,
+                      dot: "bg-violet-500 ring-4 ring-violet-50/50",
                     }
-                    : {
-                      border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
-                      bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
-                      titleColor: "text-sky-750",
-                      icon: Info,
-                      dot: "bg-sky-500 ring-4 ring-sky-50/50",
-                    };
+                    : isMetrics
+                      ? {
+                        border: "border-l-3 border-l-amber-500 border-y-slate-200/60 border-r-slate-200/60",
+                        bg: "bg-linear-to-b from-amber-500/[0.015] to-white/40",
+                        titleColor: "text-amber-750",
+                        icon: Activity,
+                        dot: "bg-amber-500 ring-4 ring-amber-50/50",
+                      }
+                      : isEvidence
+                        ? {
+                          border: "border-l-3 border-l-emerald-500 border-y-slate-200/60 border-r-slate-200/60",
+                          bg: "bg-linear-to-b from-emerald-500/[0.015] to-white/40",
+                          titleColor: "text-emerald-750",
+                          icon: Database,
+                          dot: "bg-emerald-500 ring-4 ring-emerald-50/50",
+                        }
+                        : {
+                          border: "border-l-3 border-l-sky-500 border-y-slate-200/60 border-r-slate-200/60",
+                          bg: "bg-linear-to-b from-sky-500/[0.015] to-white/40",
+                          titleColor: "text-sky-750",
+                          icon: Info,
+                          dot: "bg-sky-500 ring-4 ring-sky-50/50",
+                        };
 
-              const HeaderIcon = theme.icon;
+                  const HeaderIcon = theme.icon;
 
-              return (
-                <section
-                  key={block.id}
-                  className={cn(
-                    "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white relative",
-                    theme.border,
-                    theme.bg
-                  )}
-                >
-                  <div className={cn("absolute -left-[21px] top-[24px] size-2.5 rounded-full border border-white z-10 shadow-3xs", theme.dot)} />
-                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
-                    <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
-                    <div className="space-y-0.5">
-                      <h4 className={cn("text-xs font-extrabold uppercase tracking-wider leading-none", theme.titleColor)}>
-                        {block.title}
-                      </h4>
-                      <p className="text-[10px] font-medium text-slate-400">
-                        {block.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Grid with dynamic columns layout */}
-                  {(() => {
-                    const isSingleCol =
-                      block.entries.length === 1 ||
-                      block.entries.some((entry) => {
-                        const isLongVal =
-                          typeof entry.value === "string" &&
-                          (entry.value.length > 150 || entry.value.includes("\n"));
-                        return (
-                          isLongVal ||
-                          entry.valueType === "object" ||
-                          entry.valueType === "array"
-                        );
-                      });
-
-                    return (
-                      <div
-                        className={cn(
-                          "grid gap-3.5",
-                          isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                        )}
-                      >
-                        {block.entries.map((entry) => (
-                          <AnalysisBlockEntry
-                            key={`${block.id}-${entry.key}`}
-                            entry={entry}
-                            blockId={block.id}
-                          />
-                        ))}
+                  return (
+                    <section
+                      key={block.id}
+                      className={cn(
+                        "rounded-2xl border p-5 shadow-2xs hover:shadow-xs transition-all duration-300 space-y-4 bg-white relative",
+                        theme.border,
+                        theme.bg
+                      )}
+                    >
+                      <div className={cn("absolute -left-[21px] top-[24px] size-2.5 rounded-full border border-white z-10 shadow-3xs", theme.dot)} />
+                      <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                        <HeaderIcon className={cn("size-4 shrink-0", theme.titleColor)} />
+                        <div className="space-y-0.5">
+                          <h4 className={cn("text-xs font-extrabold uppercase tracking-wider leading-none", theme.titleColor)}>
+                            {block.title}
+                          </h4>
+                          <p className="text-[10px] font-medium text-slate-400">
+                            {block.description}
+                          </p>
+                        </div>
                       </div>
-                    );
-                  })()}
-                </section>
-              );
-            })}
+
+                      {(() => {
+                        // Special handling for metrics block - group by post ID
+                        if (isMetrics) {
+                          const groupedByPost = groupMetricsByPostId(block.entries);
+
+                          return (
+                            <div className="space-y-7">
+                              {Object.entries(groupedByPost)
+                                .sort(([a], [b]) => {
+                                  if (a === '_ungrouped') return 1;
+                                  if (b === '_ungrouped') return -1;
+                                  return a.localeCompare(b);
+                                })
+                                .map(([postId, entries], idx) => (
+                                  <MetricsPostCard
+                                    key={postId}
+                                    postId={postId}
+                                    entries={entries}
+                                    idx={idx}
+                                    blockId={block.id}
+                                    variant="premium"
+                                  />
+                                ))}
+                            </div>
+                          );
+                        }
+
+                        // Default rendering for other blocks
+                        const isSingleCol =
+                          block.entries.length === 1 ||
+                          block.entries.some((entry) => {
+                            const isLongVal =
+                              typeof entry.value === "string" &&
+                              (entry.value.length > 150 || entry.value.includes("\n"));
+                            return (
+                              isLongVal ||
+                              entry.valueType === "object" ||
+                              entry.valueType === "array"
+                            );
+                          });
+
+                        return (
+                          <div
+                            className={cn(
+                              "grid gap-3.5",
+                              isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                            )}
+                          >
+                            {block.entries.map((entry) => (
+                              <AnalysisBlockEntry
+                                key={`${block.id}-${entry.key}`}
+                                entry={entry}
+                                blockId={block.id}
+                              />
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </section>
+                  );
+                })}
           </div>
         )}
 
-        {/* Visualizers Stack */}
-        {analysis.intentRatios && (
-          <div className="pt-4 border-t border-slate-100">
-            <RatioVisualizer intentRatios={analysis.intentRatios} />
-          </div>
-        )}
+        {/* Visualizers Stack - only show when not grouped */}
+        {!isGrouped && (
+          <>
+            {/* Visualizers Stack */}
+            {analysis.intentRatios && (
+              <div className="pt-4 border-t border-slate-100">
+                <RatioVisualizer intentRatios={analysis.intentRatios} />
+              </div>
+            )}
 
-        {analysis.postType && (
-          <div className="pt-4 border-t border-slate-100">
-            <MultiLabelVisualizer
-              postType={analysis.postType}
-              commentThemes={analysis.commentThemes}
-            />
-          </div>
-        )}
+            {analysis.postType && (
+              <div className="pt-4 border-t border-slate-100">
+                <MultiLabelVisualizer
+                  postType={analysis.postType}
+                  commentThemes={analysis.commentThemes}
+                />
+              </div>
+            )}
 
-        {analysis.politicians && (
-          <div className="pt-4 border-t border-slate-100">
-            <AccordionVisualizer
-              politicians={analysis.politicians}
-              comments={comments}
-            />
-          </div>
+            {analysis.politicians && (
+              <div className="pt-4 border-t border-slate-100">
+                <AccordionVisualizer
+                  politicians={analysis.politicians}
+                  comments={comments}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

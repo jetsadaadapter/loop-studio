@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Copy, Check, ExternalLink, Loader2, Link2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ScrapedJobItem } from "../../tool-job-utils";
+import type { ScrapedJobItem } from "../../../tool-job-utils";
 
 interface ExportCommentsCreateOverviewProps {
   items: ScrapedJobItem[];

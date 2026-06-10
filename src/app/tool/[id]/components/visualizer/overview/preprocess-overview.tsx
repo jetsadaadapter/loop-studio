@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Sparkles, Link2, Target, Terminal, Copy, Check, ExternalLink, FileJson, CheckCircle2, Cpu, Database } from "lucide-react";
-import { cn } from "../../../../../lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface PreProcessResult {
   preview?: {
@@ -99,7 +99,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                   <p className="text-[11px] text-slate-400 font-medium">Target URLs supplied for execution.</p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100/60">
+              <span className="text-[10px] font-sans font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100/60">
                 result.input
               </span>
             </div>
@@ -150,7 +150,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                   <p className="text-[11px] text-slate-400 font-medium">Settings and prompts used to guide the analysis.</p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded border border-purple-100/60">
+              <span className="text-[10px] font-sans font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded border border-purple-100/60">
                 result.config
               </span>
             </div>
@@ -232,7 +232,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                   <p className="text-[11px] text-slate-400 font-medium">Target analysis goals and generated runtime prompts.</p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100/60">
+              <span className="text-[10px] font-sans font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100/60">
                 result.preview
               </span>
             </div>

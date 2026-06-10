@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Sparkles, Copy, Check } from "lucide-react";
-import { cn } from "../../../../../lib/utils";
-import type { ToolJob } from "../../../../../core/interfaces/tools.interface";
-import { Button } from "../../../../../components/ui/button";
+import { cn } from "@/lib/utils";
+import type { ToolJob } from "@/core/interfaces/tools.interface";
+import { Button } from "@/components/ui/button";
 
 interface TabPreProcessProps {
   job: ToolJob;

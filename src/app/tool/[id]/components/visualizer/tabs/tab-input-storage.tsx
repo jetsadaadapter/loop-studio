@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import { Sliders, Settings, Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { normalizeStartUrls } from "../../start-urls-utils";
+import { normalizeStartUrls } from "../../../start-urls-utils";
 
 interface TabInputStorageProps {
   job: ToolJob;

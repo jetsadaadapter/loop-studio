@@ -1,13 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ScrapedJobItem } from "../../tool-job-utils";
+import type { ScrapedJobItem } from "../../../tool-job-utils";
 import { OutputCell, getHeaderLabel } from "./cell-renderer";
 import {
   getValue,
   getHeaderColClass,
   getCellColClass,
-} from "./tab-output-helpers";
+} from "../tabs/tab-output-helpers";
 
 interface AllFieldsTableProps {
   paginatedItems: ScrapedJobItem[];

@@ -1,4 +1,4 @@
-import type { ScrapedJobItem } from "../../tool-job-utils";
+import type { ScrapedJobItem } from "../../../tool-job-utils";
 
 export const summaryCandidateKeys = [
   "text",

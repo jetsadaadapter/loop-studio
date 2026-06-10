@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Link2, ExternalLink, Download, FileText, MessageSquare, CheckCircle2 } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import type { ScrapedJobItem } from "../../tool-job-utils";
-import { CommentThreadCard, type CommentItem } from "./comment-thread-card";
+import type { ScrapedJobItem } from "../../../tool-job-utils";
+import { CommentThreadCard, type CommentItem } from "../comments/comment-thread-card";
 
 interface ExportCommentsFetchOverviewProps {
   job: ToolJob;

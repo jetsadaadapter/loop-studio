@@ -23,7 +23,7 @@ import {
   getAnalysisDisplayBlocks,
   type IntentAnalysisPostGroup,
   type AnalysisDisplayPreset,
-} from "../../tool-job-utils";
+} from "../../../tool-job-utils";
 
 interface SlidePresentationViewProps {
   items: ScrapedJobItem[];

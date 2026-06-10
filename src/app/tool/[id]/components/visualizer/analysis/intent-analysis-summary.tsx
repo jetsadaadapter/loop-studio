@@ -1,8 +1,14 @@
 "use client";
 
-import { Crown, MessageCircle, ThumbsDown, TrendingUp } from "lucide-react";
+import { Crown, MessageCircle, ThumbsDown, TrendingUp, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { IntentAnalysisPostGroup } from "../../tool-job-utils";
+import type { IntentAnalysisPostGroup } from "../../../tool-job-utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface IntentAnalysisSummaryProps {
   groups: IntentAnalysisPostGroup[];
@@ -262,41 +268,84 @@ export function IntentAnalysisSummary({
                   />
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-700">
-                      Interested
-                    </p>
-                    <p className="mt-1 text-base font-black text-emerald-800 tabular-nums">
-                      {group.interestedCount}
-                    </p>
-                    <p className="text-[10px] font-semibold text-emerald-600">
-                      {group.interestedRatio}%
-                    </p>
+                <TooltipProvider delay={200}>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <Tooltip>
+                      <TooltipTrigger className="w-full text-left group">
+                        <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50 px-3 py-2 cursor-help hover:border-emerald-300 hover:bg-emerald-100 transition-all">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                              Interested
+                            </p>
+                            <Info className="size-3 text-emerald-500 transition-transform group-hover:scale-110" />
+                          </div>
+                          <p className="mt-1 text-base font-black text-emerald-800 tabular-nums">
+                            {group.interestedCount}
+                          </p>
+                          <p className="text-[10px] font-semibold text-emerald-600">
+                            {group.interestedRatio}%
+                          </p>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-xs font-semibold">{group.interestedCount} comments</p>
+                        <p className="text-xs text-slate-300">
+                          {group.interestedRatio}% of total {group.totalCount} analyzed comments
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger className="w-full text-left group">
+                        <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-3 py-2 cursor-help hover:border-slate-400 hover:bg-slate-100 transition-all">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                              Neutral
+                            </p>
+                            <Info className="size-3 text-slate-400 transition-transform group-hover:scale-110" />
+                          </div>
+                          <p className="mt-1 text-base font-black text-slate-800 tabular-nums">
+                            {group.neutralCount}
+                          </p>
+                          <p className="text-[10px] font-semibold text-slate-500">
+                            {group.neutralRatio}%
+                          </p>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-xs font-semibold">{group.neutralCount} comments</p>
+                        <p className="text-xs text-slate-300">
+                          {group.neutralRatio}% of total {group.totalCount} analyzed comments
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger className="w-full text-left group">
+                        <div className="rounded-xl border-2 border-dashed border-rose-200 bg-rose-50 px-3 py-2 cursor-help hover:border-rose-300 hover:bg-rose-100 transition-all">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-rose-700">
+                              Negative
+                            </p>
+                            <Info className="size-3 text-rose-500 transition-transform group-hover:scale-110" />
+                          </div>
+                          <p className="mt-1 text-base font-black text-rose-800 tabular-nums">
+                            {group.negativeCount}
+                          </p>
+                          <p className="text-[10px] font-semibold text-rose-600">
+                            {group.negativeRatio}%
+                          </p>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-xs font-semibold">{group.negativeCount} comments</p>
+                        <p className="text-xs text-slate-300">
+                          {group.negativeRatio}% of total {group.totalCount} analyzed comments
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                      Neutral
-                    </p>
-                    <p className="mt-1 text-base font-black text-slate-800 tabular-nums">
-                      {group.neutralCount}
-                    </p>
-                    <p className="text-[10px] font-semibold text-slate-500">
-                      {group.neutralRatio}%
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-rose-700">
-                      Negative
-                    </p>
-                    <p className="mt-1 text-base font-black text-rose-800 tabular-nums">
-                      {group.negativeCount}
-                    </p>
-                    <p className="text-[10px] font-semibold text-rose-600">
-                      {group.negativeRatio}%
-                    </p>
-                  </div>
-                </div>
+                </TooltipProvider>
 
                 <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-[10px] font-semibold text-slate-500">
                   <span>

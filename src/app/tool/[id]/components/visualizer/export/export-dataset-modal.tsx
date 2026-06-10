@@ -17,7 +17,7 @@ import {
 import { ExportFieldSelector } from "./export-field-selector";
 import { ExportFormatGrid } from "./export-format-grid";
 import { ExportAdvancedOptions } from "./export-advanced-options";
-import { getMergedGeminiItems } from "../../tool-job-utils";
+import { getMergedGeminiItems } from "../../../tool-job-utils";
 
 interface ExportDatasetModalProps {
   open: boolean;

@@ -1,17 +1,18 @@
 "use client";
 
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import type { ScrapedJobItem } from "../../tool-job-utils";
-import { CommentThreadCard, type CommentItem } from "./comment-thread-card";
+import type { ScrapedJobItem } from "../../../tool-job-utils";
+import { CommentThreadCard, type CommentItem } from "../comments/comment-thread-card";
 import {
   IntentAnalysisCard,
   type IntentAnalysisItem,
-} from "./intent-analysis-card";
-import { IntentAnalysisSummary } from "./intent-analysis-summary";
-import { OutputOverviewTable } from "./output-overview-table";
-import { ExportCommentsCreateOverview } from "./exportcomments-create-overview";
-import { ExportCommentsFetchOverview } from "./exportcomments-fetch-overview";
-import { PreProcessOverview, type PreProcessResult } from "./preprocess-overview";
+} from "../analysis/intent-analysis-card";
+import { IntentAnalysisSummary } from "../analysis/intent-analysis-summary";
+import { OutputOverviewTable } from "../overview/output-overview-table";
+import { ExportCommentsCreateOverview } from "../tool-specific/exportcomments-create-overview";
+import { ExportCommentsFetchOverview } from "../tool-specific/exportcomments-fetch-overview";
+import { PreProcessOverview, type PreProcessResult } from "../overview/preprocess-overview";
+import { FacebookAnalystVisualizer } from "../tool-specific/facebook-analyst-visualizer";
 
 interface TabOutputOverviewProps {
   items: ScrapedJobItem[];
@@ -20,9 +21,9 @@ interface TabOutputOverviewProps {
   isAnalysisOverview: boolean;
   isCommentScraper: boolean;
   showIntentSummary: boolean;
-  intentGroups: ReturnType<typeof import("../../tool-job-utils").groupIntentAnalysisByPost>;
+  intentGroups: ReturnType<typeof import("../../../tool-job-utils").groupIntentAnalysisByPost>;
   schemaHintKeys: string[];
-  analysisDisplayPreset: ReturnType<typeof import("../../tool-job-utils").getAnalysisDisplayPresetForJob>;
+  analysisDisplayPreset: ReturnType<typeof import("../../../tool-job-utils").getAnalysisDisplayPresetForJob>;
   hasSourceUrls: boolean;
   isExportCommentsJob: boolean;
   isExportCommentsFetchJob: boolean;
@@ -51,6 +52,19 @@ export function TabOutputOverview({
     ("preview" in job.result || "config" in job.result)
   );
 
+  // Check if this is a Social Media Analyst result (posts-based analysis)
+  const isSocialAnalystResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "posts" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).posts)
+  );
+
+  if (isSocialAnalystResult) {
+    return <FacebookAnalystVisualizer job={job} />;
+  }
+
   if (isPreProcessResult) {
     return <PreProcessOverview result={job.result as unknown as PreProcessResult} />;
   }
@@ -72,8 +86,8 @@ export function TabOutputOverview({
 
   if (isAnalysisOverview) {
     return (
-      <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto">
-        <div className="max-w-5xl mx-auto space-y-5">
+      <div className="bg-slate-50/30 p-6 flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-5xl mx-auto space-y-6">
           {showIntentSummary && (
             <IntentAnalysisSummary
               groups={intentGroups}
@@ -97,7 +111,7 @@ export function TabOutputOverview({
 
   if (isCommentScraper) {
     return (
-      <div className="bg-slate-50 p-6 flex-1 min-h-0 overflow-y-auto">
+      <div className="bg-slate-50/30 p-6 flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-6">
           {paginatedItems.map((item, idx) => (
             <CommentThreadCard

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Quote, Check, X, Link2, FileText } from "lucide-react";
-import type { AnalysisDisplayEntry } from "../../tool-job-utils";
+import type { AnalysisDisplayEntry } from "../../../tool-job-utils";
 
 interface AnalysisBlockEntryProps {
   entry: AnalysisDisplayEntry;
@@ -50,7 +50,7 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
     // 1. JSON structures
     if (entry.valueType === "object" || entry.valueType === "array") {
       return (
-        <pre className="mt-1.5 max-h-56 overflow-auto rounded-xl bg-slate-900/90 backdrop-blur-xs p-4 text-[10.5px] font-mono text-slate-300 leading-relaxed border border-slate-800 shadow-inner select-text">
+        <pre className="mt-1.5 max-h-56 overflow-auto rounded-xl bg-slate-900/90 backdrop-blur-xs p-4 text-[10.5px] font-sans text-slate-300 leading-relaxed border border-slate-800 shadow-inner select-text">
           {entry.value}
         </pre>
       );
@@ -97,24 +97,46 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
             : 0
         : 0;
 
+      // Determine color based on percentage value
+      const getBarColor = () => {
+        const keyLower = entry.key.toLowerCase();
+        if (keyLower.includes('want_to_buy') || keyLower.includes('buy')) {
+          if (percentage >= 70) return 'from-emerald-400 via-emerald-500 to-emerald-600';
+          if (percentage >= 40) return 'from-amber-400 via-amber-500 to-amber-600';
+          return 'from-orange-400 via-orange-500 to-orange-600';
+        }
+        if (keyLower.includes('negative')) {
+          if (percentage > 20) return 'from-rose-400 via-rose-500 to-rose-600';
+          return 'from-slate-300 via-slate-400 to-slate-500';
+        }
+        if (keyLower.includes('indifferent')) {
+          return 'from-blue-300 via-blue-400 to-blue-500';
+        }
+        return 'from-amber-400 via-amber-500 to-brand-strong';
+      };
+
       return (
-        <div className="mt-1.5 space-y-2 animate-fade-in">
+        <div className="mt-2 space-y-3 animate-fade-in">
           <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-800 tracking-tight select-text leading-none font-sans">
+            <span className="text-4xl font-black tracking-tight select-text leading-none font-sans bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent drop-shadow-sm">
               {entry.value}
             </span>
-            {hasPercentage && percentage > 0 && (
-              <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-250/50 px-1.5 py-0.5 rounded-md">
-                {percentage.toFixed(0)}% Intensity
-              </span>
-            )}
           </div>
           {hasPercentage && percentage > 0 && (
-            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden border border-slate-200/40">
-              <div
-                className="bg-linear-to-r from-amber-500 via-amber-600 to-brand-strong h-full rounded-full transition-all duration-500"
-                style={{ width: `${percentage}%` }}
-              />
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[9px] font-bold text-slate-500">
+                <span>Intent Level</span>
+                <span className="tabular-nums">{percentage.toFixed(0)}%</span>
+              </div>
+              <div className="relative w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/40 shadow-inner">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-700 ease-out shadow-sm",
+                    `bg-gradient-to-r ${getBarColor()}`
+                  )}
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -202,29 +224,80 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
     );
   };
 
+  // Determine visual theme based on metric type and value
+  const getMetricTheme = () => {
+    if (!isMetrics) return null;
+
+    const keyLower = entry.key.toLowerCase();
+    const value = entry.value;
+    const numValue = typeof value === 'string' ? parseFloat(value.replace('%', '')) : 0;
+
+    // Buy intent / positive metrics
+    if (keyLower.includes('want_to_buy') || keyLower.includes('buy') || keyLower.includes('purchase')) {
+      if (numValue >= 70) return { bg: 'bg-emerald-50/50', border: 'border-emerald-200/60', text: 'text-emerald-700', icon: '🎯' };
+      if (numValue >= 40) return { bg: 'bg-amber-50/50', border: 'border-amber-200/60', text: 'text-amber-700', icon: '📊' };
+      return { bg: 'bg-orange-50/50', border: 'border-orange-200/60', text: 'text-orange-700', icon: '📉' };
+    }
+
+    // Negative metrics
+    if (keyLower.includes('negative') || keyLower.includes('opposed')) {
+      if (numValue > 20) return { bg: 'bg-rose-50/50', border: 'border-rose-200/60', text: 'text-rose-700', icon: '⚠️' };
+      return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', icon: '✓' };
+    }
+
+    // Neutral / indifferent
+    if (keyLower.includes('indifferent') || keyLower.includes('neutral')) {
+      return { bg: 'bg-blue-50/50', border: 'border-blue-200/60', text: 'text-blue-700', icon: '○' };
+    }
+
+    return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', icon: '📋' };
+  };
+
+  const metricTheme = isMetrics ? getMetricTheme() : null;
+
   return (
     <div
       className={cn(
-        "rounded-2xl border border-slate-150/50 bg-white p-4.5 transition-all duration-350 hover:border-slate-300 hover:shadow-xs flex flex-col justify-between gap-3 relative overflow-hidden",
-        isFullWidth ? "sm:col-span-2" : "col-span-1"
+        "rounded-xl border-2 transition-all duration-300 flex flex-col justify-between gap-3 relative overflow-hidden group",
+        isFullWidth ? "sm:col-span-2 p-5" : "col-span-1 p-4",
+        metricTheme ?
+          `${metricTheme.bg} ${metricTheme.border} hover:shadow-lg hover:scale-[1.02]` :
+          "bg-white border-slate-200/60 hover:border-slate-300 hover:shadow-md"
       )}
     >
-      <div className="space-y-1.5">
+      {/* Decorative corner element for metrics */}
+      {metricTheme && (
+        <div className="absolute top-0 right-0 w-16 h-16 opacity-10">
+          <div className={cn("absolute inset-0 rotate-45 translate-x-8 -translate-y-8", metricTheme.bg.replace('/50', ''))} />
+        </div>
+      )}
+
+      <div className="space-y-2 relative z-10">
         <div className="flex items-center justify-between gap-2 select-none">
-          <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-450">
-            {formattedKey}
-          </p>
-          {/* Linked context badges to build connection */}
+          <div className="flex items-center gap-1.5">
+            {metricTheme && (
+              <span className="text-base" role="img" aria-label="icon">
+                {metricTheme.icon}
+              </span>
+            )}
+            <p className={cn(
+              "text-[10px] font-extrabold uppercase tracking-wider",
+              metricTheme ? metricTheme.text : "text-slate-500"
+            )}>
+              {formattedKey}
+            </p>
+          </div>
+          {/* Linked context badges */}
           {isMetrics && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-650 text-[8.5px] font-extrabold rounded-md border border-amber-100">
+            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/60 backdrop-blur-sm text-slate-600 text-[8px] font-black rounded-full border border-slate-300/40 shadow-sm">
               <Link2 className="size-2" />
-              <span>Calculated</span>
+              <span>CALC</span>
             </span>
           )}
           {isEvidence && (
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-650 text-[8.5px] font-extrabold rounded-md border border-emerald-100">
               <FileText className="size-2" />
-              <span>Source Text</span>
+              <span>Source</span>
             </span>
           )}
         </div>
