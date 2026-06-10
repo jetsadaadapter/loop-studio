@@ -358,3 +358,146 @@ export function normalizeCommentItem(item: Record<string, unknown>): Record<stri
     comments,
   };
 }
+
+function isStructuredObject(obj: Record<string, unknown>): boolean {
+  return Object.values(obj).some(
+    (v) => Array.isArray(v) || (typeof v === "object" && v !== null),
+  );
+}
+
+export function detectStructuredObjectSummary(
+  items: ScrapedJobItem[],
+): Record<string, unknown> | null {
+  if (items.length !== 1) return null;
+  const raw = items[0] as Record<string, unknown>;
+
+  // Check top-level non-excluded object keys
+  const objectKeys = Object.keys(raw).filter((key) => {
+    if (excludedKeys.includes(key)) return false;
+    const val = raw[key];
+    return val !== null && typeof val === "object" && !Array.isArray(val);
+  });
+
+  if (objectKeys.length > 0) {
+    const hasNestedStructure = objectKeys.some((key) => {
+      const obj = raw[key] as Record<string, unknown>;
+      return isStructuredObject(obj);
+    });
+    if (hasNestedStructure) {
+      const result: Record<string, unknown> = {};
+      for (const key of objectKeys) {
+        result[key] = raw[key];
+      }
+      return result;
+    }
+  }
+
+  // Check if analysis field itself is a structured summary (not intent-based)
+  const analysis = raw.analysis as Record<string, unknown> | undefined;
+  if (analysis && typeof analysis === "object" && !Array.isArray(analysis)) {
+    const isIntentBased = "classification" in analysis || "confidence_score" in analysis || "purchase_intent_signal" in analysis;
+    if (!isIntentBased && isStructuredObject(analysis)) {
+      return analysis;
+    }
+  }
+
+  // Check if a text/result/summary field contains a JSON string
+  for (const key of summaryCandidateKeys) {
+    const val = raw[key];
+    if (typeof val === "string") {
+      const parsed = tryRepairAndParseJson(val);
+      if (parsed && isStructuredObject(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+}
+
+function tryRepairAndParseJson(text: string): Record<string, unknown> | null {
+  const trimmed = text.trim();
+  if (!trimmed.includes("{")) return null;
+
+  const tryParse = (input: string): Record<string, unknown> | null => {
+    try {
+      const parsed = JSON.parse(input);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+        return parsed as Record<string, unknown>;
+    } catch { /* skip */ }
+    return null;
+  };
+
+  // Attempt 1: as-is
+  const r1 = tryParse(trimmed);
+  if (r1) return r1;
+
+  // Attempt 2: extract body
+  let s = trimmed;
+  if (s.startsWith("```")) {
+    s = s.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+  }
+  const firstBrace = s.indexOf("{");
+  if (firstBrace < 0) return null;
+  if (firstBrace > 0) s = s.slice(firstBrace);
+
+  if (!s.includes('"') && s.includes("'")) s = s.replace(/'/g, '"');
+  s = s.replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
+
+  const r2 = tryParse(s);
+  if (r2) return r2;
+
+  // Attempt 3: iterative repair (fix errors by position)
+  s = s.replace(/,\s*([}\]])/g, "$1");
+
+  for (let attempt = 0; attempt < 15; attempt++) {
+    try {
+      const parsed = JSON.parse(s);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+        return parsed as Record<string, unknown>;
+      return null;
+    } catch (e) {
+      const msg = (e as Error).message || "";
+      const posMatch = msg.match(/position\s+(\d+)/i) || msg.match(/column\s+(\d+)/i);
+      const pos = posMatch ? parseInt(posMatch[1], 10) : -1;
+
+      if (pos < 0) {
+        if (msg.includes("Unexpected end")) { s = closeJsonBrackets(s); continue; }
+        return null;
+      }
+      if (msg.includes("after JSON") || msg.includes("non-whitespace")) {
+        s = s.slice(0, pos); continue;
+      }
+      if (msg.includes("]")) { s = s.slice(0, pos) + "]" + s.slice(pos); continue; }
+      if (msg.includes("}")) { s = s.slice(0, pos) + "}" + s.slice(pos); continue; }
+      if (msg.includes("Unexpected end")) { s = closeJsonBrackets(s); continue; }
+      if (msg.includes("Unexpected") || msg.includes("Expected")) {
+        s = s.slice(0, pos) + "," + s.slice(pos); continue;
+      }
+      return null;
+    }
+  }
+  return tryParse(s);
+}
+
+function closeJsonBrackets(s: string): string {
+  let braces = 0;
+  let brackets = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    else if (ch === "}") braces--;
+    else if (ch === "[") brackets++;
+    else if (ch === "]") brackets--;
+  }
+  if (inString) s += '"';
+  while (brackets > 0) { s += "]"; brackets--; }
+  while (braces > 0) { s += "}"; braces--; }
+  return s;
+}

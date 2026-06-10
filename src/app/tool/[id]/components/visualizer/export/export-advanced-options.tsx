@@ -17,6 +17,8 @@ export function ExportAdvancedOptions({ config, onChange }: ExportAdvancedOption
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-slate-50/50 hover:bg-slate-50 px-4 py-3.5 flex items-center justify-between text-xs font-bold text-slate-700 cursor-pointer transition-colors"
+        aria-expanded={isOpen ? "true" : "false"}
+        aria-label="Toggle advanced export options"
       >
         <span className="flex items-center gap-1.5">
           Advanced options

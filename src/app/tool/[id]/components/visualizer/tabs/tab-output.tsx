@@ -19,8 +19,10 @@ import {
   getAllKeys,
   isCommentScraperItem,
   normalizeCommentItem,
+  detectStructuredObjectSummary,
 } from "./tab-output-helpers";
 import { ExecutionSummarySection } from "../overview/execution-summary-section";
+import { StructuredObjectSummary } from "../overview/structured-object-summary";
 import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "../table/all-fields-table";
 import { SlidePresentationView } from "../presentation/slide-presentation-view";
@@ -98,11 +100,17 @@ export function TabOutput({ job }: TabOutputProps) {
     uniqueSummaryTabLabels,
   } = parseSingleTextSummary(items);
 
+  const structuredObjectData = !isSingleTextSummary
+    ? detectStructuredObjectSummary(items)
+    : null;
+
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
     : singleTextValue;
 
   if (process.env.NODE_ENV !== "production") {
+    console.debug("[TabOutput] structuredObjectData:", structuredObjectData);
+    console.debug("[TabOutput] isSingleTextSummary:", isSingleTextSummary, "| singleTextValue starts:", singleTextValue?.slice(0, 80));
     console.debug("[TabOutput] items count:", items.length);
     console.debug(
       "[TabOutput] first item keys:",
@@ -140,7 +148,7 @@ export function TabOutput({ job }: TabOutputProps) {
   );
   const isAnalysisOverview = hasAnyAnalysis;
   const intentGroups = hasPurchaseIntentShape
-    ? groupIntentAnalysisByPost(items)
+    ? groupIntentAnalysisByPost(items, job)
     : [];
   const showIntentSummary = hasPurchaseIntentShape && intentGroups.length > 0;
   const hasSourceUrls = items.some((item) => {
@@ -243,7 +251,7 @@ export function TabOutput({ job }: TabOutputProps) {
         {/* View Toggles + Slide Report Button (Right) */}
         <div className="flex items-center gap-3">
           {/* Slide Report Button */}
-          {innerTab === "overview" && (isAnalysisOverview || isSingleTextSummary) && (
+          {innerTab === "overview" && (isAnalysisOverview || isSingleTextSummary || structuredObjectData) && (
             <button
               onClick={() => setIsSlideMode(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand/30 text-brand bg-brand/5 hover:bg-brand/10 hover:border-brand/50 text-xs font-bold transition-all duration-200 cursor-pointer"
@@ -296,6 +304,8 @@ export function TabOutput({ job }: TabOutputProps) {
               activeSummaryTab={activeSummaryTab}
               setActiveSummaryTab={setActiveSummaryTab}
             />
+          ) : structuredObjectData ? (
+            <StructuredObjectSummary data={structuredObjectData} />
           ) : (
             <TabOutputOverview
               items={items}
@@ -323,7 +333,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Pagination Footer */}
-      {viewMode === "table" && !(innerTab === "overview" && isSingleTextSummary) && (
+      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData)) && (
         <TablePagination
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}

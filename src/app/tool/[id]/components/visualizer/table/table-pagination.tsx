@@ -85,7 +85,7 @@ export function TablePagination({
             onChange={(e) => setGoToInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleGoToPage()}
             className="w-10 h-7 bg-slate-50 border border-slate-200 focus:border-brand/40 focus:ring-2 focus:ring-brand/10 rounded text-center text-slate-700 text-xs outline-none transition-colors"
-            placeholder=""
+            aria-label="Page number"
           />
           <button
             onClick={handleGoToPage}
@@ -100,6 +100,7 @@ export function TablePagination({
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-850 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors cursor-pointer"
+            aria-label="Previous page"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -112,6 +113,7 @@ export function TablePagination({
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-850 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors cursor-pointer"
+            aria-label="Next page"
           >
             <ChevronRight className="size-4" />
           </button>

@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast-provider";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
-import { 
-  ExportConfig, 
-  ExportFormat, 
-  getProcessedItems, 
+import {
+  ExportConfig,
+  getProcessedItems,
   formatDataset,
   getFileExtension,
   exportMimeTypes
@@ -103,10 +102,10 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
           <h3 className="font-bold text-base text-slate-800 flex items-center gap-1.5">
             <span>Export dataset</span>
             <span title="Configure and download output dataset">
-              <HelpCircle className="size-4 text-slate-400 cursor-help" />
+              <HelpCircle className="size-4 text-slate-400 cursor-help" aria-label="Help: Configure and download output dataset" />
             </span>
           </h3>
-          <button onClick={() => onOpenChange(false)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
+          <button onClick={() => onOpenChange(false)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer" aria-label="Close dialog">
             <X className="size-4" />
           </button>
         </div>
@@ -117,11 +116,19 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
           {/* View Toggle */}
           <div>
             <label className="block text-slate-800 font-bold text-xs uppercase tracking-wide mb-2.5">View</label>
-            <div className="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200/60 w-fit">
-              <button onClick={() => setConfig(prev => ({ ...prev, view: "overview" }))} className={`px-4 py-1.5 rounded-md transition-all cursor-pointer ${config.view === "overview" ? "bg-white text-slate-800 shadow-xs font-bold" : "text-slate-500 hover:text-slate-800"}`}>
+            <div className="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200/60 w-fit" role="group" aria-label="View mode selection">
+              <button
+                onClick={() => setConfig(prev => ({ ...prev, view: "overview" }))}
+                className={`px-4 py-1.5 rounded-md transition-all cursor-pointer ${config.view === "overview" ? "bg-white text-slate-800 shadow-xs font-bold" : "text-slate-500 hover:text-slate-800"}`}
+                aria-pressed={config.view === "overview"}
+              >
                 Overview
               </button>
-              <button onClick={() => setConfig(prev => ({ ...prev, view: "all" }))} className={`px-4 py-1.5 rounded-md transition-all cursor-pointer ${config.view === "all" ? "bg-white text-slate-800 shadow-xs font-bold" : "text-slate-500 hover:text-slate-800"}`}>
+              <button
+                onClick={() => setConfig(prev => ({ ...prev, view: "all" }))}
+                className={`px-4 py-1.5 rounded-md transition-all cursor-pointer ${config.view === "all" ? "bg-white text-slate-800 shadow-xs font-bold" : "text-slate-500 hover:text-slate-800"}`}
+                aria-pressed={config.view === "all"}
+              >
                 All fields
               </button>
             </div>

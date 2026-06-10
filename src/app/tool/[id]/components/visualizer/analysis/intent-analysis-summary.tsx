@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, MessageCircle, ThumbsDown, TrendingUp, Info } from "lucide-react";
+import { Crown, MessageCircle, ThumbsDown, TrendingUp, Info, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IntentAnalysisPostGroup } from "../../../tool-job-utils";
 import {
@@ -217,9 +217,21 @@ export function IntentAnalysisSummary({
                     <h4 className="mt-2 line-clamp-2 text-sm font-bold tracking-tight text-slate-900">
                       {postTitle}
                     </h4>
-                    <p className="mt-1 line-clamp-1 text-[10px] text-slate-400">
-                      {postUrl || "No URL available"}
-                    </p>
+                    {group.postUrl ? (
+                      <a
+                        href={group.postUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-700 hover:underline line-clamp-1"
+                      >
+                        <ExternalLink className="size-2.5 shrink-0" />
+                        <span className="truncate">{postUrl || "View post"}</span>
+                      </a>
+                    ) : (
+                      <p className="mt-1 line-clamp-1 text-[10px] text-slate-400">
+                        No URL available
+                      </p>
+                    )}
                   </div>
 
                   <div

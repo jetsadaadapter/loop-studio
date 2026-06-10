@@ -25,6 +25,7 @@ interface SocialAnalystVisualizerProps {
 interface Post {
   post_id: string;
   post_url: string;
+  post_url_display: string;
   page_name: string;
   post_summary: string;
   post_type: string;
@@ -393,7 +394,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
                       )}
                     >
                       <ExternalLink className="size-3" />
-                      View Post
+                      {post.post_url_display || "View Post"}
                     </a>
                   </div>
                 </div>

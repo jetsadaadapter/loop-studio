@@ -784,15 +784,42 @@ export const validateDynamicAnalysisPayload = (
     };
 };
 
-export const groupIntentAnalysisByPost = (items: ScrapedJobItem[]): IntentAnalysisPostGroup[] => {
+export const groupIntentAnalysisByPost = (items: ScrapedJobItem[], job?: ToolJob): IntentAnalysisPostGroup[] => {
     const groups = new Map<string, IntentAnalysisPostGroup>();
+
+    // Extract previousResults items to lookup post URLs by postId
+    const previousItems = (job?.input?.previousResults as { items?: SourceItem[] } | undefined)?.items || [];
+
+    // Build a map of postId -> post_url from previousResults
+    const postIdToUrlMap = new Map<string, string>();
+    previousItems.forEach(prevItem => {
+        const postId = getStringValue(prevItem.postId) || getStringValue(prevItem.id) || getStringValue(prevItem._id);
+        const postUrl = getCanonicalPostUrl(prevItem);
+        if (postId && postUrl) {
+            postIdToUrlMap.set(postId, postUrl);
+        }
+    });
 
     items.forEach((item, index) => {
         const analysis = item.analysis as AnalysisResult | undefined;
         if (!hasIntentAnalysisPayload(analysis)) return;
 
         const rawItem = item as ScrapedJobItem & Record<string, unknown>;
-        const postUrl = String(item.facebookUrl || item.url || analysis?.postUrl || item.sourceKeyValue || "");
+
+        // Try to resolve post URL: first from item data, then from previousResults map via sourceKeyValue/postId
+        let postUrl = getStringValue(item.facebookUrl) || getStringValue(item.url) || getStringValue(analysis?.postUrl);
+        if (!postUrl && item.sourceKeyValue) {
+            const sourceKeyValue = getStringValue(item.sourceKeyValue);
+            postUrl = postIdToUrlMap.get(sourceKeyValue) || sourceKeyValue;
+        }
+        if (!postUrl && item.postId) {
+            const postId = getStringValue(item.postId);
+            postUrl = postIdToUrlMap.get(postId) || postId;
+        }
+        if (!postUrl) {
+            postUrl = "";
+        }
+
         const groupKey = postUrl || `post-${index}`;
         const existing = groups.get(groupKey);
         const title = String(

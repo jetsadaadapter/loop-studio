@@ -75,14 +75,14 @@ export function ExportFieldSelector({
     <div className="space-y-1.5 w-full select-none text-xs font-semibold text-slate-650">
       <label className="text-slate-700 font-semibold text-xs flex items-center gap-1">
         <span>{label}</span>
-        <HelpCircle className="size-3.5 text-slate-400 cursor-help" />
+        <HelpCircle className="size-3.5 text-slate-400 cursor-help" aria-label="Help information" />
       </label>
 
       {/* Tag Input Box */}
       <div
         ref={triggerRef}
         onClick={openDropdown}
-        className={`w-full min-h-[38px] bg-white border rounded-lg p-1.5 flex flex-wrap items-center gap-1.5 cursor-text relative shadow-xs pr-14 transition-colors ${
+        className={`w-full min-h-9.5 bg-white border rounded-lg p-1.5 flex flex-wrap items-center gap-1.5 cursor-text relative shadow-xs pr-14 transition-colors ${
           isOpen
             ? "border-brand ring-2 ring-brand/10"
             : "border-slate-200 hover:border-slate-300"
@@ -101,6 +101,7 @@ export function ExportFieldSelector({
                 toggleField(k);
               }}
               className="p-0.5 rounded hover:bg-slate-300 text-slate-400 hover:text-slate-600 cursor-pointer"
+              aria-label={`Remove ${k}`}
             >
               <X className="size-3" />
             </button>
@@ -117,7 +118,7 @@ export function ExportFieldSelector({
           }}
           onFocus={openDropdown}
           onClick={(e) => e.stopPropagation()}
-          className="flex-1 min-w-[60px] bg-transparent border-none outline-none focus:ring-0 p-0 text-xs font-sans font-semibold text-slate-750 placeholder-slate-400"
+          className="flex-1 min-w-15 bg-transparent border-none outline-none focus:ring-0 p-0 text-xs font-sans font-semibold text-slate-750 placeholder-slate-400"
         />
 
         {/* Right side controls */}
@@ -130,6 +131,7 @@ export function ExportFieldSelector({
                 handleClear();
               }}
               className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 cursor-pointer"
+              aria-label="Clear all selections"
             >
               <X className="size-3.5" />
             </button>
@@ -138,6 +140,7 @@ export function ExportFieldSelector({
             className={`size-4 text-slate-400 transition-transform duration-150 cursor-pointer ${
               isOpen ? "rotate-180 text-slate-600" : ""
             }`}
+            aria-hidden="true"
           />
         </div>
       </div>

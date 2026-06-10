@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import Markdown from "react-markdown";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,361 @@ interface ExecutionSummarySectionProps {
   setActiveSummaryTab: (idx: number) => void;
 }
 
+function extractJsonBody(raw: string): string {
+  let s = raw.trim();
+
+  // Strip markdown code fences
+  if (s.startsWith("```")) {
+    s = s.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+  }
+
+  // Remove BOM and zero-width characters
+  s = s.replace(/^﻿/, "").replace(/[​-‍﻿]/g, "");
+
+  // Find the first { and slice from there
+  const firstBrace = s.indexOf("{");
+  if (firstBrace < 0) return s;
+  if (firstBrace > 0) s = s.slice(firstBrace);
+
+  // Replace single quotes if no double quotes present
+  if (!s.includes('"') && s.includes("'")) {
+    s = s.replace(/'/g, '"');
+  }
+
+  // Fix unquoted keys
+  s = s.replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
+
+  return s;
+}
+
+function closeUnclosedJson(s: string): string {
+  let braces = 0;
+  let brackets = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    else if (ch === "}") braces--;
+    else if (ch === "[") brackets++;
+    else if (ch === "]") brackets--;
+  }
+
+  if (inString) s += '"';
+  while (brackets > 0) { s += "]"; brackets--; }
+  while (braces > 0) { s += "}"; braces--; }
+
+  return s;
+}
+
+function iterativeJsonRepair(input: string, maxAttempts = 15): string | null {
+  let s = input;
+
+  s = s.replace(/,\s*([}\]])/g, "$1");
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      JSON.parse(s);
+      return s;
+    } catch (e) {
+      const msg = (e as Error).message || "";
+      const posMatch = msg.match(/position\s+(\d+)/i) || msg.match(/column\s+(\d+)/i);
+      const pos = posMatch ? parseInt(posMatch[1], 10) : -1;
+
+      if (pos < 0) {
+        if (msg.includes("Unexpected end")) {
+          s = closeUnclosedJson(s);
+          continue;
+        }
+        return null;
+      }
+
+      // Trailing junk after valid JSON — truncate at that position
+      if (msg.includes("after JSON") || msg.includes("non-whitespace")) {
+        s = s.slice(0, pos);
+        continue;
+      }
+
+      if (msg.includes("]")) {
+        s = s.slice(0, pos) + "]" + s.slice(pos);
+        continue;
+      }
+      if (msg.includes("}")) {
+        s = s.slice(0, pos) + "}" + s.slice(pos);
+        continue;
+      }
+      if (msg.includes("Unexpected end")) {
+        s = closeUnclosedJson(s);
+        continue;
+      }
+      if (msg.includes("Unexpected") || msg.includes("Expected")) {
+        s = s.slice(0, pos) + "," + s.slice(pos);
+        continue;
+      }
+
+      return null;
+    }
+  }
+
+  try {
+    JSON.parse(s);
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+function tryParseStructuredJson(
+  text: string,
+): Record<string, unknown> | null {
+  const trimmed = text.trim();
+  if (!trimmed.includes("{")) return null;
+
+  // Try parsing as-is first
+  const directParse = (input: string): Record<string, unknown> | null => {
+    try {
+      const parsed = JSON.parse(input);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+        return null;
+      const hasNested = Object.values(parsed).some(
+        (v) =>
+          (typeof v === "object" && v !== null) ||
+          (Array.isArray(v) && v.length > 0),
+      );
+      return hasNested ? (parsed as Record<string, unknown>) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Attempt 1: raw trimmed text
+  const r1 = directParse(trimmed);
+  if (r1) return r1;
+
+  // Attempt 2: extract JSON body (strip prefix, fix quotes/keys)
+  const extracted = extractJsonBody(trimmed);
+  const r2 = directParse(extracted);
+  if (r2) return r2;
+
+  // Attempt 3: iterative repair
+  const repaired = iterativeJsonRepair(extracted);
+  if (repaired) {
+    const r3 = directParse(repaired);
+    if (r3) return r3;
+  }
+
+  return null;
+}
+
+function formatTabLabel(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function extractPercentage(title: string): string | null {
+  const match = title.match(/\((\d+\.?\d*%[^)]*)\)/);
+  return match ? match[1] : null;
+}
+
+function cleanTitle(title: string): string {
+  return title.replace(/\s*\(\d+\.?\d*%[^)]*\)\s*/, "").trim();
+}
+
+function SectionCard({
+  title,
+  items,
+  defaultOpen = true,
+}: {
+  title: string;
+  items: string[];
+  defaultOpen?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const percentage = extractPercentage(title);
+  const displayTitle = cleanTitle(title);
+
+  return (
+    <div className="rounded-2xl border border-slate-200/60 bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer"
+      >
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {isOpen ? (
+            <ChevronDown className="size-4 text-slate-400 shrink-0" />
+          ) : (
+            <ChevronRight className="size-4 text-slate-400 shrink-0" />
+          )}
+          <h4 className="text-sm font-bold text-slate-900 truncate font-sans">
+            {displayTitle}
+          </h4>
+        </div>
+        {percentage && (
+          <span className="shrink-0 rounded-full border border-brand/20 bg-brand/5 px-2.5 py-1 text-[10px] font-bold text-brand tabular-nums">
+            {percentage}
+          </span>
+        )}
+      </button>
+
+      {isOpen && items.length > 0 && (
+        <div className="px-5 pb-4 pt-0">
+          <ul className="space-y-2.5 pl-7">
+            {items.map((item, idx) => (
+              <li
+                key={idx}
+                className="relative pl-4 text-sm text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-0 before:top-[9px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ObjectSection({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+
+  return (
+    <div className="space-y-4">
+      {entries.map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return (
+            <SectionCard
+              key={key}
+              title={key}
+              items={value.map((v) => String(v))}
+            />
+          );
+        }
+        if (typeof value === "object" && value !== null) {
+          return (
+            <div key={key} className="space-y-3">
+              <h3 className="text-base font-bold text-slate-900 font-sans">
+                {formatTabLabel(key)}
+              </h3>
+              <ObjectSection data={value as Record<string, unknown>} />
+            </div>
+          );
+        }
+        return (
+          <div
+            key={key}
+            className="rounded-xl border border-slate-200/60 bg-white px-5 py-3"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+              {formatTabLabel(key)}
+            </p>
+            <p className="mt-1 text-sm text-slate-700 font-sans">
+              {String(value)}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+type StructuredTab = {
+  key: string;
+  label: string;
+  content: Record<string, unknown>;
+};
+
+function StructuredView({ data }: { data: Record<string, unknown> }) {
+  const topLevelKeys = Object.keys(data);
+  const tabs: StructuredTab[] = topLevelKeys
+    .filter((key) => {
+      const val = data[key];
+      return val !== null && typeof val === "object" && !Array.isArray(val);
+    })
+    .map((key) => ({
+      key,
+      label: formatTabLabel(key),
+      content: data[key] as Record<string, unknown>,
+    }));
+
+  const scalarEntries = topLevelKeys.filter((key) => {
+    const val = data[key];
+    return val === null || typeof val !== "object" || Array.isArray(val);
+  });
+
+  const hasTabs = tabs.length > 1;
+  const [activeTab, setActiveTab] = useState(0);
+
+  const activeContent = hasTabs
+    ? tabs[activeTab]?.content
+    : tabs.length === 1
+      ? tabs[0].content
+      : data;
+
+  return (
+    <>
+      {hasTabs && (
+        <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50 w-full sm:w-auto justify-center select-none">
+          {tabs.map((tab, idx) => (
+            <button
+              type="button"
+              key={tab.key}
+              onClick={() => setActiveTab(idx)}
+              className={cn(
+                "flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer font-sans text-center",
+                activeTab === idx
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {scalarEntries.length > 0 && (
+        <div className="space-y-3">
+          {scalarEntries.map((key) => {
+            const val = data[key];
+            if (Array.isArray(val)) {
+              return (
+                <SectionCard
+                  key={key}
+                  title={formatTabLabel(key)}
+                  items={val.map((v) => String(v))}
+                />
+              );
+            }
+            return (
+              <div
+                key={key}
+                className="rounded-xl border border-slate-200/60 bg-slate-50/50 px-5 py-3"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+                  {formatTabLabel(key)}
+                </p>
+                <p className="mt-1 text-sm text-slate-700 font-sans">
+                  {String(val ?? "")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeContent && <ObjectSection data={activeContent} />}
+    </>
+  );
+}
+
 export function ExecutionSummarySection({
   displayedSummaryText,
   hasMultipleSummaryTabs,
@@ -20,6 +376,11 @@ export function ExecutionSummarySection({
   activeSummaryTab,
   setActiveSummaryTab,
 }: ExecutionSummarySectionProps) {
+  const structuredData = useMemo(
+    () => tryParseStructuredJson(displayedSummaryText),
+    [displayedSummaryText],
+  );
+
   return (
     <div className="relative bg-slate-50/30 p-6 sm:p-8 md:p-10 flex-1 min-h-0 overflow-y-auto">
       {/* Ambient Glassmorphism Bubbles */}
@@ -32,7 +393,7 @@ export function ExecutionSummarySection({
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-xs p-6 sm:p-8 md:p-10 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300 space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200/60">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-brand/10 to-brand/5 text-brand rounded-xl border border-brand/20">
+              <div className="p-3 bg-linear-to-br from-brand/10 to-brand/5 text-brand rounded-xl border border-brand/20">
                 <Sparkles className="size-5" />
               </div>
               <div>
@@ -44,10 +405,11 @@ export function ExecutionSummarySection({
                 </p>
               </div>
             </div>
-            {hasMultipleSummaryTabs && (
+            {!structuredData && hasMultipleSummaryTabs && (
               <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50 w-full sm:w-auto justify-center select-none">
                 {uniqueSummaryTabLabels.map((label, idx) => (
                   <button
+                    type="button"
                     key={`summary-tab-${idx}`}
                     onClick={() => setActiveSummaryTab(idx)}
                     className={cn(
@@ -63,120 +425,137 @@ export function ExecutionSummarySection({
               </div>
             )}
           </div>
-          <div className="text-sm text-slate-700 leading-relaxed font-normal font-sans">
-            <Markdown
-              components={{
-                h1: ({ children, ...props }) => (
-                  <h1
-                    className="text-lg font-bold text-slate-900 mt-8 mb-4 first:mt-0 pb-2 border-b border-slate-200/60 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </h1>
-                ),
-                h2: ({ children, ...props }) => (
-                  <h2
-                    className="text-base font-bold text-slate-900 mt-6 mb-3 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </h2>
-                ),
-                h3: ({ children, ...props }) => (
-                  <h3
-                    className="text-sm font-bold text-slate-800 mt-5 mb-2 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </h3>
-                ),
-                p: ({ children, ...props }) => (
-                  <p
-                    className="text-sm text-slate-700 leading-relaxed mb-4 last:mb-0 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </p>
-                ),
-                ul: ({ children, ...props }) => (
-                  <ul
-                    className="list-none pl-0 mb-4 space-y-2.5 text-sm text-slate-700 font-sans [&>li]:relative [&>li]:pl-6 [&>li]:before:content-[''] [&>li]:before:absolute [&>li]:before:left-1.5 [&>li]:before:top-[9px] [&>li]:before:w-1.5 [&>li]:before:h-1.5 [&>li]:before:rounded-full [&>li]:before:bg-brand/60"
-                    {...props}
-                  >
-                    {children}
-                  </ul>
-                ),
-                ol: ({ children, ...props }) => (
-                  <ol
-                    className="list-decimal pl-6 mb-4 space-y-2.5 text-sm text-slate-700 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </ol>
-                ),
-                li: ({ children, ...props }) => (
-                  <li className="leading-relaxed font-sans text-sm" {...props}>
-                    {children}
-                  </li>
-                ),
-                strong: ({ children, ...props }) => (
-                  <strong className="font-bold text-slate-900 font-sans" {...props}>
-                    {children}
-                  </strong>
-                ),
-                blockquote: ({ children, ...props }) => (
-                  <blockquote
-                    className="border-l-3 border-brand/40 pl-4 py-3 my-4 bg-brand/[0.02] text-slate-700 rounded-r-xl italic font-sans text-sm"
-                    {...props}
-                  >
-                    {children}
-                  </blockquote>
-                ),
-                code: ({
-                  className,
-                  children,
-                  ...props
-                }: React.HTMLAttributes<HTMLElement>) => {
-                  const isBlock =
-                    className?.includes("language-") ||
-                    (children && String(children).includes("\n"));
-                  return isBlock ? (
-                    <code
-                      className="block overflow-x-auto rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 text-xs text-slate-800 font-sans my-4"
+
+          {structuredData ? (
+            <StructuredView data={structuredData} />
+          ) : (
+            <div className="text-sm text-slate-700 leading-relaxed font-normal font-sans">
+              <Markdown
+                components={{
+                  h1: ({ children, ...props }) => (
+                    <h1
+                      className="text-lg font-bold text-slate-900 mt-8 mb-4 first:mt-0 pb-2 border-b border-slate-200/60 font-sans"
                       {...props}
                     >
                       {children}
-                    </code>
-                  ) : (
-                    <code
-                      className="bg-slate-100/80 px-2 py-0.5 rounded-md text-xs font-sans font-semibold text-slate-800 border border-slate-200/60"
+                    </h1>
+                  ),
+                  h2: ({ children, ...props }) => (
+                    <h2
+                      className="text-base font-bold text-slate-900 mt-6 mb-3 font-sans"
                       {...props}
                     >
                       {children}
-                    </code>
-                  );
-                },
-                pre: ({ children, ...props }) => (
-                  <pre className="bg-transparent p-0 my-0 font-sans" {...props}>
-                    {children}
-                  </pre>
-                ),
-                hr: ({ ...props }) => (
-                  <hr className="border-t border-slate-200/60 my-6" {...props} />
-                ),
-                a: ({ children, ...props }) => (
-                  <a
-                    className="text-brand hover:text-brand-strong font-semibold underline underline-offset-4 decoration-brand/40 hover:decoration-brand transition-colors duration-200 font-sans"
-                    {...props}
-                  >
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {displayedSummaryText}
-            </Markdown>
-          </div>
+                    </h2>
+                  ),
+                  h3: ({ children, ...props }) => (
+                    <h3
+                      className="text-sm font-bold text-slate-800 mt-5 mb-2 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </h3>
+                  ),
+                  p: ({ children, ...props }) => (
+                    <p
+                      className="text-sm text-slate-700 leading-relaxed mb-4 last:mb-0 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </p>
+                  ),
+                  ul: ({ children, ...props }) => (
+                    <ul
+                      className="list-none pl-0 mb-4 space-y-2.5 text-sm text-slate-700 font-sans [&>li]:relative [&>li]:pl-6 [&>li]:before:content-[''] [&>li]:before:absolute [&>li]:before:left-1.5 [&>li]:before:top-[9px] [&>li]:before:w-1.5 [&>li]:before:h-1.5 [&>li]:before:rounded-full [&>li]:before:bg-brand/60"
+                      {...props}
+                    >
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children, ...props }) => (
+                    <ol
+                      className="list-decimal pl-6 mb-4 space-y-2.5 text-sm text-slate-700 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children, ...props }) => (
+                    <li
+                      className="leading-relaxed font-sans text-sm"
+                      {...props}
+                    >
+                      {children}
+                    </li>
+                  ),
+                  strong: ({ children, ...props }) => (
+                    <strong
+                      className="font-bold text-slate-900 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </strong>
+                  ),
+                  blockquote: ({ children, ...props }) => (
+                    <blockquote
+                      className="border-l-3 border-brand/40 pl-4 py-3 my-4 bg-brand/[0.02] text-slate-700 rounded-r-xl italic font-sans text-sm"
+                      {...props}
+                    >
+                      {children}
+                    </blockquote>
+                  ),
+                  code: ({
+                    className,
+                    children,
+                    ...props
+                  }: React.HTMLAttributes<HTMLElement>) => {
+                    const isBlock =
+                      className?.includes("language-") ||
+                      (children && String(children).includes("\n"));
+                    return isBlock ? (
+                      <code
+                        className="block overflow-x-auto rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 text-xs text-slate-800 font-sans my-4"
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    ) : (
+                      <code
+                        className="bg-slate-100/80 px-2 py-0.5 rounded-md text-xs font-sans font-semibold text-slate-800 border border-slate-200/60"
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    );
+                  },
+                  pre: ({ children, ...props }) => (
+                    <pre
+                      className="bg-transparent p-0 my-0 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </pre>
+                  ),
+                  hr: ({ ...props }) => (
+                    <hr
+                      className="border-t border-slate-200/60 my-6"
+                      {...props}
+                    />
+                  ),
+                  a: ({ children, ...props }) => (
+                    <a
+                      className="text-brand hover:text-brand-strong font-semibold underline underline-offset-4 decoration-brand/40 hover:decoration-brand transition-colors duration-200 font-sans"
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {displayedSummaryText}
+              </Markdown>
+            </div>
+          )}
         </div>
       </div>
     </div>
