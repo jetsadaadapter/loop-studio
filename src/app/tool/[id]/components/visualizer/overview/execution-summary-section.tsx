@@ -195,36 +195,36 @@ function SectionCard({
   const displayTitle = cleanTitle(title);
 
   return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300">
+    <div className="rounded-xl border border-slate-200/60 bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left cursor-pointer"
       >
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {isOpen ? (
-            <ChevronDown className="size-4 text-slate-400 shrink-0" />
+            <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
           ) : (
-            <ChevronRight className="size-4 text-slate-400 shrink-0" />
+            <ChevronRight className="size-3.5 text-slate-400 shrink-0" />
           )}
-          <h4 className="text-sm font-bold text-slate-900 truncate font-sans">
+          <h4 className="text-xs font-bold text-slate-900 truncate font-sans">
             {displayTitle}
           </h4>
         </div>
         {percentage && (
-          <span className="shrink-0 rounded-full border border-brand/20 bg-brand/5 px-2.5 py-1 text-[10px] font-bold text-brand tabular-nums">
+          <span className="shrink-0 rounded-full border border-brand/20 bg-brand/5 px-2 py-0.5 text-[10px] font-bold text-brand tabular-nums">
             {percentage}
           </span>
         )}
       </button>
 
       {isOpen && items.length > 0 && (
-        <div className="px-5 pb-4 pt-0">
-          <ul className="space-y-2.5 pl-7">
+        <div className="px-4 pb-3 pt-0">
+          <ul className="space-y-1.5 pl-5">
             {items.map((item, idx) => (
               <li
                 key={idx}
-                className="relative pl-4 text-sm text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-0 before:top-[9px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
+                className="relative pl-3 text-xs text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
               >
                 {item}
               </li>
@@ -264,12 +264,12 @@ function ObjectSection({ data }: { data: Record<string, unknown> }) {
         return (
           <div
             key={key}
-            className="rounded-xl border border-slate-200/60 bg-white px-5 py-3"
+            className="rounded-lg border border-slate-200/60 bg-white px-3 py-2"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 font-sans">
               {formatTabLabel(key)}
             </p>
-            <p className="mt-1 text-sm text-slate-700 font-sans">
+            <p className="mt-0.5 text-xs text-slate-700 font-sans">
               {String(value)}
             </p>
           </div>
@@ -315,14 +315,14 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
   return (
     <>
       {hasTabs && (
-        <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50 w-full sm:w-auto justify-center select-none">
+        <div className="flex items-center bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/50 w-fit ml-auto select-none">
           {tabs.map((tab, idx) => (
             <button
               type="button"
               key={tab.key}
               onClick={() => setActiveTab(idx)}
               className={cn(
-                "flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer font-sans text-center",
+                "px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
                 activeTab === idx
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
@@ -350,12 +350,12 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
             return (
               <div
                 key={key}
-                className="rounded-xl border border-slate-200/60 bg-slate-50/50 px-5 py-3"
+                className="rounded-lg border border-slate-200/60 bg-slate-50/50 px-3 py-2"
               >
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 font-sans">
                   {formatTabLabel(key)}
                 </p>
-                <p className="mt-1 text-sm text-slate-700 font-sans">
+                <p className="mt-0.5 text-xs text-slate-700 font-sans">
                   {String(val ?? "")}
                 </p>
               </div>
@@ -382,7 +382,7 @@ export function ExecutionSummarySection({
   );
 
   return (
-    <div className="relative bg-slate-50/30 p-6 sm:p-8 md:p-10 flex-1 min-h-0 overflow-y-auto">
+    <div className="relative bg-slate-50/30 p-4 sm:p-5 md:p-6 flex-1 min-h-0 overflow-y-auto">
       {/* Ambient Glassmorphism Bubbles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-40">
         <div className="about-bubble-1 animate-blob rounded-full blur-3xl absolute" />
@@ -390,30 +390,30 @@ export function ExecutionSummarySection({
       </div>
 
       <div className="max-w-4xl mx-auto motion-enter-1">
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-xs p-6 sm:p-8 md:p-10 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300 space-y-6 sm:space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200/60">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-linear-to-br from-brand/10 to-brand/5 text-brand rounded-xl border border-brand/20">
-                <Sparkles className="size-5" />
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5 md:p-6 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300 space-y-4 sm:space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/60">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-linear-to-br from-brand/10 to-brand/5 text-brand rounded-lg border border-brand/20">
+                <Sparkles className="size-4" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900 font-sans">
+                <h3 className="text-sm font-bold text-slate-900 font-sans">
                   Execution Summary
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-1 font-sans">
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5 font-sans">
                   AI-generated overview of the execution result
                 </p>
               </div>
             </div>
             {!structuredData && hasMultipleSummaryTabs && (
-              <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50 w-full sm:w-auto justify-center select-none">
+              <div className="flex items-center bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/50 w-fit ml-auto select-none">
                 {uniqueSummaryTabLabels.map((label, idx) => (
                   <button
                     type="button"
                     key={`summary-tab-${idx}`}
                     onClick={() => setActiveSummaryTab(idx)}
                     className={cn(
-                      "flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer font-sans text-center",
+                      "px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
                       activeSummaryTab === idx
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
@@ -429,12 +429,12 @@ export function ExecutionSummarySection({
           {structuredData ? (
             <StructuredView data={structuredData} />
           ) : (
-            <div className="text-sm text-slate-700 leading-relaxed font-normal font-sans">
+            <div className="text-xs text-slate-700 leading-relaxed font-normal font-sans">
               <Markdown
                 components={{
                   h1: ({ children, ...props }) => (
                     <h1
-                      className="text-lg font-bold text-slate-900 mt-8 mb-4 first:mt-0 pb-2 border-b border-slate-200/60 font-sans"
+                      className="text-sm font-bold text-slate-900 mt-5 mb-3 first:mt-0 pb-1.5 border-b border-slate-200/60 font-sans"
                       {...props}
                     >
                       {children}
@@ -442,7 +442,7 @@ export function ExecutionSummarySection({
                   ),
                   h2: ({ children, ...props }) => (
                     <h2
-                      className="text-base font-bold text-slate-900 mt-6 mb-3 font-sans"
+                      className="text-xs font-bold text-slate-900 mt-4 mb-2 font-sans"
                       {...props}
                     >
                       {children}
@@ -450,7 +450,7 @@ export function ExecutionSummarySection({
                   ),
                   h3: ({ children, ...props }) => (
                     <h3
-                      className="text-sm font-bold text-slate-800 mt-5 mb-2 font-sans"
+                      className="text-xs font-bold text-slate-800 mt-3 mb-1.5 font-sans"
                       {...props}
                     >
                       {children}
@@ -458,7 +458,7 @@ export function ExecutionSummarySection({
                   ),
                   p: ({ children, ...props }) => (
                     <p
-                      className="text-sm text-slate-700 leading-relaxed mb-4 last:mb-0 font-sans"
+                      className="text-xs text-slate-700 leading-relaxed mb-3 last:mb-0 font-sans"
                       {...props}
                     >
                       {children}
@@ -466,7 +466,7 @@ export function ExecutionSummarySection({
                   ),
                   ul: ({ children, ...props }) => (
                     <ul
-                      className="list-none pl-0 mb-4 space-y-2.5 text-sm text-slate-700 font-sans [&>li]:relative [&>li]:pl-6 [&>li]:before:content-[''] [&>li]:before:absolute [&>li]:before:left-1.5 [&>li]:before:top-[9px] [&>li]:before:w-1.5 [&>li]:before:h-1.5 [&>li]:before:rounded-full [&>li]:before:bg-brand/60"
+                      className="list-none pl-0 mb-3 space-y-1.5 text-xs text-slate-700 font-sans [&>li]:relative [&>li]:pl-5 [&>li]:before:content-[''] [&>li]:before:absolute [&>li]:before:left-1 [&>li]:before:top-[7px] [&>li]:before:w-1.5 [&>li]:before:h-1.5 [&>li]:before:rounded-full [&>li]:before:bg-brand/60"
                       {...props}
                     >
                       {children}
@@ -474,7 +474,7 @@ export function ExecutionSummarySection({
                   ),
                   ol: ({ children, ...props }) => (
                     <ol
-                      className="list-decimal pl-6 mb-4 space-y-2.5 text-sm text-slate-700 font-sans"
+                      className="list-decimal pl-5 mb-3 space-y-1.5 text-xs text-slate-700 font-sans"
                       {...props}
                     >
                       {children}
@@ -482,7 +482,7 @@ export function ExecutionSummarySection({
                   ),
                   li: ({ children, ...props }) => (
                     <li
-                      className="leading-relaxed font-sans text-sm"
+                      className="leading-relaxed font-sans text-xs"
                       {...props}
                     >
                       {children}
@@ -498,7 +498,7 @@ export function ExecutionSummarySection({
                   ),
                   blockquote: ({ children, ...props }) => (
                     <blockquote
-                      className="border-l-3 border-brand/40 pl-4 py-3 my-4 bg-brand/[0.02] text-slate-700 rounded-r-xl italic font-sans text-sm"
+                      className="border-l-2 border-brand/40 pl-3 py-2 my-3 bg-brand/[0.02] text-slate-700 rounded-r-lg italic font-sans text-xs"
                       {...props}
                     >
                       {children}
@@ -514,14 +514,14 @@ export function ExecutionSummarySection({
                       (children && String(children).includes("\n"));
                     return isBlock ? (
                       <code
-                        className="block overflow-x-auto rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 text-xs text-slate-800 font-sans my-4"
+                        className="block overflow-x-auto rounded-lg border border-slate-200/60 bg-slate-50/50 p-3 text-[11px] text-slate-800 font-sans my-3"
                         {...props}
                       >
                         {children}
                       </code>
                     ) : (
                       <code
-                        className="bg-slate-100/80 px-2 py-0.5 rounded-md text-xs font-sans font-semibold text-slate-800 border border-slate-200/60"
+                        className="bg-slate-100/80 px-1.5 py-0.5 rounded text-[11px] font-sans font-semibold text-slate-800 border border-slate-200/60"
                         {...props}
                       >
                         {children}
@@ -538,13 +538,13 @@ export function ExecutionSummarySection({
                   ),
                   hr: ({ ...props }) => (
                     <hr
-                      className="border-t border-slate-200/60 my-6"
+                      className="border-t border-slate-200/60 my-4"
                       {...props}
                     />
                   ),
                   a: ({ children, ...props }) => (
                     <a
-                      className="text-brand hover:text-brand-strong font-semibold underline underline-offset-4 decoration-brand/40 hover:decoration-brand transition-colors duration-200 font-sans"
+                      className="text-brand hover:text-brand-strong font-semibold underline underline-offset-2 decoration-brand/40 hover:decoration-brand transition-colors duration-200 font-sans"
                       {...props}
                     >
                       {children}

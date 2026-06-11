@@ -55,21 +55,21 @@ export function TabJsonView({ items }: TabJsonViewProps) {
   return (
     <div className="relative flex-1 h-full min-h-0 bg-slate-50 p-4 flex flex-col overflow-hidden">
       {/* Copy Button Toolbar */}
-      <div className="absolute top-6 right-8 z-10">
+      <div className="absolute top-7 right-7 z-10">
         <Button
           onClick={handleCopy}
           size="sm"
           variant="ghost"
-          className="h-8 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+          className="h-7 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-[11px] font-semibold px-2.5 gap-1 active:scale-95 transition-all cursor-pointer shadow-xs"
         >
           {copied ? (
             <>
-              <Check className="size-3.5 text-emerald-500" />
+              <Check className="size-3 text-emerald-500" />
               <span className="text-emerald-600">Copied</span>
             </>
           ) : (
             <>
-              <Copy className="size-3.5 text-slate-400" />
+              <Copy className="size-3 text-slate-400" />
               <span>Copy JSON</span>
             </>
           )}
@@ -77,10 +77,10 @@ export function TabJsonView({ items }: TabJsonViewProps) {
       </div>
 
       {/* Pretty Code Container */}
-      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-        <pre className="font-sans text-xs leading-relaxed text-slate-650">
-          <code 
-            dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }} 
+      <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xs">
+        <pre className="font-sans text-[11px] leading-relaxed text-slate-650">
+          <code
+            dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
             className="block whitespace-pre"
           />
         </pre>

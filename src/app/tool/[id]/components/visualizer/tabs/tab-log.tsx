@@ -142,11 +142,11 @@ export function TabLog({ job }: TabLogProps) {
   };
 
   return (
-    <div className="flex-1 h-full min-h-0 bg-slate-50 p-3 sm:p-4 flex flex-col overflow-hidden relative select-none">
+    <div className="flex-1 h-full min-h-0 bg-slate-50 p-4 flex flex-col overflow-hidden relative select-none">
       {/* Log Header Toolbar */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-          <Terminal className="size-4 text-indigo-650" />
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-3 shrink-0">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+          <Terminal className="size-3.5 text-indigo-650" />
           <span>System Console Logs</span>
         </div>
 
@@ -154,16 +154,16 @@ export function TabLog({ job }: TabLogProps) {
           onClick={handleCopy}
           size="sm"
           variant="ghost"
-          className="h-8 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-xs font-semibold px-3 gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+          className="h-7 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-[11px] font-semibold px-2.5 gap-1 active:scale-95 transition-all cursor-pointer shadow-xs"
         >
           {copied ? (
             <>
-              <Check className="size-3.5 text-emerald-500" />
+              <Check className="size-3 text-emerald-500" />
               <span className="text-emerald-600">Copied Logs</span>
             </>
           ) : (
             <>
-              <Copy className="size-3.5 text-slate-400" />
+              <Copy className="size-3 text-slate-400" />
               <span>Copy Logs</span>
             </>
           )}
@@ -171,8 +171,8 @@ export function TabLog({ job }: TabLogProps) {
       </div>
 
       {/* Log Box */}
-      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-3 sm:p-5 shadow-xs">
-        <pre className="font-sans text-[11.5px] sm:text-xs leading-relaxed text-slate-600 select-text">
+      <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3 shadow-xs">
+        <pre className="font-sans text-[11px] leading-relaxed text-slate-600 select-text">
           {logs.map((line, i) => {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");

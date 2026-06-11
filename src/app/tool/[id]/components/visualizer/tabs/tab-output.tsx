@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Table2, FileCode, Presentation } from "lucide-react";
+import { Table2, FileCode } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import {
   getAnalysisDisplayPresetForJob,
@@ -25,7 +25,6 @@ import { ExecutionSummarySection } from "../overview/execution-summary-section";
 import { StructuredObjectSummary } from "../overview/structured-object-summary";
 import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "../table/all-fields-table";
-import { SlidePresentationView } from "../presentation/slide-presentation-view";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -34,7 +33,6 @@ interface TabOutputProps {
 export function TabOutput({ job }: TabOutputProps) {
   const [innerTab, setInnerTab] = useState<"overview" | "all">("overview");
   const [viewMode, setViewMode] = useState<"table" | "json">("table");
-  const [isSlideMode, setIsSlideMode] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -193,21 +191,6 @@ export function TabOutput({ job }: TabOutputProps) {
 
   const allKeys = getAllKeys(items, schemaHintKeys);
 
-  if (isSlideMode) {
-    return (
-      <SlidePresentationView
-        items={items}
-        intentGroups={intentGroups}
-        displayedSummaryText={displayedSummaryText}
-        isSingleTextSummary={isSingleTextSummary}
-        schemaHintKeys={schemaHintKeys}
-        analysisDisplayPreset={analysisDisplayPreset}
-        job={job}
-        onBack={() => setIsSlideMode(false)}
-      />
-    );
-  }
-
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
       {/* Visualizer Controls Bar */}
@@ -248,20 +231,8 @@ export function TabOutput({ job }: TabOutputProps) {
           </button>
         </div>
 
-        {/* View Toggles + Slide Report Button (Right) */}
+        {/* View Toggles (Right) */}
         <div className="flex items-center gap-3">
-          {/* Slide Report Button */}
-          {innerTab === "overview" && (isAnalysisOverview || isSingleTextSummary || structuredObjectData) && (
-            <button
-              onClick={() => setIsSlideMode(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand/30 text-brand bg-brand/5 hover:bg-brand/10 hover:border-brand/50 text-xs font-bold transition-all duration-200 cursor-pointer"
-              title="View Presentation Slide Report"
-            >
-              <Presentation className="size-4" />
-              <span>Slide Report</span>
-            </button>
-          )}
-
           <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
             <button
               onClick={() => setViewMode("table")}

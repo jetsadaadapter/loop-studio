@@ -86,8 +86,8 @@ export function TabOutputOverview({
 
   if (isAnalysisOverview) {
     return (
-      <div className="bg-slate-50/30 p-6 flex-1 min-h-0 overflow-y-auto">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="bg-slate-50/30 p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-5xl mx-auto space-y-4">
           {showIntentSummary && (
             <IntentAnalysisSummary
               groups={intentGroups}
@@ -111,8 +111,8 @@ export function TabOutputOverview({
 
   if (isCommentScraper) {
     return (
-      <div className="bg-slate-50/30 p-6 flex-1 min-h-0 overflow-y-auto">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="bg-slate-50/30 p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-4xl mx-auto space-y-4">
           {paginatedItems.map((item, idx) => (
             <CommentThreadCard
               key={`comment-${(item as Record<string, unknown>).id || idx}`}
