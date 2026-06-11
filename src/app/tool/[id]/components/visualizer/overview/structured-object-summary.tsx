@@ -30,22 +30,54 @@ function cleanTitle(title: string): string {
   return title.replace(/\s*\(\d+\.?\d*%[^)]*\)\s*/, "").trim();
 }
 
+function renderItemValue(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (typeof v === "object" && v !== null) {
+    if (Array.isArray(v)) {
+      return v.map(renderItemValue).filter(Boolean).join(", ");
+    }
+    const obj = v as Record<string, unknown>;
+    if (obj.section_title && typeof obj.section_title === "string") {
+      return obj.section_title;
+    }
+    if (obj.title && typeof obj.title === "string") {
+      return obj.title;
+    }
+    if (obj.name && typeof obj.name === "string") {
+      return obj.name;
+    }
+    const entries = Object.entries(obj)
+      .filter(([k]) => !k.startsWith("_"))
+      .map(([k, val]) => `${k}: ${renderItemValue(val)}`)
+      .filter(Boolean);
+    if (entries.length > 0 && entries.length <= 3) {
+      return entries.join("; ");
+    }
+  }
+  return String(v);
+}
+
 function SectionCard({
   title,
   items,
   defaultOpen = true,
 }: {
   title: string;
-  items: string[];
+  items: unknown[];
   defaultOpen?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const percentage = extractPercentage(title);
   const displayTitle = cleanTitle(title);
 
+  const renderedItems = items.map(renderItemValue).filter(Boolean);
+
   return (
     <div className="rounded-2xl border border-slate-200/60 bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer"
       >
@@ -66,10 +98,10 @@ function SectionCard({
         )}
       </button>
 
-      {isOpen && items.length > 0 && (
+      {isOpen && renderedItems.length > 0 && (
         <div className="px-5 pb-4 pt-0">
           <ul className="space-y-2.5 pl-7">
-            {items.map((item, idx) => (
+            {renderedItems.map((item, idx) => (
               <li
                 key={idx}
                 className="relative pl-4 text-sm text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-0 before:top-[9px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
@@ -98,8 +130,8 @@ function ObjectSection({
           return (
             <SectionCard
               key={key}
-              title={key}
-              items={value.map((v) => String(v))}
+              title={formatTabLabel(key)}
+              items={value}
             />
           );
         }
@@ -122,7 +154,7 @@ function ObjectSection({
               {formatTabLabel(key)}
             </p>
             <p className="mt-1 text-sm text-slate-700 font-sans">
-              {String(value)}
+              {renderItemValue(value)}
             </p>
           </div>
         );
@@ -187,6 +219,7 @@ export function StructuredObjectSummary({ data }: StructuredObjectSummaryProps) 
               <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50 w-full sm:w-auto justify-center select-none">
                 {tabs.map((tab, idx) => (
                   <button
+                    type="button"
                     key={tab.key}
                     onClick={() => setActiveTab(idx)}
                     className={cn(
@@ -213,7 +246,7 @@ export function StructuredObjectSummary({ data }: StructuredObjectSummaryProps) 
                     <SectionCard
                       key={key}
                       title={formatTabLabel(key)}
-                      items={val.map((v) => String(v))}
+                      items={val}
                     />
                   );
                 }
@@ -226,7 +259,7 @@ export function StructuredObjectSummary({ data }: StructuredObjectSummaryProps) 
                       {formatTabLabel(key)}
                     </p>
                     <p className="mt-1 text-sm text-slate-700 font-sans">
-                      {String(val ?? "")}
+                      {renderItemValue(val)}
                     </p>
                   </div>
                 );
