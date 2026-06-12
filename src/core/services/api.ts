@@ -87,11 +87,16 @@ export async function getAuthToken(): Promise<string | null> {
 
 const inflightRequests = new Map<string, Promise<unknown>>();
 
+export interface ApiFetchOptions extends RequestInit {
+    silentErrors?: boolean;
+}
+
 export async function apiFetch<T>(
     url: string,
-    init?: RequestInit,
+    init?: ApiFetchOptions,
 ): Promise<T> {
-    const method = init?.method?.toUpperCase() ?? "GET";
+    const { silentErrors = false, ...fetchInit } = init || {};
+    const method = fetchInit.method?.toUpperCase() ?? "GET";
     const isGet = method === "GET";
 
     if (isGet) {
@@ -103,7 +108,7 @@ export async function apiFetch<T>(
     }
 
     const promise = (async () => {
-        const incomingHeaders = new Headers(init?.headers);
+        const incomingHeaders = new Headers(fetchInit.headers);
 
         if (!incomingHeaders.has("Authorization")) {
             const token = await getAuthToken();
@@ -117,7 +122,7 @@ export async function apiFetch<T>(
         }
 
         const hasAuth = incomingHeaders.has("Authorization");
-        console.log(`[Library API] → ${init?.method ?? "GET"} ${url}`);
+        console.log(`[Library API] → ${fetchInit.method ?? "GET"} ${url}`);
         console.log(`[Library API]   Authorization: ${hasAuth ? "Bearer <token>" : "⚠ MISSING (Handled by Proxy)"}`);
 
         const t0 = Date.now();
@@ -126,20 +131,22 @@ export async function apiFetch<T>(
             res = await fetch(url, {
                 headers: incomingHeaders,
                 credentials: "include",
-                ...init,
+                ...fetchInit,
             });
         } catch (error) {
             const err = error as Error & {
                 cause?: { code?: string; errno?: number; syscall?: string; address?: string; port?: number };
             };
 
-            console.error("[Library API] ✗ Network fetch failed", {
-                url,
-                method: init?.method ?? "GET",
-                hasAuth,
-                message: err.message,
-                cause: err.cause,
-            });
+            if (!silentErrors) {
+                console.error("[Library API] ✗ Network fetch failed", {
+                    url,
+                    method: fetchInit.method ?? "GET",
+                    hasAuth,
+                    message: err.message,
+                    cause: err.cause,
+                });
+            }
             throw error;
         }
         console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
@@ -161,7 +168,7 @@ export async function apiFetch<T>(
                 parsedBody = bodyText || undefined;
             }
 
-            if (bodyText) {
+            if (bodyText && !silentErrors) {
                 console.error(`[Library API] ✗ Error body: ${bodyText.slice(0, 500)}`);
             }
 
@@ -180,6 +187,9 @@ export async function apiFetch<T>(
         inflightRequests.set(url, promise);
         promise.finally(() => {
             inflightRequests.delete(url);
+        }).catch(() => {
+            // Prevent unhandled promise rejection in the finally chain.
+            // The caller gets the original promise and handles the error.
         });
     }
 

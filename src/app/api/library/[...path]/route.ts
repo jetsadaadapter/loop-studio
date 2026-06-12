@@ -100,6 +100,17 @@ async function proxyToLibraryApi(
         });
     }
 
+    const pathStr = path.join("/");
+    const isKeysEndpoint = pathStr === "keys" || pathStr.startsWith("keys/");
+
+    if (upstreamResponse.status === 404 && isKeysEndpoint) {
+        return NextResponse.json({
+            success: false,
+            fallback: true,
+            message: "Keys endpoint not found on upstream, proxy falling back",
+        }, { status: 200 });
+    }
+
     return new NextResponse(upstreamResponse.body, {
         status: upstreamResponse.status,
         headers: copyResponseHeaders(upstreamResponse.headers),

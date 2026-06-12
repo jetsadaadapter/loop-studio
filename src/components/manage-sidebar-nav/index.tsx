@@ -270,7 +270,12 @@ export function ManageSidebarNav() {
             icon: LucideIcons.Home,
             items: overviewItems.map((m) => ({
               title: m.name,
-              href: m.path === "/manage/dashboard" ? "/manage" : m.path,
+              href:
+                m.path === "/manage/dashboard"
+                  ? "/manage"
+                  : m.path === "/keys"
+                    ? "/manage/keys"
+                    : m.path,
               icon: ICON_MAP[m.icon],
             })),
           });
@@ -284,7 +289,12 @@ export function ManageSidebarNav() {
             icon: LucideIcons.Layers,
             items: manageItems.map((m) => ({
               title: m.name,
-              href: m.path === "/manage/dashboard" ? "/manage" : m.path,
+              href:
+                m.path === "/manage/dashboard"
+                  ? "/manage"
+                  : m.path === "/keys"
+                    ? "/manage/keys"
+                    : m.path,
               icon: ICON_MAP[m.icon],
             })),
           });

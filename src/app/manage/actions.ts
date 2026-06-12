@@ -13,6 +13,9 @@ export async function checkRouteImplemented(routePath: string): Promise<boolean>
     if (normalizedPath === "/manage/dashboard") {
       normalizedPath = "/manage";
     }
+    if (normalizedPath === "/keys") {
+      normalizedPath = "/manage/keys";
+    }
 
     if (normalizedPath === "/manage" || normalizedPath === "/") {
       return true;
