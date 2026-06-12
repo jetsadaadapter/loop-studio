@@ -466,17 +466,15 @@ export function ToolScriptItem({
                       
                       if (userCustomizePromptRef.current !== null) {
                         nextConfig.prompt = userCustomizePromptRef.current;
-                        if (userCustomizeModelRef.current) {
-                          nextConfig.model = userCustomizeModelRef.current;
-                        }
                       } else if (initialConfigRef.current?.promptMode === "customize") {
                         nextConfig.prompt = initialConfigRef.current.prompt || "";
-                        if (initialConfigRef.current.model) {
-                          nextConfig.model = initialConfigRef.current.model;
-                        }
                       } else {
                         nextConfig.prompt = "";
                       }
+                      
+                      // Reset model parameter when switching to Customize Prompt tab so it does not persist
+                      nextConfig.model = "";
+                      userCustomizeModelRef.current = "";
                       
                       updateConfig(nextConfig);
                     }}

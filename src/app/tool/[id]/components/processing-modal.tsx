@@ -279,7 +279,7 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
           <div className="space-y-4">
             <p className="text-[10px] text-slate-400 font-medium text-center leading-normal">
               {isDone
-                ? (isFailed ? "The job encountered an error. Check Job History for logs." : "Your job completed successfully. Check Job History for results.")
+                ? (isFailed ? "The job encountered an error. Check Run History for logs." : "Your job completed successfully. Check Run History for results.")
                 : "You can close this window — the job will continue running in the background."}
             </p>
             {isFailed && (

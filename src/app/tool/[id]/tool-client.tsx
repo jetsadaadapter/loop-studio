@@ -102,10 +102,6 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     null,
   );
   const [jobs, setJobs] = useState<ToolRunGrouped[]>(initialJobs.data);
-  const [currentPage, setCurrentPage] = useState(initialJobs.meta?.page || 1);
-  const [totalPages, setTotalPages] = useState(
-    initialJobs.meta?.totalPages || 1,
-  );
   const [isRunning, setIsRunning] = useState(false);
   const [isProcessingOpen, setIsProcessingOpen] = useState(false);
   const [lastTriggeredJobId, setLastTriggeredJobId] = useState<string | null>(null);
@@ -125,15 +121,13 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { pushDialogToast } = useDialogToast();
 
-  const refreshJobs = async (page: number = currentPage) => {
+  const refreshJobs = async () => {
     setIsRefreshing(true);
     try {
-      const response = await getToolJobs(tool.id, { page, limit: 20 });
+      const response = await getToolJobs(tool.id, { limit: 100 });
       setJobs(response.data);
-      setCurrentPage(response.meta?.page || page);
-      setTotalPages(response.meta?.totalPages || 1);
     } catch {
-      pushDialogToast("Failed to refresh job history.", "error");
+      pushDialogToast("Failed to refresh run history.", "error");
     } finally {
       setIsRefreshing(false);
     }
@@ -150,7 +144,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
     pollRef.current = setInterval(async () => {
       try {
-        const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
+        const res = await getToolJobs(tool.id, { limit: 100 });
         const targetRun = lastTriggeredJobId
           ? res.data.find((run) =>
               run.jobs?.some((j) => j.jobId === lastTriggeredJobId)
@@ -166,8 +160,6 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             pollRef.current = null;
           }
           setJobs(res.data);
-          setCurrentPage(res.meta?.page || 1);
-          setTotalPages(res.meta?.totalPages || 1);
           setIsJobComplete(true);
         } else {
           setJobs(res.data);
@@ -303,7 +295,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       setIsProcessingOpen(true);
       setFormData(buildInitialForm(tool.params));
       setErrors({});
-      await refreshJobs(1);
+      await refreshJobs();
     } catch {
       pushDialogToast("Failed to start job.", "error");
     } finally {
@@ -482,11 +474,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
             onTabChange={setActiveTab}
             onViewJob={handleViewJob}
             onViewVisualizer={handleViewVisualizer}
-            onRefresh={() => refreshJobs(currentPage)}
+            onRefresh={refreshJobs}
             isRefreshing={isRefreshing}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={refreshJobs}
           />
         </aside>
       </div>
@@ -534,7 +523,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               if (!open) {
                 setIsJobComplete(false);
                 setLastTriggeredJobId(null);
-                await refreshJobs(1);
+                await refreshJobs();
               }
             }}
             toolName={tool.name}

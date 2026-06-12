@@ -209,18 +209,45 @@ export function TabOutput({ job }: TabOutputProps) {
     );
   }
 
+  // Raw result-only items fallback
+  const resultOnlyItems = (() => {
+    if (!job.result) return [];
+    if (Array.isArray(job.result)) return job.result as unknown as ScrapedJobItem[];
+    if (typeof job.result === "object") {
+      if (Array.isArray((job.result as Record<string, unknown>).items)) {
+        return (job.result as Record<string, unknown>).items as unknown as ScrapedJobItem[];
+      }
+      return [job.result] as unknown as ScrapedJobItem[];
+    }
+    return [];
+  })();
+
+  // All Fields Tab pulls data from result only.
+  // If there is items data to show (like normalized comments for comment scrapers),
+  // we align it with the previous tab's format but show all items (without filtering).
+  const allFieldsItems = (() => {
+    if (isCommentScraper) {
+      return resultOnlyItems.map((item) =>
+        normalizeCommentItem(item as Record<string, unknown>)
+      ) as unknown as ScrapedJobItem[];
+    }
+    return resultOnlyItems;
+  })();
+
   // Pagination Math
-  const totalPages = Math.ceil(items.length / pageSize);
+  const activeItems = innerTab === "overview" ? items : allFieldsItems;
+  const totalPages = Math.ceil(activeItems.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedItems = items.slice(startIndex, endIndex);
+  const paginatedAllFieldsItems = allFieldsItems.slice(startIndex, endIndex);
 
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1);
   };
 
-  const allKeys = getAllKeys(items, schemaHintKeys);
+  const allFieldsKeys = getAllKeys(allFieldsItems, schemaHintKeys);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
@@ -238,15 +265,15 @@ export function TabOutput({ job }: TabOutputProps) {
             )}
           >
             {isPreProcessResult
-              ? "Pre-processing"
+              ? "Overview"
               : isGeminiSummaryJob
                 ? "Summary"
-                : isExportCommentsFetchJob
-                  ? "Overview"
-                  : isAnalysisOverview
-                    ? "Analysis"
-                    : isCommentScraper
-                      ? "Comments"
+                : isAnalysisOverview
+                  ? "Analysis"
+                  : isCommentScraper
+                    ? "Comments"
+                    : isExportCommentsJob
+                      ? "Posts"
                       : "Overview"}
           </button>
           <button
@@ -258,7 +285,7 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
             )}
           >
-            All fields
+            All Fields
           </button>
         </div>
 
@@ -365,8 +392,8 @@ export function TabOutput({ job }: TabOutputProps) {
           )
         ) : (
           <AllFieldsTable
-            paginatedItems={paginatedItems}
-            allKeys={allKeys}
+            paginatedItems={paginatedAllFieldsItems}
+            allKeys={allFieldsKeys}
             startIndex={startIndex}
           />
         )}
@@ -380,9 +407,9 @@ export function TabOutput({ job }: TabOutputProps) {
           currentPage={currentPage}
           onPageChange={setCurrentPage}
           totalPages={totalPages}
-          totalItems={items.length}
+          totalItems={activeItems.length}
           startIndex={startIndex}
-          endIndex={endIndex}
+          endIndex={startIndex + (innerTab === "overview" ? paginatedItems.length : paginatedAllFieldsItems.length)}
         />
       )}
     </div>

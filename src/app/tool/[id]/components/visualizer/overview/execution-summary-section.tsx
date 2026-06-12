@@ -285,7 +285,7 @@ function ObjectSection({ data }: { data: Record<string, unknown> }) {
         if (typeof value === "object" && value !== null) {
           return (
             <div key={key} className="space-y-3">
-              <h3 className="text-base font-bold text-slate-900 font-sans">
+              <h3 className="text-xs font-bold text-slate-900 font-sans uppercase tracking-wider pl-1">
                 {formatTabLabel(key)}
               </h3>
               <ObjectSection data={value as Record<string, unknown>} />
@@ -295,12 +295,12 @@ function ObjectSection({ data }: { data: Record<string, unknown> }) {
         return (
           <div
             key={key}
-            className="rounded-lg border border-slate-200/60 bg-white px-3 py-2"
+            className="rounded-xl border border-slate-200/60 bg-white p-3.5 sm:p-4 shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-350 transition-all duration-300"
           >
-            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans mb-1">
               {formatTabLabel(key)}
             </p>
-            <p className="mt-0.5 text-xs text-slate-700 font-sans">
+            <p className="text-xs text-slate-700 font-sans leading-relaxed">
               {renderItemValue(value)}
             </p>
           </div>
@@ -346,17 +346,17 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
   return (
     <>
       {hasTabs && (
-        <div className="flex items-center bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/50 w-fit ml-auto select-none">
+        <div className="flex items-center bg-slate-100/70 p-0.5 rounded-lg border border-slate-200/40 w-fit ml-auto select-none mb-3">
           {tabs.map((tab, idx) => (
             <button
               type="button"
               key={tab.key}
               onClick={() => setActiveTab(idx)}
               className={cn(
-                "px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
+                "px-2.5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
                 activeTab === idx
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
+                  ? "bg-white text-slate-900 shadow-xs border border-slate-200/30"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/40",
               )}
             >
               {tab.label}
@@ -366,7 +366,7 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
       )}
 
       {scalarEntries.length > 0 && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 mb-4">
           {scalarEntries.map((key) => {
             const val = data[key];
             if (Array.isArray(val)) {
@@ -381,12 +381,12 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
             return (
               <div
                 key={key}
-                className="rounded-lg border border-slate-200/60 bg-slate-50/50 px-3 py-2"
+                className="rounded-xl border border-slate-200/60 bg-white p-3.5 sm:p-4 shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-350 transition-all duration-300"
               >
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 font-sans">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans mb-1">
                   {formatTabLabel(key)}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-700 font-sans">
+                <p className="text-xs text-slate-700 font-sans leading-relaxed">
                   {renderItemValue(val)}
                 </p>
               </div>
@@ -413,54 +413,50 @@ export function ExecutionSummarySection({
   );
 
   return (
-    <div className="relative bg-slate-50/30 p-4 sm:p-5 md:p-6 flex-1 min-h-0 overflow-y-auto">
-      {/* Ambient Glassmorphism Bubbles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-40">
-        <div className="about-bubble-1 animate-blob rounded-full blur-3xl absolute" />
-        <div className="about-bubble-2 animate-blob-reverse rounded-full blur-3xl absolute" />
-      </div>
-
-      <div className="max-w-4xl mx-auto motion-enter-1">
-        <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5 md:p-6 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300 space-y-4 sm:space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200/60">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-linear-to-br from-brand/10 to-brand/5 text-brand rounded-lg border border-brand/20">
-                <Sparkles className="size-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 font-sans">
-                  Execution Summary
-                </h3>
-                <p className="text-[10px] text-slate-500 font-medium mt-0.5 font-sans">
-                  AI-generated overview of the execution result
-                </p>
-              </div>
+    <div className="relative bg-slate-50/30 p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto select-none">
+      <div className="max-w-4xl mx-auto space-y-5 motion-enter-1">
+        {/* Compact Header */}
+        <div className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200/60">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-linear-to-br from-brand/10 to-brand/5 text-brand rounded-lg border border-brand/20">
+              <Sparkles className="size-4 animate-pulse" />
             </div>
-            {!structuredData && hasMultipleSummaryTabs && (
-              <div className="flex items-center bg-slate-50/80 rounded-lg p-0.5 border border-slate-200/50 w-fit ml-auto select-none">
-                {uniqueSummaryTabLabels.map((label, idx) => (
-                  <button
-                    type="button"
-                    key={`summary-tab-${idx}`}
-                    onClick={() => setActiveSummaryTab(idx)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
-                      activeSummaryTab === idx
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 leading-none">
+                Execution Summary
+              </h3>
+              <p className="text-[10px] text-slate-450 font-semibold mt-1.5 leading-none">
+                AI-generated overview of the execution result
+              </p>
+            </div>
           </div>
+          {!structuredData && hasMultipleSummaryTabs && (
+            <div className="flex items-center bg-slate-100/70 p-0.5 rounded-lg border border-slate-200/40 select-none">
+              {uniqueSummaryTabLabels.map((label, idx) => (
+                <button
+                  type="button"
+                  key={`summary-tab-${idx}`}
+                  onClick={() => setActiveSummaryTab(idx)}
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer font-sans whitespace-nowrap",
+                    activeSummaryTab === idx
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/30"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-white/40",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
+        {/* Content Area */}
+        <div className="space-y-4">
           {structuredData ? (
             <StructuredView data={structuredData} />
           ) : (
-            <div className="text-xs text-slate-700 leading-relaxed font-normal font-sans">
+            <div className="rounded-xl border border-slate-200/60 bg-white p-4 sm:p-5 shadow-xs text-xs text-slate-700 leading-relaxed font-normal font-sans">
               <Markdown
                 components={{
                   h1: ({ children, ...props }) => (

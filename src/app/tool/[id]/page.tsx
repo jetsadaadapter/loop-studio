@@ -17,7 +17,7 @@ export default async function ToolPage({ params }: Props) {
   try {
     toolData = await Promise.all([
       getTool(id),
-      getToolJobs(id, { limit: 20 }),
+      getToolJobs(id, { limit: 100 }),
     ]);
   } catch (error) {
     console.error(`[ToolPage] Error caught in page:`, error);

@@ -23,9 +23,6 @@ interface ToolHistorySidebarProps {
   onViewJob: (jobId: string) => void;
   onViewVisualizer: (jobId: string) => void;
   onRefresh: () => void;
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
 }
 
 const STATUS_COLORS: Record<string, { base: string; active: string }> = {
@@ -46,11 +43,9 @@ export function ToolHistorySidebar({
   onTabChange,
   onViewJob,
   onRefresh,
-  currentPage,
-  totalPages,
-  onPageChange,
 }: ToolHistorySidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const getTabCount = (tab: string) => {
     if (tab === "all") return jobs.length;
@@ -62,14 +57,24 @@ export function ToolHistorySidebar({
     return status === "active" || status === "running" || status === "queued" || status === "waiting";
   }).length;
 
-  const tabs = ["all", ...Array.from(new Set(jobs.map((j) => getJobStatus(j))))];
+  const tabs: JobStatus[] = ["all", "completed", "active", "waiting", "failed"];
+  const visibleTabs = tabs.filter((tab) => tab === "all" || getTabCount(tab) > 0);
+
   const filtered = jobs.filter(
     (job) => activeTab === "all" || getJobStatus(job) === activeTab
   );
 
+  const isAllTab = activeTab === "all";
+  const pageSize = 10;
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  const displayedJobs = isAllTab
+    ? filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : filtered;
+
   const handleTabChange = (tab: JobStatus) => {
     onTabChange(tab);
-    onPageChange(1);
+    setCurrentPage(1);
   };
 
   const handleSelectJob = (jobId: string, isMobile: boolean) => {
@@ -80,24 +85,24 @@ export function ToolHistorySidebar({
   };
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null;
+    if (!isAllTab || totalPages <= 1) return null;
     return (
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-slate-100 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-slate-100 shrink-0 select-none">
         <span className="text-[10px] text-slate-400 font-semibold select-none">
           Page {currentPage} of {totalPages}
         </span>
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white cursor-pointer"
           >
             <ChevronLeft className="size-3.5" />
           </button>
           <button
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white cursor-pointer"
           >
             <ChevronRight className="size-3.5" />
           </button>
@@ -106,21 +111,20 @@ export function ToolHistorySidebar({
     );
   };
 
+
   return (
     <>
       {/* Sidebar Layout (Stacked on mobile, side-by-side on desktop) */}
       <div className="block">
         <Card className="shadow-[0_4px_20px_rgba(0,0,0,0.03)] border-slate-200/60 rounded-2xl overflow-hidden bg-white">
-          <CardHeader className="bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-100/60 p-5 pb-4 space-y-4">
+          <CardHeader className="bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-100/60 p-4 pb-3.5 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 border border-indigo-100/80 text-brand rounded-xl shrink-0 shadow-xs">
-                  <History className="size-4 text-brand" />
-                </div>
+              <div className="flex items-center gap-2.5">
+                <History className="size-4 text-brand shrink-0" />
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
-                      Job History
+                      Run History
                     </CardTitle>
                     {runningCount > 0 && (
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-200/50 text-[9px] font-extrabold uppercase tracking-wider animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.05)] select-none shrink-0 scale-90">
@@ -138,16 +142,16 @@ export function ToolHistorySidebar({
               <button
                 onClick={onRefresh}
                 disabled={isRefreshing}
-                title="Refresh job history"
-                className="p-2 rounded-xl border border-slate-200/80 text-slate-450 hover:text-brand hover:bg-brand/5 hover:border-brand/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer bg-white shadow-xs"
+                title="Refresh run history"
+                className="p-1.5 rounded-lg text-slate-450 hover:text-brand hover:bg-slate-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
               </button>
             </div>
 
             {jobs.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {tabs.map((tab) => {
+              <div className="flex items-center bg-slate-100/70 p-1 rounded-xl border border-slate-200/40 w-full gap-0.5 select-none overflow-x-auto scrollbar-none">
+                {visibleTabs.map((tab) => {
                   const isActive = activeTab === tab;
                   const count = getTabCount(tab);
                   return (
@@ -155,10 +159,10 @@ export function ToolHistorySidebar({
                       key={tab}
                       onClick={() => handleTabChange(tab)}
                       className={cn(
-                        "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs",
+                        "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-wider rounded-lg transition-all duration-200 cursor-pointer select-none whitespace-nowrap",
                         isActive
-                           ? "bg-brand border-brand text-white shadow-sm"
-                          : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-350 hover:bg-slate-50"
+                          ? "bg-white text-slate-900 shadow-xs border border-slate-200/30"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                       )}
                     >
                       <span
@@ -171,8 +175,8 @@ export function ToolHistorySidebar({
                       <span className={cn(
                         "px-1.5 py-0.5 text-[8.5px] rounded-md font-black select-none transition-colors border",
                         isActive 
-                          ? "bg-white/15 text-white/90 border-white/10" 
-                          : "bg-slate-100 text-slate-450 border-slate-200/30 group-hover:bg-slate-200/50"
+                          ? "bg-slate-100 text-slate-700 border-slate-200/50" 
+                          : "bg-slate-200/40 text-slate-450 border-slate-250/10"
                       )}>
                         {count}
                       </span>
@@ -184,7 +188,7 @@ export function ToolHistorySidebar({
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
-              {filtered.length === 0 ? (
+              {displayedJobs.length === 0 ? (
                 <div className="py-14 text-center space-y-3 px-4 relative overflow-hidden select-none">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-slate-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
                   <Clock className="size-8 text-slate-355 mx-auto animate-pulse relative z-10 shrink-0" />
@@ -197,7 +201,7 @@ export function ToolHistorySidebar({
                 </div>
               ) : (
                 <div className="p-3 md:p-4 space-y-3 max-h-[600px] overflow-y-auto bg-slate-50/20">
-                  {filtered.map((job, index) => {
+                  {displayedJobs.map((job, index) => {
                     const id = job.runId || `run-index-${index}`;
                     return (
                       <HistoryJobItem
@@ -237,15 +241,13 @@ export function ToolHistorySidebar({
           side="right"
           className="w-full sm:max-w-md p-0 flex flex-col h-full bg-slate-50 border-l border-slate-200"
         >
-          <SheetHeader className="bg-white border-b border-slate-100 p-5 flex flex-row items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-50 border border-indigo-100/80 text-brand rounded-xl shrink-0">
-                <History className="size-4 text-brand" />
-              </div>
+          <SheetHeader className="bg-white border-b border-slate-100 p-4 flex flex-row items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5">
+              <History className="size-4 text-brand shrink-0" />
               <div className="text-left flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
                   <SheetTitle className="text-sm font-bold tracking-tight text-slate-800 leading-none">
-                    Job History
+                    Run History
                   </SheetTitle>
                   {runningCount > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-200/50 text-[9px] font-extrabold uppercase tracking-wider animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.05)] select-none shrink-0 scale-90">
@@ -263,7 +265,7 @@ export function ToolHistorySidebar({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="mr-8 p-2 rounded-xl border border-slate-200 text-slate-505 hover:text-brand hover:bg-brand/5 hover:border-brand/20 transition-all disabled:opacity-40 cursor-pointer bg-white"
+              className="mr-8 p-1.5 rounded-lg text-slate-450 hover:text-brand hover:bg-slate-100 transition-all disabled:opacity-40 cursor-pointer"
             >
               <RefreshCw className={cn("size-3.5", isRefreshing && "animate-spin")} />
             </button>
@@ -271,9 +273,9 @@ export function ToolHistorySidebar({
 
           {/* Sticky filter tabs inside the drawer */}
           {jobs.length > 0 && (
-            <div className="bg-white px-5 py-3 border-b border-slate-100 shrink-0">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {tabs.map((tab) => {
+            <div className="bg-white px-4 py-2.5 border-b border-slate-100 shrink-0">
+              <div className="flex items-center bg-slate-100/70 p-1 rounded-xl border border-slate-200/40 w-full gap-0.5 select-none overflow-x-auto scrollbar-none">
+                {visibleTabs.map((tab) => {
                   const isActive = activeTab === tab;
                   const count = getTabCount(tab);
                   return (
@@ -281,10 +283,10 @@ export function ToolHistorySidebar({
                       key={tab}
                       onClick={() => handleTabChange(tab)}
                       className={cn(
-                        "group px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded-full border transition-all duration-300 flex items-center gap-1.5 cursor-pointer",
+                        "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-wider rounded-lg transition-all duration-200 cursor-pointer select-none whitespace-nowrap",
                         isActive
-                          ? "bg-brand border-brand text-white shadow-sm"
-                          : "bg-white border-slate-200/80 text-slate-550 hover:bg-slate-50"
+                          ? "bg-white text-slate-900 shadow-xs border border-slate-200/30"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                       )}
                     >
                       <span
@@ -297,8 +299,8 @@ export function ToolHistorySidebar({
                       <span className={cn(
                         "px-1.5 py-0.5 text-[8.5px] rounded-md font-black select-none transition-colors border",
                         isActive 
-                          ? "bg-white/15 text-white/90 border-white/10" 
-                          : "bg-slate-100 text-slate-450 border-slate-200/30 group-hover:bg-slate-200/50"
+                          ? "bg-slate-100 text-slate-700 border-slate-200/50" 
+                          : "bg-slate-200/40 text-slate-450 border-slate-250/10"
                       )}>
                         {count}
                       </span>
@@ -311,7 +313,7 @@ export function ToolHistorySidebar({
 
           {/* Scrollable list container */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {filtered.length === 0 ? (
+            {displayedJobs.length === 0 ? (
               <div className="py-20 text-center space-y-3 px-4 relative overflow-hidden select-none">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-slate-100 rounded-full blur-3xl opacity-40 pointer-events-none" />
                 <Clock className="size-8 text-slate-300 mx-auto animate-pulse relative z-10" />
@@ -323,7 +325,7 @@ export function ToolHistorySidebar({
                 </p>
               </div>
             ) : (
-              filtered.map((job, index) => {
+              displayedJobs.map((job, index) => {
                 const id = job.runId || `run-index-${index}`;
                 return (
                   <HistoryJobItem
@@ -338,6 +340,7 @@ export function ToolHistorySidebar({
             )}
           </div>
           {renderPagination()}
+
         </SheetContent>
       </Sheet>
     </>
