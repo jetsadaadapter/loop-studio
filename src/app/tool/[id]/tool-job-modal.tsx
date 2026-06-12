@@ -55,9 +55,7 @@ function JobDetailContent({ job, onOpenVisualizer }: { job: ToolJob; onOpenVisua
             <SheetHeader className="p-4 md:p-5 bg-gradient-to-r from-slate-50/50 via-white to-slate-50/30 border-b border-slate-200 shrink-0 relative pr-20">
                 <div className="flex items-center justify-between gap-3 min-w-0">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 bg-brand/5 border border-brand/10 text-brand rounded-xl shrink-0 shadow-xs">
-                            <Workflow className="size-4 animate-spin-slow" />
-                        </div>
+                        <Workflow className="size-5 text-brand animate-spin-slow shrink-0" />
                         <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <SheetTitle className="text-sm font-bold text-slate-800 tracking-tight leading-none">

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   createContext,
   useEffect,
@@ -32,6 +33,8 @@ type LibraryShellContextValue = {
   setVisibleCategoryKeys: (keys: MainTabKey[]) => void;
   activeCategory: MainTabKey | null;
   setActiveCategory: (key: MainTabKey | null) => void;
+  isFullWidth?: boolean;
+  setIsFullWidth?: (val: boolean) => void;
 };
 
 const LibraryShellContext = createContext<LibraryShellContextValue | null>(
@@ -55,6 +58,7 @@ export function LibraryShell({ children }: { children: ReactNode }) {
     [],
   );
   const [activeCategory, setActiveCategory] = useState<MainTabKey | null>(null);
+  const [isFullWidth, setIsFullWidth] = useState(false);
   const pathname = usePathname();
   // Edge Middleware handles auth protection
 
@@ -79,8 +83,10 @@ export function LibraryShell({ children }: { children: ReactNode }) {
       setVisibleCategoryKeys,
       activeCategory,
       setActiveCategory,
+      isFullWidth,
+      setIsFullWidth,
     }),
-    [searchQuery, visibleCategoryKeys, activeCategory],
+    [searchQuery, visibleCategoryKeys, activeCategory, isFullWidth],
   );
 
   return (
@@ -205,7 +211,12 @@ export function LibraryShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 sm:px-4">
+        <main
+          className={cn(
+            "mx-auto w-full transition-all duration-300 px-0 xs:px-4",
+            isFullWidth ? "max-w-none px-0 xs:px-4 md:px-10" : "max-w-6xl"
+          )}
+        >
           {children}
         </main>
 

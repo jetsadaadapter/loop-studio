@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils";
 
 export interface PreProcessResult {
   preview?: {
-    startUrls?: { url: string }[];
+    startUrls?: string[] | { url: string }[];
     goal?: string;
     generatedSystemPrompt?: string;
     expectedOutputSchema?: {
       description?: string;
+      example?: Record<string, unknown>;
     };
   };
   input?: {
@@ -36,13 +37,19 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
   const config = result.config || {};
 
   const inputUrls = input.startUrls || [];
-  const previewUrls = preview.startUrls || [];
-  
+
+  // Normalize preview.startUrls - can be string[] or {url: string}[]
+  const rawPreviewUrls = preview.startUrls || [];
+  const previewUrls = rawPreviewUrls.map(item =>
+    typeof item === 'string' ? { url: item } : item
+  );
+
   const goal = preview.goal || "";
   const systemPrompt = preview.generatedSystemPrompt || "";
   const model = config.model || "";
   const promptTemplate = config.prompt || "";
   const schemaDescription = preview.expectedOutputSchema?.description || "";
+  const schemaExample = preview.expectedOutputSchema?.example;
 
   const isGemini = model.toLowerCase().includes("gemini");
 
@@ -67,10 +74,10 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
   const hasPreview = Boolean(goal || schemaDescription || systemPrompt || previewUrls.length > 0);
 
   return (
-    <div className="bg-slate-50/60 p-6 flex-1 min-h-0 overflow-y-auto font-sans select-none">
+    <div className="bg-slate-50/60 p-2.5 xs:p-4 sm:p-6 flex-1 min-h-0 overflow-y-auto font-sans select-none">
       <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
         {/* Simple Page Header */}
-        <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200/40">
+        <div className="flex flex-row flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-4 pb-2 border-b border-slate-200/40">
           <div>
             <h3 className="text-base font-bold text-slate-800 tracking-tight flex items-center gap-2">
               <Sparkles className="size-5 text-emerald-600" />
@@ -88,7 +95,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
 
         {/* Group 1: Input parameters (result.input) */}
         {hasInput && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-4">
+          <div className="bg-white rounded-xl xs:rounded-2xl border border-slate-200/60 shadow-xs p-3.5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
@@ -125,7 +132,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                       href={urlObj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-slate-600 hover:text-brand font-semibold truncate hover:underline flex-1"
+                      className="text-slate-600 hover:text-brand font-semibold truncate hover:underline flex-1 min-w-0"
                     >
                       {urlObj.url}
                     </a>
@@ -139,7 +146,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
 
         {/* Group 2: Configuration parameters (result.config) */}
         {hasConfig && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-4">
+          <div className="bg-white rounded-xl xs:rounded-2xl border border-slate-200/60 shadow-xs p-3.5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
@@ -221,7 +228,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
 
         {/* Group 3: Preview parameters (result.preview) */}
         {hasPreview && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 space-y-5">
+          <div className="bg-white rounded-xl xs:rounded-2xl border border-slate-200/60 shadow-xs p-3.5 sm:p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
@@ -252,17 +259,31 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
               )}
 
               {/* Expected Output Schema */}
-              {schemaDescription && (
-                <div className="space-y-2">
+              {(schemaDescription || schemaExample) && (
+                <div className="space-y-3">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block flex items-center gap-1.5">
                     <FileJson className="size-3.5 text-indigo-500" />
-                    Expected Output Schema Definition
+                    Expected Output Schema
                   </span>
-                  <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 pl-5 select-text">
-                    <p className="text-xs font-medium text-slate-650 leading-relaxed">
-                      {schemaDescription}
-                    </p>
-                  </div>
+
+                  {schemaDescription && (
+                    <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 pl-5 select-text">
+                      <p className="text-xs font-medium text-slate-650 leading-relaxed">
+                        {schemaDescription}
+                      </p>
+                    </div>
+                  )}
+
+                  {schemaExample && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] text-slate-500 font-semibold block pl-1">
+                        Example Output Structure:
+                      </span>
+                      <pre className="p-4 rounded-xl border border-indigo-200/60 bg-indigo-50/30 text-xs font-mono text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-80 overflow-y-auto">
+                        {JSON.stringify(schemaExample, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -319,7 +340,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                           href={urlObj.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-slate-600 hover:text-brand font-semibold truncate hover:underline flex-1"
+                          className="text-slate-600 hover:text-brand font-semibold truncate hover:underline flex-1 min-w-0"
                         >
                           {urlObj.url}
                         </a>

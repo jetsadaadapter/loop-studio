@@ -108,6 +108,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   );
   const [isRunning, setIsRunning] = useState(false);
   const [isProcessingOpen, setIsProcessingOpen] = useState(false);
+  const [lastTriggeredJobId, setLastTriggeredJobId] = useState<string | null>(null);
   const [isJobComplete, setIsJobComplete] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -150,11 +151,15 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     pollRef.current = setInterval(async () => {
       try {
         const res = await getToolJobs(tool.id, { page: 1, limit: 5 });
-        const latest = res.data[0];
+        const targetRun = lastTriggeredJobId
+          ? res.data.find((run) =>
+              run.jobs?.some((j) => j.jobId === lastTriggeredJobId)
+            )
+          : res.data[0];
 
         if (
-          latest &&
-          (latest.state === "completed" || latest.state === "failed")
+          targetRun &&
+          (targetRun.state === "completed" || targetRun.state === "failed")
         ) {
           if (pollRef.current) {
             clearInterval(pollRef.current);
@@ -177,7 +182,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         pollRef.current = null;
       }
     };
-  }, [isProcessingOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isProcessingOpen, lastTriggeredJobId, tool.id]);
 
   // Poll active selected jobs (modal or visualizer) to auto-refresh their status and results
   useEffect(() => {
@@ -232,11 +237,13 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                   : j
               );
               const hasFailed = updatedJobs.some((j) => getJobStatus(j) === "failed");
+              const hasCancelled = updatedJobs.some((j) => getJobStatus(j) === "cancelled");
               const allCompleted = updatedJobs.every((j) => getJobStatus(j) === "completed");
               const hasRunning = updatedJobs.some((j) => getJobStatus(j) === "active" || getJobStatus(j) === "running");
               const hasWaiting = updatedJobs.some((j) => getJobStatus(j) === "waiting");
               let runState = run.state;
               if (hasFailed) runState = "failed";
+              else if (hasCancelled) runState = "cancelled";
               else if (allCompleted) runState = "completed";
               else if (hasRunning) runState = "running";
               else if (hasWaiting) runState = "waiting";
@@ -288,8 +295,11 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     setTestResult(null);
     setIsRunning(true);
     try {
-      await runTool(tool.id, formData);
+      const runRes = await runTool(tool.id, formData);
       setIsJobComplete(false);
+      if (runRes && runRes.jobId) {
+        setLastTriggeredJobId(runRes.jobId);
+      }
       setIsProcessingOpen(true);
       setFormData(buildInitialForm(tool.params));
       setErrors({});
@@ -500,10 +510,21 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         onOpenChange={setIsVisualizerOpen}
       />
       {(() => {
-        const activeRun = jobs.find((j) => {
-          const status = getJobStatus(j);
-          return status === "active" || status === "running" || status === "queued" || status === "waiting";
-        }) || jobs[0];
+        let activeRun = lastTriggeredJobId
+          ? jobs.find((run) =>
+              run.jobs?.some((j) => j.jobId === lastTriggeredJobId)
+            )
+          : undefined;
+
+        // If we are waiting for the run to show up, do not fall back to jobs[0] yet
+        // to prevent showing the previous completed/failed run.
+        if (!activeRun && !lastTriggeredJobId) {
+          activeRun = jobs.find((j) => {
+            const status = getJobStatus(j);
+            return status === "active" || status === "running" || status === "queued" || status === "waiting";
+          }) || jobs[0];
+        }
+
         return (
           <ProcessingModal
             key={isProcessingOpen ? "open" : "closed"}
@@ -512,6 +533,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               setIsProcessingOpen(open);
               if (!open) {
                 setIsJobComplete(false);
+                setLastTriggeredJobId(null);
                 await refreshJobs(1);
               }
             }}

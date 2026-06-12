@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLibraryShell } from "@/app/library/library-shell";
 import {
   Terminal,
   ArrowLeft,
-  Play,
+  Workflow,
   ShieldAlert,
   ChevronRight,
   Download,
@@ -78,6 +79,19 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
     useState<VisualizerTab>("output");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const shell = useLibraryShell();
+
+  // Coordinate full-width layout with the parent LibraryShell
+  useEffect(() => {
+    if (shell.setIsFullWidth) {
+      shell.setIsFullWidth(isExpanded);
+    }
+    return () => {
+      if (shell.setIsFullWidth) {
+        shell.setIsFullWidth(false);
+      }
+    };
+  }, [isExpanded, shell]);
 
   // Fetch full details of the currently selected job within the run
   useEffect(() => {
@@ -122,16 +136,18 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
   const overallState = (run as { state?: string }).state || (
     run.jobs.some((j) => getJobStatus(j) === "failed")
       ? "failed"
-      : run.jobs.every((j) => getJobStatus(j) === "completed")
-        ? "completed"
-        : run.jobs.some(
-          (j) =>
-            getJobStatus(j) === "active" || getJobStatus(j) === "running",
-        )
-          ? "active"
-          : run.jobs.some((j) => getJobStatus(j) === "waiting")
-            ? "waiting"
-            : "queued"
+      : run.jobs.some((j) => getJobStatus(j) === "cancelled")
+        ? "cancelled"
+        : run.jobs.every((j) => getJobStatus(j) === "completed")
+          ? "completed"
+          : run.jobs.some(
+              (j) =>
+                getJobStatus(j) === "active" || getJobStatus(j) === "running",
+            )
+            ? "active"
+            : run.jobs.some((j) => getJobStatus(j) === "waiting")
+              ? "waiting"
+              : "queued"
   );
 
   const formattedTime = (createdAtStr: string) => {
@@ -153,6 +169,12 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
   const shortFullJobIdentity = fullJobIdentity
     ? `#${fullJobIdentity.split("-")[0].slice(0, 8).toUpperCase()}`
     : "#N/A";
+
+  const selectedRunJob = run.jobs.find((j) => getJobIdentity(j) === activeJobId);
+  const consolePluginLower = String(selectedRunJob?.plugin || fullJob?.plugin || "").toLowerCase();
+  const consolePluginConfig = getPluginConfig(consolePluginLower);
+  const consoleFriendlyTitle = selectedRunJob?.label || selectedRunJob?.script?.label || consolePluginConfig.cardTitle;
+  const hasConsoleCustomLabel = !!(selectedRunJob?.label || selectedRunJob?.script?.label);
 
   return (
     <div className="pb-10">
@@ -188,10 +210,8 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                   RUN #{runId.slice(0, 12).toUpperCase()}
                 </span>
               </div>
-              <div className="flex items-center gap-3.5">
-                <div className="p-3 bg-linear-to-br from-brand via-brand-strong to-rose-700 border border-white/20 backdrop-blur-md rounded-2xl shadow-xl shadow-brand/10 shrink-0">
-                  <Terminal className="size-6 text-white animate-pulse" />
-                </div>
+              <div className="flex items-center gap-3">
+                <Workflow className="size-8 text-white shrink-0 animate-pulse" />
                 <h1 className="page-hero-title font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
                   Execution Console
                 </h1>
@@ -209,36 +229,35 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
         </AppCover>
       </div>
 
-      {/* Split Pane Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {/* Split Pane Flex Layout */}
+      <div className={cn(
+        "transition-all duration-300 w-full px-0 xs:px-4 sm:px-6 lg:px-8",
+        isExpanded ? "max-w-none" : "max-w-7xl mx-auto"
+      )}>
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full">
         {/* Left Side: Run Pipeline Summary & Sub-Jobs list */}
         <div
           className={cn(
-            "lg:col-span-1 space-y-4 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit order-2 lg:order-1",
-            isExpanded ? "hidden lg:hidden" : "block",
+            "w-full lg:w-[380px] shrink-0 space-y-4 bg-white rounded-none xs:rounded-2xl border-x-0 xs:border border-y border-slate-200/60 p-4 xs:p-5 shadow-xs transition-all duration-300 lg:sticky lg:top-24 lg:self-start lg:h-fit order-2 lg:order-1",
+            isExpanded && "hidden"
           )}
         >
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Play className="size-4 text-brand" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Run Pipeline
-              </h3>
+          <div className="border-b border-slate-100 pb-3.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Workflow className="size-4 text-brand shrink-0" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Pipeline Steps
+                </h3>
+              </div>
+              <JobStatusBadge status={overallState} />
             </div>
-            <JobStatusBadge status={overallState} />
+            {run.runId && (
+              <p className="text-[10px] text-slate-400 font-semibold pl-[24px] select-all">
+                Run ID: <span className="font-mono text-slate-500 uppercase">#{run.runId.toUpperCase()}</span>
+              </p>
+            )}
           </div>
-
-          {/* Processing Run ID label */}
-          {run.runId && (
-            <div className="flex items-center gap-1.5 -mt-1 pb-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                Processing Run ID
-              </span>
-              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-all shrink-0 border border-slate-200/40 uppercase">
-                #{run.runId.split("-")[0].toUpperCase().slice(0, 8)}
-              </span>
-            </div>
-          )}
 
           {/* Jobs List Step-by-Step */}
           <div className="space-y-3">
@@ -261,19 +280,19 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                   onClick={() => handleJobClick(jobIdentity)}
                   disabled={!jobIdentity}
                   className={cn(
-                    "w-full text-left p-3.5 rounded-xl border relative overflow-hidden transition-all duration-300 flex items-center justify-between group cursor-pointer",
+                    "w-full text-left p-4 rounded-xl border relative overflow-hidden transition-all duration-300 flex items-center justify-between group cursor-pointer hover:-translate-y-0.5 active:scale-[0.98]",
                     isSelected
-                      ? "bg-slate-50 border-brand shadow-xs"
-                      : "bg-white border-slate-150 hover:bg-slate-50/50 hover:border-slate-350",
+                      ? "bg-slate-50/80 border-brand/30 shadow-xs"
+                      : "bg-white border-slate-200/60 hover:bg-slate-50/30 hover:border-slate-300/80",
                     !jobIdentity && "opacity-60 cursor-not-allowed",
                   )}
                 >
                   {isSelected && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-brand to-brand-strong" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-brand to-brand-strong rounded-r-sm" />
                   )}
 
-                  <div className={cn("min-w-0 flex-1", isSelected && "pl-1")}>
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className={cn("min-w-0 flex-1", isSelected && "pl-2")}>
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
                       {pluginConfig.iconSrc ? (
                         <Image
                           src={pluginConfig.iconSrc}
@@ -288,31 +307,33 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                       ) : (
                         <Terminal className="size-3.5 shrink-0 text-slate-400" />
                       )}
-                      <span className="text-[11.5px] font-extrabold text-slate-800 tracking-tight leading-none">
+                      <span className="text-xs font-bold text-slate-800 tracking-tight leading-tight">
                         {friendlyTitle}
                         {hasCustomLabel && (
-                          <span className="text-[9.5px] text-slate-450 font-bold ml-1 opacity-80">
+                          <span className="text-[10px] text-slate-455 font-bold ml-1 opacity-70 normal-case">
                             ({formatPluginSuffix(job.plugin)})
                           </span>
                         )}
                       </span>
-                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 text-[8px] font-extrabold tracking-wider rounded-md select-none shrink-0 border border-slate-200/40 uppercase">
-                        {slicedJobId}
-                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2 select-none">
+                    <div className="flex items-center gap-2 mt-3 select-none flex-wrap">
                       <JobStatusBadge status={jobStatus} />
-                      <span className="text-[9px] text-slate-400 font-medium">
+                      <span className="size-1 rounded-full bg-slate-200 shrink-0" />
+                      <span className="text-[10px] text-slate-400 font-semibold shrink-0">
                         {formattedTime(job.createdAt)}
+                      </span>
+                      <span className="size-1 rounded-full bg-slate-200 shrink-0" />
+                      <span className="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[9px] font-mono font-semibold tracking-tight rounded border border-slate-150 uppercase select-all shrink-0">
+                        {slicedJobId}
                       </span>
                     </div>
                   </div>
 
                   <ChevronRight
                     className={cn(
-                      "size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",
-                      isSelected ? "text-brand" : "text-slate-300",
+                      "size-4 transition-all duration-300 group-hover:translate-x-0.5 shrink-0 ml-2",
+                      isSelected ? "text-brand translate-x-0.5" : "text-slate-350",
                     )}
                   />
                 </button>
@@ -321,12 +342,10 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
           </div>
         </div>
 
-        {/* Right Side: Run Detail Workspace Area (Inline console tabs) */}
         <div
           id="workspace-console"
           className={cn(
-            "bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-125 transition-all duration-300 order-1 lg:order-2 scroll-mt-6",
-            isExpanded ? "lg:col-span-3" : "lg:col-span-2",
+            "w-full lg:w-auto flex-1 min-w-0 bg-white rounded-none xs:rounded-2xl border-x-0 xs:border border-y border-slate-200/60 shadow-xs overflow-hidden flex flex-col min-h-125 transition-all duration-300 order-1 lg:order-2 scroll-mt-6",
           )}
         >
           {isLoadingJob ? (
@@ -338,10 +357,10 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                 <div className="space-y-0.5 min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-bold text-slate-800 capitalize truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">
-                      {fullJob.label || fullJob.script?.label || `${fullJob.plugin || "Unknown"} Engine Workspace`}
-                      {!!(fullJob.label || fullJob.script?.label) && (
+                      {consoleFriendlyTitle}
+                      {hasConsoleCustomLabel && (
                         <span className="text-[10px] text-slate-455 font-bold normal-case ml-1.5 opacity-80">
-                          ({formatPluginSuffix(fullJob.plugin)})
+                          ({formatPluginSuffix(selectedRunJob?.plugin || fullJob?.plugin || "")})
                         </span>
                       )}
                     </span>
@@ -349,7 +368,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                       {shortFullJobIdentity}
                     </span>
                   </div>
-                  <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-xs sm:max-w-md">
+                  <p className="text-[10px] leading-relaxed text-slate-500 font-semibold truncate max-w-[200px] xs:max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-2xl">
                     Input: {fullJob.input?.userInput || "N/A"}
                   </p>
                 </div>
@@ -360,7 +379,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                   <button
                     type="button"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="h-8 px-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-md text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-3xs text-slate-600 hover:text-slate-800 flex items-center justify-center gap-1.5"
+                    className="hidden lg:flex h-8 px-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-md text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-3xs text-slate-600 hover:text-slate-800 items-center justify-center gap-1.5"
                     title={
                       isExpanded ? "Show Sidebar" : "Hide Sidebar (100% Width)"
                     }
@@ -398,7 +417,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               />
 
               {/* Visualizer Output Content Area */}
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-3 sm:p-4">
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-1.5 xs:p-3 sm:p-4">
                 {activeVisualizerTab === "output" && (
                   <TabOutput job={fullJob} />
                 )}
@@ -422,6 +441,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
               </p>
             </div>
           )}
+        </div>
         </div>
       </div>
 

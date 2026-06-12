@@ -31,6 +31,10 @@ const STATUS_CLASSES: Record<string, { bg: string; dot: string }> = {
   failed: {
     bg: "bg-rose-50/60 border-rose-200/50 text-rose-600 shadow-[0_0_8px_rgba(244,63,94,0.08)]",
     dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]"
+  },
+  cancelled: {
+    bg: "bg-slate-50/60 border-slate-200/50 text-slate-500 shadow-[0_0_8px_rgba(100,116,139,0.08)]",
+    dot: "bg-slate-400 shadow-[0_0_8px_rgba(100,116,139,0.5)]"
   }
 };
 

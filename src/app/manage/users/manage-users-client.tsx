@@ -42,7 +42,9 @@ export function ManageUsersClient({
   const [isLoading, setIsLoading] = useState(initialUsers.length === 0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(
+    initialUsers.length > 0 ? new Date() : null
+  );
   const [totalItems, setTotalItems] = useState(0);
 
   const isInitialMount = useRef(true);
@@ -57,12 +59,6 @@ export function ManageUsersClient({
       .catch((err) => console.error("Failed to load users for statistics:", err));
   }, []);
 
-  useEffect(() => {
-    if (initialUsers.length > 0) {
-      setLastUpdatedAt(new Date());
-    }
-  }, [initialUsers.length]);
-
   // Filter states
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "department">("name-asc");
@@ -70,11 +66,6 @@ export function ManageUsersClient({
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  // Reset page when search, sort order, or page size changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, sortBy, pageSize]);
 
   // Modal edit states
   const [editTarget, setEditTarget] = useState<UserProfile | null>(null);
@@ -187,9 +178,15 @@ export function ManageUsersClient({
       {/* Search and Filters Bar */}
       <UserSearchFilters
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setCurrentPage(1);
+        }}
         sortBy={sortBy}
-        onSortByChange={setSortBy}
+        onSortByChange={(val) => {
+          setSortBy(val);
+          setCurrentPage(1);
+        }}
         lastUpdatedAt={lastUpdatedAt}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
@@ -212,7 +209,10 @@ export function ManageUsersClient({
             pageSize={pageSize}
             totalItems={totalItems}
             onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
+            onPageSizeChange={(val) => {
+              setPageSize(val);
+              setCurrentPage(1);
+            }}
           />
         )}
       </div>

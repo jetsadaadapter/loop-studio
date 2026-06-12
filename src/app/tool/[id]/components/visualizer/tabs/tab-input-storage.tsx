@@ -145,7 +145,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
         <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-450 font-sans block uppercase tracking-wider">{key}</span>
         {isUrl ? (
           <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/url-input">
-            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans min-w-0">
               {valStr}
             </span>
             <div className="flex items-center gap-1 shrink-0">
@@ -208,7 +208,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
           </div>
         ) : isTechnicalId ? (
           <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 mt-1.5 hover:border-slate-300 transition-all duration-150 shadow-2xs group/short-input">
-            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans">
+            <span className="flex-1 truncate select-text text-xs text-slate-700 font-sans min-w-0">
               {valStr}
             </span>
             <button
@@ -359,7 +359,7 @@ export function TabInputStorage({ job }: TabInputStorageProps) {
                             key={`url-${idx}`} 
                             className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-sans text-slate-650 group/url shadow-xs hover:border-slate-300 transition-all duration-150"
                           >
-                            <span className="flex-1 truncate select-text text-slate-700">
+                            <span className="flex-1 truncate select-text text-slate-700 min-w-0">
                               {url}
                             </span>
                             <div className="flex items-center gap-1.5 shrink-0">

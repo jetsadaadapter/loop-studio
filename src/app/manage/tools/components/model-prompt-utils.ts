@@ -44,7 +44,7 @@ export interface NestedConfig {
   model?: string;
 }
 
-export function resolvePromptPreview(config?: any) {
+export function resolvePromptPreview(config?: unknown) {
   const cfg = (config || {}) as NestedConfig;
   let model = cfg.prompt?.model?.modelSlug || "";
   let prompt = cfg.prompt?.prompt || "";

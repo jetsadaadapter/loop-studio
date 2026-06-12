@@ -879,7 +879,12 @@ export const getJobStatus = (job: ToolJob | ToolRunGrouped): JobStatus => {
     if ('status' in job && job.status) {
         const normalized = job.status.toLowerCase();
         if (normalized === 'running') return 'active';
+        if (normalized === 'cancelled') return 'cancelled';
         return normalized;
+    }
+    if ('state' in job && job.state) {
+        const normalized = job.state.toLowerCase();
+        if (normalized === 'cancelled') return 'cancelled';
     }
     if ('error' in job && job.error) return 'failed';
     if (job.state) {

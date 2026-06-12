@@ -54,6 +54,13 @@ const getStepStyles = (status: string) => {
         label: "text-rose-800 font-bold",
         sublabel: "text-rose-550 font-medium"
       };
+    case "cancelled":
+      return {
+        card: "bg-slate-50/50 border-slate-200/60 opacity-60 shadow-3xs",
+        iconContainer: "bg-slate-100 text-slate-400",
+        label: "text-slate-500 font-bold",
+        sublabel: "text-slate-400 font-medium"
+      };
     case "queued":
     default:
       return {
@@ -68,6 +75,14 @@ const getStepStyles = (status: string) => {
 const getStepSublabel = (status: string, plugin: string, error?: string | null | Record<string, unknown>) => {
   if (status === "completed") {
     return "Stage completed successfully";
+  }
+  if (status === "cancelled") {
+    if (error) {
+      const errMsg = typeof error === "string" ? error : (error && typeof error === "object" && "message" in error ? String((error as { message?: string }).message) : JSON.stringify(error));
+      const cleanMsg = errMsg.replace(/^cancelled:\s*upstream\s*job\s*\w+\s*\([^)]+\)\s*failed\s*—\s*/i, "");
+      return cleanMsg.length > 50 ? `${cleanMsg.slice(0, 47)}...` : cleanMsg;
+    }
+    return "Job was cancelled";
   }
   if (status === "failed") {
     if (error) {
@@ -113,12 +128,12 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
     };
   }, [open, activeRun]);
 
-  // Job complete signal from parent (API polling) → close after a short delay
+  // Job complete signal from parent (API polling) → close after a short delay (success only)
   useEffect(() => {
-    if (!isDone || !open) return;
+    if (!isSuccess || !open) return;
     const t = setTimeout(() => onOpenChange(false), 2000);
     return () => clearTimeout(t);
-  }, [isDone, open, onOpenChange]);
+  }, [isSuccess, open, onOpenChange]);
 
   if (!open) return null;
 
@@ -261,11 +276,21 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
           </div>
 
           {/* Footer note */}
-          <p className="text-[10px] text-slate-400 font-medium text-center leading-normal">
-            {isDone
-              ? (isFailed ? "The job encountered an error. Check Job History for logs." : "Your job completed successfully. Check Job History for results.")
-              : "You can close this window — the job will continue running in the background."}
-          </p>
+          <div className="space-y-4">
+            <p className="text-[10px] text-slate-400 font-medium text-center leading-normal">
+              {isDone
+                ? (isFailed ? "The job encountered an error. Check Job History for logs." : "Your job completed successfully. Check Job History for results.")
+                : "You can close this window — the job will continue running in the background."}
+            </p>
+            {isFailed && (
+              <button
+                onClick={() => onOpenChange(false)}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 active:scale-95 transition-all cursor-pointer shadow-sm text-center"
+              >
+                Dismiss
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -25,6 +25,8 @@ import { ExecutionSummarySection } from "../overview/execution-summary-section";
 import { StructuredObjectSummary } from "../overview/structured-object-summary";
 import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "../table/all-fields-table";
+import { DynamicLayoutVisualizer } from "@/components/dynamic-layout-visualizer";
+import type { DynamicUIItem } from "@/components/dynamic-layout-visualizer/types";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -101,6 +103,35 @@ export function TabOutput({ job }: TabOutputProps) {
   const structuredObjectData = !isSingleTextSummary
     ? detectStructuredObjectSummary(items)
     : null;
+
+  const isDynamicLayoutResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "items" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).items) &&
+    ((job.result as Record<string, unknown>).items as unknown[]).length > 0 &&
+    ((job.result as Record<string, unknown>).items as unknown[]).every((item) => {
+      const raw = item as Record<string, unknown>;
+      return (
+        raw !== null &&
+        typeof raw === "object" &&
+        typeof raw.task_intent === "string" &&
+        Array.isArray(raw.sections)
+      );
+    })
+  );
+
+  const isPurchaseIntentAnalysisResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "purchase_intent_analysis" in job.result &&
+    job.result.purchase_intent_analysis &&
+    typeof job.result.purchase_intent_analysis === "object" &&
+    "sections" in (job.result.purchase_intent_analysis as Record<string, unknown>) &&
+    Array.isArray((job.result.purchase_intent_analysis as Record<string, unknown>).sections)
+  );
 
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
@@ -194,13 +225,13 @@ export function TabOutput({ job }: TabOutputProps) {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
       {/* Visualizer Controls Bar */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-200/60 px-5 py-3 flex items-center justify-between shrink-0 select-none">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-200/60 px-3 py-2.5 sm:px-5 sm:py-3 flex flex-wrap gap-2 items-center justify-between shrink-0 select-none">
         {/* Inner Tabs (Left) */}
         <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
           <button
             onClick={() => setInnerTab("overview")}
             className={cn(
-              "px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
+              "px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
               innerTab === "overview"
                 ? "bg-white text-slate-900 shadow-sm"
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
@@ -221,7 +252,7 @@ export function TabOutput({ job }: TabOutputProps) {
           <button
             onClick={() => setInnerTab("all")}
             className={cn(
-              "px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
+              "px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
               innerTab === "all"
                 ? "bg-white text-slate-900 shadow-sm"
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
@@ -267,7 +298,45 @@ export function TabOutput({ job }: TabOutputProps) {
         {viewMode === "json" ? (
           <TabJsonView items={items} />
         ) : innerTab === "overview" ? (
-          isSingleTextSummary ? (
+          isDynamicLayoutResult || isPurchaseIntentAnalysisResult ? (
+            <DynamicLayoutVisualizer
+              items={
+                isPurchaseIntentAnalysisResult
+                  ? ([
+                      {
+                        task_intent: "วิเคราะห์เจตนาซื้อสินค้า (ผลการวิเคราะห์จริง)",
+                        task_description: "วิเคราะห์สัดส่วนความคิดเห็นและคอมเมนต์ที่แยกประเภทเจตนาการซื้อสำเร็จ",
+                        sections: (job.result as unknown as { purchase_intent_analysis: { sections: unknown[] } }).purchase_intent_analysis.sections,
+                        overall_sentiment_focus: "mixed",
+                        confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
+                      }
+                    ] as unknown as DynamicUIItem[])
+                  : (job.result &&
+                    typeof job.result === "object" &&
+                    !Array.isArray(job.result) &&
+                    "items" in job.result &&
+                    Array.isArray((job.result as Record<string, unknown>).items)
+                      ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
+                      : [])
+              }
+            />
+          ) : isPreProcessResult ? (
+            <TabOutputOverview
+              items={items}
+              paginatedItems={paginatedItems}
+              startIndex={startIndex}
+              isAnalysisOverview={isAnalysisOverview}
+              isCommentScraper={isCommentScraper}
+              showIntentSummary={showIntentSummary}
+              intentGroups={intentGroups}
+              schemaHintKeys={schemaHintKeys}
+              analysisDisplayPreset={analysisDisplayPreset}
+              hasSourceUrls={hasSourceUrls}
+              isExportCommentsJob={isExportCommentsJob}
+              isExportCommentsFetchJob={isExportCommentsFetchJob}
+              job={job}
+            />
+          ) : isSingleTextSummary ? (
             <ExecutionSummarySection
               displayedSummaryText={displayedSummaryText}
               hasMultipleSummaryTabs={hasMultipleSummaryTabs}
@@ -304,7 +373,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Pagination Footer */}
-      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData)) && (
+      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult)) && (
         <TablePagination
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}
