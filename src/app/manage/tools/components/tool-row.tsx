@@ -1,6 +1,7 @@
 "use client";
 
-import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
@@ -59,6 +60,32 @@ function ToolIcon({ tool, isActive }: { tool: ManageToolApiItem; isActive: boole
 }
 
 // ── Atomic badges ─────────────────────────────────────────────────────────────
+
+function CopyableToolIdBadge({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <span
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-[8px] font-bold text-slate-500 font-sans cursor-pointer hover:bg-slate-200 hover:text-slate-700 transition-colors select-none"
+      title={`Copy Tool ID: ${id}`}
+    >
+      <span>ID: {id.slice(0, 8)}...</span>
+      {copied ? (
+        <Check className="size-2 shrink-0 text-emerald-600" />
+      ) : (
+        <Copy className="size-2 shrink-0 opacity-60" />
+      )}
+    </span>
+  );
+}
 
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
@@ -179,6 +206,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
               {tool.name}
             </h3>
             <StatusBadge isActive={tool.isActive} />
+            <CopyableToolIdBadge id={tool.id} />
           </div>
           <p className="line-clamp-1 font-sans text-[9px] font-medium tracking-wide text-slate-400">
             {namespace}
