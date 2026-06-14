@@ -267,8 +267,54 @@ function SectionCard({
   );
 }
 
+function isScalarLike(v: unknown): boolean {
+  if (v === null || v === undefined) return true;
+  if (typeof v === "number" || typeof v === "boolean") return true;
+  if (typeof v === "string") return v.length <= 60;
+  return false;
+}
+
+function isScalarObject(obj: Record<string, unknown>): boolean {
+  const vals = Object.values(obj);
+  return vals.length > 0 && vals.every(isScalarLike);
+}
+
+// Compact metric chip for scalar values (numbers, booleans, short strings)
+function MetricChip({ label, value }: { label: string; value: unknown }) {
+  const isNum = typeof value === "number";
+  const isBool = typeof value === "boolean";
+  const display = isBool ? (value ? "✓ Yes" : "✗ No") : renderItemValue(value);
+  const boolColor = isBool
+    ? value
+      ? "text-emerald-700 bg-emerald-50 border-emerald-200/60"
+      : "text-rose-600 bg-rose-50 border-rose-200/60"
+    : "";
+
+  return (
+    <div className={`flex flex-col gap-0.5 px-3 py-2 rounded-lg border ${isBool ? boolColor : "bg-white border-slate-200/60"} shadow-xs`}>
+      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 font-sans leading-none">
+        {label}
+      </span>
+      <span className={`text-sm font-bold font-sans leading-tight ${isNum ? "text-slate-900 tabular-nums" : isBool ? "inherit" : "text-slate-700"}`}>
+        {display}
+      </span>
+    </div>
+  );
+}
+
 function ObjectSection({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
+
+  // If every value is a scalar, render as a compact metric grid — no nested cards
+  if (isScalarObject(data)) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {entries.map(([key, value]) => (
+          <MetricChip key={key} label={formatTabLabel(key)} value={value} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -283,13 +329,35 @@ function ObjectSection({ data }: { data: Record<string, unknown> }) {
           );
         }
         if (typeof value === "object" && value !== null) {
+          const nested = value as Record<string, unknown>;
+          // If the nested object is purely scalar, render as compact metric grid without an extra card wrapper
+          if (isScalarObject(nested)) {
+            return (
+              <div key={key} className="space-y-2">
+                <h4 className="text-[10px] font-bold text-slate-500 font-sans uppercase tracking-wider">
+                  {formatTabLabel(key)}
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {Object.entries(nested).map(([k, v]) => (
+                    <MetricChip key={k} label={formatTabLabel(k)} value={v} />
+                  ))}
+                </div>
+              </div>
+            );
+          }
           return (
             <div key={key} className="space-y-3">
               <h3 className="text-xs font-bold text-slate-900 font-sans uppercase tracking-wider pl-1">
                 {formatTabLabel(key)}
               </h3>
-              <ObjectSection data={value as Record<string, unknown>} />
+              <ObjectSection data={nested} />
             </div>
+          );
+        }
+        // Scalar — render as a lightweight label+value row, not a full card
+        if (isScalarLike(value)) {
+          return (
+            <MetricChip key={key} label={formatTabLabel(key)} value={value} />
           );
         }
         return (
@@ -365,35 +433,38 @@ function StructuredView({ data }: { data: Record<string, unknown> }) {
         </div>
       )}
 
-      {scalarEntries.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 mb-4">
-          {scalarEntries.map((key) => {
-            const val = data[key];
-            if (Array.isArray(val)) {
-              return (
-                <SectionCard
-                  key={key}
-                  title={formatTabLabel(key)}
-                  items={val}
-                />
-              );
-            }
-            return (
+      {scalarEntries.length > 0 && (() => {
+        const arrays = scalarEntries.filter(k => Array.isArray(data[k]));
+        const scalars = scalarEntries.filter(k => !Array.isArray(data[k]) && isScalarLike(data[k]));
+        const other = scalarEntries.filter(k => !Array.isArray(data[k]) && !isScalarLike(data[k]));
+        return (
+          <div className="space-y-3 mb-4">
+            {arrays.map(key => (
+              <SectionCard key={key} title={formatTabLabel(key)} items={data[key] as unknown[]} />
+            ))}
+            {scalars.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {scalars.map(key => (
+                  <MetricChip key={key} label={formatTabLabel(key)} value={data[key]} />
+                ))}
+              </div>
+            )}
+            {other.map(key => (
               <div
                 key={key}
-                className="rounded-xl border border-slate-200/60 bg-white p-3.5 sm:p-4 shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-350 transition-all duration-300"
+                className="rounded-xl border border-slate-200/60 bg-white p-3.5 sm:p-4 shadow-xs"
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans mb-1">
                   {formatTabLabel(key)}
                 </p>
                 <p className="text-xs text-slate-700 font-sans leading-relaxed">
-                  {renderItemValue(val)}
+                  {renderItemValue(data[key])}
                 </p>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        );
+      })()}
 
       {activeContent && <ObjectSection data={activeContent} />}
     </>

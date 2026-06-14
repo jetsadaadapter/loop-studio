@@ -8,6 +8,7 @@ import {
   ThumbsDown,
   Crown,
   BadgeCheck,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -255,6 +256,12 @@ export function IntentAnalysisCard({
 
           {/* Sentiment & Verdict / Leader Badges */}
           <div className="flex items-center gap-2 shrink-0 select-none">
+            {(item.error || (analysis && "error" in (analysis as Record<string, unknown>))) && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/60 text-rose-700 text-[10px] font-bold uppercase tracking-wider">
+                <AlertCircle className="size-3" />
+                Error
+              </span>
+            )}
             {sentiment && (
               <span
                 className={cn(
@@ -291,245 +298,255 @@ export function IntentAnalysisCard({
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Groups Breakdown */}
-        {groups.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-              Purchase Intent Analysis
-            </p>
-
-            {/* Stacked bar */}
-            <div className="flex rounded-full overflow-hidden h-2 w-full gap-0.5 bg-slate-100/80">
-              {groups.map((g, i) => {
-                const cfg = getGroupConfig(g.label, i);
-                const pct =
-                  totalCount > 0 ? (g.count / totalCount) * 100 : g.percentage;
-                const widthClass =
-                  pct <= 0
-                    ? "w-0"
-                    : pct <= 10
-                      ? "w-[10%]"
-                      : pct <= 20
-                        ? "w-[20%]"
-                        : pct <= 30
-                          ? "w-[30%]"
-                          : pct <= 40
-                            ? "w-[40%]"
-                            : pct <= 50
-                              ? "w-1/2"
-                              : pct <= 60
-                                ? "w-[60%]"
-                                : pct <= 70
-                                  ? "w-[70%]"
-                                  : pct <= 80
-                                    ? "w-[80%]"
-                                    : pct <= 90
-                                      ? "w-[90%]"
-                                      : "w-full";
-                return (
-                  <div
-                    key={`bar-${i}`}
-                    className={cn(
-                      "h-full transition-all duration-500 shrink-0",
-                      cfg.bar,
-                      widthClass,
-                    )}
-                    title={`${g.label}: ${g.count} (${g.percentage}%)`}
-                  />
-                );
-              })}
+        {(item.error || (analysis && "error" in (analysis as Record<string, unknown>))) ? (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50/50 border border-rose-100 text-rose-800 animate-fade-in">
+            <AlertCircle className="size-5 text-rose-500 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h5 className="text-xs font-bold uppercase tracking-wider text-rose-700">Analysis Error</h5>
+              <p className="text-xs text-rose-600 font-medium leading-relaxed">
+                {String(item.error || (analysis as Record<string, unknown>)?.error || "No result returned by Gemini")}
+              </p>
             </div>
-
-            {/* Group chips */}
-            <TooltipProvider delay={200}>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {groups.map((g, i) => {
-                  return (
-                    <Tooltip key={`group-${i}`}>
-                      <TooltipTrigger className="w-full text-left cursor-help">
-                        <div className="flex flex-col gap-1.5 p-3 rounded-lg border border-slate-200/60 bg-white hover:border-slate-300 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider leading-tight text-slate-700">
-                              {g.label}
-                            </span>
-                          </div>
-                          <div className="flex items-baseline gap-2 mt-0.5">
-                            <span className="text-base font-black leading-none tabular-nums text-slate-800">
-                              {g.count.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-500">
-                              ({g.percentage}%)
-                            </span>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p className="text-xs font-semibold">{g.label}</p>
-                        <p className="text-xs text-slate-300">
-                          {g.count} comments ({g.percentage}% of total {totalCount})
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            </TooltipProvider>
           </div>
-        )}
-
-        {/* AI Summary & Keywords */}
-        {(summary ||
-          (Array.isArray(keywords) ? keywords.length > 0 : !!keywords) ||
-          hasIntentPayload ||
-          dynamicBlocks.length > 0) && (
-            <div className="space-y-3">
-              {summary && (
-                <div className="border-l-3 border-brand/60 pl-4 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    AI Analysis Summary
-                  </p>
-                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                    {summary}
-                  </p>
-                </div>
-              )}
-
-              {hasIntentPayload && visibleBoxesCount > 0 && (
-                <AnalysisInfoBoxes
-                  classification={classification}
-                  confidence={confidence}
-                  purchaseSignal={purchaseSignal}
-                  variant="semantic"
-                  classificationTone={classificationTone}
-                />
-              )}
-
-              {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
-                <div className="pl-4 flex flex-wrap gap-2 pt-1">
-                  {(Array.isArray(keywords)
-                    ? keywords
-                    : String(keywords).split(/\s+/)
-                  )
-                    .filter((kw: string) => kw.trim().length > 0)
-                    .map((kw: string, i: number) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100/80 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default border border-slate-200/60"
-                      >
-                        #{kw.replace(/^#/, "")}
-                      </span>
-                    ))}
-                </div>
-              )}
-
-              {dynamicBlocks.length > 0 && (
-                <div className="relative space-y-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
-                  {dynamicBlocks.map((block) => {
-                    const isMetrics = block.id === "metrics";
-
+        ) : (
+          <>
+            {/* Groups Breakdown */}
+            {groups.length > 0 && (
+              <div className="space-y-3">
+                {/* Stacked bar */}
+                <div className="flex rounded-full overflow-hidden h-2 w-full gap-0.5 bg-slate-100/80">
+                  {groups.map((g, i) => {
+                    const cfg = getGroupConfig(g.label, i);
+                    const pct =
+                      totalCount > 0 ? (g.count / totalCount) * 100 : g.percentage;
+                    const widthClass =
+                      pct <= 0
+                        ? "w-0"
+                        : pct <= 10
+                          ? "w-[10%]"
+                          : pct <= 20
+                            ? "w-[20%]"
+                            : pct <= 30
+                              ? "w-[30%]"
+                              : pct <= 40
+                                ? "w-[40%]"
+                                : pct <= 50
+                                  ? "w-1/2"
+                                  : pct <= 60
+                                    ? "w-[60%]"
+                                    : pct <= 70
+                                      ? "w-[70%]"
+                                      : pct <= 80
+                                        ? "w-[80%]"
+                                        : pct <= 90
+                                          ? "w-[90%]"
+                                          : "w-full";
                     return (
-                      <section
-                        key={block.id}
-                        className="rounded-2xl border border-slate-200/60 p-5 shadow-sm hover:shadow-md transition-all duration-300 space-y-4 bg-white relative"
-                      >
-                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
-                          <div className="space-y-0.5">
-                            <h4 className="text-xs font-extrabold uppercase tracking-wider leading-none text-slate-700">
-                              {block.title}
-                            </h4>
-                            <p className="text-[10px] font-medium text-slate-400">
-                              {block.description}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Grid with dynamic columns layout */}
-                        {(() => {
-                          // Special handling for metrics block - group by post ID
-                          if (isMetrics) {
-                            const groupedByPost = groupMetricsByPostId(block.entries);
-
-                            return (
-                              <div className="space-y-7">
-                                {Object.entries(groupedByPost)
-                                  .sort(([a], [b]) => {
-                                    if (a === '_ungrouped') return 1;
-                                    if (b === '_ungrouped') return -1;
-                                    return a.localeCompare(b);
-                                  })
-                                  .map(([postId, entries], idx) => (
-                                    <MetricsPostCard
-                                      key={postId}
-                                      postId={postId}
-                                      entries={entries}
-                                      idx={idx}
-                                      blockId={block.id}
-                                      variant="minimal"
-                                    />
-                                  ))}
-                              </div>
-                            );
-                          }
-
-                          // Default rendering for non-metrics blocks
-                          const isSingleCol =
-                            block.entries.length === 1 ||
-                            block.entries.some((entry) => {
-                              const isLongVal =
-                                typeof entry.value === "string" &&
-                                (entry.value.length > 150 || entry.value.includes("\n"));
-                              return (
-                                isLongVal ||
-                                entry.valueType === "object" ||
-                                entry.valueType === "array"
-                              );
-                            });
-
-                          return (
-                            <div
-                              className={cn(
-                                "grid gap-3.5",
-                                isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                              )}
-                            >
-                              {block.entries.map((entry) => (
-                                <AnalysisBlockEntry
-                                  key={`${block.id}-${entry.key}`}
-                                  entry={entry}
-                                  blockId={block.id}
-                                />
-                              ))}
-                            </div>
-                          );
-                        })()}
-                      </section>
+                      <div
+                        key={`bar-${i}`}
+                        className={cn(
+                          "h-full transition-all duration-500 shrink-0",
+                          cfg.bar,
+                          widthClass,
+                        )}
+                        title={`${g.label}: ${g.count} (${g.percentage}%)`}
+                      />
                     );
                   })}
                 </div>
+
+                {/* Group chips */}
+                <TooltipProvider delay={200}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {groups.map((g, i) => {
+                      return (
+                        <Tooltip key={`group-${i}`}>
+                          <TooltipTrigger className="w-full text-left cursor-help">
+                            <div className="flex flex-col gap-1.5 p-3 rounded-lg border border-slate-200/60 bg-white hover:border-slate-300 transition-colors">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase tracking-wider leading-tight text-slate-700">
+                                  {g.label}
+                                </span>
+                              </div>
+                              <div className="flex items-baseline gap-2 mt-0.5">
+                                <span className="text-base font-black leading-none tabular-nums text-slate-800">
+                                  {g.count.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-500">
+                                  ({g.percentage}%)
+                                </span>
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <p className="text-xs font-semibold">{g.label}</p>
+                            <p className="text-xs text-slate-300">
+                              {g.count} comments ({g.percentage}% of total {totalCount})
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                </TooltipProvider>
+              </div>
+            )}
+
+            {/* AI Summary & Keywords */}
+            {(summary ||
+              (Array.isArray(keywords) ? keywords.length > 0 : !!keywords) ||
+              hasIntentPayload ||
+              dynamicBlocks.length > 0) && (
+                <div className="space-y-3">
+                  {summary && (
+                    <div className="border-l-3 border-brand/60 pl-4 space-y-1.5">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        AI Analysis Summary
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                        {summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {hasIntentPayload && visibleBoxesCount > 0 && (
+                    <AnalysisInfoBoxes
+                      classification={classification}
+                      confidence={confidence}
+                      purchaseSignal={purchaseSignal}
+                      variant="semantic"
+                      classificationTone={classificationTone}
+                    />
+                  )}
+
+                  {(Array.isArray(keywords) ? keywords.length > 0 : !!keywords) && (
+                    <div className="pl-4 flex flex-wrap gap-2 pt-1">
+                      {(Array.isArray(keywords)
+                        ? keywords
+                        : String(keywords).split(/\s+/)
+                      )
+                        .filter((kw: string) => kw.trim().length > 0)
+                        .map((kw: string, i: number) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100/80 text-slate-600 text-[10px] font-semibold select-text hover:bg-slate-200/70 transition-colors cursor-default border border-slate-200/60"
+                          >
+                            #{kw.replace(/^#/, "")}
+                          </span>
+                        ))}
+                    </div>
+                  )}
+
+                  {dynamicBlocks.length > 0 && (
+                    <div className="relative space-y-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-150/70 before:rounded-full pt-1">
+                      {dynamicBlocks.map((block) => {
+                        const isMetrics = block.id === "metrics";
+
+                        return (
+                          <section
+                            key={block.id}
+                            className="rounded-2xl border border-slate-200/60 p-5 shadow-sm hover:shadow-md transition-all duration-300 space-y-4 bg-white relative"
+                          >
+                            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                              <div className="space-y-0.5">
+                                <h4 className="text-xs font-extrabold uppercase tracking-wider leading-none text-slate-700">
+                                  {block.title}
+                                </h4>
+                                <p className="text-[10px] font-medium text-slate-400">
+                                  {block.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Grid with dynamic columns layout */}
+                            {(() => {
+                              // Special handling for metrics block - group by post ID
+                              if (isMetrics) {
+                                const groupedByPost = groupMetricsByPostId(block.entries);
+
+                                return (
+                                  <div className="space-y-7">
+                                    {Object.entries(groupedByPost)
+                                      .sort(([a], [b]) => {
+                                        if (a === '_ungrouped') return 1;
+                                        if (b === '_ungrouped') return -1;
+                                        return a.localeCompare(b);
+                                      })
+                                      .map(([postId, entries], idx) => (
+                                        <MetricsPostCard
+                                          key={postId}
+                                          postId={postId}
+                                          entries={entries}
+                                          idx={idx}
+                                          blockId={block.id}
+                                          variant="minimal"
+                                        />
+                                      ))}
+                                  </div>
+                                );
+                              }
+
+                              // Default rendering for non-metrics blocks
+                              const isSingleCol =
+                                block.entries.length === 1 ||
+                                block.entries.some((entry) => {
+                                  const isLongVal =
+                                    typeof entry.value === "string" &&
+                                    (entry.value.length > 150 || entry.value.includes("\n"));
+                                  return (
+                                    isLongVal ||
+                                    entry.valueType === "object" ||
+                                    entry.valueType === "array"
+                                  );
+                                });
+
+                              return (
+                                <div
+                                  className={cn(
+                                    "grid gap-3.5",
+                                    isSingleCol ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                                  )}
+                                >
+                                  {block.entries.map((entry) => (
+                                    <AnalysisBlockEntry
+                                      key={`${block.id}-${entry.key}`}
+                                      entry={entry}
+                                      blockId={block.id}
+                                    />
+                                  ))}
+                                </div>
+                              );
+                            })()}
+                          </section>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-        {/* Verdict */}
-        {verdict && (
-          <div className="bg-sky-50/40 border border-sky-200/50 rounded-xl p-4 border-l-3 border-l-sky-500">
-            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider mb-1.5">
-              Verdict
-            </p>
-            <p className="text-sm text-slate-700 leading-relaxed font-medium">
-              {verdict}
-            </p>
-          </div>
-        )}
+            {/* Verdict */}
+            {verdict && (
+              <div className="bg-sky-50/40 border border-sky-200/50 rounded-xl p-4 border-l-3 border-l-sky-500">
+                <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider mb-1.5">
+                  Verdict
+                </p>
+                <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                  {verdict}
+                </p>
+              </div>
+            )}
 
-        {/* Total comments analyzed */}
-        {totalCount > 0 && (
-          <div className="flex items-center gap-2 pt-3 border-t border-slate-200/60">
-            <Users className="size-3.5 text-slate-400" />
-            <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-              {totalCount.toLocaleString()} comments analyzed
-            </span>
-          </div>
+            {/* Total comments analyzed */}
+            {totalCount > 0 && (
+              <div className="flex items-center gap-2 pt-3 border-t border-slate-200/60">
+                <Users className="size-3.5 text-slate-400" />
+                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                  {totalCount.toLocaleString()} comments analyzed
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

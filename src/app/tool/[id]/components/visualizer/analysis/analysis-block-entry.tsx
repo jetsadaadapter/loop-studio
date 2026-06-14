@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Quote, Check, X, Link2, FileText } from "lucide-react";
+import { Quote, Check, X, FileText, BarChart3, TrendingUp, TrendingDown, AlertCircle, Minus, Activity } from "lucide-react";
 import type { AnalysisDisplayEntry } from "../../../tool-job-utils";
 
 interface AnalysisBlockEntryProps {
@@ -116,9 +116,9 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
       };
 
       return (
-        <div className="mt-2 space-y-3 animate-fade-in">
+        <div className="mt-1.5 space-y-2.5 animate-fade-in">
           <div className="flex items-baseline justify-between">
-            <span className="text-4xl font-black tracking-tight select-text leading-none font-sans bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent drop-shadow-sm">
+            <span className="text-3xl font-black tracking-tight select-text leading-none font-sans bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent drop-shadow-sm">
               {entry.value}
             </span>
           </div>
@@ -234,23 +234,23 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
 
     // Buy intent / positive metrics
     if (keyLower.includes('want_to_buy') || keyLower.includes('buy') || keyLower.includes('purchase')) {
-      if (numValue >= 70) return { bg: 'bg-emerald-50/50', border: 'border-emerald-200/60', text: 'text-emerald-700', icon: '🎯' };
-      if (numValue >= 40) return { bg: 'bg-amber-50/50', border: 'border-amber-200/60', text: 'text-amber-700', icon: '📊' };
-      return { bg: 'bg-orange-50/50', border: 'border-orange-200/60', text: 'text-orange-700', icon: '📉' };
+      if (numValue >= 70) return { bg: 'bg-emerald-50/50', border: 'border-emerald-200/60', text: 'text-emerald-700', Icon: TrendingUp };
+      if (numValue >= 40) return { bg: 'bg-amber-50/50', border: 'border-amber-200/60', text: 'text-amber-700', Icon: BarChart3 };
+      return { bg: 'bg-orange-50/50', border: 'border-orange-200/60', text: 'text-orange-700', Icon: TrendingDown };
     }
 
     // Negative metrics
     if (keyLower.includes('negative') || keyLower.includes('opposed')) {
-      if (numValue > 20) return { bg: 'bg-rose-50/50', border: 'border-rose-200/60', text: 'text-rose-700', icon: '⚠️' };
-      return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', icon: '✓' };
+      if (numValue > 20) return { bg: 'bg-rose-50/50', border: 'border-rose-200/60', text: 'text-rose-700', Icon: AlertCircle };
+      return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', Icon: Minus };
     }
 
     // Neutral / indifferent
     if (keyLower.includes('indifferent') || keyLower.includes('neutral')) {
-      return { bg: 'bg-blue-50/50', border: 'border-blue-200/60', text: 'text-blue-700', icon: '○' };
+      return { bg: 'bg-blue-50/50', border: 'border-blue-200/60', text: 'text-blue-700', Icon: Minus };
     }
 
-    return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', icon: '📋' };
+    return { bg: 'bg-slate-50/50', border: 'border-slate-200/60', text: 'text-slate-600', Icon: Activity };
   };
 
   const metricTheme = isMetrics ? getMetricTheme() : null;
@@ -258,11 +258,11 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
   return (
     <div
       className={cn(
-        "rounded-xl border-2 transition-all duration-300 flex flex-col justify-between gap-3 relative overflow-hidden group",
-        isFullWidth ? "sm:col-span-2 p-5" : "col-span-1 p-4",
+        "rounded-xl border transition-all duration-300 flex flex-col justify-between gap-2 relative overflow-hidden group",
+        isFullWidth ? "sm:col-span-2 p-4" : "col-span-1 p-3",
         metricTheme ?
-          `${metricTheme.bg} ${metricTheme.border} hover:shadow-lg hover:scale-[1.02]` :
-          "bg-white border-slate-200/60 hover:border-slate-300 hover:shadow-md"
+          `${metricTheme.bg} ${metricTheme.border} hover:shadow-md hover:scale-[1.01]` :
+          "bg-white border-slate-200/60 hover:border-slate-300 hover:shadow-sm"
       )}
     >
       {/* Decorative corner element for metrics */}
@@ -273,34 +273,24 @@ export function AnalysisBlockEntry({ entry, blockId }: AnalysisBlockEntryProps) 
       )}
 
       <div className="space-y-2 relative z-10">
-        <div className="flex items-center justify-between gap-2 select-none">
-          <div className="flex items-center gap-1.5">
-            {metricTheme && (
-              <span className="text-base" role="img" aria-label="icon">
-                {metricTheme.icon}
-              </span>
-            )}
-            <p className={cn(
-              "text-[10px] font-extrabold uppercase tracking-wider",
-              metricTheme ? metricTheme.text : "text-slate-500"
-            )}>
-              {formattedKey}
-            </p>
-          </div>
-          {/* Linked context badges */}
-          {isMetrics && (
-            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/60 backdrop-blur-sm text-slate-600 text-[8px] font-black rounded-full border border-slate-300/40 shadow-sm">
-              <Link2 className="size-2" />
-              <span>CALC</span>
-            </span>
-          )}
-          {isEvidence && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-650 text-[8.5px] font-extrabold rounded-md border border-emerald-100">
-              <FileText className="size-2" />
-              <span>Source</span>
-            </span>
-          )}
+        <div className="flex items-center gap-1.5 select-none min-w-0">
+          {metricTheme && (() => {
+            const { Icon } = metricTheme;
+            return <Icon className={cn("size-3 shrink-0", metricTheme.text)} />;
+          })()}
+          <p className={cn(
+            "text-[10px] font-extrabold uppercase tracking-wider truncate",
+            metricTheme ? metricTheme.text : "text-slate-500"
+          )}>
+            {formattedKey}
+          </p>
         </div>
+        {isEvidence && (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-650 text-[8.5px] font-extrabold rounded-md border border-emerald-100">
+            <FileText className="size-2" />
+            <span>Source</span>
+          </span>
+        )}
         {renderValue()}
       </div>
     </div>

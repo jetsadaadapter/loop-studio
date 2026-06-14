@@ -2,6 +2,7 @@
 
 import type { ScrapedJobItem } from "../../../tool-job-utils";
 import { OutputCell } from "../table/cell-renderer";
+import { cn } from "@/lib/utils";
 
 interface OutputOverviewTableProps {
   items: ScrapedJobItem[];
@@ -72,39 +73,62 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200/60 bg-white text-xs font-medium text-slate-700">
-          {items.map((item, idx) => (
-            <tr key={`ov-row-${idx}`} className="hover:bg-slate-50/40 transition-colors duration-150 even:bg-slate-50/20">
-              <td className="px-4 py-4 text-slate-400 font-semibold text-center border-r border-slate-200/60 bg-slate-50/40 select-none">
-                {startIndex + idx + 1}
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <OutputCell
-                  value={item.media || (item as Record<string, unknown>).profilePicture}
-                  columnKey={item.media ? "media" : (item as Record<string, unknown>).profilePicture ? "profilePicture" : "media"}
-                />
-              </td>
-              <td className="px-4 py-4">
-                <OutputCell value={item.url || item.facebookUrl || (item as Record<string, unknown>).commentUrl} columnKey="url" />
-              </td>
-              <td className="px-4 py-4">
-                <OutputCell
-                  value={item.text || (item as Record<string, unknown>).message || (item as Record<string, unknown>).caption}
-                  columnKey="text"
-                  authorName={(item as Record<string, unknown>).profileName as string}
-                />
-              </td>
-              <td className="px-4 py-4 text-center">
-                <OutputCell value={item.analysis?.sentiment} columnKey="sentiment" />
-              </td>
-              <td className="px-4 py-4">
-                <OutputCell
-                  value={item.analysis?.summary}
-                  columnKey="summary"
-                />
-              </td>
-              <td className="px-4 py-4">
-                <OutputCell value={item.analysis?.keywords} columnKey="keywords" />
-              </td>
+          {items.map((item, idx) => {
+            const isErrorItem = !!(item.error || item.analysis?.error);
+            const errorMsg = String(item.error || item.analysis?.error || "");
+            const rowClass = isErrorItem
+              ? "bg-rose-50/20 hover:bg-rose-50/40 transition-colors duration-150"
+              : "hover:bg-slate-50/40 transition-colors duration-150 even:bg-slate-50/20";
+
+            return (
+              <tr key={`ov-row-${idx}`} className={rowClass}>
+                <td className={cn(
+                  "px-4 py-4 font-semibold text-center border-r border-slate-200/60 select-none",
+                  isErrorItem ? "bg-rose-50/40 text-rose-550 border-r-rose-100" : "bg-slate-50/40 text-slate-400"
+                )}>
+                  {startIndex + idx + 1}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <OutputCell
+                    value={item.media || (item as Record<string, unknown>).profilePicture}
+                    columnKey={item.media ? "media" : (item as Record<string, unknown>).profilePicture ? "profilePicture" : "media"}
+                  />
+                </td>
+                <td className="px-4 py-4">
+                  <OutputCell value={item.url || item.facebookUrl || (item as Record<string, unknown>).commentUrl} columnKey="url" />
+                </td>
+                <td className="px-4 py-4">
+                  <OutputCell
+                    value={item.text || (item as Record<string, unknown>).message || (item as Record<string, unknown>).caption}
+                    columnKey="text"
+                    authorName={(item as Record<string, unknown>).profileName as string}
+                  />
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {isErrorItem ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-500 border border-rose-450 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-rose-500/10">
+                      <span>Error</span>
+                    </span>
+                  ) : (
+                    <OutputCell value={item.analysis?.sentiment} columnKey="sentiment" />
+                  )}
+                </td>
+                <td className="px-4 py-4">
+                  {isErrorItem ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-200/60 text-rose-700 text-[10px] font-bold rounded-lg uppercase shadow-3xs animate-fade-in select-none">
+                      <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
+                      <span>{errorMsg}</span>
+                    </span>
+                  ) : (
+                    <OutputCell
+                      value={item.analysis?.summary}
+                      columnKey="summary"
+                    />
+                  )}
+                </td>
+                <td className="px-4 py-4">
+                  <OutputCell value={item.analysis?.keywords} columnKey="keywords" />
+                </td>
               <td className="px-4 py-4 text-right font-sans text-slate-900 font-semibold">
                 {(() => {
                   const likes = item.likes !== undefined
@@ -131,7 +155,8 @@ export function OutputOverviewTable({ items, startIndex }: OutputOverviewTablePr
                 {item.shares !== undefined ? item.shares.toLocaleString() : "-"}
               </td>
             </tr>
-          ))}
+          );
+          })}
         </tbody>
       </table>
     </div>

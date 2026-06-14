@@ -5,7 +5,7 @@ import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TabJsonViewProps {
-  items: unknown[];
+  items: unknown;
 }
 
 export function TabJsonView({ items }: TabJsonViewProps) {

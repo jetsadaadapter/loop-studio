@@ -46,6 +46,15 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     );
   }
 
+  if (columnKey === "error") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-200/60 text-rose-700 text-[10px] font-bold rounded-lg uppercase shadow-3xs animate-fade-in select-none">
+        <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
+        <span>{String(value)}</span>
+      </span>
+    );
+  }
+
   if (columnKey === "sentiment") {
     if (!value) {
       return <span className="text-slate-400">-</span>;

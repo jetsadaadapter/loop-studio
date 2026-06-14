@@ -112,6 +112,7 @@ export interface ScrapedJobItem {
     sourceKeyValue?: string;
     time?: string;
     timestamp?: number;
+    error?: string;
 }
 
 export interface SourceItem {
@@ -890,7 +891,7 @@ export const getJobStatus = (job: ToolJob | ToolRunGrouped): JobStatus => {
     if (job.state) {
         const normalized = job.state.toLowerCase();
         if (normalized === 'running') return 'active';
-        return normalized;
+        return normalized as JobStatus;
     }
     if ('processed' in job && job.processed) return 'completed';
     return 'active';
@@ -1245,6 +1246,16 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             }
         }
 
+        // 1.5) Fallback for error items by index:
+        // If the gemini item at prevIndex is an error (i.e. has 'error' key) and is not yet used, match it.
+        const candidateError = geminiItems[prevIndex];
+        if (candidateError && !usedGeminiIndexes.has(prevIndex)) {
+            if ("error" in candidateError || (candidateError.analysis && typeof candidateError.analysis === "object" && "error" in (candidateError.analysis as Record<string, unknown>))) {
+                usedGeminiIndexes.add(prevIndex);
+                return candidateError;
+            }
+        }
+
         // 2) Explicit key/value mapping from sourceKey + sourceKeyValue
         for (let i = 0; i < geminiItems.length; i++) {
             if (usedGeminiIndexes.has(i)) continue;
@@ -1321,16 +1332,18 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
         }
 
         const canonicalPostUrl = getCanonicalPostUrl(prevItem);
+        const hasError = matchedGemini && "error" in matchedGemini;
 
         return {
             ...prevItem,
             sourceIndex: idx,
             sourceKey: matchedGemini?.sourceKey || "postId",
-            analysis,
+            analysis: analysis || (hasError ? { error: String(matchedGemini.error) } as unknown as AnalysisResult : undefined),
             sourceKeyValue: matchedGemini?.sourceKeyValue || prevItem.postId || prevItem.id || prevItem._id,
             postUrl: canonicalPostUrl,
             url: getStringValue(prevItem.url) || canonicalPostUrl,
             facebookUrl: getStringValue(prevItem.facebookUrl) || canonicalPostUrl,
+            error: hasError ? String(matchedGemini.error) : undefined,
         } as unknown as ScrapedJobItem;
     });
 };

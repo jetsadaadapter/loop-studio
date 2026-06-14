@@ -27,6 +27,10 @@ import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "../table/all-fields-table";
 import { DynamicLayoutVisualizer } from "@/components/dynamic-layout-visualizer";
 import type { DynamicUIItem } from "@/components/dynamic-layout-visualizer/types";
+import {
+  getFunctionDeclarationsFromJob,
+  generateDynamicLayoutFromSchema,
+} from "./tab-output-dynamic-schema";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -132,6 +136,9 @@ export function TabOutput({ job }: TabOutputProps) {
     "sections" in (job.result.purchase_intent_analysis as Record<string, unknown>) &&
     Array.isArray((job.result.purchase_intent_analysis as Record<string, unknown>).sections)
   );
+
+  const dynamicSchemaDeclarations = getFunctionDeclarationsFromJob(job);
+  const isDynamicSchemaResult = dynamicSchemaDeclarations.length > 0 && items.length > 0;
 
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
@@ -323,9 +330,9 @@ export function TabOutput({ job }: TabOutputProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === "json" ? (
-          <TabJsonView items={items} />
+          <TabJsonView items={job.result} />
         ) : innerTab === "overview" ? (
-          isDynamicLayoutResult || isPurchaseIntentAnalysisResult ? (
+          isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult ? (
             <DynamicLayoutVisualizer
               items={
                 isPurchaseIntentAnalysisResult
@@ -338,13 +345,15 @@ export function TabOutput({ job }: TabOutputProps) {
                         confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
                       }
                     ] as unknown as DynamicUIItem[])
-                  : (job.result &&
-                    typeof job.result === "object" &&
-                    !Array.isArray(job.result) &&
-                    "items" in job.result &&
-                    Array.isArray((job.result as Record<string, unknown>).items)
-                      ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
-                      : [])
+                  : isDynamicSchemaResult
+                    ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
+                    : (job.result &&
+                      typeof job.result === "object" &&
+                      !Array.isArray(job.result) &&
+                      "items" in job.result &&
+                      Array.isArray((job.result as Record<string, unknown>).items)
+                        ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
+                        : [])
               }
             />
           ) : isPreProcessResult ? (
@@ -400,7 +409,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Pagination Footer */}
-      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult)) && (
+      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult)) && (
         <TablePagination
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}

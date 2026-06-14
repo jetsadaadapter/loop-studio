@@ -144,25 +144,39 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     }
     pollRef.current = setInterval(async () => {
       try {
-        const res = await getToolJobs(tool.id, { limit: 100 });
-        const targetRun = lastTriggeredJobId
-          ? res.data.find((run) =>
-              run.jobs?.some((j) => j.jobId === lastTriggeredJobId)
-            )
-          : res.data[0];
+        const res = await getToolJobs(tool.id, { limit: 1 });
+        const targetRun = res.data[0];
 
-        if (
-          targetRun &&
-          (targetRun.state === "completed" || targetRun.state === "failed")
-        ) {
-          if (pollRef.current) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
+        if (targetRun) {
+          // Verify this run corresponds to the one we triggered
+          const isTriggeredRun = lastTriggeredJobId
+            ? targetRun.jobs?.some((j) => j.jobId === lastTriggeredJobId || j.id === lastTriggeredJobId)
+            : true;
+
+          if (isTriggeredRun) {
+            const state = String(targetRun.state || "").toLowerCase();
+            const isFinished =
+              state === "completed" ||
+              state === "failed" ||
+              state === "cancelled";
+
+            if (isFinished) {
+              if (pollRef.current) {
+                clearInterval(pollRef.current);
+                pollRef.current = null;
+              }
+              setIsJobComplete(true);
+              setIsProcessingOpen(false);
+              setLastTriggeredJobId(null);
+              await refreshJobs();
+            } else {
+              setJobs((prev) => {
+                if (prev.length === 0) return [targetRun];
+                // Update only the first job (latest run) with the targetRun
+                return prev.map((run) => run.runId === targetRun.runId ? targetRun : run);
+              });
+            }
           }
-          setJobs(res.data);
-          setIsJobComplete(true);
-        } else {
-          setJobs(res.data);
         }
       } catch {
         /* silently retry */
@@ -174,7 +188,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         pollRef.current = null;
       }
     };
-  }, [isProcessingOpen, lastTriggeredJobId, tool.id]);
+  }, [isProcessingOpen, lastTriggeredJobId, tool.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll active selected jobs (modal or visualizer) to auto-refresh their status and results
   useEffect(() => {
@@ -228,17 +242,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                     }
                   : j
               );
-              const hasFailed = updatedJobs.some((j) => getJobStatus(j) === "failed");
-              const hasCancelled = updatedJobs.some((j) => getJobStatus(j) === "cancelled");
-              const allCompleted = updatedJobs.every((j) => getJobStatus(j) === "completed");
-              const hasRunning = updatedJobs.some((j) => getJobStatus(j) === "active" || getJobStatus(j) === "running");
-              const hasWaiting = updatedJobs.some((j) => getJobStatus(j) === "waiting");
-              let runState = run.state;
-              if (hasFailed) runState = "failed";
-              else if (hasCancelled) runState = "cancelled";
-              else if (allCompleted) runState = "completed";
-              else if (hasRunning) runState = "running";
-              else if (hasWaiting) runState = "waiting";
+              const runState = getJobStatus({ ...run, jobs: updatedJobs });
               return {
                 ...run,
                 state: runState,
@@ -501,7 +505,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       {(() => {
         let activeRun = lastTriggeredJobId
           ? jobs.find((run) =>
-              run.jobs?.some((j) => j.jobId === lastTriggeredJobId)
+              run.jobs?.some((j) => j.jobId === lastTriggeredJobId || j.id === lastTriggeredJobId)
             )
           : undefined;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown, MessageSquare, ExternalLink } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, ExternalLink, AlertCircle } from "lucide-react";
 import { ImageWithFallback } from "../shared/image-with-fallback";
 import { cn } from "@/lib/utils";
 import { formatDate, renderCommentText } from "./comment-helpers";
@@ -20,6 +20,7 @@ export interface CommentItem {
   commentsCount?: number;
   threadingDepth?: number;
   comments?: CommentItem[];
+  error?: string;
 }
 
 interface CommentBodyProps {
@@ -28,11 +29,30 @@ interface CommentBodyProps {
 }
 
 function CommentBody({ item, isReply = false }: CommentBodyProps) {
+  const isErrorComment = !!item.error;
+  const errorMsg = item.error || "";
+
   const itemLikes = item.likesCount !== undefined ? Number(item.likesCount) : 0;
   const itemDislikes = item.dislikesCount !== undefined ? Number(item.dislikesCount) : 0;
   
   const replies = item.comments || [];
   const replyCount = item.commentsCount !== undefined ? item.commentsCount : replies.length;
+
+  if (isErrorComment) {
+    return (
+      <div className={cn("flex gap-2.5 py-3 px-4 bg-rose-50/20 border border-rose-100/70 rounded-xl relative animate-fade-in select-text", isReply && "py-2.5")}>
+        <AlertCircle className="size-4.5 text-rose-500 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] text-rose-500 font-extrabold uppercase tracking-wider mb-0.5">
+            Analysis Error
+          </p>
+          <p className="text-xs text-rose-700 font-medium leading-relaxed">
+            {errorMsg || "No result returned by Gemini"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex gap-2.5 py-2 group relative", isReply && "py-1.5")}>

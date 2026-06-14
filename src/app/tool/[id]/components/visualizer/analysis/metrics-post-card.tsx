@@ -23,37 +23,54 @@ export function MetricsPostCard({
 }: MetricsPostCardProps) {
   const { value: buyIntentValue, color: intentColor } = calculateBuyIntent(entries);
   const isPremium = variant === 'premium';
+  const isUngrouped = postId === '_ungrouped';
+
+  // In minimal mode with no post header, skip the outer card wrapper entirely
+  // to avoid triple-nesting: section card → MetricsPostCard box → AnalysisBlockEntry cards
+  if (!isPremium && isUngrouped) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {entries.map((entry) => (
+          <AnalysisBlockEntry
+            key={`${blockId}-${entry.key}`}
+            entry={entry}
+            blockId={blockId}
+          />
+        ))}
+      </div>
+    );
+  }
 
   const containerStyles = isPremium
     ? "bg-gradient-to-br from-white via-amber-50/20 to-white shadow-lg hover:shadow-xl border-2 border-amber-200/40"
-    : "bg-white shadow-sm hover:shadow-md border border-slate-200/60";
+    : "bg-slate-50/30 border border-slate-200/50";
 
   const headerBg = isPremium
     ? "bg-gradient-to-r from-amber-50 via-amber-50/60 to-white border-b-2 border-amber-100/60"
-    : "bg-slate-50/40 border-b border-slate-200/60";
+    : "bg-slate-100/60 border-b border-slate-200/60";
 
   return (
-    <div className={cn("rounded-2xl overflow-hidden transition-all duration-300", containerStyles)}>
-      {postId !== '_ungrouped' && (
-        <div className={cn("relative px-5 py-4", headerBg)}>
+    <div className={cn("rounded-xl overflow-hidden transition-all duration-300", containerStyles)}>
+      {!isUngrouped && (
+        <div className={cn("relative px-4 py-3", headerBg)}>
           {isPremium && (
             <div className="absolute inset-0 bg-gradient-to-r from-amber-400/5 to-transparent pointer-events-none" />
           )}
 
           <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-3">
               {isPremium ? (
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl blur-sm opacity-60" />
-                  <div className="relative flex items-center justify-center size-9 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-lg ring-2 ring-white">
+                  <div className="relative flex items-center justify-center size-8 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-lg ring-2 ring-white">
                     <span className="text-sm font-black drop-shadow-sm">
                       {idx + 1}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center size-9 rounded-xl bg-slate-100 border border-slate-200/60">
-                  <span className="text-sm font-black text-slate-600">
+                <div className="flex items-center justify-center size-7 rounded-lg bg-slate-200/60 border border-slate-200/60">
+                  <span className="text-xs font-black text-slate-600">
                     {idx + 1}
                   </span>
                 </div>
@@ -63,7 +80,7 @@ export function MetricsPostCard({
                 <div className="flex items-center gap-2">
                   <span className={cn(
                     "text-xs font-black uppercase tracking-wide",
-                    isPremium ? "text-amber-900" : "text-slate-700"
+                    isPremium ? "text-amber-900" : "text-slate-600"
                   )}>
                     Post ID
                   </span>
@@ -83,8 +100,8 @@ export function MetricsPostCard({
                   )}
                 </div>
                 <span className={cn(
-                  "text-sm font-sans font-bold tracking-tight",
-                  isPremium ? "text-amber-800" : "text-slate-800"
+                  "text-xs font-sans font-bold tracking-tight",
+                  isPremium ? "text-amber-800" : "text-slate-700"
                 )}>
                   {postId}
                 </span>
@@ -92,12 +109,12 @@ export function MetricsPostCard({
             </div>
 
             <div className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-xl",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg",
               isPremium
                 ? "bg-white/80 backdrop-blur-sm border border-amber-200/60 shadow-sm"
                 : "bg-white border border-slate-200/60"
             )}>
-              {isPremium && <Activity className="size-3.5 text-amber-600" />}
+              {isPremium && <Activity className="size-3 text-amber-600" />}
               <span className={cn(
                 "text-[10px] font-black uppercase tracking-wide",
                 isPremium ? "text-amber-700" : "text-slate-700"
@@ -115,8 +132,8 @@ export function MetricsPostCard({
         </div>
       )}
 
-      <div className="p-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {entries.map((entry) => (
             <AnalysisBlockEntry
               key={`${blockId}-${entry.key}`}

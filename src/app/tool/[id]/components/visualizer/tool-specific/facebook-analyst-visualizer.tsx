@@ -55,6 +55,7 @@ interface Comment {
   sentiment: string;
   entities: string;
   is_highlight: boolean;
+  error?: string;
 }
 
 interface Insight {
@@ -222,7 +223,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
                   >
                     <SelectTrigger
                       className={cn(
-                        "w-[140px] px-3 py-1.5 h-auto rounded-lg text-xs font-semibold border transition-colors",
+                        "w-fit min-w-[180px] px-3 py-1.5 h-auto rounded-lg text-xs font-semibold border transition-colors",
                         darkMode
                           ? "bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700"
                           : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -231,7 +232,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
                     >
                       <SelectValue placeholder="All Tags" />
                     </SelectTrigger>
-                    <SelectContent className="text-xs">
+                    <SelectContent alignItemWithTrigger={false} className="text-xs !w-auto min-w-[180px] max-w-[320px]">
                       <SelectItem value="">All Tags</SelectItem>
                       {allTags.map(tag => (
                         <SelectItem key={tag} value={tag}>{tag}</SelectItem>
@@ -532,9 +533,47 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
         {activeTab === 'comments' && (
           <div className="space-y-2">
             {filteredComments.map((comment, idx) => {
+              const isErrorComment = !!comment.error;
+              const errorMsg = comment.error || "";
+
+              if (isErrorComment) {
+                return (
+                  <div
+                    key={`error-comment-${idx}`}
+                    className={cn(
+                      "rounded-lg p-3 border transition-colors relative flex items-start gap-2.5",
+                      darkMode
+                        ? "bg-rose-500/5 border-rose-500/20 text-rose-200"
+                        : "bg-rose-50 border-rose-200 text-rose-800"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex items-center justify-center size-6 rounded-md text-[10px] font-black shrink-0",
+                      darkMode ? "bg-slate-700/50 text-slate-400" : "bg-slate-200 text-slate-600"
+                    )}>
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg font-bold text-xs border capitalize",
+                          darkMode ? "text-rose-400 bg-rose-500/10 border-rose-500/30" : "text-rose-700 bg-rose-50 border-rose-200"
+                        )}>
+                          <AlertCircle className="size-3" />
+                          Error
+                        </span>
+                      </div>
+                      <p className={cn("text-xs leading-relaxed", darkMode ? "text-slate-300" : "text-slate-700")}>
+                        {errorMsg || "No result returned by Gemini"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
               const SentimentIcon = getSentimentIcon(comment.sentiment);
-              const tags = comment.tags.split(',').map(t => t.trim()).filter(Boolean);
-              const entities = comment.entities.split(',').map(e => e.trim()).filter(Boolean);
+              const tags = typeof comment.tags === "string" ? comment.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+              const entities = typeof comment.entities === "string" ? comment.entities.split(',').map(e => e.trim()).filter(Boolean) : [];
 
               return (
                 <div

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Loader2, Database, Cpu, BrainCircuit, BarChart3, Terminal, ShieldAlert, AlertTriangle } from "lucide-react";
@@ -101,39 +101,42 @@ const getStepSublabel = (status: string, plugin: string, error?: string | null |
 };
 
 export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, activeRun }: ProcessingModalProps) {
-  const [step, setStep] = useState(0);
+  const step = 0;
 
-  const runStatus = activeRun ? getJobStatus(activeRun) : (isJobComplete ? "completed" : "active");
-  const isFailed = runStatus === "failed";
-  const isSuccess = runStatus === "completed";
-  const isDone = isSuccess || isFailed;
+  const getIsFinished = (run?: ToolRunGrouped) => {
+    if (!run) return isJobComplete;
+    const state = String(run.state || "").toLowerCase();
+    return state === "completed" || state === "failed" || state === "cancelled";
+  };
+
+  const isFinished = getIsFinished(activeRun);
+  let isFailed = false;
+  let isSuccess = false;
+
+  if (isFinished) {
+    if (activeRun) {
+      const hasFailed = activeRun.jobs?.some((j) => getJobStatus(j) === "failed");
+      const hasCancelled = activeRun.jobs?.some((j) => getJobStatus(j) === "cancelled");
+      if (hasFailed || hasCancelled) {
+        isFailed = true;
+      } else {
+        isSuccess = true;
+      }
+    } else {
+      isSuccess = true;
+    }
+  }
+
+  const isDone = isFinished;
 
   const currentStep = isSuccess ? PIPELINE_STEPS.length - 1 : step;
 
-  // Animation pipeline — steps advance on timers when activeRun is not loaded yet
+
+  // Job complete signal from parent (API polling) → close immediately
   useEffect(() => {
-    if (!open || activeRun) return;
-
-    const delays = [1000, 2800, 5000, 6600];
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    delays.forEach((delay, i) => {
-      const t = setTimeout(() => setStep(i), delay);
-      timers.push(t);
-    });
-
-    return () => {
-      timers.forEach(clearTimeout);
-      setStep(0);
-    };
-  }, [open, activeRun]);
-
-  // Job complete signal from parent (API polling) → close after a short delay (success only)
-  useEffect(() => {
-    if (!isSuccess || !open) return;
-    const t = setTimeout(() => onOpenChange(false), 2000);
-    return () => clearTimeout(t);
-  }, [isSuccess, open, onOpenChange]);
+    if (!isFinished || !open) return;
+    onOpenChange(false);
+  }, [isFinished, open, onOpenChange]);
 
   if (!open) return null;
 
