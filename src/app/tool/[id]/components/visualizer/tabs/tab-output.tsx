@@ -137,6 +137,16 @@ export function TabOutput({ job }: TabOutputProps) {
     Array.isArray((job.result.purchase_intent_analysis as Record<string, unknown>).sections)
   );
 
+  const isStructuredReportResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "section_meta" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).section_meta) &&
+    "section_rows" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).section_rows)
+  );
+
   const dynamicSchemaDeclarations = getFunctionDeclarationsFromJob(job);
   const isDynamicSchemaResult = dynamicSchemaDeclarations.length > 0 && items.length > 0;
 
@@ -332,7 +342,7 @@ export function TabOutput({ job }: TabOutputProps) {
         {viewMode === "json" ? (
           <TabJsonView items={job.result} />
         ) : innerTab === "overview" ? (
-          isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult ? (
+          isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult ? (
             <DynamicLayoutVisualizer
               items={
                 isPurchaseIntentAnalysisResult
@@ -345,7 +355,7 @@ export function TabOutput({ job }: TabOutputProps) {
                         confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
                       }
                     ] as unknown as DynamicUIItem[])
-                  : isDynamicSchemaResult
+                  : isDynamicSchemaResult || isStructuredReportResult
                     ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
                     : (job.result &&
                       typeof job.result === "object" &&
@@ -409,7 +419,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Pagination Footer */}
-      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult)) && (
+      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult)) && (
         <TablePagination
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}

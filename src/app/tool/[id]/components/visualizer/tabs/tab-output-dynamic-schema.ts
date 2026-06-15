@@ -86,6 +86,28 @@ export function getFunctionDeclarationsFromJob(job: ToolJob): FunctionDeclaratio
           }
         }
       }
+    } else if (obj.tools && typeof obj.tools === "object") {
+      // 3. Tools object (Gemini format: tools = { function_declarations: [...] })
+      const toolObj = obj.tools as Record<string, unknown>;
+      if (Array.isArray(toolObj.function_declarations)) {
+        for (const d of toolObj.function_declarations) {
+          if (d && typeof d === "object" && typeof d.name === "string" && !seenNames.has(d.name)) {
+            declarations.push(d as FunctionDeclaration);
+            seenNames.add(d.name);
+          }
+        }
+      } else if (toolObj.functionDeclaration && typeof toolObj.functionDeclaration === "object") {
+        const d = toolObj.functionDeclaration as Record<string, unknown>;
+        if (typeof d.name === "string" && !seenNames.has(d.name)) {
+          declarations.push(d as unknown as FunctionDeclaration);
+          seenNames.add(d.name);
+        }
+      } else if (toolObj.name && toolObj.parameters && typeof toolObj.parameters === "object") {
+        if (!seenNames.has(toolObj.name as string)) {
+          declarations.push(toolObj as unknown as FunctionDeclaration);
+          seenNames.add(toolObj.name as string);
+        }
+      }
     }
   };
 
@@ -147,6 +169,118 @@ export function generateDynamicLayoutFromSchema(
   job: ToolJob,
   items: Record<string, unknown>[]
 ): DynamicUIItem[] {
+  const resultObj = job.result as Record<string, unknown> | undefined;
+  const isStructuredReport = Boolean(
+    resultObj &&
+    typeof resultObj === "object" &&
+    !Array.isArray(resultObj) &&
+    "section_meta" in resultObj &&
+    Array.isArray(resultObj.section_meta) &&
+    "section_rows" in resultObj &&
+    Array.isArray(resultObj.section_rows)
+  );
+
+  if (isStructuredReport) {
+    const meta = (resultObj!.meta || {}) as Record<string, unknown>;
+    const summary = (resultObj!.summary || {}) as Record<string, unknown>;
+    const sectionMeta = (resultObj!.section_meta || []) as Record<string, unknown>[];
+    const sectionRows = (resultObj!.section_rows || []) as Record<string, unknown>[];
+    const highlights = (resultObj!.highlights || []) as Record<string, unknown>[];
+    const insights = (resultObj!.insights || []) as Record<string, unknown>[];
+
+    const sections: DynamicUISection[] = [];
+    let priorityCounter = 1;
+
+    for (const sMeta of sectionMeta) {
+      const sectionId = String(sMeta.section_id || "");
+      const sectionTitle = String(sMeta.section_title || "");
+      const sectionType = String(sMeta.section_type || "").toLowerCase() as DynamicUISection["section_type"];
+      const whatToMeasure = String(sMeta.section_note || sMeta.what_to_measure || "");
+
+      const matchedRows = sectionRows.filter((r) => String(r.section_id) === sectionId);
+
+      let data: Record<string, unknown>[] = [];
+      if (sectionType === "pie_chart" || sectionType === "bar_chart") {
+        data = matchedRows.map((r) => ({
+          label: String(r.label || r.row_id || ""),
+          value: typeof r.value === "number" ? r.value : parseFloat(String(r.value || 0)) || 0,
+        }));
+      } else if (sectionType === "list") {
+        if (matchedRows.length > 0) {
+          data = matchedRows.map((r) => ({
+            comment: String(r.comment_text || r.comment || r.label || r.value || ""),
+            keywords_mentioned: typeof r.tags === "string" 
+              ? r.tags.split(",").map((t) => t.trim()) 
+              : Array.isArray(r.tags) ? r.tags : []
+          }));
+        } else if (sectionId === "s2" && highlights.length > 0) {
+          data = highlights.map((h) => ({
+            comment: String(h.comment_text || "") + (h.reason ? ` — ${h.reason}` : ""),
+            keywords_mentioned: typeof h.tags === "string" 
+              ? h.tags.split(",").map((t) => t.trim()) 
+              : Array.isArray(h.tags) ? h.tags : [],
+          }));
+        }
+      } else {
+        data = matchedRows;
+      }
+
+      sections.push({
+        section_id: sectionId,
+        section_title: sectionTitle,
+        section_type: sectionType,
+        what_to_measure: whatToMeasure,
+        data,
+        priority: priorityCounter++,
+      });
+    }
+
+    const hasListSection = sections.some((s) => s.section_type === "list" && s.data && s.data.length > 0);
+    if (!hasListSection && highlights.length > 0) {
+      sections.push({
+        section_id: "highlights_list",
+        section_title: "ข้อความคอมเมนต์ที่น่าสนใจ (Highlighted Comments)",
+        section_type: "list",
+        what_to_measure: "ความคิดเห็นเด่นที่มีน้ำเสียงเจตนาชัดเจน",
+        data: highlights.map((h) => ({
+          comment: String(h.comment_text || "") + (h.reason ? ` — ${h.reason}` : ""),
+          keywords_mentioned: typeof h.tags === "string" 
+            ? h.tags.split(",").map((t) => t.trim()) 
+            : Array.isArray(h.tags) ? h.tags : [],
+        })),
+        priority: priorityCounter++,
+      });
+    }
+
+    if (insights.length > 0) {
+      sections.push({
+        section_id: "insights_list",
+        section_title: "ข้อมูลเชิงลึกและข้อเสนอแนะ (Insights & Recommendations)",
+        section_type: "list",
+        what_to_measure: "สรุปข้อมูลเชิงลึกจากการวิเคราะห์",
+        data: insights.map((insight) => ({
+          comment: String(insight.insight_text || insight.text || insight),
+        })),
+        priority: priorityCounter++,
+      });
+    }
+
+    const taskIntent = String(meta.task_intent || "analyze_purchase_intent");
+    const taskDescription = String(summary.one_line || "สแกนและวิเคราะห์ความคิดเห็นตามโครงสร้างรายงาน");
+    const overallSentiment = String(summary.overall_sentiment || "mixed");
+    const confidenceScore = typeof summary.confidence_score === "number" ? summary.confidence_score : 1.0;
+
+    return [
+      {
+        task_intent: taskIntent,
+        task_description: taskDescription,
+        sections,
+        overall_sentiment_focus: overallSentiment,
+        confidence_note: `ระดับความมั่นใจ (Confidence Score): ${confidenceScore * 100}% | คุณภาพข้อมูล: ${meta.data_quality || "good"}`,
+      },
+    ];
+  }
+
   const declarations = getFunctionDeclarationsFromJob(job);
   if (declarations.length === 0) return [];
 
