@@ -134,7 +134,7 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
   });
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
+    <div className="flex flex-col lg:flex-row items-center justify-center gap-x-8 gap-y-4 py-4 w-full overflow-hidden">
       {/* Chart Wrapper */}
       <div className="relative size-40 sm:size-48 select-none flex items-center justify-center shrink-0">
         <ResponsiveContainer width="100%" height="100%">
@@ -187,15 +187,15 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
       </div>
 
       {/* Legends list */}
-      <div className="space-y-2.5 w-full sm:w-auto min-w-[200px]">
+      <div className="space-y-2.5 w-full lg:w-48 xl:w-56 min-w-[180px] max-w-sm flex-1">
         {chartData.map((item, idx) => (
-          <div key={idx} className="flex flex-col gap-1 w-full sm:w-56 py-1 border-b border-slate-100/30 last:border-0">
+          <div key={idx} className="flex flex-col gap-1 w-full px-1.5 py-1 border-b border-slate-100/30 last:border-0">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5">
                 <span className={cn("size-2.5 rounded-full shrink-0 shadow-xs", item.bgClass)} />
                 <span className="font-extrabold text-slate-600">{item.name}</span>
               </div>
-              <span className="text-xs font-extrabold text-slate-800 tabular-nums">
+              <span className="text-xs font-extrabold text-slate-800 tabular-nums pr-1">
                 {item.value} <span className="text-[9px] text-slate-400 font-bold">({item.percent.toFixed(0)}%)</span>
               </span>
             </div>
