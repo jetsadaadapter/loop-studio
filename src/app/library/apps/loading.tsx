@@ -12,17 +12,17 @@ function StatusPillSkeleton({ width }: { width: string }) {
 
 function AppTileSkeleton() {
   return (
-    <div className="shrink-0 w-[86vw] sm:w-[44vw] md:w-[30vw] lg:w-[23%] xl:w-[22%] max-w-[280px]">
-      <div className="h-full w-full overflow-hidden rounded-3xl border border-slate-200 bg-white">
-        <div className="relative aspect-4/3 animate-pulse bg-slate-100">
+    <div className="shrink-0 w-[52vw] sm:w-[44vw] md:w-[30vw] lg:w-[23%] xl:w-[22%] max-w-[280px]">
+      <div className="h-full w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white">
+        <div className="relative aspect-4/3 animate-pulse bg-slate-100 rounded-t-2xl sm:rounded-t-3xl">
           <div className="absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-white via-white/85 to-transparent" />
         </div>
-        <div className="px-3.5 pb-3.5 pt-0">
-          <div className="-mt-10 h-14 w-14 animate-pulse rounded-2xl bg-slate-200 shadow-[0_10px_20px_-14px_rgba(15,23,42,0.45)]" />
-          <div className="mt-3 space-y-1.5">
-            <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
-            <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
-            <div className="h-5 w-16 animate-pulse rounded-full bg-slate-100" />
+        <div className="px-2.5 pb-2.5 sm:px-3.5 sm:pb-3.5 pt-0">
+          <div className="-mt-8 sm:-mt-10 h-11 w-11 sm:h-14 sm:w-14 animate-pulse rounded-xl sm:rounded-2xl bg-slate-200 shadow-[0_10px_20px_-14px_rgba(15,23,42,0.45)]" />
+          <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5">
+            <div className="h-3.5 w-24 sm:h-4 sm:w-32 animate-pulse rounded bg-slate-200" />
+            <div className="h-2.5 w-16 sm:h-3 sm:w-20 animate-pulse rounded bg-slate-100" />
+            <div className="h-4 w-12 sm:h-5 sm:w-16 animate-pulse rounded-full bg-slate-100" />
           </div>
         </div>
       </div>

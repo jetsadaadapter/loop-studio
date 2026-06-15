@@ -4,27 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
-import { getUserProfile } from "@/core/services/users.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LEGAL_LINKS } from "@/lib/legal-links";
 import { getDepartmentBadgeClass } from "@/lib/utils";
-
-async function handleSignOut() {
-  const zt = (window as { ZeroTrust?: { logout: (path?: string) => void } })
-    .ZeroTrust;
-
-  // Clear HttpOnly cookie on our server
-  await fetch("/api/auth/zt-cookie", { method: "DELETE" }).catch(() => { });
-
-  if (zt?.logout) {
-    zt.logout("/login");
-  } else {
-    // Fallback: clear manually (in case of old non-HttpOnly cookie leftovers) and redirect
-    document.cookie =
-      "zt_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-    window.location.href = "/login";
-  }
-}
+import { handleSignOut, useProfileData, getProfileMonogram } from "./profile-utils";
 
 type MenuItem = {
   label: string;
@@ -71,22 +54,6 @@ function MenuSection({ items }: { items: MenuItem[] }) {
 }
 
 
-function getProfileMonogram(profile: UserProfile | null): string {
-  if (!profile) return "UP";
-
-  const firstName = profile.firstName.trim();
-  const lastName = profile.lastName.trim();
-  const firstInitial = firstName.charAt(0);
-  const lastInitial = lastName.charAt(0);
-  const monogram = `${firstInitial}${lastInitial}`.trim().toUpperCase();
-
-  if (monogram) return monogram;
-  if (firstName) return firstName.slice(0, 2).toUpperCase();
-  if (lastName) return lastName.slice(0, 2).toUpperCase();
-
-  return "UP";
-}
-
 export function MobileProfilePanel() {
   const {
     profileName,
@@ -101,26 +68,26 @@ export function MobileProfilePanel() {
   return (
     <div className="border-t border-slate-200">
       {/* Profile card - Now at the top */}
-      <div className="px-5 py-2">
-        <div className="flex items-center gap-4">
-          <div className="shrink-0 rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
-            <Avatar className="size-12 bg-white">
+      <div className="px-5 py-2.5">
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 rounded-full bg-brand/20 p-0.5 shadow-inner ring-1 ring-slate-200/85">
+            <Avatar className="size-10 bg-white">
               {profileImage ? (
                 <AvatarImage src={profileImage} alt={profileName} />
               ) : null}
-              <AvatarFallback className="bg-brand text-base font-semibold tracking-tight text-white shadow-inner">
+              <AvatarFallback className="bg-brand text-xs font-semibold tracking-tight text-white shadow-inner">
                 {profileInitials}
               </AvatarFallback>
             </Avatar>
           </div>
           <div className="min-w-0">
-            <p className="text-base font-semibold leading-tight text-slate-900">
+            <p className="text-sm font-semibold leading-snug text-slate-900">
               {profileName}
             </p>
-            <p className="mt-0.5 text-sm text-slate-500">{profileEmail}</p>
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px]">
+            <p className="mt-0.5 text-xs text-slate-500 truncate">{profileEmail}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px]">
               <span
-                className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDepartment)}`}
+                className={`rounded-full px-1.5 py-0.25 font-semibold ring-1 ${getDepartmentBadgeClass(profileDepartment)}`}
               >
                 {profileDepartment}
               </span>
@@ -181,59 +148,7 @@ export function MobileProfilePanel() {
   );
 }
 
-function useProfileData() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void getUserProfile()
-      .then((p) => {
-        if (!cancelled) setProfile(p);
-      })
-      .catch(() => {
-        if (!cancelled) setProfile(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const profileName = useMemo(() => {
-    if (!profile) return "User Profile";
-    return `${profile.firstName} ${profile.lastName}`.trim();
-  }, [profile]);
-
-  const profileEmail = useMemo(() => {
-    if (!profile) return "user@adapterdigital.com";
-    return profile.email;
-  }, [profile]);
-
-  const profileDepartment = useMemo(
-    () => profile?.department?.trim() || "Department",
-    [profile],
-  );
-  const profilePosition = useMemo(
-    () => profile?.position?.trim() || "Position",
-    [profile],
-  );
-  const profileImage = useMemo(() => profile?.image?.trim() || null, [profile]);
-  const profileInitials = useMemo(() => getProfileMonogram(profile), [profile]);
-  const isAdmin = useMemo(
-    () => profile?.roles?.includes("admin") ?? false,
-    [profile],
-  );
-
-  return {
-    profile,
-    profileName,
-    profileEmail,
-    profileDepartment,
-    profilePosition,
-    profileImage,
-    profileInitials,
-    isAdmin,
-  };
-}
+// Handled by profile-utils
 
 export function ProfileAvatarMenu() {
   const [open, setOpen] = useState(false);

@@ -166,7 +166,7 @@ export default async function AppDetailPage({ params }: Props) {
           </div>
         </AppCover>
 
-        <div className="grid gap-x-10 gap-y-0 pt-2 sm:pt-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-x-10 gap-y-0 pt-2 sm:pt-3 lg:grid-cols-[minmax(0,1fr)_18rem] px-4 xs:px-0">
           {/* ── Main content ─────────────────────────────────────── */}
           <div className="min-w-0">
             {/* Screenshots */}
@@ -241,19 +241,19 @@ export default async function AppDetailPage({ params }: Props) {
                     components={{
                       h1: (props) => (
                         <h1
-                          className="text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
+                          className="text-xl sm:text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
                           {...props}
                         />
                       ),
                       h2: (props) => (
                         <h2
-                          className="text-xl font-bold text-slate-900 mt-5 mb-3"
+                          className="text-lg sm:text-xl font-bold text-slate-900 mt-5 mb-3"
                           {...props}
                         />
                       ),
                       h3: (props) => (
                         <h3
-                          className="text-lg font-semibold text-slate-900 mt-4 mb-2"
+                          className="text-base sm:text-lg font-semibold text-slate-900 mt-4 mb-2"
                           {...props}
                         />
                       ),

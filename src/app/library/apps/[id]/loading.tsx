@@ -42,7 +42,7 @@ export default function Loading() {
         </div>
 
         {/* Column Grid Layout */}
-        <div className="grid gap-x-10 gap-y-0 pt-2 sm:pt-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-x-10 gap-y-0 pt-2 sm:pt-3 lg:grid-cols-[minmax(0,1fr)_18rem] px-4 xs:px-0">
           {/* ── Main Content Column ─────────────────────────── */}
           <div className="min-w-0 space-y-7">
             {/* Screenshots */}

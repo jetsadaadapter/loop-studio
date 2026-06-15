@@ -51,7 +51,7 @@ export function LibraryFilterToolbar<
   return (
     <section>
       {tabs.length > 0 ? (
-        <div className="flex h-8 items-center gap-2.5 pb-0 mt-4">
+        <div className="flex h-8 items-center gap-2.5 pb-0 mt-4 px-4 xs:px-0">
           {tabs.map((tab) => {
             const Icon = getTabIcon(tab);
             const isActive = selectedTab === tab.key;
@@ -80,7 +80,7 @@ export function LibraryFilterToolbar<
       ) : null}
 
       {visibleFilters.length > 0 ? (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2 px-4 xs:px-0">
           {visibleFilters.map((filter) => (
             <button
               key={filter.key}

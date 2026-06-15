@@ -91,8 +91,8 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
             );
 
         return (
-          <div key={section.id} className="px-1 py-1 sm:px-0">
-            <div className="mb-3 flex items-center justify-between sm:mb-4">
+          <div key={section.id} className="px-0 py-1 sm:px-0">
+            <div className="mb-3 flex items-center justify-between sm:mb-4 px-4 xs:px-0">
               <h2 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
                 {section.title}
               </h2>
@@ -106,7 +106,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
               ) : null}
             </div>
 
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2 px-4 xs:px-0">
               {visibleBadgeFilters.map((badgeFilter) => (
                 <button
                   key={badgeFilter.key}
@@ -130,7 +130,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
               ))}
             </div>
 
-            <div className="flex snap-x gap-3 overflow-x-auto px-1 py-2 sm:gap-4 sm:py-3">
+            <div className="flex snap-x gap-3 overflow-x-auto px-1 xs:px-0 py-2 sm:gap-4 sm:py-3">
               {displayedItems.map((app, index) => {
                 const cardKey = `${section.id}:${app.id}`;
                 const isVisible = Boolean(visibleCards[cardKey]);
@@ -142,7 +142,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
                     ref={(element) => {
                       cardElementsRef.current[cardKey] = element;
                     }}
-                    className={`shrink-0 w-[86vw] sm:w-[44vw] md:w-[30vw] lg:w-[23%] xl:w-[22%] max-w-[280px] snap-start transition-all duration-500 ease-out ${isVisible
+                    className={`shrink-0 w-[52vw] sm:w-[44vw] md:w-[30vw] lg:w-[23%] xl:w-[22%] max-w-[280px] snap-start transition-all duration-500 ease-out ${isVisible
                         ? "translate-y-0 scale-100 opacity-100"
                         : "translate-y-3 scale-[0.985] opacity-0"
                       } ${revealDelayClasses[Math.min(index, 6)]}`}
@@ -157,7 +157,7 @@ export function LibraryAppSections({ sections }: LibraryAppSectionsProps) {
       })}
 
       {sections.length === 0 && (
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-b from-white to-slate-50 px-6 py-12 text-center shadow-sm sm:px-8">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-b from-white to-slate-50 px-6 py-12 text-center shadow-sm sm:px-8 mx-4 xs:mx-0">
           <div className="mx-auto max-w-xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               Library Status

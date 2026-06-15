@@ -231,8 +231,10 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
 
       {/* Split Pane Flex Layout */}
       <div className={cn(
-        "transition-all duration-300 w-full px-0 xs:px-4 sm:px-6 lg:px-8",
-        isExpanded ? "max-w-none" : "max-w-7xl mx-auto"
+        "transition-all duration-300 w-full",
+        isExpanded
+          ? "max-w-none px-0 xs:px-4 sm:px-6 lg:px-8"
+          : "max-w-none px-0"
       )}>
         <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start w-full">
         {/* Left Side: Run Pipeline Summary & Sub-Jobs list */}
