@@ -9,6 +9,7 @@ import { ManagerPagination } from "@/components/manager-pagination";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { KeyFormFields, validateApiKeyForm, type ApiKeyFormFieldsDraft } from "./KeyFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
+import { InstructionPreviewDialog } from "./instruction-preview-dialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -48,6 +49,7 @@ export function ManageKeysClient() {
   const [createdRawKey, setCreatedRawKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [previewAppId, setPreviewAppId] = useState<string | null>(null);
 
   const loadKeys = useCallback(async (options?: { silent?: boolean }) => {
     if (options?.silent) setIsRefreshing(true);
@@ -310,6 +312,7 @@ export function ManageKeysClient() {
           onRetry={() => void loadKeys()}
           onAdd={() => setMode("create")}
           onClearFilters={clearFilters}
+          onReadGuide={(appId) => setPreviewAppId(appId)}
         />
         {!isLoading && totalItems > pageSize && (
           <ManagerPagination
@@ -333,6 +336,13 @@ export function ManageKeysClient() {
           itemTypeLabel="API Key"
         />
       )}
+
+      {/* Instruction/Guide Preview Modal */}
+      <InstructionPreviewDialog
+        open={previewAppId !== null}
+        onOpenChange={(open) => !open && setPreviewAppId(null)}
+        appId={previewAppId || ""}
+      />
 
       {/* Creation / Editing Sheet Drawer */}
       <Sheet open={!!mode} onOpenChange={(open) => { if (!open) setMode(null); }}>
