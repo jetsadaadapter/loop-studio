@@ -40,14 +40,19 @@ export function ScorecardRenderer({ section }: { section: DynamicUISection }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
       {data.map((card, idx) => (
-        <div key={idx} className="p-3 rounded-lg border border-slate-150 bg-slate-50/30 space-y-1">
-          <h5 className="text-[9px] font-bold text-slate-450 uppercase tracking-wide truncate">
+        <div 
+          key={idx} 
+          className="p-3.5 bg-white border border-slate-200/60 rounded-xl shadow-xs hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between gap-1 select-none"
+        >
+          <h5 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate leading-none">
             {card.label}
           </h5>
-          <div className="flex items-baseline justify-between">
-            <span className="text-base font-extrabold text-slate-800 tracking-tight">{card.value}</span>
+          <div className="flex items-baseline mt-1.5 justify-between">
+            <span className="text-lg font-extrabold text-slate-900 tracking-tight leading-none tabular-nums font-sans">
+              {card.value}
+            </span>
           </div>
         </div>
       ))}

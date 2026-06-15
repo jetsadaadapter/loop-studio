@@ -72,8 +72,6 @@ function SectionCard({
   const percentage = extractPercentage(title);
   const displayTitle = cleanTitle(title);
 
-  const renderedItems = items.map(renderItemValue).filter(Boolean);
-
   return (
     <div className="rounded-xl border border-slate-200/60 bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 transition-all duration-300">
       <button
@@ -98,18 +96,109 @@ function SectionCard({
         )}
       </button>
 
-      {isOpen && renderedItems.length > 0 && (
-        <div className="px-4 pb-3 pt-0">
-          <ul className="space-y-1.5 pl-5">
-            {renderedItems.map((item, idx) => (
-              <li
-                key={idx}
-                className="relative pl-3 text-xs text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
+      {isOpen && items.length > 0 && (
+        <div className="px-4 pb-3.5 pt-0">
+          <div className="space-y-2">
+            {items.map((item, idx) => {
+              if (item === null || item === undefined) return null;
+
+              // If it's a scalar value, render as a bullet list item
+              if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
+                return (
+                  <div
+                    key={idx}
+                    className="relative pl-4 text-xs text-slate-700 leading-relaxed font-sans before:content-[''] before:absolute before:left-1 before:top-[7px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand/60"
+                  >
+                    {String(item)}
+                  </div>
+                );
+              }
+
+              // If it's an array, render inline list
+              if (Array.isArray(item)) {
+                return (
+                  <div key={idx} className="flex flex-wrap gap-1.5 pl-1">
+                    {item.map((sub, sIdx) => (
+                      <span key={sIdx} className="bg-slate-50 border border-slate-200 text-slate-600 rounded px-1.5 py-0.5 text-[10.5px] font-medium">
+                        {String(sub)}
+                      </span>
+                    ))}
+                  </div>
+                );
+              }
+
+              // If it's a structured object, render a beautiful card
+              if (typeof item === "object") {
+                const obj = item as Record<string, unknown>;
+                
+                // Extract primary display fields
+                let primaryText = "";
+                if (typeof obj.label === "string" || typeof obj.label === "number") {
+                  primaryText = String(obj.label);
+                } else if (typeof obj.title === "string") {
+                  primaryText = obj.title;
+                } else if (typeof obj.section_title === "string") {
+                  primaryText = obj.section_title;
+                } else if (typeof obj.comment === "string") {
+                  primaryText = obj.comment;
+                }
+
+                // Filter out primary text and metadata fields
+                const otherEntries = Object.entries(obj).filter(
+                  ([k]) => k !== "label" && k !== "title" && k !== "section_title" && k !== "comment" && k !== "section_id" && k !== "row_id" && !k.startsWith("_")
+                );
+
+                return (
+                  <div key={idx} className="bg-slate-50/50 hover:bg-slate-50 border border-slate-200/50 rounded-xl p-3 space-y-1.5 transition-all duration-200 hover:shadow-3xs">
+                    {primaryText && (
+                      <div className="font-extrabold text-slate-800 leading-snug text-xs flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-brand/60 shrink-0" />
+                        {primaryText}
+                      </div>
+                    )}
+                    {otherEntries.length > 0 && (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 pl-3 pt-0.5">
+                        {otherEntries.map(([k, val]) => {
+                          const cleanVal = String(val);
+                          const isUrl = cleanVal.startsWith("http://") || cleanVal.startsWith("https://");
+                          let displayVal = cleanVal;
+                          if (isUrl) {
+                            try {
+                              const u = new URL(cleanVal);
+                              displayVal = u.hostname.replace("www.", "") + (u.pathname.length > 15 ? u.pathname.slice(0, 15) + "..." : u.pathname);
+                            } catch {
+                              displayVal = cleanVal.slice(0, 25) + "...";
+                            }
+                          }
+
+                          return (
+                            <div key={k} className="flex items-center gap-1 text-[11px] font-medium">
+                              <span className="text-slate-400 capitalize">{k.replace(/_/g, " ")}:</span>
+                              {isUrl ? (
+                                <a
+                                  href={cleanVal}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-brand hover:text-brand/80 hover:underline font-bold flex items-center gap-0.5"
+                                >
+                                  <span>{displayVal}</span>
+                                  <span className="text-[9px] text-slate-400">↗</span>
+                                </a>
+                              ) : (
+                                <span className="font-bold text-slate-655">{cleanVal}</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return null;
+            })}
+          </div>
         </div>
       )}
     </div>

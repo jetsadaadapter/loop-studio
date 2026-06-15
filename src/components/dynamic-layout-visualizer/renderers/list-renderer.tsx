@@ -39,26 +39,26 @@ export function ListRenderer({ section }: { section: DynamicUISection }) {
   }
 
   return (
-    <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+    <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
       {data.map((item, idx) => (
         <div
           key={idx}
-          className="flex items-start gap-2 p-2.5 bg-slate-50/40 hover:bg-slate-50 border border-slate-100 rounded-lg transition-all duration-200"
+          className="flex items-start gap-3 p-3 bg-white hover:bg-slate-50/20 border border-slate-200/50 rounded-xl hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200"
         >
-          <span className="flex items-center justify-center size-4 shrink-0 rounded-full bg-brand/10 text-brand text-[9px] font-extrabold select-none">
+          <span className="flex items-center justify-center size-5 shrink-0 rounded-full bg-brand/10 text-brand text-[10px] font-extrabold select-none border border-brand/20 shadow-3xs">
             {idx + 1}
           </span>
-          <div className="flex-1 space-y-1 min-w-0">
+          <div className="flex-1 space-y-1.5 min-w-0">
             <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words select-text">
               {item.comment}
             </p>
             {Array.isArray(item.keywords_mentioned) && item.keywords_mentioned.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 select-none pt-0.5">
-                <Tag className="size-2.5 text-slate-350 shrink-0" />
+              <div className="flex flex-wrap items-center gap-1.5 select-none pt-0.5">
+                <Tag className="size-2.5 text-slate-400 shrink-0" />
                 {item.keywords_mentioned.map((kw, kwIdx) => (
                   <span
                     key={kwIdx}
-                    className="inline-flex items-center rounded bg-brand/5 px-1.5 py-0.5 text-[9px] font-bold text-brand border border-brand/10"
+                    className="inline-flex items-center rounded-lg bg-brand/5 px-2 py-0.5 text-[9px] font-bold text-brand border border-brand/10 shadow-3xs"
                   >
                     {kw}
                   </span>

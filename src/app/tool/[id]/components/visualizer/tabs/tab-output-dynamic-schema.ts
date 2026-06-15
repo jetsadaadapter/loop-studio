@@ -201,10 +201,38 @@ export function generateDynamicLayoutFromSchema(
 
       let data: Record<string, unknown>[] = [];
       if (sectionType === "pie_chart" || sectionType === "bar_chart") {
-        data = matchedRows.map((r) => ({
-          label: String(r.label || r.row_id || ""),
-          value: typeof r.value === "number" ? r.value : parseFloat(String(r.value || 0)) || 0,
-        }));
+        data = matchedRows.map((r) => {
+          const isValueNumeric = r.value !== undefined && r.value !== null && !Number.isNaN(Number(r.value)) && typeof r.value !== "boolean";
+          
+          let resolvedLabel = "";
+          if (!isValueNumeric && typeof r.value === "string" && r.value.trim() !== "") {
+            resolvedLabel = r.value;
+          } else {
+            resolvedLabel = String(r.label || r.row_id || "");
+          }
+
+          let resolvedVal = 0;
+          if (typeof r.total_comments === "number") {
+            resolvedVal = r.total_comments;
+          } else if (typeof r.comment_count === "number") {
+            resolvedVal = r.comment_count;
+          } else if (isValueNumeric) {
+            resolvedVal = Number(r.value);
+          } else if (typeof r.total_comments === "string") {
+            resolvedVal = parseFloat(r.total_comments) || 0;
+          } else if (typeof r.comment_count === "string") {
+            resolvedVal = parseFloat(r.comment_count) || 0;
+          } else if (r.overall_percent && typeof r.overall_percent === "string") {
+            resolvedVal = parseFloat(r.overall_percent) || 0;
+          } else if (r.percent && typeof r.percent === "string") {
+            resolvedVal = parseFloat(r.percent) || 0;
+          }
+
+          return {
+            label: resolvedLabel,
+            value: resolvedVal,
+          };
+        });
       } else if (sectionType === "list") {
         if (matchedRows.length > 0) {
           data = matchedRows.map((r) => ({
@@ -213,13 +241,38 @@ export function generateDynamicLayoutFromSchema(
               ? r.tags.split(",").map((t) => t.trim()) 
               : Array.isArray(r.tags) ? r.tags : []
           }));
-        } else if (sectionId === "s2" && highlights.length > 0) {
-          data = highlights.map((h) => ({
-            comment: String(h.comment_text || "") + (h.reason ? ` — ${h.reason}` : ""),
-            keywords_mentioned: typeof h.tags === "string" 
-              ? h.tags.split(",").map((t) => t.trim()) 
-              : Array.isArray(h.tags) ? h.tags : [],
-          }));
+        } else {
+          const titleLower = sectionTitle.toLowerCase();
+          const idLower = sectionId.toLowerCase();
+          
+          const isInsightsList = idLower.includes("insight") || titleLower.includes("insight") || titleLower.includes("ข้อเสนอแนะ") || titleLower.includes("วิเคราะห์");
+          const isHighlightsList = idLower.includes("highlight") || titleLower.includes("highlight") || titleLower.includes("comment") || titleLower.includes("ความคิดเห็น") || titleLower.includes("เด่น");
+
+          if (isInsightsList && insights.length > 0) {
+            data = insights.map((insight) => ({
+              comment: String(insight.insight_text || insight.text || insight),
+            }));
+          } else if (isHighlightsList && highlights.length > 0) {
+            data = highlights.map((h) => ({
+              comment: String(h.comment_text || "") + (h.reason ? ` — ${h.reason}` : ""),
+              keywords_mentioned: typeof h.tags === "string" 
+                ? h.tags.split(",").map((t) => t.trim()) 
+                : Array.isArray(h.tags) ? h.tags : [],
+            }));
+          } else {
+            if (highlights.length > 0) {
+              data = highlights.map((h) => ({
+                comment: String(h.comment_text || "") + (h.reason ? ` — ${h.reason}` : ""),
+                keywords_mentioned: typeof h.tags === "string" 
+                  ? h.tags.split(",").map((t) => t.trim()) 
+                  : Array.isArray(h.tags) ? h.tags : [],
+              }));
+            } else if (insights.length > 0) {
+              data = insights.map((insight) => ({
+                comment: String(insight.insight_text || insight.text || insight),
+              }));
+            }
+          }
         }
       } else {
         data = matchedRows;

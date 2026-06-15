@@ -21,13 +21,13 @@ export function AllFieldsTable({
   startIndex,
 }: AllFieldsTableProps) {
   return (
-    <div className="min-w-full inline-block align-middle overflow-x-auto bg-white">
-      <table className="min-w-full divide-y divide-slate-100 border-b border-slate-200">
-        <thead className="bg-slate-50/80 sticky top-0 z-10 text-[10.5px] font-bold text-slate-500 tracking-wider uppercase border-b border-slate-200">
+    <div className="overflow-x-auto rounded-xl border border-slate-200/60 bg-white shadow-3xs">
+      <table className="w-full text-left text-xs border-collapse">
+        <thead className="bg-slate-50/75 border-b border-slate-200/60 select-none">
           <tr>
             <th
               scope="col"
-              className="w-12 px-4 py-3 text-slate-400 text-center"
+              className="w-12 px-4 py-3 text-slate-400 text-center font-extrabold text-[9.5px] uppercase tracking-wider"
             >
               #
             </th>
@@ -35,13 +35,16 @@ export function AllFieldsTable({
               <th
                 key={`all-header-${key}`}
                 scope="col"
-                className={cn("px-4 py-3", getHeaderColClass(key))}
+                className={cn(
+                  "px-4 py-3 font-extrabold text-slate-500 uppercase tracking-wider text-[9.5px]",
+                  getHeaderColClass(key)
+                )}
               >
                 <div className="flex flex-col">
-                  <span className="text-slate-650">
+                  <span className="text-slate-655 font-bold">
                     {getHeaderLabel(key)}
                   </span>
-                  <span className="text-slate-400 text-[9px] font-sans lowercase tracking-normal">
+                  <span className="text-slate-400 text-[8.5px] font-mono lowercase tracking-normal font-semibold mt-0.5">
                     {key}
                   </span>
                 </div>
@@ -49,19 +52,22 @@ export function AllFieldsTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white text-xs font-semibold text-slate-700">
+        <tbody className="divide-y divide-slate-100">
           {paginatedItems.map((item, idx) => (
             <tr
               key={`all-row-${idx}`}
-              className="hover:bg-slate-50/60 transition-colors even:bg-slate-50/20"
+              className="hover:bg-slate-50/30 transition-colors"
             >
-              <td className="px-4 py-3.5 text-slate-400 font-bold text-center border-r border-slate-150 bg-slate-50/30 select-none">
+              <td className="px-4 py-3.5 text-slate-400 font-extrabold text-center select-none text-xs border-r border-slate-150/40">
                 {startIndex + idx + 1}
               </td>
               {allKeys.map((key) => (
                 <td
                   key={`all-cell-${idx}-${key}`}
-                  className={cn("px-4 py-3.5", getCellColClass(key))}
+                  className={cn(
+                    "px-4 py-3.5 text-slate-700 leading-relaxed text-xs",
+                    getCellColClass(key)
+                  )}
                 >
                   <OutputCell
                     value={getValue(item, key)}

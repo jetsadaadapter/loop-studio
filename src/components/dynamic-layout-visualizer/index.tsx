@@ -25,6 +25,50 @@ export function DynamicLayoutVisualizer({ items }: DynamicLayoutVisualizerProps)
     (a, b) => (a.priority || 0) - (b.priority || 0)
   );
 
+  const renderFocusBadge = () => {
+    const focusVal = activeItem.overall_sentiment_focus;
+    if (typeof focusVal !== "string" || !focusVal) return null;
+
+    const val = focusVal.toLowerCase().trim();
+    const isNeu = val.includes("ไม่สนใจ") || val === "neu" || val === "neutral" || val.includes("ทั่วไป") || val.includes("ไม่ซื้อ") || val.includes("indifferent");
+    const isNeg = val.includes("แง่ลบ") || val === "neg" || val === "negative" || val === "ลบ" || val.includes("ไม่ซื้อ") || val === "แย่";
+    const isPos = !isNeu && !isNeg && (val.includes("อยากซื้อ") || val.includes("สนใจ") || val === "pos" || val === "positive" || val === "ซื้อ" || val.includes("อยากได้"));
+
+    if (isNeu) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-300/60 px-3 py-1 text-[10.5px] font-extrabold text-slate-600 shadow-3xs select-none">
+          <span className="size-1.5 rounded-full bg-slate-400 mr-1.5 shrink-0" />
+          Focus: {focusVal}
+        </span>
+      );
+    }
+
+    if (isNeg) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-rose-50 border border-rose-200/80 px-3 py-1 text-[10.5px] font-extrabold text-rose-700 shadow-3xs select-none animate-pulse">
+          <span className="size-1.5 rounded-full bg-rose-500 mr-1.5 shrink-0" />
+          Focus: {focusVal}
+        </span>
+      );
+    }
+
+    if (isPos) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[10.5px] font-extrabold text-emerald-700 shadow-3xs select-none">
+          <span className="size-1.5 rounded-full bg-emerald-500 mr-1.5 shrink-0 animate-pulse" />
+          Focus: {focusVal}
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-[10.5px] font-extrabold text-indigo-700 shadow-3xs select-none">
+        <span className="size-1.5 rounded-full bg-indigo-500 mr-1.5 shrink-0 animate-pulse" />
+        Focus: {focusVal}
+      </span>
+    );
+  };
+
   return (
     <div className="flex-1 flex flex-col md:flex-row min-h-0 bg-slate-50/20 text-slate-700 font-sans">
       {/* Sidebar Selector (Tabs) */}
@@ -93,10 +137,8 @@ export function DynamicLayoutVisualizer({ items }: DynamicLayoutVisualizerProps)
                 </p>
               </div>
 
-              <div className="flex gap-2">
-                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[9px] font-bold text-slate-500 select-none">
-                  Focus: {typeof activeItem.overall_sentiment_focus === "string" ? activeItem.overall_sentiment_focus : ""}
-                </span>
+              <div className="flex gap-2 shrink-0">
+                {renderFocusBadge()}
               </div>
             </div>
           </div>

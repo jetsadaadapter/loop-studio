@@ -59,23 +59,34 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
     if (!value) {
       return <span className="text-slate-400">-</span>;
     }
-    const sentiment = String(value).toLowerCase();
-    if (sentiment === "positive") {
+    const sentiment = String(value).trim().toLowerCase();
+    const isNeu = sentiment.includes("ไม่สนใจ") || sentiment === "neu" || sentiment === "neutral" || sentiment.includes("ทั่วไป") || sentiment.includes("indifferent");
+    const isNeg = sentiment.includes("แง่ลบ") || sentiment === "neg" || sentiment === "negative" || sentiment === "ลบ" || sentiment.includes("ไม่ซื้อ") || sentiment === "แย่";
+    const isPos = !isNeu && !isNeg && (sentiment.includes("อยากซื้อ") || sentiment.includes("สนใจ") || sentiment === "pos" || sentiment === "positive" || sentiment === "ซื้อ" || sentiment.includes("อยากได้"));
+
+    if (isPos) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 border border-emerald-400 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-emerald-500/10">
-          <span>Positive</span>
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 border border-emerald-400 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-emerald-500/10 select-none">
+          <span>{String(value)}</span>
         </span>
       );
     }
-    if (sentiment === "negative") {
+    if (isNeg) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-500 border border-rose-400/40 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-rose-500/10">
-          <span>Negative</span>
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-500 border border-rose-400/40 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs shadow-rose-500/10 select-none">
+          <span>{String(value)}</span>
+        </span>
+      );
+    }
+    if (isNeu) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-400 border border-slate-350 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs select-none">
+          <span>{String(value)}</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-600 border border-slate-500 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-600 border border-slate-500 text-[9.5px] text-white font-extrabold rounded-full uppercase shadow-xs select-none">
         <span>{String(value)}</span>
       </span>
     );
@@ -141,15 +152,37 @@ export function OutputCell({ value, columnKey, authorName }: OutputCellProps) {
       return <span className="text-slate-400">-</span>;
     }
 
+    let displayUrl = urlStr;
+    try {
+      const urlObj = new URL(urlStr);
+      const host = urlObj.hostname.replace("www.", "");
+      let path = urlObj.pathname;
+      try {
+        path = decodeURIComponent(path);
+      } catch {}
+      if (path === "/") {
+        displayUrl = host;
+      } else {
+        if (path.length > 25) {
+          path = path.slice(0, 25) + "...";
+        }
+        displayUrl = `${host}${path}`;
+      }
+    } catch {
+      if (displayUrl.length > 35) {
+        displayUrl = displayUrl.slice(0, 35) + "...";
+      }
+    }
+
     return (
       <a
         href={urlStr}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-indigo-650 hover:text-brand hover:underline inline-flex items-center gap-1 max-w-56 truncate font-semibold transition-colors"
+        className="text-brand hover:text-brand/85 hover:underline inline-flex items-center gap-1 max-w-[280px] truncate font-bold transition-colors select-all"
         title={urlStr}
       >
-        <span className="truncate">{urlStr}</span>
+        <span>{displayUrl}</span>
         <ExternalLink className="size-3 shrink-0" />
       </a>
     );

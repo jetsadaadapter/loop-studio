@@ -83,9 +83,9 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
   // Custom skeleton to mitigate CLS on mount
   if (!mounted) {
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-2 h-36">
-        <div className="relative size-32 animate-pulse bg-slate-100 rounded-full flex items-center justify-center">
-          <div className="size-20 bg-white rounded-full" />
+      <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4 h-52">
+        <div className="relative size-40 sm:size-48 animate-pulse bg-slate-100 rounded-full flex items-center justify-center">
+          <div className="size-24 bg-white rounded-full" />
         </div>
         <div className="w-full sm:w-auto min-w-[150px] space-y-2.5">
           <div className="h-4 bg-slate-100 rounded w-28 animate-pulse" />
@@ -95,41 +95,57 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
     );
   }
 
-  // Harmonious color palette
-  const colors = ["#10b981", "#94a3b8", "#f43f5e", "#6366f1", "#f59e0b"];
+  // Harmonious and semantic color palette mapping
+  const getSemanticColor = (label: string, index: number) => {
+    const l = label.toLowerCase();
+    
+    // Check neutral/negative keywords first to prevent overlap (e.g. "ไม่สนใจ" matches "สนใจ")
+    if (l.includes("ไม่สนใจ") || l.includes("neu") || l.includes("ทั่วไป") || l.includes("ไม่ซื้อ") || l.includes("indifferent")) {
+      return { hex: "#94a3b8", bg: "bg-slate-400" };
+    }
+    if (l.includes("แง่ลบ") || l.includes("neg") || l.includes("negative") || l.includes("ลบ") || l.includes("แย่")) {
+      return { hex: "#f43f5e", bg: "bg-rose-500" };
+    }
+    if (l.includes("อยากซื้อ") || l.includes("สนใจ") || l.includes("pos") || l.includes("positive") || l.includes("ซื้อ") || l.includes("อยากได้")) {
+      return { hex: "#10b981", bg: "bg-emerald-500" };
+    }
+
+    const defaultColors = [
+      { hex: "#10b981", bg: "bg-emerald-500" },
+      { hex: "#94a3b8", bg: "bg-slate-400" },
+      { hex: "#f43f5e", bg: "bg-rose-500" },
+      { hex: "#6366f1", bg: "bg-indigo-500" },
+      { hex: "#f59e0b", bg: "bg-amber-500" },
+    ];
+    return defaultColors[index % defaultColors.length];
+  };
 
   const chartData = data.map((item, index) => {
     const value = Number(item.value) || 0;
     const percent = total > 0 ? (value / total) * 100 : 0;
+    const semantic = getSemanticColor(item.label, index);
     return {
       name: item.label,
       value,
       percent,
-      color: colors[index % colors.length] || colors[0],
-      bgClass:
-        [
-          "bg-emerald-500",
-          "bg-slate-400",
-          "bg-rose-500",
-          "bg-indigo-500",
-          "bg-amber-500",
-        ][index % 5] || "bg-emerald-500",
+      color: semantic.hex,
+      bgClass: semantic.bg,
     };
   });
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-around gap-4 py-1">
+    <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
       {/* Chart Wrapper */}
-      <div className="relative size-28 select-none flex items-center justify-center shrink-0">
+      <div className="relative size-40 sm:size-48 select-none flex items-center justify-center shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={26}
-              outerRadius={40}
-              paddingAngle={2}
+              innerRadius={44}
+              outerRadius={64}
+              paddingAngle={3}
               dataKey="value"
             >
               {chartData.map((entry, index) => (
@@ -160,25 +176,35 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
         </ResponsiveContainer>
 
         {/* Central Summary overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-base font-extrabold text-slate-800 tabular-nums">
+        <div className="absolute size-20 sm:size-24 rounded-full bg-slate-50/50 backdrop-blur-3xs border border-slate-100/40 flex flex-col items-center justify-center pointer-events-none shadow-3xs">
+          <span className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none tabular-nums font-sans">
             {total}
           </span>
-          <span className="text-[8px] font-bold text-slate-400">รวมรายการ</span>
+          <span className="text-[8px] sm:text-[9px] font-bold text-slate-450 uppercase tracking-wider mt-1 leading-none">
+            รายการ
+          </span>
         </div>
       </div>
 
       {/* Legends list */}
-      <div className="space-y-1.5 w-full sm:w-auto min-w-[150px]">
+      <div className="space-y-2.5 w-full sm:w-auto min-w-[200px]">
         {chartData.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className={cn("size-2 rounded-full shrink-0", item.bgClass)} />
-              <span className="text-xs font-bold text-slate-600">{item.name}</span>
+          <div key={idx} className="flex flex-col gap-1 w-full sm:w-56 py-1 border-b border-slate-100/30 last:border-0">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className={cn("size-2.5 rounded-full shrink-0 shadow-xs", item.bgClass)} />
+                <span className="font-extrabold text-slate-600">{item.name}</span>
+              </div>
+              <span className="text-xs font-extrabold text-slate-800 tabular-nums">
+                {item.value} <span className="text-[9px] text-slate-400 font-bold">({item.percent.toFixed(0)}%)</span>
+              </span>
             </div>
-            <span className="text-xs font-extrabold text-slate-800 tabular-nums">
-              {item.value} ({item.percent.toFixed(0)}%)
-            </span>
+            <div className="w-full bg-slate-100/70 h-1.5 rounded-full overflow-hidden select-none">
+              <div 
+                className={cn("h-full rounded-full transition-all duration-500 ease-out", item.bgClass)}
+                style={{ width: `${item.percent}%` }}
+              />
+            </div>
           </div>
         ))}
       </div>

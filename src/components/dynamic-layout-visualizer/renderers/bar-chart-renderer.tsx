@@ -46,25 +46,22 @@ export function BarChartRenderer({ section }: { section: DynamicUISection }) {
   const maxVal = Math.max(...data.map((item) => Number(item.value) || 0), 1);
 
   return (
-    <div className="space-y-2">
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-        ผลลัพธ์การคัดกรองปริมาณสถิติ
-      </p>
+    <div className="space-y-3 pt-1">
       {data.map((item, idx) => {
         const value = Number(item.value) || 0;
         const percentage = Math.round((value / maxVal) * 100);
 
         return (
-          <div key={idx} className="space-y-0.5">
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-slate-600">{item.label}</span>
-              <span className="text-slate-400 font-bold tabular-nums text-[10px]">
-                {value} รายการ ({percentage}%)
+          <div key={idx} className="space-y-1.5 hover:translate-x-0.5 transition-transform duration-200">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-700">{item.label}</span>
+              <span className="text-slate-500 font-extrabold tabular-nums text-[10px]">
+                {value} รายการ <span className="text-slate-400 font-semibold">({percentage}%)</span>
               </span>
             </div>
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-slate-100/70 rounded-full overflow-hidden border border-slate-100/30">
               <div
-                className="h-full bg-brand rounded-full transition-all duration-500"
+                className="h-full bg-linear-to-r from-brand/90 to-brand rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${percentage}%` }}
               />
             </div>

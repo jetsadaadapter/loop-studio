@@ -37,7 +37,6 @@ interface TabOutputProps {
 }
 
 export function TabOutput({ job }: TabOutputProps) {
-  const [innerTab, setInnerTab] = useState<"overview" | "all">("overview");
   const [viewMode, setViewMode] = useState<"table" | "json">("table");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -149,6 +148,17 @@ export function TabOutput({ job }: TabOutputProps) {
 
   const dynamicSchemaDeclarations = getFunctionDeclarationsFromJob(job);
   const isDynamicSchemaResult = dynamicSchemaDeclarations.length > 0 && items.length > 0;
+
+  const showDashboardTab = isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult;
+  const defaultTab = (isDynamicLayoutResult || isPurchaseIntentAnalysisResult) ? "dashboard" : "overview";
+
+  const [prevJobId, setPrevJobId] = useState(job.id);
+  const [innerTab, setInnerTab] = useState<"overview" | "dashboard" | "all">(defaultTab);
+
+  if (job.id !== prevJobId) {
+    setPrevJobId(job.id);
+    setInnerTab(defaultTab);
+  }
 
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
@@ -266,6 +276,29 @@ export function TabOutput({ job }: TabOutputProps) {
 
   const allFieldsKeys = getAllKeys(allFieldsItems, schemaHintKeys);
 
+  const tabOverviewLabel = (() => {
+    if (isPreProcessResult) return "ตั้งค่า (Overview)";
+    if (isSingleTextSummary || structuredObjectData || isGeminiSummaryJob) return "สรุปผล AI (Summary)";
+    if (isDynamicLayoutResult) return "สรุปการทำงาน (Summary)";
+    if (isStructuredReportResult) return "สรุปรายงาน (Summary)";
+    if (isCommentScraper) return "ความคิดเห็น (Comments)";
+    if (isExportCommentsJob) return "โพสต์ (Posts)";
+    if (isAnalysisOverview) return "ผลวิเคราะห์ (Analysis)";
+    return "ภาพรวม (Overview)";
+  })();
+
+  const tabDashboardLabel = (() => {
+    if (isPurchaseIntentAnalysisResult) return "เจตนาซื้อ (Dashboard)";
+    if (isStructuredReportResult) return "สรุปแดชบอร์ด (Dashboard)";
+    return "แดชบอร์ด (Dashboard)";
+  })();
+
+  const tabAllFieldsLabel = (() => {
+    if (isCommentScraper || isPurchaseIntentAnalysisResult) return "คอมเมนต์ทั้งหมด (All Fields)";
+    if (isExportCommentsJob) return "โพสต์ทั้งหมด (All Fields)";
+    return "ตารางข้อมูล (All Fields)";
+  })();
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
       {/* Visualizer Controls Bar */}
@@ -281,18 +314,21 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
             )}
           >
-            {isPreProcessResult
-              ? "Overview"
-              : isGeminiSummaryJob
-                ? "Summary"
-                : isAnalysisOverview
-                  ? "Analysis"
-                  : isCommentScraper
-                    ? "Comments"
-                    : isExportCommentsJob
-                      ? "Posts"
-                      : "Overview"}
+            {tabOverviewLabel}
           </button>
+          {showDashboardTab && (
+            <button
+              onClick={() => setInnerTab("dashboard")}
+              className={cn(
+                "px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
+                innerTab === "dashboard"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
+              )}
+            >
+              {tabDashboardLabel}
+            </button>
+          )}
           <button
             onClick={() => setInnerTab("all")}
             className={cn(
@@ -302,7 +338,7 @@ export function TabOutput({ job }: TabOutputProps) {
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
             )}
           >
-            All Fields
+            {tabAllFieldsLabel}
           </button>
         </div>
 
@@ -341,32 +377,32 @@ export function TabOutput({ job }: TabOutputProps) {
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === "json" ? (
           <TabJsonView items={job.result} />
+        ) : innerTab === "dashboard" ? (
+          <DynamicLayoutVisualizer
+            items={
+              isPurchaseIntentAnalysisResult
+                ? ([
+                    {
+                      task_intent: "วิเคราะห์เจตนาซื้อสินค้า (ผลการวิเคราะห์จริง)",
+                      task_description: "วิเคราะห์สัดส่วนความคิดเห็นและคอมเมนต์ที่แยกประเภทเจตนาการซื้อสำเร็จ",
+                      sections: (job.result as unknown as { purchase_intent_analysis: { sections: unknown[] } }).purchase_intent_analysis.sections,
+                      overall_sentiment_focus: "mixed",
+                      confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
+                    }
+                  ] as unknown as DynamicUIItem[])
+                : isDynamicSchemaResult || isStructuredReportResult
+                  ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
+                  : (job.result &&
+                    typeof job.result === "object" &&
+                    !Array.isArray(job.result) &&
+                    "items" in job.result &&
+                    Array.isArray((job.result as Record<string, unknown>).items)
+                      ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
+                      : [])
+            }
+          />
         ) : innerTab === "overview" ? (
-          isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult ? (
-            <DynamicLayoutVisualizer
-              items={
-                isPurchaseIntentAnalysisResult
-                  ? ([
-                      {
-                        task_intent: "วิเคราะห์เจตนาซื้อสินค้า (ผลการวิเคราะห์จริง)",
-                        task_description: "วิเคราะห์สัดส่วนความคิดเห็นและคอมเมนต์ที่แยกประเภทเจตนาการซื้อสำเร็จ",
-                        sections: (job.result as unknown as { purchase_intent_analysis: { sections: unknown[] } }).purchase_intent_analysis.sections,
-                        overall_sentiment_focus: "mixed",
-                        confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
-                      }
-                    ] as unknown as DynamicUIItem[])
-                  : isDynamicSchemaResult || isStructuredReportResult
-                    ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
-                    : (job.result &&
-                      typeof job.result === "object" &&
-                      !Array.isArray(job.result) &&
-                      "items" in job.result &&
-                      Array.isArray((job.result as Record<string, unknown>).items)
-                        ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
-                        : [])
-              }
-            />
-          ) : isPreProcessResult ? (
+          isPreProcessResult ? (
             <TabOutputOverview
               items={items}
               paginatedItems={paginatedItems}
@@ -419,7 +455,7 @@ export function TabOutput({ job }: TabOutputProps) {
       </div>
 
       {/* Pagination Footer */}
-      {viewMode === "table" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult)) && (
+      {viewMode === "table" && innerTab !== "dashboard" && !(innerTab === "overview" && (isSingleTextSummary || structuredObjectData || isPreProcessResult || isDynamicLayoutResult || isPurchaseIntentAnalysisResult)) && (
         <TablePagination
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}
