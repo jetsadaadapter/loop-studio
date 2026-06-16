@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { CheckCircle2, Eye, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
@@ -47,16 +47,35 @@ export function ContentSection({
   onIntegrationPreviewClick,
   integrationMdInputRef,
 }: ContentSectionProps) {
+  const hasinstructions = instructions.trim().length > 0;
+  const hasIntegration = integration.trim().length > 0;
+
   return (
-    <Card className="rounded-xl border-0">
-      <CardHeader>
-        <h5 className="text-base font-semibold">Content</h5>
+    <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+            <FileText className="size-4" />
+          </div>
+          <div>
+            <h5 className="text-base font-semibold leading-tight">Content</h5>
+            <p className="text-xs text-muted-foreground">Instructions, integration guide, and tags</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <Field>
-          <FieldLabel>
-            Instructions <span className="text-destructive">*</span>
-          </FieldLabel>
+          <div className="flex items-center justify-between">
+            <FieldLabel>
+              Instructions <span className="text-destructive">*</span>
+            </FieldLabel>
+            {hasinstructions && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
+                <CheckCircle2 className="size-3" />
+                Filled
+              </span>
+            )}
+          </div>
           <input
             ref={instructionsMdInputRef}
             type="file"
@@ -67,18 +86,19 @@ export function ContentSection({
             onChange={onMdInputChange}
           />
           <textarea
-            placeholder="Instructions (supports Markdown)"
+            placeholder="Write instructions in Markdown..."
             value={instructions}
             onChange={(event) => onChange("instructions", event.target.value)}
             onPaste={onPaste}
             onBlur={() => onBlur("instructions")}
-            rows={12}
-            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
+            rows={8}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
           />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => instructionsMdInputRef.current?.click()}
             >
               Import .md
@@ -86,10 +106,11 @@ export function ContentSection({
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={onPreviewClick}
               className="flex items-center gap-1.5"
             >
-              <Eye className="size-4" />
+              <Eye className="size-3.5" />
               Preview
             </Button>
             <span className="text-xs text-muted-foreground">
@@ -104,7 +125,15 @@ export function ContentSection({
         </Field>
 
         <Field>
-          <FieldLabel>Integration</FieldLabel>
+          <div className="flex items-center justify-between">
+            <FieldLabel>Integration</FieldLabel>
+            {hasIntegration && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
+                <CheckCircle2 className="size-3" />
+                Filled
+              </span>
+            )}
+          </div>
           <input
             ref={integrationMdInputRef}
             type="file"
@@ -115,18 +144,19 @@ export function ContentSection({
             onChange={onIntegrationMdInputChange}
           />
           <textarea
-            placeholder="Integration (supports Markdown)"
+            placeholder="Write integration guide in Markdown..."
             value={integration}
             onChange={(event) => onChange("integration", event.target.value)}
             onPaste={onIntegrationPaste}
             onBlur={() => onBlur("integration")}
-            rows={12}
-            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
+            rows={8}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
           />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => integrationMdInputRef.current?.click()}
             >
               Import .md
@@ -134,10 +164,11 @@ export function ContentSection({
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={onIntegrationPreviewClick}
               className="flex items-center gap-1.5"
             >
-              <Eye className="size-4" />
+              <Eye className="size-3.5" />
               Preview
             </Button>
             <span className="text-xs text-muted-foreground">

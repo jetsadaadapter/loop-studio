@@ -64,11 +64,6 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
           ? "Add a new app to the catalog."
           : "Edit app details, media, and publishing options."
       }
-      actions={
-        <Button type="button" variant="outline" onClick={() => router.push("/manage/apps")}>
-          Back to List
-        </Button>
-      }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {isLoading ? (
@@ -169,7 +164,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
           </div>
         )}
 
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={isSubmitting || isLoading}>

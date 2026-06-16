@@ -1,5 +1,6 @@
 "use client";
 
+import { MousePointerClick } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
@@ -56,9 +57,17 @@ export function ActionSection({
   }, [linkType]);
 
   return (
-    <Card className="rounded-xl border-0">
-      <CardHeader>
-        <h5 className="text-base font-semibold">Action</h5>
+    <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+            <MousePointerClick className="size-4" />
+          </div>
+          <div>
+            <h5 className="text-base font-semibold leading-tight">Action</h5>
+            <p className="text-xs text-muted-foreground">CTA button link and label configuration</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <Field>
@@ -73,9 +82,24 @@ export function ActionSection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start">
-              <SelectItem value="internal">internal</SelectItem>
-              <SelectItem value="external">external</SelectItem>
-              <SelectItem value="instruction">instruction</SelectItem>
+              <SelectItem value="internal">
+                <div className="flex flex-col gap-0.5 py-0.5">
+                  <span className="text-xs font-medium leading-snug">Internal</span>
+                  <span className="text-[10px] text-muted-foreground leading-snug">Link to a page within this app</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="external">
+                <div className="flex flex-col gap-0.5 py-0.5">
+                  <span className="text-xs font-medium leading-snug">External</span>
+                  <span className="text-[10px] text-muted-foreground leading-snug">Link to an outside URL</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="instruction">
+                <div className="flex flex-col gap-0.5 py-0.5">
+                  <span className="text-xs font-medium leading-snug">Instruction</span>
+                  <span className="text-[10px] text-muted-foreground leading-snug">No link, show instructions only</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
           <FieldError

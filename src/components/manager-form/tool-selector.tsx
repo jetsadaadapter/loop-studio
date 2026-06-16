@@ -28,6 +28,8 @@ export function ToolSelector({
   const [tools, setTools] = useState<ManageToolApiItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const selectedTool = tools.find((t) => t.id === value);
+
   useEffect(() => {
     getManageTools()
       .then(setTools)
@@ -46,19 +48,31 @@ export function ToolSelector({
         disabled={loading}
       >
         <SelectTrigger className="w-full">
-          <SelectValue
-            placeholder={loading ? "Loading tools..." : "Select a tool"}
-          />
+          {selectedTool ? (
+            <span className="text-xs font-medium truncate">
+              {selectedTool.name}
+            </span>
+          ) : (
+            <SelectValue
+              placeholder={loading ? "Loading tools..." : "Select a tool"}
+            />
+          )}
         </SelectTrigger>
-        <SelectContent align="start">
+        <SelectContent align="start" className="max-w-xs sm:max-w-sm">
           {tools.map((tool) => (
             <SelectItem
               key={tool.id}
               value={tool.id}
-              className="flex flex-col items-start"
+              className="py-2"
             >
-              <span className="font-medium">{tool.name}</span>
-              <span className="text-xs text-slate-500">{tool.id}</span>
+              <div className="flex flex-col gap-0.5 min-w-0 overflow-hidden pr-2">
+                <span className="text-xs font-medium leading-snug truncate">
+                  {tool.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-mono leading-snug truncate">
+                  {tool.id}
+                </span>
+              </div>
             </SelectItem>
           ))}
         </SelectContent>

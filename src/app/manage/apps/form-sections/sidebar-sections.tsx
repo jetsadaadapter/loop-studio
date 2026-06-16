@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CircleIcon } from "lucide-react";
+import { CircleIcon, ImageIcon, MonitorCheck, Tag } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -27,6 +27,30 @@ type SidebarSectionsProps = {
   onStatusChange: (value: string) => void;
   onBadgeChange: (value: string) => void;
 };
+
+function SidebarCardHeader({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <CardHeader className="pb-2">
+      <div className="flex items-center gap-2.5">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+          {icon}
+        </div>
+        <div>
+          <h5 className="text-base font-semibold leading-tight">{title}</h5>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </CardHeader>
+  );
+}
 
 export function SidebarSections({
   iconId,
@@ -64,10 +88,12 @@ export function SidebarSections({
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-xl border-0">
-        <CardHeader>
-          <h5 className="text-base font-semibold">Icon</h5>
-        </CardHeader>
+      <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+        <SidebarCardHeader
+          icon={<Tag className="size-4" />}
+          title="Icon"
+          description="App icon shown in listings"
+        />
         <CardContent>
           <Field>
             <ImageUpload
@@ -90,10 +116,12 @@ export function SidebarSections({
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl border-0">
-        <CardHeader>
-          <h5 className="text-base font-semibold">Cover Image</h5>
-        </CardHeader>
+      <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+        <SidebarCardHeader
+          icon={<ImageIcon className="size-4" />}
+          title="Cover Image"
+          description="OG-style image for sharing previews"
+        />
         <CardContent>
           <Field>
             <ImageUpload
@@ -118,10 +146,12 @@ export function SidebarSections({
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl border-0">
-        <CardHeader>
-          <h5 className="text-base font-semibold">Status</h5>
-        </CardHeader>
+      <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+        <SidebarCardHeader
+          icon={<MonitorCheck className="size-4" />}
+          title="Status"
+          description="Visibility and badge settings"
+        />
         <CardContent className="space-y-4">
           <Field>
             <FieldLabel>Publish Status</FieldLabel>
@@ -140,7 +170,7 @@ export function SidebarSections({
                   <SelectItem key={status.value} value={status.value}>
                     <div className="flex items-center gap-2">
                       <CircleIcon className={`size-2 ${status.color}`} />
-                      <span className="truncate">{status.label}</span>
+                      <span className="text-xs truncate">{status.label}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -155,7 +185,7 @@ export function SidebarSections({
                 <SelectValue placeholder="Select badge" />
               </SelectTrigger>
               <SelectContent align="start">
-                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="none"><span className="text-xs">None</span></SelectItem>
                 <SelectItem value="New">
                   <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700">
                     New

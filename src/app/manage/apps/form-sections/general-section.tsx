@@ -1,5 +1,6 @@
 "use client";
 
+import { LayoutGrid } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
@@ -38,9 +39,17 @@ export function GeneralSection({
   onBlur,
 }: GeneralSectionProps) {
   return (
-    <Card className="rounded-xl border-0">
-      <CardHeader>
-        <h5 className="text-base font-semibold">General</h5>
+    <Card className="rounded-xl border border-slate-200/70 shadow-sm">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+            <LayoutGrid className="size-4" />
+          </div>
+          <div>
+            <h5 className="text-base font-semibold leading-tight">General</h5>
+            <p className="text-xs text-muted-foreground">App name, category, and description</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <Field>
@@ -79,7 +88,7 @@ export function GeneralSection({
             <SelectContent align="start">
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
+                  <span className="text-xs">{cat.name}</span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -101,7 +110,7 @@ export function GeneralSection({
             onChange={(e) => onChange("description", e.target.value)}
             onBlur={() => onBlur("description")}
             rows={5}
-            className="min-h-24 w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="min-h-24 w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
           />
           {!(touched.description && fieldErrors.description) && (
             <FieldDescription>
