@@ -1,4 +1,4 @@
-import { LEGAL_LINKS } from "@/lib/legal-links";
+import { LEGAL_LINKS, CONTACT_LINKS } from "@/lib/legal-links";
 
 export type FooterLinkItem = {
     label: string;
@@ -7,13 +7,13 @@ export type FooterLinkItem = {
 
 export const libraryFooterLinks: Record<string, FooterLinkItem[]> = {
     Library: [
-        { label: "MCP", href: "#" },
-        { label: "Platform", href: "#" },
-        { label: "Tool", href: "#" },
+        { label: "MCP", href: "/apps?category=mcp" },
+        { label: "Platform", href: "/apps?category=platform" },
+        { label: "Tool", href: "/apps?category=tool" },
     ],
     Updates: [
-        { label: "Submit an App", href: "#" },
-        { label: "Changelog", href: "#" },
+        { label: "Submit an App", href: CONTACT_LINKS.requestForm },
+        { label: "Changelog", href: "/changelogs" },
     ],
     Company: [
         { label: "About", href: "/about" },

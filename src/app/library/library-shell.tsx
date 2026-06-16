@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   createContext,
@@ -58,9 +58,23 @@ export function LibraryShell({ children }: { children: ReactNode }) {
     [],
   );
   const [activeCategory, setActiveCategory] = useState<MainTabKey | null>(null);
+  const [prevCategoryParam, setPrevCategoryParam] = useState<string | null>(null);
   const [isFullWidth, setIsFullWidth] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   // Edge Middleware handles auth protection
+
+  const categoryParam = searchParams.get("category");
+  const nextCategory =
+    (pathname === "/apps" || pathname === "/") &&
+    (categoryParam === "mcp" || categoryParam === "platform" || categoryParam === "tool")
+      ? categoryParam
+      : null;
+
+  if (nextCategory !== prevCategoryParam) {
+    setPrevCategoryParam(nextCategory);
+    setActiveCategory(nextCategory);
+  }
 
   useEffect(() => {
     const onScroll = () => {
