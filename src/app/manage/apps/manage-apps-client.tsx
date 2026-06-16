@@ -56,6 +56,7 @@ type AppRecord = {
   imageId: string;
   iconId: string;
   instructions: string;
+  integration: string;
   ctaLabel: string;
   ctaLink: string;
   linkType: AppLinkType;
@@ -89,6 +90,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     imageId: item.imageId,
     iconId: item.iconId,
     instructions: item.instructions,
+    integration: item.integration ?? "",
     ctaLabel: item.ctaLabel ?? "",
     ctaLink: item.ctaLink ?? "",
     linkType: item.linkType,
@@ -611,6 +613,7 @@ export function ManageAppsClient() {
                       isDeleting={deletingId === row.id}
                       onEdit={() => router.push(`/manage/apps/${row.id}/edit`)}
                       onDelete={() => setDeleteTarget(row)}
+                      integration={row.integration}
                     />
                   );
                 })}

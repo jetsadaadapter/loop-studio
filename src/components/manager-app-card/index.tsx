@@ -9,10 +9,12 @@ import {
   Folder,
   Link as LinkIcon,
   Pencil,
+  PlugZap,
   Trash2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
+import { IntegrationPreviewDialog } from "@/app/manage/apps/integration-preview-dialog";
 import { cn } from "@/lib/utils";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
@@ -31,6 +33,7 @@ type ManagerAppCardProps = {
   item: ManagerAppCardItem;
   isBusy?: boolean;
   isDeleting?: boolean;
+  integration?: string;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -50,10 +53,31 @@ export function ManagerAppCard({
   item,
   isBusy = false,
   isDeleting = false,
+  integration = "",
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showIntegration, setShowIntegration] = useState(false);
+  const [didCopyIntegration, setDidCopyIntegration] = useState(false);
+
+  async function handleCopyIntegration() {
+    await navigator.clipboard.writeText(integration);
+    setDidCopyIntegration(true);
+    setTimeout(() => setDidCopyIntegration(false), 2000);
+  }
+
+  function handleDownloadIntegration() {
+    const blob = new Blob([integration], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${item.name.toLowerCase().replace(/\s+/g, "-")}-integration.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const hasIntegration = integration.trim().length > 0;
 
   const type = TYPE_STYLES[item.linkType] ?? TYPE_STYLES.internal;
   const imageSrc = item.imageUrl?.trim() || null;
@@ -129,6 +153,18 @@ export function ManagerAppCard({
                     window.open(url, "_blank");
                   },
                 },
+                ...(hasIntegration
+                  ? [
+                      {
+                        label: "Integration Guide",
+                        icon: PlugZap,
+                        onClick: (e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          setShowIntegration(true);
+                        },
+                      },
+                    ]
+                  : []),
                 {
                   label: isDeleting ? "Deleting…" : "Delete",
                   icon: Trash2,
@@ -199,6 +235,17 @@ export function ManagerAppCard({
           </span>
         </div>
       </div>
+
+      {hasIntegration && (
+        <IntegrationPreviewDialog
+          open={showIntegration}
+          onOpenChange={setShowIntegration}
+          integration={integration}
+          onCopy={handleCopyIntegration}
+          onDownload={handleDownloadIntegration}
+          didCopy={didCopyIntegration}
+        />
+      )}
     </Card>
   );
 }
