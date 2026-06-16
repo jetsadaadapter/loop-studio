@@ -14,6 +14,7 @@ import type {
 } from "../tool-job-utils";
 import { JobAiAnalysis } from "./job-ai-analysis";
 import { JobEngagementStats } from "./job-engagement-stats";
+import { getProxiedUrl } from "./visualizer/shared/image-with-fallback";
 
 type JobResultItemProps = {
   item: NonNullable<ToolJob["result"]>["items"][0];
@@ -48,8 +49,10 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
     "";
   const analysis = (item.analysis as AnalysisResult) || {};
 
-  const profilePic = String(
-    typedItem.user?.profilePic || typedSource.user?.profilePic || "",
+  const profilePic = getProxiedUrl(
+    String(
+      typedItem.user?.profilePic || typedSource.user?.profilePic || "",
+    )
   );
   const likes =
     typeof typedItem.likes === "number"
@@ -133,10 +136,12 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
     );
     return found?.thumbnail || "";
   };
-  const thumbnail = String(
-    getFirstThumbnail(typedItem.media) ||
-      getFirstThumbnail(typedSource.media) ||
-      "",
+  const thumbnail = getProxiedUrl(
+    String(
+      getFirstThumbnail(typedItem.media) ||
+        getFirstThumbnail(typedSource.media) ||
+        "",
+    )
   );
 
   const displayName = String(

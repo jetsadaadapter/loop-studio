@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { User, ExternalLink } from "lucide-react";
 import type { ScrapedJobItem, ScrapedComment } from "../tool-job-utils";
+import { getProxiedUrl } from "./visualizer/shared/image-with-fallback";
 
 type JobPoliticianGroupProps = {
   uniquePoliticians: string[];
@@ -40,7 +41,7 @@ export function JobPoliticianGroup({
                 text: comment.text,
                 postUrl: String(typedItem.url || typedItem.facebookUrl || ""),
                 postPage: String(typedItem.pageName || typedItem.postId || ""),
-                profilePic: pageProfilePic,
+                profilePic: getProxiedUrl(pageProfilePic),
               });
             }
           });

@@ -106,7 +106,22 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
   const getIsFinished = (run?: ToolRunGrouped) => {
     if (!run) return isJobComplete;
     const state = String(run.state || "").toLowerCase();
-    return state === "completed" || state === "failed" || state === "cancelled";
+
+    // Check if ALL jobs in the run have reached a terminal state
+    const allJobsFinished = run.jobs && run.jobs.length > 0
+      ? run.jobs.every((j) => {
+          const jobStatus = getJobStatus(j);
+          return jobStatus === "completed" || jobStatus === "failed" || jobStatus === "cancelled";
+        })
+      : false;
+
+    // Consider finished if top-level state is terminal OR all jobs are finished
+    return (
+      state === "completed" ||
+      state === "failed" ||
+      state === "cancelled" ||
+      allJobsFinished
+    );
   };
 
   const isFinished = getIsFinished(activeRun);
@@ -132,11 +147,40 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
   const currentStep = isSuccess ? PIPELINE_STEPS.length - 1 : step;
 
 
-  // Job complete signal from parent (API polling) → close immediately
+  // We only auto-close if the run is completed successfully
+  const isSuccessFinished = activeRun
+    ? String(activeRun.state || "").toLowerCase() === "completed" &&
+      activeRun.jobs &&
+      activeRun.jobs.length > 0 &&
+      activeRun.jobs.every((j) => getJobStatus(j) === "completed")
+    : isJobComplete;
+
+  // Job complete signal from parent (API polling) → close immediately if successful
+  // SAFETY: Only close if truly finished (no active/queued/waiting jobs)
   useEffect(() => {
-    if (!isFinished || !open) return;
+    if (!open) return;
+    if (!isSuccessFinished) return;
+
+    // Double-check: ensure no jobs are still running
+    if (activeRun?.jobs) {
+      const hasActiveJobs = activeRun.jobs.some((j) => {
+        const status = getJobStatus(j);
+        return status === "active" || status === "running" || status === "queued" || status === "waiting";
+      });
+
+      if (hasActiveJobs) {
+        console.warn("[ProcessingModal] Prevented premature close - active jobs still running:", {
+          runId: activeRun.runId,
+          runState: activeRun.state,
+          jobs: activeRun.jobs.map(j => ({ jobId: j.jobId, state: j.state, status: getJobStatus(j) }))
+        });
+        return;
+      }
+    }
+
+    console.log("[ProcessingModal] Auto-closing modal - run completed successfully");
     onOpenChange(false);
-  }, [isFinished, open, onOpenChange]);
+  }, [isSuccessFinished, open, onOpenChange, activeRun]);
 
   if (!open) return null;
 

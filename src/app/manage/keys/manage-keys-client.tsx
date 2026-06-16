@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, startTransition } from "react";
-import { Search, RotateCw, Plus, SlidersHorizontal, KeyRound, Copy, Check, Eye, EyeOff } from "lucide-react";
+import { Search, RotateCw, Plus, SlidersHorizontal, KeyRound, Copy, Check, Eye, EyeOff, BookOpen } from "lucide-react";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerKeyTable, type ApiKeyRecord } from "@/components/manager-key-table";
 import { ManagerForm } from "@/components/manager-form";
@@ -49,7 +49,7 @@ export function ManageKeysClient() {
   const [createdRawKey, setCreatedRawKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showKey, setShowKey] = useState(false);
-  const [previewAppId, setPreviewAppId] = useState<string | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const loadKeys = useCallback(async (options?: { silent?: boolean }) => {
     if (options?.silent) setIsRefreshing(true);
@@ -218,6 +218,23 @@ export function ManageKeysClient() {
 
   return (
     <ManagerShell title={pageTitle} description={pageSubtitle}>
+      {/* Header Actions */}
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-700 font-sans">API Keys & Integration</h2>
+          <p className="text-xs text-slate-500 mt-0.5 font-sans">Manage access tokens and configure webhooks</p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsGuideOpen(true)}
+          className="h-8 bg-white border-slate-200/60 hover:bg-slate-50 text-xs font-semibold px-3.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-xs"
+        >
+          <BookOpen className="size-3.5 shrink-0 text-brand" />
+          Integration Guide
+        </Button>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5">
         <div className="relative flex-1 max-w-md">
@@ -312,7 +329,6 @@ export function ManageKeysClient() {
           onRetry={() => void loadKeys()}
           onAdd={() => setMode("create")}
           onClearFilters={clearFilters}
-          onReadGuide={(appId) => setPreviewAppId(appId)}
         />
         {!isLoading && totalItems > pageSize && (
           <ManagerPagination
@@ -339,9 +355,8 @@ export function ManageKeysClient() {
 
       {/* Instruction/Guide Preview Modal */}
       <InstructionPreviewDialog
-        open={previewAppId !== null}
-        onOpenChange={(open) => !open && setPreviewAppId(null)}
-        appId={previewAppId || ""}
+        open={isGuideOpen}
+        onOpenChange={setIsGuideOpen}
       />
 
       {/* Creation / Editing Sheet Drawer */}

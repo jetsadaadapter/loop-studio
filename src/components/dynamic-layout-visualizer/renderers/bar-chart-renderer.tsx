@@ -5,6 +5,7 @@ import { DynamicUISection } from "../types";
 interface BarChartData {
   label: string;
   value: number;
+  percent?: string | number;
 }
 
 export function BarChartRenderer({ section }: { section: DynamicUISection }) {
@@ -42,27 +43,39 @@ export function BarChartRenderer({ section }: { section: DynamicUISection }) {
     );
   }
 
-  // Active data mode - calculate max to scale percentages
+  // Active data mode - calculate max to scale progress bar widths
   const maxVal = Math.max(...data.map((item) => Number(item.value) || 0), 1);
+  const totalSum = data.reduce((acc, item) => acc + (Number(item.value) || 0), 0);
 
   return (
     <div className="space-y-3 pt-1">
       {data.map((item, idx) => {
         const value = Number(item.value) || 0;
-        const percentage = Math.round((value / maxVal) * 100);
+        const barWidthPercent = Math.round((value / maxVal) * 100);
+
+        // Resolve display percentage from the API's percent field or calculate relative to totalSum
+        let displayPercent = "";
+        const rawPercent = item.percent;
+        if (rawPercent !== undefined && rawPercent !== null) {
+          const pctStr = String(rawPercent).trim();
+          displayPercent = pctStr.endsWith("%") ? pctStr : `${pctStr}%`;
+        } else {
+          const calculated = totalSum > 0 ? Math.round((value / totalSum) * 100) : 0;
+          displayPercent = `${calculated}%`;
+        }
 
         return (
           <div key={idx} className="space-y-1.5 hover:translate-x-0.5 transition-transform duration-200">
             <div className="flex items-center justify-between text-xs">
               <span className="font-extrabold text-slate-700">{item.label}</span>
               <span className="text-slate-500 font-extrabold tabular-nums text-[10px]">
-                {value} รายการ <span className="text-slate-400 font-semibold">({percentage}%)</span>
+                {value} รายการ <span className="text-slate-400 font-semibold">({displayPercent})</span>
               </span>
             </div>
             <div className="h-2 w-full bg-slate-100/70 rounded-full overflow-hidden border border-slate-100/30">
               <div
                 className="h-full bg-linear-to-r from-brand/90 to-brand rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${percentage}%` }}
+                style={{ width: `${barWidthPercent}%` }}
               />
             </div>
           </div>

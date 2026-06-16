@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { KeyRound, Edit3, Trash2, ToggleLeft, ToggleRight, Link2, Copy, Check, BookOpen } from "lucide-react";
+import { KeyRound, Edit3, Trash2, ToggleLeft, ToggleRight, Link2, Copy, Check } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ManagerActionsDropdown } from "../manager-actions-dropdown";
 
@@ -56,7 +56,6 @@ export interface ManagerKeyTableProps {
   onRetry: () => void;
   onAdd: () => void;
   onClearFilters: () => void;
-  onReadGuide?: (appId: string) => void;
 }
 
 export function ManagerKeyTable({
@@ -72,7 +71,6 @@ export function ManagerKeyTable({
   onRetry,
   onAdd,
   onClearFilters,
-  onReadGuide,
 }: ManagerKeyTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200/60 rounded-2xl bg-white shadow-xs">
@@ -236,12 +234,6 @@ export function ManagerKeyTable({
                       <ManagerActionsDropdown
                         triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
                         actions={[
-                          {
-                            label: "Read Guide",
-                            icon: BookOpen,
-                            onClick: () => onReadGuide?.(row.appId),
-                            disabled: isSubmitting || deletingId !== null,
-                          },
                           {
                             label: "Edit",
                             icon: Edit3,

@@ -30,6 +30,7 @@ const TRUSTED_IMG_SRCS = [
     "https://*.googleusercontent.com",
     "https://*.ggpht.com",
     "https://*.google.com",
+    "https://*.gstatic.com",
     "https://images.unsplash.com",
     "https://source.unsplash.com",
     "https://ui-avatars.com",

@@ -9,6 +9,7 @@ import { DynamicUISection } from "../types";
 interface PieChartData {
   label: string;
   value: number;
+  percent?: string | number;
 }
 
 export function PieChartRenderer({ section }: { section: DynamicUISection }) {
@@ -122,7 +123,17 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
 
   const chartData = data.map((item, index) => {
     const value = Number(item.value) || 0;
-    const percent = total > 0 ? (value / total) * 100 : 0;
+    
+    // Resolve percent from the API's percent field if available, or calculate relative to total
+    let percent = total > 0 ? (value / total) * 100 : 0;
+    const rawPercent = item.percent;
+    if (rawPercent !== undefined && rawPercent !== null) {
+      const parsedPercent = parseFloat(String(rawPercent).replace("%", ""));
+      if (!isNaN(parsedPercent)) {
+        percent = parsedPercent;
+      }
+    }
+
     const semantic = getSemanticColor(item.label, index);
     return {
       name: item.label,

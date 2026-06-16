@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { normalizeStartUrls } from "../../../start-urls-utils";
 
 interface SocialAnalystVisualizerProps {
   job: ToolJob;
@@ -104,6 +105,98 @@ function extractSocialAnalystData(job: ToolJob): SocialAnalystPayload | null {
 
 export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps) {
   const data = useMemo(() => extractSocialAnalystData(job), [job]);
+  const startUrls = useMemo(() => normalizeStartUrls(job.input?.startUrls), [job.input?.startUrls]);
+
+
+  const resolvePostUrl = (post: Post, idx: number) => {
+    const postUrl = String(post.post_url || "").trim();
+    const postId = String(post.post_id || "").trim();
+    const pageName = String(post.page_name || "").trim().toLowerCase();
+
+    // 1. Direct match with startUrls
+    if (postUrl.startsWith("http://") || postUrl.startsWith("https://")) {
+      const normalizedPostUrl = postUrl.replace(/\/$/, "");
+      const exactMatch = startUrls.find(u => u.replace(/\/$/, "") === normalizedPostUrl);
+      if (exactMatch) return exactMatch;
+    }
+
+    // Extract any numeric segments of length >= 8
+    const extractNumericIds = (val: string): string[] => {
+      const matches = val.match(/\d{8,}/g);
+      return matches ? Array.from(matches) : [];
+    };
+
+    const numericIds = [
+      ...extractNumericIds(postUrl),
+      ...extractNumericIds(postId),
+    ];
+
+    // 2. Numeric ID Match: check if any numeric ID is found as a substring in a startUrl
+    if (numericIds.length > 0) {
+      for (const numId of numericIds) {
+        const matchedUrl = startUrls.find(u => u.includes(numId));
+        if (matchedUrl) {
+          return matchedUrl;
+        }
+      }
+    }
+
+    // 3. Page Name Match: match "sale here" or "uniqlo" to a startUrl
+    if (pageName) {
+      const cleanPageName = pageName.replace(/[^a-z0-9]/g, "");
+      if (cleanPageName.length >= 3) {
+        const matchedUrl = startUrls.find(u => {
+          const cleanUrl = u.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return cleanUrl.includes(cleanPageName);
+        });
+        if (matchedUrl) {
+          return matchedUrl;
+        }
+      }
+    }
+
+    // 4. Index Pattern Match ("p1", "p2", etc.)
+    const extractPPatternIndex = (val: string): number | null => {
+      const lowercase = val.toLowerCase();
+      if (lowercase.startsWith("p") && /^\d+$/.test(lowercase.slice(1))) {
+        return parseInt(lowercase.slice(1), 10) - 1;
+      }
+      try {
+        const parsed = new URL(val);
+        const segments = parsed.pathname.split("/").filter(Boolean);
+        const last = segments[segments.length - 1] || "";
+        if (last.toLowerCase().startsWith("p") && /^\d+$/.test(last.slice(1))) {
+          return parseInt(last.slice(1), 10) - 1;
+        }
+      } catch {}
+      return null;
+    };
+
+    const pIndices = [
+      extractPPatternIndex(postId),
+      extractPPatternIndex(postUrl),
+    ].filter((v): v is number => v !== null);
+
+    if (pIndices.length > 0) {
+      const index = pIndices[0];
+      if (index >= 0 && index < startUrls.length) {
+        return startUrls[index];
+      }
+    }
+
+    // 5. Fallback to index-based mapping
+    if (idx >= 0 && idx < startUrls.length) {
+      return startUrls[idx];
+    }
+
+    // 6. Absolute URL fallback
+    if (postUrl.startsWith("http://") || postUrl.startsWith("https://")) {
+      return postUrl;
+    }
+
+    return startUrls[0] || postUrl || "";
+  };
+
   const [darkMode, setDarkMode] = useState(false);
   const [selectedTagFilter, setSelectedTagFilter] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'posts' | 'metrics' | 'segments' | 'comments' | 'insights'>('posts');
@@ -384,7 +477,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
                       {post.post_summary}
                     </p>
                     <a
-                      href={post.post_url}
+                      href={resolvePostUrl(post, idx)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={cn(

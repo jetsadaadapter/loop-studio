@@ -103,9 +103,28 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
   );
   const [jobs, setJobs] = useState<ToolRunGrouped[]>(initialJobs.data);
   const [isRunning, setIsRunning] = useState(false);
-  const [isProcessingOpen, setIsProcessingOpen] = useState(false);
+  const [activeRunId, setActiveRunId] = useState<string | null>(() => {
+    const latestRun = initialJobs?.data?.[0];
+    if (latestRun) {
+      const status = getJobStatus(latestRun);
+      if (status === "active" || status === "running" || status === "queued" || status === "waiting") {
+        return latestRun.runId;
+      }
+    }
+    return null;
+  });
+  const previousRunIdRef = useRef<string | null>(null);
+  const [isProcessingOpen, setIsProcessingOpen] = useState(() => {
+    const latestRun = initialJobs?.data?.[0];
+    if (latestRun) {
+      const status = getJobStatus(latestRun);
+      return status === "active" || status === "running" || status === "queued" || status === "waiting";
+    }
+    return false;
+  });
   const [lastTriggeredJobId, setLastTriggeredJobId] = useState<string | null>(null);
   const [isJobComplete, setIsJobComplete] = useState(false);
+  const [isWaitingForRun, setIsWaitingForRun] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>(() =>
@@ -151,28 +170,90 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
           // Verify this run corresponds to the one we triggered
           const isTriggeredRun = lastTriggeredJobId
             ? targetRun.jobs?.some((j) => j.jobId === lastTriggeredJobId || j.id === lastTriggeredJobId)
-            : true;
+            : previousRunIdRef.current
+              ? targetRun.runId !== previousRunIdRef.current
+              : true;
 
           if (isTriggeredRun) {
+            setIsWaitingForRun(false);
+            setActiveRunId(targetRun.runId);
             const state = String(targetRun.state || "").toLowerCase();
-            const isFinished =
-              state === "completed" ||
-              state === "failed" ||
-              state === "cancelled";
+
+            // Check if ALL jobs in the run have reached a terminal state
+            const allJobsFinished = targetRun.jobs && targetRun.jobs.length > 0
+              ? targetRun.jobs.every((j) => {
+                  const jobStatus = getJobStatus(j);
+                  return jobStatus === "completed" || jobStatus === "failed" || jobStatus === "cancelled";
+                })
+              : false;
+
+            // Check if ANY job is still active
+            const hasActiveJobs = targetRun.jobs && targetRun.jobs.length > 0
+              ? targetRun.jobs.some((j) => {
+                  const jobStatus = getJobStatus(j);
+                  return jobStatus === "active" || jobStatus === "running" || jobStatus === "queued" || jobStatus === "waiting";
+                })
+              : false;
+
+            // Consider the run finished ONLY if:
+            // 1. All individual jobs have reached terminal states, AND
+            // 2. No jobs are still active/queued/waiting
+            const isFinished = allJobsFinished && !hasActiveJobs;
+
+            const isOverallCompleted = state === "completed";
+            const allJobsCompleted = targetRun.jobs && targetRun.jobs.length > 0
+              ? targetRun.jobs.every((j) => getJobStatus(j) === "completed")
+              : false;
+
+            const shouldCloseModal = isOverallCompleted && allJobsCompleted;
+
+            console.log("[ToolClient] Polling check:", {
+              runId: targetRun.runId,
+              runState: state,
+              allJobsFinished,
+              hasActiveJobs,
+              isFinished,
+              isOverallCompleted,
+              allJobsCompleted,
+              shouldCloseModal,
+              jobs: targetRun.jobs?.map(j => ({
+                jobId: j.jobId,
+                state: j.state,
+                status: getJobStatus(j)
+              }))
+            });
 
             if (isFinished) {
+              console.log("[ToolClient] Run finished. shouldCloseModal:", shouldCloseModal);
               if (pollRef.current) {
                 clearInterval(pollRef.current);
                 pollRef.current = null;
               }
-              setIsJobComplete(true);
-              setIsProcessingOpen(false);
-              setLastTriggeredJobId(null);
+
+              if (shouldCloseModal) {
+                setIsJobComplete(true);
+                setIsProcessingOpen(false);
+                setLastTriggeredJobId(null);
+                setActiveRunId(null);
+              } else {
+                // Keep modal open for non-completed states (failed/cancelled)
+                setIsJobComplete(false);
+                setJobs((prev) => {
+                  const exists = prev.some((run) => run.runId === targetRun.runId);
+                  if (!exists) {
+                    return [targetRun, ...prev];
+                  }
+                  return prev.map((run) => run.runId === targetRun.runId ? targetRun : run);
+                });
+              }
               await refreshJobs();
             } else {
+              // Update jobs state to reflect latest status
               setJobs((prev) => {
-                if (prev.length === 0) return [targetRun];
-                // Update only the first job (latest run) with the targetRun
+                const exists = prev.some((run) => run.runId === targetRun.runId);
+                if (!exists) {
+                  return [targetRun, ...prev];
+                }
                 return prev.map((run) => run.runId === targetRun.runId ? targetRun : run);
               });
             }
@@ -188,7 +269,7 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         pollRef.current = null;
       }
     };
-  }, [isProcessingOpen, lastTriggeredJobId, tool.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isProcessingOpen, lastTriggeredJobId, activeRunId, tool.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll active selected jobs (modal or visualizer) to auto-refresh their status and results
   useEffect(() => {
@@ -291,11 +372,22 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     setTestResult(null);
     setIsRunning(true);
     try {
-      const runRes = await runTool(tool.id, formData);
+      previousRunIdRef.current = jobs[0]?.runId || null;
+      setActiveRunId(null);
+      setIsWaitingForRun(true);
+      const runRes = await runTool(tool.id, formData) as Record<string, unknown>;
       setIsJobComplete(false);
-      if (runRes && runRes.jobId) {
-        setLastTriggeredJobId(runRes.jobId);
+      
+      const jobId = (runRes?.jobId as string | undefined) || ((runRes?.data as Record<string, unknown> | undefined)?.jobId as string | undefined);
+      const runId = (runRes?.runId as string | undefined) || ((runRes?.data as Record<string, unknown> | undefined)?.runId as string | undefined);
+      
+      if (jobId) {
+        setLastTriggeredJobId(jobId);
       }
+      if (runId) {
+        setActiveRunId(runId);
+      }
+      
       setIsProcessingOpen(true);
       setFormData(buildInitialForm(tool.params));
       setErrors({});
@@ -503,19 +595,37 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
         onOpenChange={setIsVisualizerOpen}
       />
       {(() => {
-        let activeRun = lastTriggeredJobId
-          ? jobs.find((run) =>
-              run.jobs?.some((j) => j.jobId === lastTriggeredJobId || j.id === lastTriggeredJobId)
-            )
-          : undefined;
+        let activeRun = activeRunId
+          ? jobs.find((run) => run.runId === activeRunId)
+          : lastTriggeredJobId
+            ? jobs.find((run) =>
+                run.jobs?.some((j) => j.jobId === lastTriggeredJobId || j.id === lastTriggeredJobId)
+              )
+            : undefined;
 
         // If we are waiting for the run to show up, do not fall back to jobs[0] yet
         // to prevent showing the previous completed/failed run.
-        if (!activeRun && !lastTriggeredJobId) {
+        if (!activeRun && !lastTriggeredJobId && !activeRunId && !isWaitingForRun) {
           activeRun = jobs.find((j) => {
             const status = getJobStatus(j);
             return status === "active" || status === "running" || status === "queued" || status === "waiting";
           }) || jobs[0];
+        }
+
+        // Debug logging
+        if (isProcessingOpen) {
+          console.log("[ProcessingModal] Debug state:", {
+            isProcessingOpen,
+            lastTriggeredJobId,
+            activeRunId: activeRun?.runId,
+            activeRunState: activeRun?.state,
+            activeRunJobsCount: activeRun?.jobs?.length,
+            activeRunJobsStates: activeRun?.jobs?.map(j => ({
+              jobId: j.jobId,
+              state: j.state,
+              status: getJobStatus(j)
+            }))
+          });
         }
 
         return (
@@ -527,6 +637,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
               if (!open) {
                 setIsJobComplete(false);
                 setLastTriggeredJobId(null);
+                setActiveRunId(null);
+                setIsWaitingForRun(false);
                 await refreshJobs();
               }
             }}

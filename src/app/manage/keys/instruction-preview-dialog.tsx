@@ -17,13 +17,11 @@ import { toast } from "sonner";
 interface InstructionPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  appId: string;
 }
 
 export function InstructionPreviewDialog({
   open,
   onOpenChange,
-  appId,
 }: InstructionPreviewDialogProps) {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -35,29 +33,35 @@ export function InstructionPreviewDialog({
     async function fetchInstruction() {
       setLoading(true);
       try {
+        console.log("[InstructionPreviewDialog] Fetching integration guide");
         const res = await fetch("/api/manage/keys/instruction");
-        if (!res.ok) throw new Error("Failed to load instructions");
+        console.log("[InstructionPreviewDialog] Response status:", res.status, res.statusText);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("[InstructionPreviewDialog] Response not OK:", errorText);
+          throw new Error(`Failed to load instructions: ${res.status} ${res.statusText}`);
+        }
+
         const data = await res.json();
+        console.log("[InstructionPreviewDialog] Response data:", { success: data.success, contentLength: data.content?.length });
+
         if (data.success && data.content) {
-          // Replace placeholder appId with actual appId dynamically
-          const customizedContent = data.content.replace(
-            /app_01ktqt92zh947r0d96p09w2ssh/g,
-            appId
-          );
-          setContent(customizedContent);
+          console.log("[InstructionPreviewDialog] Content loaded successfully");
+          setContent(data.content);
         } else {
           throw new Error(data.error || "Failed to load instructions");
         }
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to load integration guide.");
+        console.error("[InstructionPreviewDialog] Error loading instruction:", error);
+        toast.error(`Failed to load integration guide: ${error instanceof Error ? error.message : String(error)}`);
       } finally {
         setLoading(false);
       }
     }
 
     fetchInstruction();
-  }, [open, appId]);
+  }, [open]);
 
   const handleCopyAll = async () => {
     try {
@@ -80,7 +84,7 @@ export function InstructionPreviewDialog({
               Integration Guide
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 font-sans">
-              Read instructions on how to call APIs using your App ID ({appId})
+              Learn how to authenticate and call APIs using your App ID and Secret Key
             </DialogDescription>
           </DialogHeader>
 
