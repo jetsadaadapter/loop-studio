@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Users, ShieldCheck, ShieldAlert, UserCheck } from "lucide-react";
+import { Code2, Users, ShieldCheck, ShieldAlert, UserCheck } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 
 interface UserStatsProps {
@@ -13,12 +13,13 @@ export function UserStats({ users }: UserStatsProps) {
     const total = users.length;
     const systemAdmins = users.filter((u) => u.roles?.includes("system-admin")).length;
     const admins = users.filter((u) => u.roles?.includes("admin")).length;
+    const developers = users.filter((u) => u.roles?.includes("developer")).length;
     const generalUsers = users.filter((u) => u.roles?.includes("user")).length;
-    return { total, systemAdmins, admins, generalUsers };
+    return { total, systemAdmins, admins, developers, generalUsers };
   }, [users]);
 
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6 select-none animate-in fade-in duration-300">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5 mb-6 select-none animate-in fade-in duration-300">
       {/* Total Users */}
       <div className="flex flex-col items-center justify-center p-5 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-500/[0.02] via-emerald-500/[0.04] to-emerald-500/[0.08] shadow-3xs shadow-emerald-500/2 hover:shadow-2xs transition-all">
         <div className="flex items-center gap-2 mb-2 text-emerald-600">
@@ -52,7 +53,18 @@ export function UserStats({ users }: UserStatsProps) {
         </span>
       </div>
 
-      {/* General Users */}
+      {/* Developers */}
+      <div className="flex flex-col items-center justify-center p-5 rounded-2xl border border-violet-500/10 bg-gradient-to-br from-violet-500/[0.02] via-violet-500/[0.04] to-violet-500/[0.08] shadow-3xs shadow-violet-500/2 hover:shadow-2xs transition-all">
+        <div className="flex items-center gap-2 mb-2 text-violet-600">
+          <Code2 className="size-4 text-violet-500" />
+          <span className="text-xs font-semibold tracking-tight">Developers</span>
+        </div>
+        <span className="text-3xl font-bold tracking-tight text-slate-800">
+          {stats.developers}
+        </span>
+      </div>
+
+      {/* Console Users */}
       <div className="flex flex-col items-center justify-center p-5 rounded-2xl border border-amber-500/10 bg-gradient-to-br from-amber-500/[0.02] via-amber-500/[0.04] to-amber-500/[0.08] shadow-3xs shadow-amber-500/2 hover:shadow-2xs transition-all">
         <div className="flex items-center gap-2 mb-2 text-amber-600">
           <UserCheck className="size-4 text-amber-500" />

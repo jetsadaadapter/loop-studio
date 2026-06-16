@@ -1,10 +1,11 @@
 export enum Role {
     SystemAdmin = 'system-admin',
     Admin = 'admin',
+    Developer = 'developer',
     User = 'user'
 }
 
-export type UserRole = "system-admin" | "admin" | "user" | "viewer";
+export type UserRole = "system-admin" | "admin" | "developer" | "user" | "viewer";
 
 export interface AuthUser {
     id: string;

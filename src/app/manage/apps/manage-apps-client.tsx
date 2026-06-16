@@ -20,12 +20,6 @@ import { ManagerAppCard } from "@/components/manager-app-card";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import {
   getAppItemId,
   type AppLinkType,
   type ManageAppApiItem,
@@ -545,24 +539,25 @@ export function ManageAppsClient() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {Array.from({ length: pageSize }).map((_, index) => (
-                <Card
+                <div
                   key={`skeleton-card-${index}`}
-                  className="overflow-hidden p-0"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
                 >
-                  <div className="h-64 animate-pulse bg-muted" />
-                  <CardHeader className="space-y-2 px-4 pb-0 pt-4">
-                    <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-                  </CardHeader>
-                  <CardContent className="px-4">
-                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                  </CardContent>
-                  <CardFooter className="border-t bg-muted/30 px-4">
-                    <div className="h-8 w-full animate-pulse rounded bg-muted" />
-                  </CardFooter>
-                </Card>
+                  <div className="p-2 pb-0">
+                    <div className="w-full aspect-[16/10] animate-pulse rounded-xl bg-muted" />
+                  </div>
+                  <div className="flex flex-col gap-2 px-4 pb-4 pt-3">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-muted/70" />
+                    <div className="h-3 w-full animate-pulse rounded bg-muted/50" />
+                    <div className="h-3 w-4/5 animate-pulse rounded bg-muted/50" />
+                    <div className="mt-1 h-5 w-20 animate-pulse rounded-full bg-muted/70" />
+                    <div className="mt-2 h-px w-full bg-slate-100" />
+                    <div className="h-7 w-full animate-pulse rounded-lg bg-muted/50" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : pagedApps.length === 0 ? (
@@ -606,7 +601,7 @@ export function ManageAppsClient() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {pagedApps.map((row) => {
                   return (
                     <ManagerAppCard

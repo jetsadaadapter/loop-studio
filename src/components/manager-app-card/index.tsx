@@ -2,11 +2,18 @@
 
 import Image from "next/image";
 import { useState, type SyntheticEvent } from "react";
-import { Check, Copy, Ellipsis, ExternalLink, Pencil, Trash2, Folder, Link as LinkIcon } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Folder,
+  Link as LinkIcon,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
+import { cn } from "@/lib/utils";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 type ManagerAppCardItem = {
@@ -28,49 +35,15 @@ type ManagerAppCardProps = {
   onDelete: () => void;
 };
 
-function getStatusPresentation(isActive: boolean) {
-  if (isActive) {
-    return {
-      label: "Active",
-      className: "bg-emerald-50 text-emerald-600",
-    };
-  }
-
-  return {
-    label: "Inactive",
-    className: "bg-slate-100 text-slate-500",
-  };
-}
-
-function getTypePresentation(linkType: AppLinkType) {
-  switch (linkType) {
-    case "instruction":
-      return {
-        label: "Instruction",
-        className: "bg-amber-50 text-amber-600",
-      };
-    case "external":
-      return {
-        label: "External",
-        className: "bg-rose-50 text-rose-600",
-      };
-    case "internal":
-    default:
-      return {
-        label: "Internal",
-        className: "bg-indigo-50 text-indigo-600",
-      };
-  }
-}
-
-function getCardImageSource(record: ManagerAppCardItem) {
-  if (record.imageUrl && record.imageUrl.trim()) return record.imageUrl;
-  return null;
-}
+const TYPE_STYLES: Record<AppLinkType, { label: string; className: string }> = {
+  internal: { label: "Internal", className: "bg-indigo-50 text-indigo-600" },
+  external: { label: "External", className: "bg-rose-50 text-rose-600" },
+  instruction: { label: "Instruction", className: "bg-amber-50 text-amber-600" },
+  tool: { label: "Tool", className: "bg-violet-50 text-violet-600" },
+};
 
 function onCardImageError(event: SyntheticEvent<HTMLImageElement>) {
-  const target = event.currentTarget;
-  target.style.display = "none";
+  event.currentTarget.style.display = "none";
 }
 
 export function ManagerAppCard({
@@ -82,26 +55,30 @@ export function ManagerAppCard({
 }: ManagerAppCardProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const status = getStatusPresentation(item.isActive);
-  const type = getTypePresentation(item.linkType);
+  const type = TYPE_STYLES[item.linkType] ?? TYPE_STYLES.internal;
+  const imageSrc = item.imageUrl?.trim() || null;
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
-    navigator.clipboard.writeText(url);
+    const url =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/apps/${item.id}`
+        : `/apps/${item.id}`;
+    void navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
-    <Card className="group flex flex-col overflow-hidden p-0 ring-0 border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white rounded-2xl">
-      {/* Image Container with inner padding */}
+    <Card className="group flex flex-col overflow-hidden p-0 border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white rounded-2xl">
+      {/* Image */}
       <div className="p-2 pb-0 shrink-0">
-        <div className="relative h-40 sm:h-44 w-full overflow-hidden rounded-xl">
+        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-xl">
           <div className="absolute inset-0 animate-pulse bg-muted" />
-          {getCardImageSource(item) ? (
+
+          {imageSrc ? (
             <Image
-              src={getCardImageSource(item)!}
+              src={imageSrc}
               alt={item.name}
               fill
               className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -111,13 +88,23 @@ export function ManagerAppCard({
               onError={onCardImageError}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 p-4 z-10">
-              <span className="text-center text-sm font-bold tracking-widest text-slate-400/30 uppercase">
-                No image available
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400/40">
+                No image
               </span>
             </div>
           )}
 
+          {/* Status badge — image overlay */}
+          {!item.isActive && (
+            <div className="absolute left-2 top-2 z-20">
+              <span className="rounded-md border border-zinc-200 bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 backdrop-blur-sm">
+                Inactive
+              </span>
+            </div>
+          )}
+
+          {/* Actions — image overlay */}
           <div className="absolute right-2 top-2 z-20">
             <ManagerActionsDropdown
               ariaLabel={`Open actions for ${item.name}`}
@@ -131,16 +118,19 @@ export function ManagerAppCard({
                   onClick: onEdit,
                 },
                 {
-                  label: "Detail",
+                  label: "View detail",
                   icon: ExternalLink,
                   onClick: (e) => {
                     e.stopPropagation();
-                    const url = typeof window !== "undefined" ? `${window.location.origin}/apps/${item.id}` : `/apps/${item.id}`;
+                    const url =
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}/apps/${item.id}`
+                        : `/apps/${item.id}`;
                     window.open(url, "_blank");
                   },
                 },
                 {
-                  label: isDeleting ? "Deleting..." : "Delete",
+                  label: isDeleting ? "Deleting…" : "Delete",
                   icon: Trash2,
                   disabled: isBusy,
                   onClick: onDelete,
@@ -153,58 +143,60 @@ export function ManagerAppCard({
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex flex-col flex-1 px-4 pb-3 pt-0 sm:px-5 sm:pb-4 sm:pt-0">
-        <div className="mb-2">
-          <h3 className="text-md font-bold tracking-tight text-slate-900 line-clamp-1">
-            {item.name}
-          </h3>
+      {/* Content */}
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
+        {/* Name */}
+        <h3 className="mb-1 truncate text-[14px] font-bold tracking-tight text-slate-900">
+          {item.name}
+        </h3>
 
-          <div className="flex items-center gap-4 mt-2 text-xs font-medium text-slate-500">
-            <div className="flex items-center gap-1.5">
-              <Folder className="size-3.5" />
-              {item.category}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <LinkIcon className="size-3.5" />
-              {type.label}
-            </div>
-          </div>
+        {/* Meta row */}
+        <div className="mb-2 flex items-center gap-3 text-[11px] font-medium text-slate-500">
+          <span className="flex items-center gap-1 truncate">
+            <Folder className="size-3 shrink-0" />
+            {item.category || "—"}
+          </span>
+          <span className="flex items-center gap-1 shrink-0">
+            <LinkIcon className="size-3" />
+            {type.label}
+          </span>
         </div>
 
-        <p className="text-xs text-slate-600 line-clamp-2 leading-tight mb-3">
+        {/* Description */}
+        <p className="mb-3 line-clamp-2 text-[12px] leading-relaxed text-slate-500">
           {item.description || "No description provided."}
         </p>
 
-        {/* Tags / Badges */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-3 mt-auto">
-          <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide ${status.className}`}>
-            {status.label}
-          </span>
-          <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide ${type.className}`}>
+        {/* Type pill */}
+        <div className="mt-auto mb-3">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+              type.className,
+            )}
+          >
             {type.label} App
-          </span>
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide bg-sky-50 text-sky-600 truncate max-w-[120px]">
-            {item.category}
           </span>
         </div>
 
-        {/* Divider */}
-        <div className="h-px w-full bg-slate-100 mb-3" />
-
-        {/* Footer Code Block */}
-        <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-1">
-          <span className="text-xs text-slate-600 truncate mr-2">
-            /apps/{item.id}
-          </span>
+        {/* Divider + footer */}
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
           <button
             type="button"
-            className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-sm transition"
+            className="flex flex-1 items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2.5 py-1.5 text-left transition hover:bg-white hover:shadow-sm"
             onClick={handleCopyLink}
-            title="Copy Link"
+            title="Copy link"
           >
-            {copiedLink ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            <span className="truncate text-[11px] text-slate-500">/apps/{item.id.slice(0, 8)}…</span>
+            {copiedLink ? (
+              <Check className="size-3 shrink-0 text-emerald-500" />
+            ) : (
+              <Copy className="size-3 shrink-0 text-slate-400" />
+            )}
           </button>
+          <span className="ml-2.5 shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+            #{item.sortOrder}
+          </span>
         </div>
       </div>
     </Card>

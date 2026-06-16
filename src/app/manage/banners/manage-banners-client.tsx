@@ -451,36 +451,30 @@ export function ManageBannersClient() {
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {pagedBanners.map((row) => (
-                  <div key={row.id} className="flex flex-col gap-3">
-                    <AppBannerCard
-                      banner={{
-                        id: row.id,
-                        title: row.title,
-                        subtitle: row.subtitle,
-                        imageId: row.imageId,
-                        startsAt: row.startsAt,
-                        endsAt: row.endsAt,
-                        app: {
-                          name: row.appName,
-                          category: { name: row.category },
-                          tags: row.tags,
-                          instructions: row.instructions,
-                          ctaLabel: row.ctaLabel,
-                          badgeLabel: row.badgeLabel,
-                          iconId: row.iconId,
-                        },
-                      }}
-                      onEdit={() => router.push(`/manage/banners/${row.id}/edit`)}
-                      onDelete={() => setDeleteTarget(row)}
-                    />
-                    {!row.isActive && (
-                      <div className="px-2 flex justify-start">
-                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground font-medium border border-border">
-                          Inactive
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <AppBannerCard
+                    key={row.id}
+                    banner={{
+                      id: row.id,
+                      title: row.title,
+                      subtitle: row.subtitle,
+                      imageId: row.imageId,
+                      isActive: row.isActive,
+                      sortOrder: row.sortOrder,
+                      startsAt: row.startsAt,
+                      endsAt: row.endsAt,
+                      app: {
+                        name: row.appName,
+                        category: { name: row.category },
+                        tags: row.tags,
+                        instructions: row.instructions,
+                        ctaLabel: row.ctaLabel,
+                        badgeLabel: row.badgeLabel,
+                        iconId: row.iconId,
+                      },
+                    }}
+                    onEdit={() => router.push(`/manage/banners/${row.id}/edit`)}
+                    onDelete={() => setDeleteTarget(row)}
+                  />
                 ))}
               </div>
 

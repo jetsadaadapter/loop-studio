@@ -44,13 +44,16 @@ function getAvatarBgColor(empid: string) {
 
 function getRoleBadgeStyle(role: string) {
   const r = role.toLowerCase();
-  if (r.includes("system-admin")) {
+  if (r === "system-admin") {
     return "bg-indigo-50/80 text-indigo-700 border-indigo-100/50 hover:bg-indigo-100/30";
   }
-  if (r.includes("admin")) {
+  if (r === "admin") {
     return "bg-rose-50/80 text-rose-700 border-rose-100/50 hover:bg-rose-100/30";
   }
-  if (r.includes("user") || r.includes("editor")) {
+  if (r === "developer") {
+    return "bg-violet-50/80 text-violet-700 border-violet-100/50 hover:bg-violet-100/30";
+  }
+  if (r === "user" || r === "editor") {
     return "bg-amber-50/80 text-amber-700 border-amber-100/50 hover:bg-amber-100/30";
   }
   return "bg-slate-50/80 text-slate-600 border-slate-100/50 hover:bg-slate-100/30";

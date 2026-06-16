@@ -4,6 +4,8 @@ export interface AppBannerCardProps {
     title: string;
     subtitle: string;
     imageId?: string | null;
+    isActive: boolean;
+    sortOrder: number;
     startsAt?: string | null;
     endsAt?: string | null;
     app: {

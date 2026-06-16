@@ -2,186 +2,180 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { format } from "date-fns";
 import {
-  Ellipsis,
-  Pencil,
-  Trash2,
-  LayoutGrid,
+  Archive,
+  CalendarRange,
   CheckCircle2,
   Clock,
-  Archive,
+  LayoutGrid,
+  Pencil,
+  Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getAppBadgeClass } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
+import { cn } from "@/lib/utils";
 import type { AppBannerCardProps } from "./types";
 
-export default function AppBannerCard({
-  banner,
-  onEdit,
-  onDelete,
-}: AppBannerCardProps) {
-  const { title, subtitle, app, imageId, startsAt, endsAt } = banner;
-  const [now] = useState(() => Date.now());
+function getScheduleStatus(startsAt?: string | null, endsAt?: string | null) {
+  const now = Date.now();
+  const start = startsAt ? new Date(startsAt).getTime() : null;
+  const end = endsAt ? new Date(endsAt).getTime() : null;
 
-  const getStatusPresentation = () => {
-    const start = startsAt ? new Date(startsAt).getTime() : 0;
-    const end = endsAt ? new Date(endsAt).getTime() : Infinity;
-
-    if (startsAt && start > now) {
-      const timeStr = new Date(start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      return {
-        label: `Scheduled for ${timeStr}`,
-        icon: Clock,
-        color: "text-amber-600 bg-amber-50 border-amber-200",
-      };
-    }
-    if (endsAt && end < now) {
-      const dateStr = new Date(end).toLocaleDateString();
-      return {
-        label: `Ended on ${dateStr}`,
-        icon: Archive,
-        color: "text-zinc-500 bg-zinc-50 border-zinc-200",
-      };
-    }
-
-    let label = "Active";
-    if (startsAt) {
-      const timeStr = new Date(start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      label = `Posted on ${timeStr} Today`; // Simplification for UI look
-    }
-
+  if (start && start > now) {
     return {
-      label,
-      icon: CheckCircle2,
-      color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+      label: `Starts ${format(new Date(start), "MMM d")}`,
+      icon: Clock,
+      color: "bg-amber-50 text-amber-600 border-amber-200",
     };
+  }
+  if (end && end < now) {
+    return {
+      label: `Ended ${format(new Date(end), "MMM d")}`,
+      icon: Archive,
+      color: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    };
+  }
+  if (start && end) {
+    return {
+      label: `${format(new Date(start), "MMM d")} – ${format(new Date(end), "MMM d")}`,
+      icon: CalendarRange,
+      color: "bg-sky-50 text-sky-600 border-sky-200",
+    };
+  }
+  return {
+    label: "Always on",
+    icon: CheckCircle2,
+    color: "bg-emerald-50 text-emerald-600 border-emerald-200",
   };
+}
 
-  const status = getStatusPresentation();
-  const StatusIcon = status.icon;
+export default function AppBannerCard({ banner, onEdit, onDelete }: AppBannerCardProps) {
+  const { title, subtitle, app, imageId, isActive, sortOrder, startsAt, endsAt } = banner;
+  const [imgError, setImgError] = useState(false);
 
-  const imageSrc = imageId
-    ? `/images/${encodeURIComponent(imageId.trim())}`
-    : "/images/media-mix-abstract.png";
+  const schedule = getScheduleStatus(startsAt, endsAt);
+  const ScheduleIcon = schedule.icon;
 
-  const iconSrc = app.iconId
-    ? `/images/${encodeURIComponent(app.iconId.trim())}`
-    : null;
+  const imageSrc =
+    imageId && !imgError ? `/images/${encodeURIComponent(imageId.trim())}` : null;
 
-  const tagsList = app.tags && app.tags.length > 0
-    ? app.tags.map((t) => (typeof t === "string" ? t : t.name)).join(", ")
-    : "-";
+  const iconSrc = app.iconId ? `/images/${encodeURIComponent(app.iconId.trim())}` : null;
 
   return (
-    <div className="w-full bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-zinc-100 overflow-hidden relative flex flex-col font-sans">
-      {/* Top Header */}
-      <div className="flex items-center justify-between p-4 pb-2">
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center bg-blue-600 rounded-full w-5 h-5 overflow-hidden">
+    <Card className="group flex flex-col overflow-hidden p-0 border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white rounded-2xl">
+      {/* Image */}
+      <div className="p-2 pb-0 shrink-0">
+        <div className="relative w-full aspect-[16/10] overflow-hidden rounded-xl">
+          <div className="absolute inset-0 animate-pulse bg-muted" />
+
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={title}
+              fill
+              className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              unoptimized
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400/40">
+                No image
+              </span>
+            </div>
+          )}
+
+          {/* Actions overlay */}
+          <div className="absolute right-2 top-2 z-20">
+            <ManagerActionsDropdown
+              ariaLabel={`Open actions for ${title}`}
+              triggerSize="icon-sm"
+              triggerClassName="flex size-8 items-center justify-center rounded-full border-0 bg-black/40 p-0 text-white shadow-none backdrop-blur-md transition hover:bg-black/60 aria-expanded:bg-black/60"
+              actions={[
+                {
+                  label: "Edit",
+                  icon: Pencil,
+                  onClick: (e) => { e.stopPropagation(); onEdit?.(); },
+                },
+                {
+                  label: "Delete",
+                  icon: Trash2,
+                  onClick: (e) => { e.stopPropagation(); onDelete?.(); },
+                  variant: "destructive",
+                  showSeparatorBefore: true,
+                },
+              ]}
+            />
+          </div>
+
+          {/* Status/Active badge */}
+          {!isActive && (
+            <div className="absolute left-2 top-2 z-20">
+              <span className="rounded-md border border-zinc-200 bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 backdrop-blur-sm">
+                Inactive
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
+        {/* App header row */}
+        <div className="mb-2 flex items-center gap-2">
+          <div className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600">
             {iconSrc ? (
-              <Image
-                src={iconSrc}
-                alt={app.name || "App icon"}
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              <Image src={iconSrc} alt={app.name || ""} fill className="object-cover" unoptimized />
             ) : (
-              <LayoutGrid className="w-3 h-3 text-white" />
+              <LayoutGrid className="size-3 text-white" />
             )}
           </div>
-          <span className="font-bold text-zinc-900 text-[14px] tracking-tight">
-            {app.name || "App Name"}
+          <span className="truncate text-[13px] font-bold text-zinc-900">
+            {app.name || "Unknown App"}
           </span>
         </div>
 
-        {/* Action Buttons */}
-        <ManagerActionsDropdown
-          ariaLabel={`Open actions for ${title}`}
-          triggerSize="icon-sm"
-          triggerClassName="flex size-7 items-center justify-center rounded-full border-0 bg-transparent p-0 text-zinc-400 shadow-none transition hover:bg-zinc-100 hover:text-zinc-900 aria-expanded:bg-zinc-100"
-          actions={[
-            {
-              label: "Edit",
-              icon: Pencil,
-              onClick: (e) => {
-                e.stopPropagation();
-                onEdit?.();
-              },
-            },
-            {
-              label: "Delete",
-              icon: Trash2,
-              onClick: (e) => {
-                e.stopPropagation();
-                onDelete?.();
-              },
-              variant: "destructive",
-              showSeparatorBefore: true,
-            },
-          ]}
-        />
-      </div>
-
-      {/* Title / Subtitle Text */}
-      <div className="px-4 pb-3">
-        <p className="text-[13px] text-zinc-700 leading-snug line-clamp-2">
+        {/* Title + Subtitle */}
+        <p className="mb-3 line-clamp-2 text-[13px] leading-snug text-zinc-600">
           {title && <span className="font-semibold text-zinc-900 mr-1">{title}.</span>}
           {subtitle}
         </p>
-      </div>
 
-      {/* Image Section */}
-      <div className="px-4 relative flex flex-col items-center">
-        <div className="relative w-full aspect-[16/10] bg-[#90b0c1] rounded-xl overflow-hidden shadow-sm">
-          <Image
-            src={imageSrc}
-            alt={title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-
-        {/* Status Label Overlay */}
-        <div className="flex justify-end w-full -mt-3.5 pr-2 relative z-10">
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm text-[11px] font-bold tracking-tight bg-white ${status.color}`}
-          >
-            <StatusIcon className="w-3.5 h-3.5" />
-            {status.label}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Lines Section */}
-      <div className="mt-2 border-t-2 border-t border-zinc-100 bg-white px-4">
-        <div className="flex items-center justify-between px-0 py-2 border-b border-zinc-100">
-          <span className="text-zinc-900 text-xs font-bold tracking-tight">Category</span>
-          <span className="text-zinc-900 text-xs font-semibold">
-            {app.category?.name || "-"}
-          </span>
-        </div>
-        <div className="flex items-center justify-between px-0 py-2 border-b border-zinc-100">
-          <span className="text-zinc-500 text-xs font-medium tracking-tight">Tags</span>
-          <span className="text-zinc-900 text-xs font-semibold line-clamp-1 text-right ml-4">
-            {tagsList}
-          </span>
-        </div>
-        <div className="flex items-center justify-between px-0 pt-2 pb-3.5">
-          <span className="text-zinc-500 text-xs font-medium tracking-tight">Highlight</span>
-          <span className="text-zinc-900 text-xs font-bold">
-            {app.badgeLabel ? (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium leading-tight ${getAppBadgeClass(app.badgeLabel)}`}>
-                {app.badgeLabel}
-              </span>
-            ) : (
-              "-"
+        {/* Badges */}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+              schedule.color,
             )}
+          >
+            <ScheduleIcon className="size-3" />
+            {schedule.label}
+          </span>
+
+          {app.category?.name && (
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+              {app.category.name}
+            </span>
+          )}
+
+          {app.badgeLabel && (
+            <span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-medium text-violet-600">
+              {app.badgeLabel}
+            </span>
+          )}
+        </div>
+
+        {/* Divider + sort order */}
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+          <span className="text-[11px] text-slate-400">Sort order</span>
+          <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+            #{sortOrder}
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

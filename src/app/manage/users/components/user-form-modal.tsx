@@ -23,7 +23,7 @@ interface UserFormModalProps {
   onClose: () => void;
 }
 
-const AVAILABLE_ROLES = [Role.SystemAdmin, Role.Admin, Role.User];
+const AVAILABLE_ROLES = [Role.SystemAdmin, Role.Admin, Role.Developer, Role.User];
 
 export function UserFormModal({
   user,
