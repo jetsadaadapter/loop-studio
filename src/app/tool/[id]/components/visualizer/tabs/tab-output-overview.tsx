@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import type { ScrapedJobItem } from "../../../tool-job-utils";
 import { CommentThreadCard, type CommentItem } from "../comments/comment-thread-card";
@@ -13,6 +14,8 @@ import { ExportCommentsCreateOverview } from "../tool-specific/exportcomments-cr
 import { ExportCommentsFetchOverview } from "../tool-specific/exportcomments-fetch-overview";
 import { PreProcessOverview, type PreProcessResult } from "../overview/preprocess-overview";
 import { FacebookAnalystVisualizer } from "../tool-specific/facebook-analyst-visualizer";
+import { validateAnalyzerOutputFull } from "@/core/validators/analyzer-output.validator";
+import { validateMetaPromptConfigFull } from "@/core/validators/meta-prompt-config.validator";
 
 interface TabOutputOverviewProps {
   items: ScrapedJobItem[];
@@ -45,6 +48,52 @@ export function TabOutputOverview({
   isExportCommentsFetchJob,
   job,
 }: TabOutputOverviewProps) {
+  const jobId = job.jobId || job.id || job._id || "";
+
+  // Soft validation for PreProcess config (Meta-Prompt output)
+  useMemo(() => {
+    if (
+      job.result &&
+      typeof job.result === "object" &&
+      !Array.isArray(job.result) &&
+      "blueprint" in job.result &&
+      "config" in job.result
+    ) {
+      const validation = validateMetaPromptConfigFull(job.result);
+      if (!validation.success) {
+        console.warn("⚠️ Meta-Prompt Config Validation (non-blocking):", {
+          jobId,
+          errors: validation.errors,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        console.info("✅ Meta-Prompt Config Validated:", jobId);
+      }
+    }
+  }, [job.result, jobId]);
+
+  // Soft validation for Analyzer output (structured report)
+  useMemo(() => {
+    if (
+      job.result &&
+      typeof job.result === "object" &&
+      !Array.isArray(job.result) &&
+      "section_meta" in job.result &&
+      "section_rows" in job.result
+    ) {
+      const validation = validateAnalyzerOutputFull(job.result);
+      if (!validation.success) {
+        console.warn("⚠️ Analyzer Output Validation (non-blocking):", {
+          jobId,
+          errors: validation.errors,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        console.info("✅ Analyzer Output Validated:", jobId);
+      }
+    }
+  }, [job.result, jobId]);
+
   const isPreProcessResult = Boolean(
     job.result &&
     typeof job.result === "object" &&

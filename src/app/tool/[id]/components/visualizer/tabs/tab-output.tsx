@@ -152,11 +152,12 @@ export function TabOutput({ job }: TabOutputProps) {
   const showDashboardTab = isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult;
   const defaultTab = (isDynamicLayoutResult || isPurchaseIntentAnalysisResult) ? "dashboard" : "overview";
 
-  const [prevJobId, setPrevJobId] = useState(job.id);
+  const jobId = job.jobId || job.id || job._id || "";
+  const [prevJobId, setPrevJobId] = useState(jobId);
   const [innerTab, setInnerTab] = useState<"overview" | "dashboard" | "all">(defaultTab);
 
-  if (job.id !== prevJobId) {
-    setPrevJobId(job.id);
+  if (jobId !== prevJobId) {
+    setPrevJobId(jobId);
     setInnerTab(defaultTab);
   }
 

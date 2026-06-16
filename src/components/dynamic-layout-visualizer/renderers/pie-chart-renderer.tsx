@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { PieChart as PieIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DynamicUISection } from "../types";
@@ -136,44 +136,42 @@ export function PieChartRenderer({ section }: { section: DynamicUISection }) {
   return (
     <div className="flex flex-col lg:flex-row items-center justify-center gap-x-8 gap-y-4 py-4 w-full overflow-hidden">
       {/* Chart Wrapper */}
-      <div className="relative size-40 sm:size-48 select-none flex items-center justify-center shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={44}
-              outerRadius={64}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const dataInfo = payload[0].payload as {
-                    name: string;
-                    value: number;
-                    percent: number;
-                  };
-                  return (
-                    <div className="bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-md text-[9px] font-bold text-slate-700">
-                      <div>{dataInfo.name}</div>
-                      <div className="text-slate-500 font-extrabold text-[10px] mt-0.5">
-                        {dataInfo.value} รายการ ({dataInfo.percent.toFixed(0)}%)
-                      </div>
+      <div className="relative w-40 h-40 sm:w-48 sm:h-48 select-none flex items-center justify-center shrink-0">
+        <PieChart width={192} height={192}>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            innerRadius={44}
+            outerRadius={64}
+            paddingAngle={3}
+            dataKey="value"
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const dataInfo = payload[0].payload as {
+                  name: string;
+                  value: number;
+                  percent: number;
+                };
+                return (
+                  <div className="bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-md text-[9px] font-bold text-slate-700">
+                    <div>{dataInfo.name}</div>
+                    <div className="text-slate-500 font-extrabold text-[10px] mt-0.5">
+                      {dataInfo.value} รายการ ({dataInfo.percent.toFixed(0)}%)
                     </div>
-                  );
-                }
-                return null;
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+        </PieChart>
 
         {/* Central Summary overlay */}
         <div className="absolute size-20 sm:size-24 rounded-full bg-slate-50/50 backdrop-blur-3xs border border-slate-100/40 flex flex-col items-center justify-center pointer-events-none shadow-3xs">

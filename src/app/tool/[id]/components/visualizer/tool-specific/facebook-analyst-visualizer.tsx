@@ -86,7 +86,7 @@ function extractSocialAnalystData(job: ToolJob): SocialAnalystPayload | null {
     if (!result.posts || !Array.isArray(result.posts)) return null;
 
     return {
-      task_id: (result.task_id as string) || job.id || 'unknown',
+      task_id: (result.task_id as string) || job.jobId || job.id || job._id || 'unknown',
       task_intent: (result.task_intent as string) || 'unknown',
       posts_analyzed: (result.posts_analyzed as number) || 0,
       generated_at: (result.generated_at as string) || new Date().toISOString(),

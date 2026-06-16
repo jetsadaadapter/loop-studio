@@ -89,25 +89,18 @@ const inflightRequests = new Map<string, Promise<unknown>>();
 
 export interface ApiFetchOptions extends RequestInit {
     silentErrors?: boolean;
+    maxRetries?: number;
+    retryDelay?: number;
 }
 
-export async function apiFetch<T>(
+async function apiFetchInternal<T>(
     url: string,
-    init?: ApiFetchOptions,
+    init: ApiFetchOptions,
+    attempt: number = 1,
 ): Promise<T> {
-    const { silentErrors = false, ...fetchInit } = init || {};
-    const method = fetchInit.method?.toUpperCase() ?? "GET";
-    const isGet = method === "GET";
+    const { silentErrors = false, maxRetries = 2, retryDelay = 1000, ...fetchInit } = init;
 
-    if (isGet) {
-        const cachedPromise = inflightRequests.get(url);
-        if (cachedPromise) {
-            console.log(`[Library API] Reusing in-flight request for: ${url}`);
-            return cachedPromise as Promise<T>;
-        }
-    }
-
-    const promise = (async () => {
+    try {
         const incomingHeaders = new Headers(fetchInit.headers);
 
         if (!incomingHeaders.has("Authorization")) {
@@ -138,6 +131,10 @@ export async function apiFetch<T>(
                 cause?: { code?: string; errno?: number; syscall?: string; address?: string; port?: number };
             };
 
+            // Check for "message channel closed" or similar runtime errors
+            const isChannelError = err.message?.includes("message channel") ||
+                                   err.message?.includes("channel closed");
+
             if (!silentErrors) {
                 console.error("[Library API] ✗ Network fetch failed", {
                     url,
@@ -145,8 +142,21 @@ export async function apiFetch<T>(
                     hasAuth,
                     message: err.message,
                     cause: err.cause,
+                    isChannelError,
+                    name: err.name,
                 });
             }
+
+            // For channel errors, provide more context
+            if (isChannelError) {
+                throw new ApiError(
+                    0,
+                    `Connection interrupted: ${err.message}. This may be due to browser extension interference, service worker issues, or network instability.`,
+                    url,
+                    { originalError: err.message, name: err.name }
+                );
+            }
+
             throw error;
         }
         console.log(`[Library API] ← ${res.status} ${res.statusText} (${Date.now() - t0}ms)`);
@@ -180,8 +190,60 @@ export async function apiFetch<T>(
             );
         }
 
-        return res.json() as Promise<T>;
-    })();
+        try {
+            const data = await res.json() as T;
+            console.log(`[Library API] ✓ JSON parsed successfully`);
+            return data;
+        } catch (jsonError) {
+            const err = jsonError as Error;
+            console.error(`[Library API] ✗ JSON parse failed:`, {
+                url,
+                status: res.status,
+                error: err.message,
+                stack: err.stack,
+            });
+            throw new ApiError(
+                res.status,
+                `Failed to parse JSON response: ${err.message}`,
+                url,
+                { originalError: err.message }
+            );
+        }
+    } catch (error) {
+        const err = error as Error;
+        const isRetryable = err.message?.includes("message channel") ||
+                           err.message?.includes("channel closed") ||
+                           err.message?.includes("network") ||
+                           err.message?.includes("fetch");
+
+        // Retry on transient errors
+        if (isRetryable && attempt <= maxRetries) {
+            const delay = retryDelay * attempt;
+            console.warn(`[Library API] ⚠ Retrying request (attempt ${attempt}/${maxRetries}) after ${delay}ms: ${url}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return apiFetchInternal<T>(url, init, attempt + 1);
+        }
+
+        throw error;
+    }
+}
+
+export async function apiFetch<T>(
+    url: string,
+    init?: ApiFetchOptions,
+): Promise<T> {
+    const method = init?.method?.toUpperCase() ?? "GET";
+    const isGet = method === "GET";
+
+    if (isGet) {
+        const cachedPromise = inflightRequests.get(url);
+        if (cachedPromise) {
+            console.log(`[Library API] Reusing in-flight request for: ${url}`);
+            return cachedPromise as Promise<T>;
+        }
+    }
+
+    const promise = apiFetchInternal<T>(url, init || {});
 
     if (isGet) {
         inflightRequests.set(url, promise);
