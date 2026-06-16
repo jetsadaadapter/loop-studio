@@ -13,13 +13,15 @@ import {
   validateAppForm,
 } from "../manage-app-form-utils";
 import type { ManageAppPayload, ManageAppApiItem } from "@/core/interfaces/apps.interface";
-import type { ManageTagListResponse } from "@/core/interfaces/tags.interface";
 import { createManageApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
 import {
   importMarkdownFile,
   handleCopyInstructions,
   handleDownloadMarkdown,
+  handleCopyIntegration,
+  handleDownloadIntegrationMarkdown,
 } from "./instructions-helpers";
+import { useTagsAndCategories } from "./use-tags-and-categories";
 
 export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const router = useRouter();
@@ -31,12 +33,12 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Partial<Record<string, boolean>>>({});
-  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
-  const [tagNameToId, setTagNameToId] = useState<Record<string, string>>({});
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const { tagSuggestions, tagNameToId, categories } = useTagsAndCategories();
   const [originalMediaIds, setOriginalMediaIds] = useState<{ imageId: string; iconId: string; coverId: string } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [didCopy, setDidCopy] = useState(false);
+  const [showIntegrationPreview, setShowIntegrationPreview] = useState(false);
+  const [didCopyIntegration, setDidCopyIntegration] = useState(false);
 
   function touch(field: string) {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -68,13 +70,38 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     const markdownFile = Array.from(event.clipboardData.files).find((file) => /\.md$/i.test(file.name));
     if (!markdownFile) return;
     event.preventDefault();
-    await importMarkdownFile(markdownFile, touch, setFieldErrors, applyInstructionsContent);
+    await importMarkdownFile(markdownFile, "instructions", touch, setFieldErrors, applyInstructionsContent);
   }
 
   async function handleInstructionsMdInputChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    await importMarkdownFile(file, touch, setFieldErrors, applyInstructionsContent);
+    await importMarkdownFile(file, "instructions", touch, setFieldErrors, applyInstructionsContent);
+    event.target.value = "";
+  }
+
+  function applyIntegrationContent(incomingContent: string) {
+    const normalized = incomingContent.replace(/\r\n/g, "\n").trim();
+    const merged = draft.integration.trim()
+      ? `${draft.integration.trimEnd()}\n\n${normalized}`
+      : normalized;
+
+    const next = { ...draft, integration: merged };
+    setDraft(next);
+    touchAndValidate("integration", next);
+  }
+
+  async function handleIntegrationPaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const markdownFile = Array.from(event.clipboardData.files).find((file) => /\.md$/i.test(file.name));
+    if (!markdownFile) return;
+    event.preventDefault();
+    await importMarkdownFile(markdownFile, "integration", touch, setFieldErrors, applyIntegrationContent);
+  }
+
+  async function handleIntegrationMdInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await importMarkdownFile(file, "integration", touch, setFieldErrors, applyIntegrationContent);
     event.target.value = "";
   }
 
@@ -148,59 +175,6 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     };
   }, [mode]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadManageTags() {
-      try {
-        const response = await fetch("/api/manage/tags", { method: "GET", credentials: "include", cache: "no-store" });
-        if (!response.ok) return;
-
-        const payload = (await response.json()) as ManageTagListResponse;
-        const tags = Array.isArray(payload.data) ? payload.data : [];
-        if (cancelled) return;
-
-        setTagSuggestions(tags.map((tag) => tag.name).filter(Boolean));
-        setTagNameToId(
-          Object.fromEntries(
-            tags.filter((tag) => tag.name && tag.id).map((tag) => [tag.name.trim().toLowerCase(), tag.id]),
-          ),
-        );
-      } catch {
-        if (!cancelled) {
-          setTagSuggestions([]);
-          setTagNameToId({});
-        }
-      }
-    }
-
-    void loadManageTags();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadCategories() {
-      try {
-        const response = await fetch("/api/manage/categories", { method: "GET", credentials: "include", cache: "no-store" });
-        if (!response.ok) return;
-
-        const payload = await response.json();
-        const data = Array.isArray(payload.data) ? payload.data : [];
-        if (!cancelled) setCategories(data);
-      } catch {
-        if (!cancelled) setCategories([]);
-      }
-    }
-
-    void loadCategories();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -278,12 +252,19 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     showPreview,
     setShowPreview,
     didCopy,
+    showIntegrationPreview,
+    setShowIntegrationPreview,
+    didCopyIntegration,
     touch,
     touchAndValidate,
     handleInstructionsPaste,
     handleInstructionsMdInputChange,
     handleCopyInstructions: () => handleCopyInstructions(draft.instructions, pushDialogToast, setDidCopy),
     handleDownloadMarkdown: () => handleDownloadMarkdown(draft.instructions, draft.name, pushDialogToast),
+    handleIntegrationPaste,
+    handleIntegrationMdInputChange,
+    handleCopyIntegration: () => handleCopyIntegration(draft.integration, pushDialogToast, setDidCopyIntegration),
+    handleDownloadIntegration: () => handleDownloadIntegrationMarkdown(draft.integration, draft.name, pushDialogToast),
     handleSubmit,
     handleFieldChange,
   };

@@ -19,6 +19,41 @@ interface InstructionPreviewDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function CodeBlock({ children, className, ...rest }: React.HTMLAttributes<HTMLElement>) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(String(children).replace(/\n$/, ""));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy code");
+    }
+  };
+
+  return (
+    <div className="relative group my-3">
+      <pre className="overflow-x-auto rounded-xl border border-slate-200/65 bg-slate-950 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5">
+        <code className={className} {...rest}>{children}</code>
+      </pre>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="absolute right-2 top-2 size-7 text-slate-400 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center rounded-md"
+        onClick={handleCopy}
+      >
+        {copied ? (
+          <Check className="size-3.5 text-emerald-500 animate-in fade-in zoom-in-50 duration-200" />
+        ) : (
+          <Copy className="size-3.5" />
+        )}
+      </Button>
+    </div>
+  );
+}
+
 export function InstructionPreviewDialog({
   open,
   onOpenChange,
@@ -132,26 +167,9 @@ export function InstructionPreviewDialog({
                           {children}
                         </code>
                       ) : (
-                        <div className="relative group my-3">
-                          <pre className="overflow-x-auto rounded-xl border border-slate-200/65 bg-slate-950 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5">
-                            <code {...rest}>{children}</code>
-                          </pre>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="absolute right-2 top-2 size-7 text-slate-400 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            onClick={async () => {
-                              try {
-                                await navigator.clipboard.writeText(String(children).replace(/\n$/, ""));
-                                toast.success("Code block copied!");
-                              } catch {
-                                toast.error("Failed to copy code");
-                              }
-                            }}
-                          >
-                            <Copy className="size-3.5" />
-                          </Button>
-                        </div>
+                        <CodeBlock className={className} {...rest}>
+                          {children}
+                        </CodeBlock>
                       );
                     },
                     pre: ({ children }) => <>{children}</>,

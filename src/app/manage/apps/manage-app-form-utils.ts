@@ -16,6 +16,7 @@ export type AppRecord = {
   iconId: string;
   coverId: string;
   instructions: string;
+  integration: string;
   ctaLabel: string;
   ctaLink: string;
   linkType: AppLinkType;
@@ -36,6 +37,7 @@ export const EMPTY_FORM: AppRecord = {
   iconId: "",
   coverId: "",
   instructions: "",
+  integration: "",
   ctaLabel: "",
   ctaLink: "",
   linkType: "internal",
@@ -57,6 +59,7 @@ export function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     iconId: item.iconId,
     coverId: item.coverId ?? "",
     instructions: item.instructions,
+    integration: item.integration ?? "",
     ctaLabel: item.ctaLabel ?? "",
     ctaLink: item.ctaLink ?? "",
     linkType: item.linkType,
@@ -78,6 +81,7 @@ export function mapRecordToPayload(record: AppRecord): ManageAppPayload {
     iconId: record.iconId.trim(),
     coverId: record.coverId.trim(),
     instructions: record.instructions.trim(),
+    integration: record.integration.trim() || null,
     ctaLabel: record.ctaLabel.trim(),
     ctaLink: record.ctaLink.trim(),
     linkType: record.linkType,

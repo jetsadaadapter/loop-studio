@@ -12,6 +12,7 @@ import { ActionSection } from "./form-sections/action-section";
 import { ContentSection } from "./form-sections/content-section";
 import { SidebarSections } from "./form-sections/sidebar-sections";
 import { InstructionsPreviewDialog } from "./instructions-preview-dialog";
+import { IntegrationPreviewDialog } from "./integration-preview-dialog";
 
 type ManageAppFormClientProps = {
   mode: "create" | "edit";
@@ -21,6 +22,7 @@ type ManageAppFormClientProps = {
 export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
   const router = useRouter();
   const instructionsMdInputRef = useRef<HTMLInputElement>(null);
+  const integrationMdInputRef = useRef<HTMLInputElement>(null);
 
   const {
     draft,
@@ -35,12 +37,19 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     showPreview,
     setShowPreview,
     didCopy,
+    showIntegrationPreview,
+    setShowIntegrationPreview,
+    didCopyIntegration,
     touch,
     touchAndValidate,
     handleInstructionsPaste,
     handleInstructionsMdInputChange,
     handleCopyInstructions,
     handleDownloadMarkdown,
+    handleIntegrationPaste,
+    handleIntegrationMdInputChange,
+    handleCopyIntegration,
+    handleDownloadIntegration,
     handleSubmit,
     handleFieldChange,
   } = useManageAppFormData(mode, appId);
@@ -94,7 +103,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 touched={touched}
                 fieldErrors={fieldErrors}
                 onChange={(value) => handleFieldChange("imageId", value)}
-                onError={(message) => {
+                onError={() => {
                   touch("imageId");
                   setDraft((c) => ({ ...c, imageId: "" }));
                   handleFieldChange("imageId", "");
@@ -113,6 +122,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
 
               <ContentSection
                 instructions={draft.instructions}
+                integration={draft.integration}
                 tags={draft.tags}
                 tagSuggestions={tagSuggestions}
                 touched={touched}
@@ -123,6 +133,10 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 onMdInputChange={(e) => void handleInstructionsMdInputChange(e)}
                 onPreviewClick={() => setShowPreview(true)}
                 instructionsMdInputRef={instructionsMdInputRef}
+                onIntegrationPaste={(e) => void handleIntegrationPaste(e)}
+                onIntegrationMdInputChange={(e) => void handleIntegrationMdInputChange(e)}
+                onIntegrationPreviewClick={() => setShowIntegrationPreview(true)}
+                integrationMdInputRef={integrationMdInputRef}
               />
             </div>
 
@@ -135,13 +149,13 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 touched={touched}
                 fieldErrors={fieldErrors}
                 onIconChange={(value) => handleFieldChange("iconId", value)}
-                onIconError={(message) => {
+                onIconError={() => {
                   touch("iconId");
                   setDraft((c) => ({ ...c, iconId: "" }));
                   handleFieldChange("iconId", "");
                 }}
                 onCoverChange={(value) => handleFieldChange("coverId", value)}
-                onCoverError={(message) => {
+                onCoverError={() => {
                   touch("coverId");
                   setDraft((c) => ({ ...c, coverId: "" }));
                   handleFieldChange("coverId", "");
@@ -179,6 +193,15 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
         onCopy={handleCopyInstructions}
         onDownload={handleDownloadMarkdown}
         didCopy={didCopy}
+      />
+
+      <IntegrationPreviewDialog
+        open={showIntegrationPreview}
+        onOpenChange={setShowIntegrationPreview}
+        integration={draft.integration}
+        onCopy={handleCopyIntegration}
+        onDownload={handleDownloadIntegration}
+        didCopy={didCopyIntegration}
       />
     </ManagerShell>
   );

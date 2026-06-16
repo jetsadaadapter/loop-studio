@@ -19,6 +19,7 @@ export type LibraryAppApiItem = {
     imageId: string;
     iconId: string;
     instructions: string;
+    integration: string | null;
     ctaLabel: string | null;
     ctaLink: string | null;
     linkType: AppLinkType;
@@ -67,6 +68,7 @@ export type ManageAppPayload = {
         coverId?: string;
     };
     instructions: string;
+    integration?: string | null;
     ctaLabel: string;
     ctaLink: string;
     linkType: AppLinkType;

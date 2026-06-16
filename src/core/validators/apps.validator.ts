@@ -9,6 +9,7 @@ export const ManageAppSchema = z.object({
   iconId: z.string().optional().or(z.literal("")),
   coverId: z.string().optional().or(z.literal("")),
   instructions: z.string().min(10, "Instructions must be at least 10 characters."),
+  integration: z.string().optional().or(z.literal("")),
   ctaLabel: z.string().max(30, "CTA label must be 30 characters or fewer.").optional().or(z.literal("")),
   ctaLink: z.string().optional().or(z.literal("")),
   linkType: z.enum(["internal", "external", "instruction"]),

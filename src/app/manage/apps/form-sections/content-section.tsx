@@ -4,7 +4,6 @@ import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
@@ -13,6 +12,7 @@ import { TagInput } from "@/components/ui/tag-input";
 
 type ContentSectionProps = {
   instructions: string;
+  integration: string;
   tags: string[];
   tagSuggestions: string[];
   touched: Partial<Record<string, boolean>>;
@@ -23,10 +23,15 @@ type ContentSectionProps = {
   onMdInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPreviewClick: () => void;
   instructionsMdInputRef: React.RefObject<HTMLInputElement | null>;
+  onIntegrationPaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+  onIntegrationMdInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onIntegrationPreviewClick: () => void;
+  integrationMdInputRef: React.RefObject<HTMLInputElement | null>;
 };
 
 export function ContentSection({
   instructions,
+  integration,
   tags,
   tagSuggestions,
   touched,
@@ -37,6 +42,10 @@ export function ContentSection({
   onMdInputChange,
   onPreviewClick,
   instructionsMdInputRef,
+  onIntegrationPaste,
+  onIntegrationMdInputChange,
+  onIntegrationPreviewClick,
+  integrationMdInputRef,
 }: ContentSectionProps) {
   return (
     <Card className="rounded-xl border-0">
@@ -90,6 +99,54 @@ export function ContentSection({
           <FieldError
             errors={
               touched.instructions ? [{ message: fieldErrors.instructions }] : []
+            }
+          />
+        </Field>
+
+        <Field>
+          <FieldLabel>Integration</FieldLabel>
+          <input
+            ref={integrationMdInputRef}
+            type="file"
+            accept=".md,text/markdown"
+            className="hidden"
+            title="Import markdown integration"
+            aria-label="Import markdown integration"
+            onChange={onIntegrationMdInputChange}
+          />
+          <textarea
+            placeholder="Integration (supports Markdown)"
+            value={integration}
+            onChange={(event) => onChange("integration", event.target.value)}
+            onPaste={onIntegrationPaste}
+            onBlur={() => onBlur("integration")}
+            rows={12}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => integrationMdInputRef.current?.click()}
+            >
+              Import .md
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onIntegrationPreviewClick}
+              className="flex items-center gap-1.5"
+            >
+              <Eye className="size-4" />
+              Preview
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Paste text, upload .md file, or preview.
+            </span>
+          </div>
+          <FieldError
+            errors={
+              touched.integration ? [{ message: fieldErrors.integration }] : []
             }
           />
         </Field>

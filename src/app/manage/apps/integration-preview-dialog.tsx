@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-type InstructionsPreviewDialogProps = {
+type IntegrationPreviewDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  instructions: string;
+  integration: string;
   onCopy: () => Promise<void>;
   onDownload: () => void;
   didCopy: boolean;
@@ -57,14 +57,14 @@ function CodeBlock({ children, className, ...rest }: React.HTMLAttributes<HTMLEl
   );
 }
 
-export function InstructionsPreviewDialog({
+export function IntegrationPreviewDialog({
   open,
   onOpenChange,
-  instructions,
+  integration,
   onCopy,
   onDownload,
   didCopy,
-}: InstructionsPreviewDialogProps) {
+}: IntegrationPreviewDialogProps) {
   const [previewMode, setPreviewMode] = useState<"markdown" | "text">(
     "markdown",
   );
@@ -76,7 +76,7 @@ export function InstructionsPreviewDialog({
           <DialogHeader className="mb-0 space-y-3">
             <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2 font-sans">
               <BookOpen className="size-5 text-brand" />
-              Instructions Preview
+              Integration Preview
             </DialogTitle>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="inline-flex items-center rounded-md border border-slate-200 bg-white p-1 shadow-xs">
@@ -104,7 +104,7 @@ export function InstructionsPreviewDialog({
                   size="sm"
                   variant="ghost"
                   onClick={onCopy}
-                  disabled={!instructions.trim()}
+                  disabled={!integration.trim()}
                   className="flex items-center gap-1.5 font-sans"
                 >
                   {didCopy ? (
@@ -122,7 +122,7 @@ export function InstructionsPreviewDialog({
                   size="sm"
                   variant="ghost"
                   onClick={onDownload}
-                  disabled={!instructions.trim()}
+                  disabled={!integration.trim()}
                   className="flex items-center gap-1.5 font-sans"
                 >
                   <Download className="size-4" />
@@ -134,9 +134,9 @@ export function InstructionsPreviewDialog({
         </div>
 
         <div className="max-h-[62vh] overflow-y-auto bg-slate-50/30 p-5">
-          {!instructions.trim() ? (
+          {!integration.trim() ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-xs italic text-slate-500 font-sans">
-              No instructions provided yet.
+              No integration guide provided yet.
             </div>
           ) : previewMode === "markdown" ? (
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
@@ -187,14 +187,14 @@ export function InstructionsPreviewDialog({
                     ),
                   }}
                 >
-                  {instructions}
+                  {integration}
                 </Markdown>
               </div>
             </article>
           ) : (
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
               <pre className="whitespace-pre-wrap wrap-break-word text-xs leading-6 text-slate-800 font-sans">
-                {instructions}
+                {integration}
               </pre>
             </article>
           )}

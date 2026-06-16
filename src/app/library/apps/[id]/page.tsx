@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   getAppById,
   getRelatedApps,
@@ -238,6 +239,7 @@ export default async function AppDetailPage({ params }: Props) {
                 </h2>
                 <div className="page-body-copy mt-4 text-slate-700 space-y-4">
                   <Markdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       h1: (props) => (
                         <h1
@@ -275,30 +277,27 @@ export default async function AppDetailPage({ params }: Props) {
                       li: (props) => (
                         <li className="text-slate-700" {...props} />
                       ),
-                      code: (
-                        props: React.HTMLAttributes<HTMLElement> & {
-                          inline?: boolean;
-                        },
-                      ) => {
-                        const { inline, ...rest } = props;
-                        return inline ? (
+                      code: ({
+                        className,
+                        children,
+                        ...rest
+                      }: React.HTMLAttributes<HTMLElement>) => {
+                        const match = /language-(\w+)/.exec(className || "");
+                        const isInline = !match && !String(children).includes("\n");
+                        return isInline ? (
                           <code
-                            className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
+                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-mono"
                             {...rest}
-                          />
+                          >
+                            {children}
+                          </code>
                         ) : (
-                          <code
-                            className="bg-slate-100 text-slate-800 block p-3 rounded-md text-sm overflow-x-auto mb-3"
-                            {...rest}
-                          />
+                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5 mb-4">
+                            <code {...rest}>{children}</code>
+                          </pre>
                         );
                       },
-                      pre: (props) => (
-                        <pre
-                          className="bg-slate-900 text-slate-100 p-4 rounded-md text-sm overflow-x-auto mb-3"
-                          {...props}
-                        />
-                      ),
+                      pre: ({ children }) => <>{children}</>,
                       blockquote: (props) => (
                         <blockquote
                           className="border-l-4 border-slate-300 pl-4 italic text-slate-700 my-3"
@@ -311,9 +310,124 @@ export default async function AppDetailPage({ params }: Props) {
                           {...props}
                         />
                       ),
+                      table: (props) => (
+                        <div className="my-4 overflow-x-auto rounded-xl border border-slate-200/60 shadow-xs">
+                          <table className="w-full text-left border-collapse text-xs font-sans" {...props} />
+                        </div>
+                      ),
+                      thead: (props) => (
+                        <thead className="bg-slate-50 border-b border-slate-200/60 font-semibold font-sans" {...props} />
+                      ),
+                      th: (props) => (
+                        <th className="p-3 font-semibold text-slate-800 font-sans" {...props} />
+                      ),
+                      td: (props) => (
+                        <td className="p-3 border-t border-slate-100 text-slate-650 font-sans" {...props} />
+                      ),
                     }}
                   >
                     {app.instructions}
+                  </Markdown>
+                </div>
+              </section>
+            ) : null}
+
+            {/* Integration */}
+            {app.integration ? (
+              <section className="motion-enter-3 border-t border-slate-200 py-7">
+                <h2 className="page-section-title text-slate-900">
+                  Integration
+                </h2>
+                <div className="page-body-copy mt-4 text-slate-700 space-y-4">
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: (props) => (
+                        <h1
+                          className="text-xl sm:text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
+                          {...props}
+                        />
+                      ),
+                      h2: (props) => (
+                        <h2
+                          className="text-lg sm:text-xl font-bold text-slate-900 mt-5 mb-3"
+                          {...props}
+                        />
+                      ),
+                      h3: (props) => (
+                        <h3
+                          className="text-base sm:text-lg font-semibold text-slate-900 mt-4 mb-2"
+                          {...props}
+                        />
+                      ),
+                      p: (props) => (
+                        <p className="text-slate-700 mb-3" {...props} />
+                      ),
+                      ul: (props) => (
+                        <ul
+                          className="list-disc list-inside text-slate-700 mb-3 space-y-1"
+                          {...props}
+                        />
+                      ),
+                      ol: (props) => (
+                        <ol
+                          className="list-decimal list-inside text-slate-700 mb-3 space-y-1"
+                          {...props}
+                        />
+                      ),
+                      li: (props) => (
+                        <li className="text-slate-700" {...props} />
+                      ),
+                      code: ({
+                        className,
+                        children,
+                        ...rest
+                      }: React.HTMLAttributes<HTMLElement>) => {
+                        const match = /language-(\w+)/.exec(className || "");
+                        const isInline = !match && !String(children).includes("\n");
+                        return isInline ? (
+                          <code
+                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-mono"
+                            {...rest}
+                          >
+                            {children}
+                          </code>
+                        ) : (
+                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5 mb-4">
+                            <code {...rest}>{children}</code>
+                          </pre>
+                        );
+                      },
+                      pre: ({ children }) => <>{children}</>,
+                      blockquote: (props) => (
+                        <blockquote
+                          className="border-l-4 border-slate-300 pl-4 italic text-slate-700 my-3"
+                          {...props}
+                        />
+                      ),
+                      a: (props) => (
+                        <a
+                          className="text-brand underline hover:text-brand/80"
+                          {...props}
+                        />
+                      ),
+                      table: (props) => (
+                        <div className="my-4 overflow-x-auto rounded-xl border border-slate-200/60 shadow-xs">
+                          <table className="w-full text-left border-collapse text-xs font-sans" {...props} />
+                        </div>
+                      ),
+                      thead: (props) => (
+                        <thead className="bg-slate-50 border-b border-slate-200/60 font-semibold font-sans" {...props} />
+                      ),
+                      th: (props) => (
+                        <th className="p-3 font-semibold text-slate-800 font-sans" {...props} />
+                      ),
+                      td: (props) => (
+                        <td className="p-3 border-t border-slate-100 text-slate-650 font-sans" {...props} />
+                      ),
+                    }}
+                  >
+                    {app.integration}
                   </Markdown>
                 </div>
               </section>
