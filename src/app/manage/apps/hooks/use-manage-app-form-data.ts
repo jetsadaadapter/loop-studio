@@ -246,6 +246,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     isSubmitting,
     error,
     fieldErrors,
+    setFieldErrors,
     touched,
     tagSuggestions,
     categories,

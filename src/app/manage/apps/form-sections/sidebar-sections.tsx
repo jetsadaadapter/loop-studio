@@ -15,15 +15,15 @@ import {
 
 type SidebarSectionsProps = {
   iconId: string;
-  coverId: string;
+  imageId: string;
   isActive: boolean;
   badgeLabel: string;
   touched: Partial<Record<string, boolean>>;
   fieldErrors: Record<string, string>;
   onIconChange: (value: string) => void;
   onIconError: (message: string) => void;
-  onCoverChange: (value: string) => void;
-  onCoverError: (message: string) => void;
+  onImageChange: (value: string) => void;
+  onImageError: (message: string) => void;
   onStatusChange: (value: string) => void;
   onBadgeChange: (value: string) => void;
 };
@@ -54,15 +54,15 @@ function SidebarCardHeader({
 
 export function SidebarSections({
   iconId,
-  coverId,
+  imageId,
   isActive,
   badgeLabel,
   touched,
   fieldErrors,
   onIconChange,
   onIconError,
-  onCoverChange,
-  onCoverError,
+  onImageChange,
+  onImageError,
   onStatusChange,
   onBadgeChange,
 }: SidebarSectionsProps) {
@@ -119,28 +119,28 @@ export function SidebarSections({
       <Card className="rounded-xl border border-slate-200/70 shadow-sm">
         <SidebarCardHeader
           icon={<ImageIcon className="size-4" />}
-          title="Cover Image"
+          title="Featured Image"
           description="OG-style image for sharing previews"
         />
         <CardContent>
           <Field>
             <ImageUpload
-              value={coverId}
+              value={imageId}
               previewSrc={
-                coverId
-                  ? `/images/${encodeURIComponent(coverId.trim())}`
+                imageId
+                  ? `/images/${encodeURIComponent(imageId.trim())}`
                   : undefined
               }
               previewFit="cover"
               expectedWidth={1200}
               expectedHeight={630}
-              onChange={onCoverChange}
-              onError={onCoverError}
-              placeholder="Upload cover"
+              onChange={onImageChange}
+              onError={onImageError}
+              placeholder="Upload featured image"
               description="Recommended size: 1200x630 px. Supports png, jpg, jpeg, webp."
             />
             <FieldError
-              errors={touched.coverId ? [{ message: fieldErrors.coverId }] : []}
+              errors={touched.imageId ? [{ message: fieldErrors.imageId }] : []}
             />
           </Field>
         </CardContent>

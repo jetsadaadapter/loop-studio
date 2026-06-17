@@ -202,7 +202,14 @@ export function ImageUpload({
                 />
               </div>
             ) : (
-              <div className="relative mb-2 h-40 w-full max-w-xs overflow-hidden rounded-md">
+              <div
+                className="relative mb-2 w-full max-w-xs overflow-hidden rounded-md"
+                style={
+                  expectedWidth && expectedHeight
+                    ? { aspectRatio: `${expectedWidth} / ${expectedHeight}` }
+                    : { height: "10rem" }
+                }
+              >
                 <Image
                   src={resolvedPreviewSrc}
                   alt="Uploaded preview"

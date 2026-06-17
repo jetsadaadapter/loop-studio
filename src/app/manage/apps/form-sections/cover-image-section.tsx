@@ -5,21 +5,21 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { ImageUpload } from "@/components/ui/image-upload";
 
-type FeaturedImageSectionProps = {
-  imageId: string;
+type CoverImageSectionProps = {
+  coverId: string;
   touched: Partial<Record<string, boolean>>;
   fieldErrors: Record<string, string>;
   onChange: (value: string) => void;
   onError: (message: string) => void;
 };
 
-export function FeaturedImageSection({
-  imageId,
+export function CoverImageSection({
+  coverId,
   touched,
   fieldErrors,
   onChange,
   onError,
-}: FeaturedImageSectionProps) {
+}: CoverImageSectionProps) {
   return (
     <Card className="rounded-xl border border-slate-200/70 shadow-sm">
       <CardHeader className="pb-2">
@@ -28,30 +28,30 @@ export function FeaturedImageSection({
             <ImageIcon className="size-4" />
           </div>
           <div>
-            <h5 className="text-base font-semibold leading-tight">Featured Image</h5>
-            <p className="text-xs text-muted-foreground">OG-style image for sharing previews</p>
+            <h5 className="text-base font-semibold leading-tight">Cover Image</h5>
+            <p className="text-xs text-muted-foreground">Wide banner displayed on the app detail page</p>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <Field>
           <ImageUpload
-            value={imageId}
+            value={coverId}
             previewSrc={
-              imageId
-                ? `/images/${encodeURIComponent(imageId.trim())}`
+              coverId
+                ? `/images/${encodeURIComponent(coverId.trim())}`
                 : undefined
             }
             previewFit="cover"
             expectedWidth={1200}
-            expectedHeight={630}
+            expectedHeight={400}
             onChange={onChange}
             onError={onError}
-            placeholder="Upload featured image"
-            description="Recommended size: 1200x630 px. Supports png, jpg, jpeg, webp."
+            placeholder="Upload cover image"
+            description="Recommended size: 1200x400 px. Supports png, jpg, jpeg, webp."
           />
           <FieldError
-            errors={touched.imageId ? [{ message: fieldErrors.imageId }] : []}
+            errors={touched.coverId ? [{ message: fieldErrors.coverId }] : []}
           />
         </Field>
       </CardContent>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useManageAppFormData } from "./hooks/use-manage-app-form-data";
 import { GeneralSection } from "./form-sections/general-section";
-import { FeaturedImageSection } from "./form-sections/featured-image-section";
+import { CoverImageSection } from "./form-sections/cover-image-section";
 import { ActionSection } from "./form-sections/action-section";
 import { ContentSection } from "./form-sections/content-section";
 import { SidebarSections } from "./form-sections/sidebar-sections";
@@ -31,6 +31,7 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     isSubmitting,
     error,
     fieldErrors,
+    setFieldErrors,
     touched,
     tagSuggestions,
     categories,
@@ -93,15 +94,16 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 onBlur={(field) => touchAndValidate(field, draft)}
               />
 
-              <FeaturedImageSection
-                imageId={draft.imageId}
+              <CoverImageSection
+                coverId={draft.coverId}
                 touched={touched}
                 fieldErrors={fieldErrors}
-                onChange={(value) => handleFieldChange("imageId", value)}
-                onError={() => {
-                  touch("imageId");
-                  setDraft((c) => ({ ...c, imageId: "" }));
-                  handleFieldChange("imageId", "");
+                onChange={(value) => handleFieldChange("coverId", value)}
+                onError={(message) => {
+                  touch("coverId");
+                  setFieldErrors((prev) => ({ ...prev, coverId: message }));
+                  setDraft((c) => ({ ...c, coverId: "" }));
+                  handleFieldChange("coverId", "");
                 }}
               />
 
@@ -138,22 +140,24 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
             <div className="col-span-12 space-y-6 lg:col-span-4">
               <SidebarSections
                 iconId={draft.iconId}
-                coverId={draft.coverId}
+                imageId={draft.imageId}
                 isActive={draft.isActive}
                 badgeLabel={draft.badgeLabel}
                 touched={touched}
                 fieldErrors={fieldErrors}
                 onIconChange={(value) => handleFieldChange("iconId", value)}
-                onIconError={() => {
+                onIconError={(message) => {
                   touch("iconId");
+                  setFieldErrors((prev) => ({ ...prev, iconId: message }));
                   setDraft((c) => ({ ...c, iconId: "" }));
                   handleFieldChange("iconId", "");
                 }}
-                onCoverChange={(value) => handleFieldChange("coverId", value)}
-                onCoverError={() => {
-                  touch("coverId");
-                  setDraft((c) => ({ ...c, coverId: "" }));
-                  handleFieldChange("coverId", "");
+                onImageChange={(value) => handleFieldChange("imageId", value)}
+                onImageError={(message) => {
+                  touch("imageId");
+                  setFieldErrors((prev) => ({ ...prev, imageId: message }));
+                  setDraft((c) => ({ ...c, imageId: "" }));
+                  handleFieldChange("imageId", "");
                 }}
                 onStatusChange={(value) => setDraft((current) => ({ ...current, isActive: value === "active" }))}
                 onBadgeChange={(value) =>
