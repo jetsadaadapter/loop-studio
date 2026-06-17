@@ -6,6 +6,7 @@ import {
   Check,
   Copy,
   ExternalLink,
+  FileCode,
   Folder,
   Link as LinkIcon,
   Pencil,
@@ -15,6 +16,12 @@ import {
 import { Card } from "@/components/ui/card";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import { IntegrationPreviewDialog } from "@/app/manage/apps/integration-preview-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
@@ -196,6 +203,17 @@ export function ManagerAppCard({
             <LinkIcon className="size-3" />
             {type.label}
           </span>
+          {hasIntegration && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="ml-auto flex shrink-0 cursor-default items-center gap-1 rounded-md bg-sky-50 px-1.5 py-0.5 text-sky-500">
+                  <FileCode className="size-3" />
+                  <span className="text-[10px] font-semibold">Dev Guide</span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Developer Guide Available</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         {/* Description */}

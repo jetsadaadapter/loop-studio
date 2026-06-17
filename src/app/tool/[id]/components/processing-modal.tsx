@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Loader2, Database, Cpu, BrainCircuit, BarChart3, Terminal, ShieldAlert, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Loader2, Database, Cpu, BrainCircuit, BarChart3, Terminal, ShieldAlert, AlertTriangle, X } from "lucide-react";
 import type { ToolRunGrouped } from "@/core/interfaces/tools.interface";
 import { getJobStatus } from "../tool-job-utils";
 import { getPluginConfig } from "../plugin-config";
@@ -194,6 +194,15 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
         {/* Top gradient accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-brand via-indigo-500 to-violet-500" />
 
+        {/* Dismiss button — always visible so users can close if the job takes too long */}
+        <button
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          className="absolute top-3 right-3 flex items-center justify-center size-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          <X className="size-3.5" />
+        </button>
+
         <div className="p-7 pb-8 space-y-6">
           {/* Header */}
           <div className="space-y-1">
@@ -327,7 +336,7 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
             <p className="text-[10px] text-slate-400 font-medium text-center leading-normal">
               {isDone
                 ? (isFailed ? "The job encountered an error. Check Run History for logs." : "Your job completed successfully. Check Run History for results.")
-                : "You can close this window — the job will continue running in the background."}
+                : "Taking too long? You can close this and check back later — the job will continue running in the background."}
             </p>
             {isFailed && (
               <button

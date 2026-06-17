@@ -114,14 +114,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
     return null;
   });
   const previousRunIdRef = useRef<string | null>(null);
-  const [isProcessingOpen, setIsProcessingOpen] = useState(() => {
-    const latestRun = initialJobs?.data?.[0];
-    if (latestRun) {
-      const status = getJobStatus(latestRun);
-      return status === "active" || status === "running" || status === "queued" || status === "waiting";
-    }
-    return false;
-  });
+  // Always start closed on page load/reload — modal only opens when user triggers a run in this session
+  const [isProcessingOpen, setIsProcessingOpen] = useState(false);
   const [lastTriggeredJobId, setLastTriggeredJobId] = useState<string | null>(null);
   const [isJobComplete, setIsJobComplete] = useState(false);
   const [isWaitingForRun, setIsWaitingForRun] = useState(false);
