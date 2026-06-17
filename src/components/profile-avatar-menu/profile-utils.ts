@@ -75,7 +75,7 @@ export function useProfileData() {
   const profileImage = useMemo(() => profile?.image?.trim() || null, [profile]);
   const profileInitials = useMemo(() => getProfileMonogram(profile), [profile]);
   const isAdmin = useMemo(
-    () => profile?.roles?.includes("admin") ?? false,
+    () => (profile?.roles?.includes("admin") || profile?.roles?.includes("developer")) ?? false,
     [profile],
   );
 

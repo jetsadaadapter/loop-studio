@@ -16,41 +16,67 @@ interface ExportCommentsFetchOverviewProps {
 function mapToCommentItem(rawItem: ScrapedJobItem): CommentItem {
   const raw = rawItem as Record<string, unknown>;
 
-  // Convert Unix timestamp (seconds) to ISO date string
-  let dateStr = '';
-  if (raw.time) {
-    const timestamp = Number(raw.time);
-    if (!isNaN(timestamp)) {
-      // Convert Unix timestamp (seconds) to milliseconds
-      const date = new Date(timestamp * 1000);
-      dateStr = date.toISOString();
+  // text: support Facebook (message) and YouTube/generic (comment_body, text, content)
+  const text = String(raw.text || raw.comment_body || raw.message || raw.content || '');
+
+  // profileName: support Facebook (name) and YouTube (author_name)
+  const profileName = String(raw.profileName || raw.author_name || raw.name || raw.author || 'User');
+
+  // profilePicture: support Facebook (profile_image) and YouTube (author_thumbnail)
+  const profilePicture = String(raw.profilePicture || raw.author_thumbnail || raw.profile_image || raw.profile_picture || '');
+
+  // likesCount: support Facebook (likes) and YouTube/generic (like_count, likesCount)
+  const likesCount = raw.likesCount !== undefined ? Number(raw.likesCount)
+    : raw.like_count !== undefined ? Number(raw.like_count)
+    : raw.likes !== undefined ? Number(raw.likes)
+    : 0;
+
+  // dislikesCount: support dislike_count, dislikesCount, unlikes
+  const dislikesCount = raw.dislikesCount !== undefined ? Number(raw.dislikesCount)
+    : raw.dislike_count !== undefined ? Number(raw.dislike_count)
+    : raw.unlikes !== undefined ? Number(raw.unlikes)
+    : 0;
+
+  // commentsCount (replies): support Facebook (replies) and YouTube/generic (reply_count, commentsCount)
+  const commentsCount = raw.commentsCount !== undefined ? Number(raw.commentsCount)
+    : raw.reply_count !== undefined ? Number(raw.reply_count)
+    : raw.replies !== undefined && typeof raw.replies === 'number' ? raw.replies
+    : 0;
+
+  // date: support ISO date fields, or Unix timestamp in `time`
+  let dateStr = String(raw.date || raw.createdAt || raw.created_at || '');
+  if (!dateStr && raw.time) {
+    const timeNum = Number(raw.time);
+    if (!isNaN(timeNum)) {
+      dateStr = new Date(timeNum < 1_000_000_000_000 ? timeNum * 1000 : timeNum).toISOString();
     }
   }
 
-  // Build Facebook profile URL from profile_id
-  let profileUrl = '';
-  if (raw.profile_id) {
-    const profileId = String(raw.profile_id);
-    // If it starts with pfbid, it's a Facebook profile ID
-    if (profileId.startsWith('pfbid') || profileId.match(/^\d+$/)) {
-      profileUrl = `https://www.facebook.com/${profileId}`;
-    } else if (profileId.startsWith('http')) {
-      profileUrl = profileId;
+  // profileUrl: Facebook profile_id vs YouTube channel (UCxxx) vs direct URL
+  let profileUrl = String(raw.profileUrl || raw.profile_url || raw.commentUrl || '');
+  if (!profileUrl && raw.profile_id) {
+    const pid = String(raw.profile_id);
+    if (pid.startsWith('http')) {
+      profileUrl = pid;
+    } else if (pid.startsWith('UC') || pid.startsWith('HC')) {
+      profileUrl = `https://www.youtube.com/channel/${pid}`;
+    } else if (pid.startsWith('pfbid') || /^\d+$/.test(pid)) {
+      profileUrl = `https://www.facebook.com/${pid}`;
     }
   }
 
   return {
-    id: String(raw.comment_id || raw.id || ''),
-    commentId: String(raw.comment_id || ''),
-    commentUrl: raw.comment_permalink as string,
-    text: raw.message as string,
-    profilePicture: raw.profile_image as string,
-    profileName: raw.name as string,
-    profileUrl,
-    date: dateStr,
-    likesCount: raw.likes as string | number,
-    dislikesCount: 0,
-    commentsCount: raw.replies as number,
+    id: String(raw.comment_id || raw.commentId || raw.id || ''),
+    commentId: String(raw.comment_id || raw.commentId || ''),
+    commentUrl: String(raw.comment_permalink || raw.commentUrl || raw.comment_url || '') || undefined,
+    text,
+    profilePicture,
+    profileName,
+    profileUrl: profileUrl || undefined,
+    date: dateStr || undefined,
+    likesCount,
+    dislikesCount,
+    commentsCount,
     comments: [],
   };
 }

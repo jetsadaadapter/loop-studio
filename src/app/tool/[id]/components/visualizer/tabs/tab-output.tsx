@@ -86,11 +86,16 @@ export function TabOutput({ job }: TabOutputProps) {
     ? (rawItems
         .map((item) => normalizeCommentItem(item as Record<string, unknown>))
         .filter((item) => {
+          // Keep any item that has a usable identity: Facebook ID, YouTube channel ID,
+          // comment_id, or at minimum a non-empty author name + comment text
           const pId = item.profileId || item.profile_id;
           const fId = item.facebookId || item.facebook_id;
+          const cId = item.commentId || item.comment_id;
+          const hasName = item.profileName && String(item.profileName).trim() !== "" && String(item.profileName) !== "User";
+          const hasText = item.text && String(item.text).trim() !== "";
+          const isValidId = (v: unknown) => v !== undefined && v !== null && String(v).trim() !== "" && String(v) !== "null" && String(v) !== "undefined";
           return Boolean(
-            (pId !== undefined && pId !== null && String(pId).trim() !== "" && String(pId) !== "null" && String(pId) !== "undefined") ||
-            (fId !== undefined && fId !== null && String(fId).trim() !== "" && String(fId) !== "null" && String(fId) !== "undefined")
+            isValidId(pId) || isValidId(fId) || isValidId(cId) || (hasName && hasText)
           );
         }) as unknown as ScrapedJobItem[])
     : rawItems;

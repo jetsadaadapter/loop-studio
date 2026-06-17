@@ -308,24 +308,56 @@ export function isCommentScraperItem(item: unknown): boolean {
   );
 }
 
+function isValidId(v: unknown): boolean {
+  if (v === undefined || v === null) return false;
+  const s = String(v).trim();
+  return s !== "" && s !== "null" && s !== "undefined";
+}
+
 export function normalizeCommentItem(item: Record<string, unknown>): Record<string, unknown> {
   const commentId = String(item.commentId || item.comment_id || item.id || "");
-  const profileName = String(item.profileName || item.author_name || item.author || "User");
-  const profilePicture = String(item.profilePicture || item.author_thumbnail || item.author_picture || "");
+  const profileName = String(item.profileName || item.author_name || item.name || item.author || "User");
+  const profilePicture = String(item.profilePicture || item.author_thumbnail || item.author_picture || item.profile_image || item.profile_picture || "");
   const text = String(item.text || item.comment_body || item.message || item.content || "");
-  const likesCount = item.likesCount !== undefined ? item.likesCount : (item.like_count !== undefined ? item.like_count : 0);
-  const dislikesCount = item.dislikesCount !== undefined ? item.dislikesCount : (item.dislike_count !== undefined ? item.dislike_count : (item.unlikes !== undefined ? item.unlikes : (item.unlike_count !== undefined ? item.unlike_count : 0)));
-  const commentsCount = item.commentsCount !== undefined ? item.commentsCount : (item.reply_count !== undefined ? item.reply_count : 0);
-  const commentUrl = String(item.commentUrl || item.comment_url || item.permalink || "");
 
-  let date = String(item.date || item.createdAt || "");
+  const likesCount = item.likesCount !== undefined ? item.likesCount
+    : item.like_count !== undefined ? item.like_count
+    : item.likes !== undefined ? item.likes
+    : 0;
+
+  const dislikesCount = item.dislikesCount !== undefined ? item.dislikesCount
+    : item.dislike_count !== undefined ? item.dislike_count
+    : item.unlikes !== undefined ? item.unlikes
+    : item.unlike_count !== undefined ? item.unlike_count
+    : 0;
+
+  const commentsCount = item.commentsCount !== undefined ? item.commentsCount
+    : item.reply_count !== undefined ? item.reply_count
+    : typeof item.replies === "number" ? item.replies
+    : 0;
+
+  const commentUrl = String(item.commentUrl || item.comment_url || item.comment_permalink || item.permalink || "");
+
+  let date = String(item.date || item.createdAt || item.created_at || "");
   if (!date && item.time) {
     const timeNum = Number(item.time);
     if (!isNaN(timeNum)) {
-      const dateObj = new Date(timeNum < 1000000000000 ? timeNum * 1000 : timeNum);
-      date = dateObj.toISOString();
+      date = new Date(timeNum < 1_000_000_000_000 ? timeNum * 1000 : timeNum).toISOString();
     } else {
       date = String(item.time);
+    }
+  }
+
+  // profileUrl: support Facebook profile_id, YouTube channel ID (UCxxx), or direct URL
+  let profileUrl = String(item.profileUrl || item.profile_url || "");
+  if (!profileUrl && item.profile_id) {
+    const pid = String(item.profile_id);
+    if (pid.startsWith("http")) {
+      profileUrl = pid;
+    } else if (pid.startsWith("UC") || pid.startsWith("HC")) {
+      profileUrl = `https://www.youtube.com/channel/${pid}`;
+    } else if (pid.startsWith("pfbid") || /^\d+$/.test(pid)) {
+      profileUrl = `https://www.facebook.com/${pid}`;
     }
   }
 
@@ -334,11 +366,12 @@ export function normalizeCommentItem(item: Record<string, unknown>): Record<stri
     ? rawReplies
         .map(normalizeCommentItem)
         .filter((reply) => {
-          const pId = reply.profileId || reply.profile_id;
-          const fId = reply.facebookId || reply.facebook_id;
-          return Boolean(
-            (pId !== undefined && pId !== null && String(pId).trim() !== "" && String(pId) !== "null" && String(pId) !== "undefined") ||
-            (fId !== undefined && fId !== null && String(fId).trim() !== "" && String(fId) !== "null" && String(fId) !== "undefined")
+          // Keep replies that have any valid identity (platform-agnostic)
+          return (
+            isValidId(reply.profileId || reply.profile_id) ||
+            isValidId(reply.facebookId || reply.facebook_id) ||
+            isValidId(reply.commentId || reply.comment_id) ||
+            (reply.profileName && String(reply.profileName) !== "User" && isValidId(reply.text))
           );
         })
     : undefined;
@@ -349,6 +382,7 @@ export function normalizeCommentItem(item: Record<string, unknown>): Record<stri
     commentId,
     profileName,
     profilePicture,
+    profileUrl: profileUrl || undefined,
     text,
     likesCount,
     dislikesCount,
