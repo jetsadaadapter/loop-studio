@@ -25,7 +25,15 @@ const MetaSchema = z.object({
 const SummarySchema = z.object({
   one_line: z.string().min(1, "one_line summary cannot be empty"),
   overall_sentiment: SentimentEnum,
-  confidence_score: z.number().min(0).max(1).default(0),
+  confidence_score: z.preprocess((val) => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") {
+      const cleaned = val.replace(/%/g, "").trim();
+      const parsed = parseFloat(cleaned);
+      return isNaN(parsed) ? undefined : parsed;
+    }
+    return val;
+  }, z.coerce.number().min(0).max(100).default(0)),
 });
 
 // Section meta schema

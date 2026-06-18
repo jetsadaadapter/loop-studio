@@ -412,9 +412,12 @@ export const isPurchaseIntentAnalysis = (analysis?: AnalysisResult | null): bool
     ].some((token) => normalizedClassification.includes(token));
 };
 
-export const formatAnalysisConfidence = (confidence?: number): string | null => {
-    if (typeof confidence !== "number" || Number.isNaN(confidence)) return null;
-    const normalized = confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence);
+export const formatAnalysisConfidence = (confidence?: number | string | null): string | null => {
+    if (confidence === undefined || confidence === null || confidence === "") return null;
+    const rawVal = typeof confidence === "string" ? confidence.replace(/%/g, "").trim() : confidence;
+    const num = typeof rawVal === "number" ? rawVal : parseFloat(String(rawVal));
+    if (Number.isNaN(num)) return null;
+    const normalized = num <= 1 ? Math.round(num * 100) : Math.round(num);
     return `${normalized}%`;
 };
 

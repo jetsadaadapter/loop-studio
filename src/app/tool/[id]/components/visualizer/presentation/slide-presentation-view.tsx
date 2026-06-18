@@ -295,7 +295,7 @@ export function SlidePresentationView({
                   <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                     <div
                       className="bg-linear-to-r from-amber-500 to-amber-600 h-full rounded-full"
-                      style={{ width: `${parseFloat(confidence) * 100}%` }}
+                      style={{ width: confidence }}
                     />
                   </div>
                 </div>

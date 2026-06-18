@@ -321,7 +321,15 @@ export function generateDynamicLayoutFromSchema(
     const taskIntent = String(meta.task_intent || "analyze_purchase_intent");
     const taskDescription = String(summary.one_line || "สแกนและวิเคราะห์ความคิดเห็นตามโครงสร้างรายงาน");
     const overallSentiment = String(summary.overall_sentiment || "mixed");
-    const confidenceScore = typeof summary.confidence_score === "number" ? summary.confidence_score : 1.0;
+    
+    const rawScore = typeof summary.confidence_score === "number"
+      ? summary.confidence_score
+      : parseFloat(String(summary.confidence_score));
+      
+    let confidencePercent = 100;
+    if (!Number.isNaN(rawScore) && rawScore !== null && rawScore !== undefined) {
+      confidencePercent = rawScore <= 1 ? Math.round(rawScore * 100) : Math.round(rawScore);
+    }
 
     return [
       {
@@ -329,7 +337,7 @@ export function generateDynamicLayoutFromSchema(
         task_description: taskDescription,
         sections,
         overall_sentiment_focus: overallSentiment,
-        confidence_note: `ระดับความมั่นใจ (Confidence Score): ${confidenceScore * 100}% | คุณภาพข้อมูล: ${meta.data_quality || "good"}`,
+        confidence_note: `ระดับความมั่นใจ (Confidence Score): ${confidencePercent}% | คุณภาพข้อมูล: ${meta.data_quality || "good"}`,
       },
     ];
   }
