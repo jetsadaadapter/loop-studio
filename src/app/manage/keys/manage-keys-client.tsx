@@ -46,8 +46,9 @@ export function ManageKeysClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKeyRecord | null>(null);
-  const [createdRawKey, setCreatedRawKey] = useState<string | null>(null);
+  const [createdKeyData, setCreatedKeyData] = useState<{ appId: string; secret: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedAppId, setCopiedAppId] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
@@ -197,7 +198,7 @@ export function ManageKeysClient() {
           const safeCurrent = Array.isArray(current) ? current : [];
           return [newItem, ...safeCurrent];
         });
-        setCreatedRawKey(created.secret);
+        setCreatedKeyData({ appId: created.appId, secret: created.secret });
         toast.success("API key generated.");
         setMode(null);
       }
@@ -209,11 +210,19 @@ export function ManageKeysClient() {
   };
 
   const copyToClipboard = () => {
-    if (!createdRawKey) return;
-    navigator.clipboard.writeText(createdRawKey);
+    if (!createdKeyData) return;
+    navigator.clipboard.writeText(createdKeyData.secret);
     setCopied(true);
-    toast.success("Key copied to clipboard.");
+    toast.success("Secret key copied to clipboard.");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyAppIdToClipboard = () => {
+    if (!createdKeyData) return;
+    navigator.clipboard.writeText(createdKeyData.appId);
+    setCopiedAppId(true);
+    toast.success("App ID copied to clipboard.");
+    setTimeout(() => setCopiedAppId(false), 2000);
   };
 
   return (
@@ -392,12 +401,11 @@ export function ManageKeysClient() {
       </Sheet>
 
       {/* Copy Generated API Key Modal */}
-      <Dialog open={!!createdRawKey} onOpenChange={(open) => { if (!open) { setCreatedRawKey(null); setShowKey(false); } }}>
-        <DialogContent className="max-w-[420px] w-full rounded-3xl bg-white p-0 overflow-hidden border-0 shadow-2xl select-none">
+      <Dialog open={!!createdKeyData} onOpenChange={(open) => { if (!open) { setCreatedKeyData(null); setShowKey(false); } }}>
+        <DialogContent className="max-w-[460px] w-full rounded-3xl bg-white p-0 overflow-hidden border-0 shadow-2xl select-none">
 
           {/* Header gradient band */}
           <div className="relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 px-8 pt-8 pb-10">
-            {/* Decorative circles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-6 -right-6 size-32 rounded-full bg-white/10" />
               <div className="absolute top-4 -right-2 size-16 rounded-full bg-white/5" />
@@ -410,7 +418,7 @@ export function ManageKeysClient() {
               <div>
                 <DialogTitle className="text-lg font-bold text-white font-sans tracking-tight">Key Generated!</DialogTitle>
                 <DialogDescription className="text-emerald-100 text-xs mt-1 font-sans leading-relaxed">
-                  Store it safely — this secret <strong className="text-white font-semibold">won&apos;t be shown again.</strong>
+                  Store these credentials safely — the secret <strong className="text-white font-semibold">won&apos;t be shown again.</strong>
                 </DialogDescription>
               </div>
             </div>
@@ -423,20 +431,42 @@ export function ManageKeysClient() {
             <div className="flex items-start gap-2.5 rounded-xl bg-amber-50 border border-amber-200/60 px-3.5 py-2.5">
               <span className="mt-px text-amber-500 shrink-0 text-sm leading-none">⚠</span>
               <p className="text-[11px] text-amber-700 font-sans leading-relaxed">
-                Copy and save your API key now. Once you close this dialog, <strong>you cannot retrieve it again.</strong>
+                Copy and save both credentials now. Use <strong>X-App-Id</strong> and <strong>X-App-Secret</strong> headers to authenticate API requests.
               </p>
+            </div>
+
+            {/* App ID field */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-sans">
+                App ID <span className="normal-case font-medium text-slate-400">(X-App-Id header)</span>
+              </label>
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2.5">
+                <code className="flex-1 min-w-0 font-mono text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
+                  {createdKeyData?.appId ?? ""}
+                </code>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={copyAppIdToClipboard}
+                  className="size-7 rounded-lg hover:bg-slate-200 cursor-pointer text-slate-400 hover:text-slate-700 transition-colors border-0 p-0 shadow-none bg-transparent shrink-0"
+                  title="Copy App ID"
+                >
+                  {copiedAppId ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+                </Button>
+              </div>
             </div>
 
             {/* Secret key field */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-sans">
-                Secret Key
+                Secret Key <span className="normal-case font-medium text-slate-400">(X-App-Secret header)</span>
               </label>
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2.5 group">
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2.5">
                 <code className="flex-1 min-w-0 font-mono text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
                   {showKey
-                    ? createdRawKey
-                    : (createdRawKey ? ("•".repeat(24) + createdRawKey.slice(-6)) : "")}
+                    ? createdKeyData?.secret
+                    : (createdKeyData ? ("•".repeat(24) + createdKeyData.secret.slice(-6)) : "")}
                 </code>
                 <div className="flex items-center gap-0.5 shrink-0">
                   <Button
@@ -455,17 +485,15 @@ export function ManageKeysClient() {
                     size="icon"
                     onClick={copyToClipboard}
                     className="size-7 rounded-lg hover:bg-slate-200 cursor-pointer text-slate-400 hover:text-slate-700 transition-colors border-0 p-0 shadow-none bg-transparent"
-                    title="Copy to clipboard"
+                    title="Copy Secret Key"
                   >
-                    {copied
-                      ? <Check className="size-3.5 text-emerald-500" />
-                      : <Copy className="size-3.5" />}
+                    {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
                   </Button>
                 </div>
               </div>
               {copied && (
                 <p className="text-[10px] text-emerald-600 font-sans font-semibold pl-1 animate-in fade-in slide-in-from-bottom-1 duration-200">
-                  ✓ Copied to clipboard
+                  ✓ Secret key copied to clipboard
                 </p>
               )}
             </div>
@@ -473,10 +501,10 @@ export function ManageKeysClient() {
             {/* Confirm button */}
             <Button
               type="button"
-              onClick={() => { setCreatedRawKey(null); setShowKey(false); }}
+              onClick={() => { setCreatedKeyData(null); setShowKey(false); }}
               className="w-full h-10 bg-brand hover:bg-brand/90 text-white font-bold rounded-xl shadow-sm font-sans text-sm tracking-wide transition-all active:scale-[0.98]"
             >
-              I&apos;ve saved my key — done
+              I&apos;ve saved my credentials — done
             </Button>
           </div>
         </DialogContent>

@@ -53,6 +53,8 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     handleDownloadIntegration,
     handleSubmit,
     handleFieldChange,
+    handleGenerateIntegration,
+    isGeneratingIntegration,
   } = useManageAppFormData(mode, appId);
 
   const pageTitle = mode === "create" ? "Create App" : "Edit App";
@@ -134,6 +136,8 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 onIntegrationMdInputChange={(e) => void handleIntegrationMdInputChange(e)}
                 onIntegrationPreviewClick={() => setShowIntegrationPreview(true)}
                 integrationMdInputRef={integrationMdInputRef}
+                onGenerateIntegration={() => void handleGenerateIntegration()}
+                isGeneratingIntegration={isGeneratingIntegration}
               />
             </div>
 

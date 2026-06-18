@@ -22,6 +22,8 @@ import {
   handleDownloadIntegrationMarkdown,
 } from "./instructions-helpers";
 import { useTagsAndCategories } from "./use-tags-and-categories";
+import { getManageTool } from "@/core/services/manage-tools.service";
+import { generateIntegrationGuide } from "../integration-guide-generator";
 
 export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const router = useRouter();
@@ -39,6 +41,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const [didCopy, setDidCopy] = useState(false);
   const [showIntegrationPreview, setShowIntegrationPreview] = useState(false);
   const [didCopyIntegration, setDidCopyIntegration] = useState(false);
+  const [isGeneratingIntegration, setIsGeneratingIntegration] = useState(false);
 
   function touch(field: string) {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -239,6 +242,27 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     if (touched[field]) revalidateField(field, next);
   }
 
+  async function handleGenerateIntegration() {
+    // Only works for internal apps with a toolId in ctaLink
+    const ctaLink = draft.ctaLink ?? "";
+    const toolId = ctaLink.startsWith("/tool/") ? ctaLink.replace("/tool/", "").trim() : "";
+    if (!toolId) {
+      pushDialogToast("No tool linked. Set Link Type to 'Internal' and enter a Tool ID first.", "error");
+      return;
+    }
+    setIsGeneratingIntegration(true);
+    try {
+      const tool = await getManageTool(toolId);
+      const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? []);
+      setDraft((prev) => ({ ...prev, integration: guide }));
+      pushDialogToast("Integration guide generated successfully.", "success");
+    } catch {
+      pushDialogToast("Failed to fetch tool data. Make sure the Tool ID is correct.", "error");
+    } finally {
+      setIsGeneratingIntegration(false);
+    }
+  }
+
   return {
     draft,
     setDraft,
@@ -268,5 +292,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     handleDownloadIntegration: () => handleDownloadIntegrationMarkdown(draft.integration, draft.name, pushDialogToast),
     handleSubmit,
     handleFieldChange,
+    handleGenerateIntegration,
+    isGeneratingIntegration,
   };
 }

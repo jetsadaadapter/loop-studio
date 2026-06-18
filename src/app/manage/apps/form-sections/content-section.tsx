@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Eye, FileText } from "lucide-react";
+import { CheckCircle2, Eye, FileText, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
@@ -27,6 +27,8 @@ type ContentSectionProps = {
   onIntegrationMdInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onIntegrationPreviewClick: () => void;
   integrationMdInputRef: React.RefObject<HTMLInputElement | null>;
+  onGenerateIntegration?: () => void;
+  isGeneratingIntegration?: boolean;
 };
 
 export function ContentSection({
@@ -46,6 +48,8 @@ export function ContentSection({
   onIntegrationMdInputChange,
   onIntegrationPreviewClick,
   integrationMdInputRef,
+  onGenerateIntegration,
+  isGeneratingIntegration = false,
 }: ContentSectionProps) {
   const hasinstructions = instructions.trim().length > 0;
   const hasIntegration = integration.trim().length > 0;
@@ -153,6 +157,19 @@ export function ContentSection({
             className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
           />
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {onGenerateIntegration && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onGenerateIntegration}
+                disabled={isGeneratingIntegration}
+                className="flex items-center gap-1.5 border-brand/40 text-brand hover:bg-brand/5"
+              >
+                <Sparkles className="size-3.5" />
+                {isGeneratingIntegration ? "Generating…" : "Generate"}
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"

@@ -288,6 +288,8 @@ export function ManagerAppCard({
           onCopy={handleCopyIntegration}
           onDownload={handleDownloadIntegration}
           didCopy={didCopyIntegration}
+          toolId={item.linkType === "internal" ? item.id : undefined}
+          appName={item.name}
         />
       )}
     </Card>

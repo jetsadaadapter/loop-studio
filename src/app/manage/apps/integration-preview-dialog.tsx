@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Download, BookOpen } from "lucide-react";
+import { Check, Copy, Download, BookOpen, Box } from "lucide-react";
+import { downloadPostmanCollection } from "./postman-generator";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ type IntegrationPreviewDialogProps = {
   onCopy: () => Promise<void>;
   onDownload: () => void;
   didCopy: boolean;
+  toolId?: string;
+  appName?: string;
 };
 
 function CodeBlock({ children, className, ...rest }: React.HTMLAttributes<HTMLElement>) {
@@ -64,6 +67,8 @@ export function IntegrationPreviewDialog({
   onCopy,
   onDownload,
   didCopy,
+  toolId,
+  appName = "tool",
 }: IntegrationPreviewDialogProps) {
   const [previewMode, setPreviewMode] = useState<"markdown" | "text">(
     "markdown",
@@ -128,6 +133,22 @@ export function IntegrationPreviewDialog({
                   <Download className="size-4" />
                   Download
                 </Button>
+
+                {toolId && (
+                  <>
+                    <div className="h-5 w-px bg-slate-200" />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => downloadPostmanCollection(toolId, appName)}
+                      className="flex items-center gap-1.5 font-sans text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                    >
+                      <Box className="size-4" />
+                      Postman
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </DialogHeader>
