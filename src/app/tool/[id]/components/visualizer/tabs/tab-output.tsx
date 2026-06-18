@@ -31,6 +31,7 @@ import {
   getFunctionDeclarationsFromJob,
   generateDynamicLayoutFromSchema,
 } from "./tab-output-dynamic-schema";
+import { SentimentAnalysisOverview } from "../tool-specific/sentiment-analysis-overview";
 
 interface TabOutputProps {
   job: ToolJob;
@@ -82,7 +83,22 @@ export function TabOutput({ job }: TabOutputProps) {
     ("preview" in job.result || "config" in job.result)
   );
 
-  const items = isCommentScraper
+  const isSentimentAnalysisResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "items" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).items) &&
+    ((job.result as Record<string, unknown>).items as unknown[]).length > 0 &&
+    ((job.result as Record<string, unknown>).items as unknown[]).every((item) => {
+      const raw = item as Record<string, unknown>;
+      return typeof raw.sentiment === "string" && typeof raw.confidenceScore === "number";
+    })
+  );
+
+  const items = isSentimentAnalysisResult
+    ? ((job.result as Record<string, unknown>).items as unknown as ScrapedJobItem[])
+    : isCommentScraper
     ? (rawItems
         .map((item) => normalizeCommentItem(item as Record<string, unknown>))
         .filter((item) => {
@@ -284,6 +300,7 @@ export function TabOutput({ job }: TabOutputProps) {
 
   const tabOverviewLabel = (() => {
     if (isPreProcessResult) return "ตั้งค่า (Overview)";
+    if (isSentimentAnalysisResult) return "ผลวิเคราะห์ Sentiment";
     if (isSingleTextSummary || structuredObjectData || isGeminiSummaryJob) return "สรุปผล AI (Summary)";
     if (isDynamicLayoutResult) return "สรุปการทำงาน (Summary)";
     if (isStructuredReportResult) return "สรุปรายงาน (Summary)";
@@ -423,6 +440,13 @@ export function TabOutput({ job }: TabOutputProps) {
               isExportCommentsJob={isExportCommentsJob}
               isExportCommentsFetchJob={isExportCommentsFetchJob}
               job={job}
+            />
+          ) : isSentimentAnalysisResult ? (
+            <SentimentAnalysisOverview
+              job={job}
+              items={items}
+              paginatedItems={paginatedItems}
+              startIndex={startIndex}
             />
           ) : isSingleTextSummary ? (
             <ExecutionSummarySection
