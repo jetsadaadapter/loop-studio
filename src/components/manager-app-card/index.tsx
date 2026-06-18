@@ -22,7 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn, getAppBadgeClass } from "@/lib/utils";
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 type ManagerAppCardItem = {
@@ -34,6 +34,7 @@ type ManagerAppCardItem = {
   sortOrder: number;
   isActive: boolean;
   imageUrl?: string;
+  badgeLabel?: string;
 };
 
 type ManagerAppCardProps = {
@@ -203,6 +204,16 @@ export function ManagerAppCard({
             <LinkIcon className="size-3" />
             {type.label}
           </span>
+          {item.badgeLabel && item.badgeLabel.trim().length > 0 && (
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0",
+                getAppBadgeClass(item.badgeLabel),
+              )}
+            >
+              {item.badgeLabel}
+            </span>
+          )}
           {hasIntegration && (
             <TooltipProvider>
               <Tooltip>
