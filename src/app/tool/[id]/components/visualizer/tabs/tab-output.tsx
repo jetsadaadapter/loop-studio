@@ -272,9 +272,11 @@ export function TabOutput({ job }: TabOutputProps) {
   })();
 
   // All Fields Tab pulls data from result only.
-  // If there is items data to show (like normalized comments for comment scrapers),
-  // we align it with the previous tab's format but show all items (without filtering).
+  // Sentiment results and comment scrapers use their own normalized item arrays.
   const allFieldsItems = (() => {
+    if (isSentimentAnalysisResult) {
+      return resultOnlyItems; // already job.result.items — all columns intact
+    }
     if (isCommentScraper) {
       return resultOnlyItems.map((item) =>
         normalizeCommentItem(item as Record<string, unknown>)

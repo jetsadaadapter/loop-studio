@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, HelpCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -27,7 +27,7 @@ interface ExportDatasetModalProps {
 export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetModalProps) {
   const { pushToast } = useToast();
   
-  const [config, setConfig] = useState<ExportConfig>({
+  const defaultConfig: ExportConfig = {
     view: "overview",
     format: "json",
     selectedFields: [],
@@ -36,9 +36,28 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
     offset: "",
     xmlRoot: "results",
     csvDelimiter: ",",
-  });
+  };
 
-  const items = getMergedGeminiItems(job);
+  const [config, setConfig] = useState<ExportConfig>(defaultConfig);
+
+  // Reset config every time the modal opens so stale fields from a previous job don't bleed in
+  useEffect(() => {
+    if (open) setConfig(defaultConfig);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // For results with a flat items array (e.g. sentiment analysis: {itemCount, items:[...]}),
+  // export the items directly so columns match what's visible in the All Fields tab.
+  const isFlatItemsResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    Array.isArray((job.result as Record<string, unknown>).items) &&
+    ((job.result as Record<string, unknown>).items as unknown[]).length > 0
+  );
+  const items = isFlatItemsResult
+    ? ((job.result as Record<string, unknown>).items as Record<string, unknown>[])
+    : getMergedGeminiItems(job);
   const runId = job.jobId || job._id;
 
   const allKeys = Array.from(

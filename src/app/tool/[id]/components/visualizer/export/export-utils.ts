@@ -16,10 +16,23 @@ export interface ExportConfig {
 }
 
 export function mapOverviewItem(item: Record<string, any>): Record<string, any> {
+  const hasSocialFields = item.url || item.facebookUrl || item.text || item.message || item.caption || item.likes !== undefined || item.shares !== undefined;
+
+  // For items without social/post fields (e.g. sentiment analysis results), return all scalar fields directly
+  if (!hasSocialFields) {
+    const result: Record<string, any> = {};
+    for (const [k, v] of Object.entries(item)) {
+      if (v !== null && v !== undefined && typeof v !== "object") {
+        result[k] = v;
+      }
+    }
+    return result;
+  }
+
   const media = item.media;
   const url = item.url || item.facebookUrl || "";
   const text = item.text || item.message || item.caption || "";
-  
+
   let likes = "";
   if (item.likes !== undefined && item.likes !== null) {
     likes = item.likes.toLocaleString();
