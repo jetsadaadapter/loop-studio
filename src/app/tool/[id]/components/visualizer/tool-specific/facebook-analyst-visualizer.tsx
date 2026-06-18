@@ -135,7 +135,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
 
       {/* Header */}
       <div className={cn("border-b", darkMode ? "bg-slate-900 border-slate-700/80" : "bg-white border-slate-100")}>
-        <div className="px-5 pt-4 pb-0">
+        <div className="px-5 pt-4 pb-3">
 
           {/* Title row */}
           <div className="flex items-start justify-between mb-4">
@@ -181,7 +181,7 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
           </div>
 
           {/* Tab bar — pill/segment style */}
-          <div className={cn("flex items-center gap-1 overflow-x-auto rounded-xl p-1 -mx-1 mb-0", darkMode ? "bg-slate-800/60" : "bg-slate-100/80")}>
+          <div className={cn("flex items-center gap-1 overflow-x-auto rounded-xl p-1 mb-0", darkMode ? "bg-slate-800/60" : "bg-slate-100/80")}>
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
