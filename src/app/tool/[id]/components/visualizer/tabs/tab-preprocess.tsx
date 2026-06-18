@@ -104,7 +104,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
       {/* Main Content Pane */}
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === "json" ? (
-          <div className="relative rounded-xl border border-slate-200 bg-white p-5 shadow-xs w-full overflow-auto">
+          <div className="relative rounded-xl border border-slate-200 bg-white shadow-xs w-full overflow-hidden flex flex-col">
             <div className="absolute top-4 right-4 z-10">
               <Button
                 onClick={handleCopyJson}
@@ -125,7 +125,7 @@ export function TabPreProcess({ job }: TabPreProcessProps) {
                 )}
               </Button>
             </div>
-            <pre className="font-sans text-xs leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
+            <pre className="p-5 overflow-auto font-sans text-xs leading-relaxed text-slate-655 select-text pr-16 sm:pr-28">
               <code
                 dangerouslySetInnerHTML={{ __html: highlightJson(jsonStr) }}
                 className="block whitespace-pre"
