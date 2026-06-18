@@ -6,12 +6,12 @@ import {
   Check,
   Copy,
   ExternalLink,
-  FileCode,
   Folder,
   Link as LinkIcon,
   Pencil,
   PlugZap,
   Trash2,
+  BookOpen,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
@@ -216,17 +216,6 @@ export function ManagerAppCard({
               {item.badgeLabel}
             </span>
           )}
-          {hasIntegration && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger className="ml-auto flex shrink-0 cursor-default items-center gap-1 rounded-md bg-sky-50 px-1.5 py-0.5 text-sky-500">
-                  <FileCode className="size-3" />
-                  <span className="text-[10px] font-semibold">Dev Guide</span>
-                </TooltipTrigger>
-                <TooltipContent side="top">Developer Guide Available</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
         </div>
 
         {/* Description */}
@@ -234,8 +223,8 @@ export function ManagerAppCard({
           {item.description || "No description provided."}
         </p>
 
-        {/* Type pill + tags */}
-        <div className="mt-auto mb-3 flex flex-wrap items-center gap-1.5">
+        {/* Type pill + tags + dev guide */}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <span
             className={cn(
               "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium",
@@ -257,26 +246,19 @@ export function ManagerAppCard({
               {tag.name}
             </span>
           ))}
-        </div>
-
-        {/* Divider + footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-          <button
-            type="button"
-            className="flex flex-1 items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-100 px-2.5 py-1.5 text-left transition hover:bg-white hover:shadow-sm"
-            onClick={handleCopyLink}
-            title="Copy link"
-          >
-            <span className="truncate text-[11px] text-slate-500">/apps/{item.id.slice(0, 8)}…</span>
-            {copiedLink ? (
-              <Check className="size-3 shrink-0 text-emerald-500" />
-            ) : (
-              <Copy className="size-3 shrink-0 text-slate-400" />
-            )}
-          </button>
-          <span className="ml-2.5 shrink-0 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
-            #{item.sortOrder}
-          </span>
+          {hasIntegration && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={() => setShowIntegration(true)}
+                  className="ml-auto flex items-center justify-center size-5 text-sky-400 hover:text-sky-600 transition-colors cursor-pointer"
+                >
+                  <BookOpen className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent side="top">Developer Guide</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
 
