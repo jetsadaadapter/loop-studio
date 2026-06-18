@@ -63,7 +63,7 @@ type AppRecord = {
   isActive: boolean;
   sortOrder: number;
   badgeLabel: string;
-  tags: string[];
+  tags: { id: string; name: string; color?: string }[];
   updatedAt: string;
   imageUrl?: string;
 };
@@ -98,8 +98,12 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     sortOrder: item.sortOrder,
     badgeLabel: item.badgeLabel ?? "",
     tags: (item.tags ?? [])
-      .map((tag) => tag.id || tag.tagId || "")
-      .filter(Boolean),
+      .map((tag) => ({
+        id: tag.id || tag.tagId || "",
+        name: typeof tag === "object" && tag.name ? tag.name : "",
+        color: typeof tag === "object" && tag.color ? tag.color : undefined,
+      }))
+      .filter((t) => t.id || t.name),
     updatedAt: (item.updatedAt || "").slice(0, 10),
     imageUrl: resolveManageAppImageUrl(item),
   };
@@ -614,6 +618,7 @@ export function ManageAppsClient() {
                       onEdit={() => router.push(`/manage/apps/${row.id}/edit`)}
                       onDelete={() => setDeleteTarget(row)}
                       integration={row.integration}
+                      tags={row.tags}
                     />
                   );
                 })}

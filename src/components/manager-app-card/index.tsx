@@ -42,6 +42,7 @@ type ManagerAppCardProps = {
   isBusy?: boolean;
   isDeleting?: boolean;
   integration?: string;
+  tags?: { id: string; name: string; color?: string }[];
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -62,6 +63,7 @@ export function ManagerAppCard({
   isBusy = false,
   isDeleting = false,
   integration = "",
+  tags = [],
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
@@ -232,8 +234,8 @@ export function ManagerAppCard({
           {item.description || "No description provided."}
         </p>
 
-        {/* Type pill */}
-        <div className="mt-auto mb-3">
+        {/* Type pill + tags */}
+        <div className="mt-auto mb-3 flex flex-wrap items-center gap-1.5">
           <span
             className={cn(
               "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium",
@@ -242,6 +244,19 @@ export function ManagerAppCard({
           >
             {type.label} App
           </span>
+          {tags.filter(t => t.name).map((tag) => (
+            <span
+              key={tag.id || tag.name}
+              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+              style={
+                tag.color
+                  ? { backgroundColor: `${tag.color}18`, borderColor: `${tag.color}40`, color: tag.color }
+                  : undefined
+              }
+            >
+              {tag.name}
+            </span>
+          ))}
         </div>
 
         {/* Divider + footer */}

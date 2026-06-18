@@ -46,18 +46,46 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // For results with a flat items array (e.g. sentiment analysis: {itemCount, items:[...]}),
-  // export the items directly so columns match what's visible in the All Fields tab.
+  // Detect Social Media Analyst result ({posts, metrics, segments, comments, insights})
+  const isSocialAnalystResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    Array.isArray((job.result as Record<string, unknown>).posts)
+  );
+
+  // For results with a flat items array (e.g. sentiment analysis: {itemCount, items:[...]})
   const isFlatItemsResult = Boolean(
+    !isSocialAnalystResult &&
     job.result &&
     typeof job.result === "object" &&
     !Array.isArray(job.result) &&
     Array.isArray((job.result as Record<string, unknown>).items) &&
     ((job.result as Record<string, unknown>).items as unknown[]).length > 0
   );
-  const items = isFlatItemsResult
-    ? ((job.result as Record<string, unknown>).items as Record<string, unknown>[])
-    : getMergedGeminiItems(job);
+
+  // Build export items — flatten social analyst sections into rows with _section label
+  const items = (() => {
+    if (isSocialAnalystResult) {
+      const r = job.result as Record<string, unknown>;
+      const sections = ["posts", "metrics", "segments", "comments", "insights"];
+      const rows: Record<string, unknown>[] = [];
+      for (const sec of sections) {
+        const arr = r[sec];
+        if (Array.isArray(arr)) {
+          for (const item of arr as Record<string, unknown>[]) {
+            rows.push({ _section: sec, ...item });
+          }
+        }
+      }
+      return rows;
+    }
+    if (isFlatItemsResult) {
+      return (job.result as Record<string, unknown>).items as Record<string, unknown>[];
+    }
+    return getMergedGeminiItems(job) as Record<string, unknown>[];
+  })();
+
   const runId = job.jobId || job._id;
 
   const allKeys = Array.from(

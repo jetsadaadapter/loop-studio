@@ -83,6 +83,14 @@ export function TabOutput({ job }: TabOutputProps) {
     ("preview" in job.result || "config" in job.result)
   );
 
+  const isSocialAnalystResult = Boolean(
+    job.result &&
+    typeof job.result === "object" &&
+    !Array.isArray(job.result) &&
+    "posts" in job.result &&
+    Array.isArray((job.result as Record<string, unknown>).posts)
+  );
+
   const isSentimentAnalysisResult = Boolean(
     job.result &&
     typeof job.result === "object" &&
@@ -274,6 +282,21 @@ export function TabOutput({ job }: TabOutputProps) {
   // All Fields Tab pulls data from result only.
   // Sentiment results and comment scrapers use their own normalized item arrays.
   const allFieldsItems = (() => {
+    if (isSocialAnalystResult) {
+      // Flatten all social analyst sections into rows with a _section label
+      const r = job.result as Record<string, unknown>;
+      const sections: string[] = ["posts", "metrics", "segments", "comments", "insights"];
+      const rows: ScrapedJobItem[] = [];
+      for (const sec of sections) {
+        const arr = r[sec];
+        if (Array.isArray(arr)) {
+          for (const item of arr as Record<string, unknown>[]) {
+            rows.push({ _section: sec, ...item } as unknown as ScrapedJobItem);
+          }
+        }
+      }
+      return rows;
+    }
     if (isSentimentAnalysisResult) {
       return resultOnlyItems; // already job.result.items — all columns intact
     }
