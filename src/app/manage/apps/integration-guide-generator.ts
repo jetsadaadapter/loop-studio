@@ -1,4 +1,5 @@
 import type { ToolScript } from "@/core/interfaces/tools.interface";
+import type { ToolParam } from "@/core/interfaces/tool";
 
 const API_BASE = process.env.NEXT_PUBLIC_STORE_API_BASE_URL ?? "https://library-api.adapterdigital.com/api";
 
@@ -35,35 +36,72 @@ function buildDeliveryNote(scripts: ToolScript[]): string {
   return `Both jobs are queued immediately on Step 1 and can run in parallel. You can poll or use a webhook.`;
 }
 
-// Step 1 body example
-function buildStep1Body(requiresWebhook: boolean): string {
-  if (requiresWebhook) {
-    return `\`\`\`json
-{
-  "input": {
-    "startUrls": ["<paste-url-here>"]
-  },
-  "webhookUrl": "https://your-server.com/webhook/handler"
+// Build params table
+function buildParamsTable(params: ToolParam[]): string {
+  if (!params || params.length === 0) return "";
+  const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
+  const rows = sorted
+    .map((p) => `| \`${p.key}\` | ${p.label} | \`${p.type}\` | ${p.required ? "**Required**" : "Optional"} | ${p.placeholder ?? p.defaultValue ?? "—"} |`)
+    .join("\n");
+  return `| Key | Label | Type | Required | Notes |\n|---|---|---|---|---|\n${rows}`;
 }
-\`\`\``;
+
+// Build Step 1 request body from actual params
+function buildStep1Body(params: ToolParam[], needsWebhook: boolean): string {
+  const inputFields: Record<string, unknown> = {};
+  if (params && params.length > 0) {
+    const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
+    for (const p of sorted) {
+      if (p.type === "url" || p.type === "array") {
+        inputFields[p.key] = p.required ? ["<paste-url-here>"] : [];
+      } else if (p.type === "number") {
+        inputFields[p.key] = p.defaultValue ? Number(p.defaultValue) : (p.required ? 0 : null);
+      } else if (p.type === "boolean") {
+        inputFields[p.key] = p.defaultValue === "true" ? true : false;
+      } else {
+        inputFields[p.key] = p.defaultValue ?? `<${p.key}>`;
+      }
+    }
+  } else {
+    inputFields["startUrls"] = ["<paste-url-here>"];
   }
-  return `\`\`\`json
-{
-  "input": {
-    "startUrls": ["<paste-url-here>"]
-  }
+
+  const body: Record<string, unknown> = { input: inputFields };
+  if (needsWebhook) body["webhookUrl"] = "https://your-server.com/webhook/handler";
+
+  return `\`\`\`json\n${JSON.stringify(body, null, 2)}\n\`\`\``;
 }
-\`\`\``;
+
+// Build Node.js code example input object from params
+function buildNodeJsInput(params: ToolParam[]): string {
+  if (!params || params.length === 0) {
+    return `{ startUrls: ['<paste-url-here>'] }`;
+  }
+  const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
+  const fields = sorted.map((p) => {
+    if (p.type === "url" || p.type === "array") {
+      return `      ${p.key}: ['<paste-url-here>']`;
+    } else if (p.type === "number") {
+      return `      ${p.key}: ${p.defaultValue ?? (p.required ? 0 : "null")}`;
+    } else if (p.type === "boolean") {
+      return `      ${p.key}: ${p.defaultValue === "true" ? "true" : "false"}`;
+    }
+    return `      ${p.key}: '<${p.key}>'`;
+  });
+  return `{\n${fields.join(",\n")}\n    }`;
 }
 
 export function generateIntegrationGuide(
   toolId: string,
   appName: string,
   scripts: ToolScript[],
+  params: ToolParam[] = [],
 ): string {
   const needsWebhook = requiresWebhook(scripts);
   const sorted = [...scripts].sort((a, b) => a.sortOrder - b.sortOrder);
   const delivery = needsWebhook ? "**Webhook required**" : "Polling **or** Webhook";
+  const paramsTable = buildParamsTable(params);
+  const nodeJsInput = buildNodeJsInput(params);
 
   return `# ${appName} — API Integration Guide
 
@@ -104,6 +142,7 @@ ${buildPipelineTable(scripts)}
 
 ${buildDeliveryNote(scripts)}
 
+${paramsTable ? `---\n\n## Input Parameters\n\n${paramsTable}\n` : ""}
 ---
 
 ## The 3-Step Flow
@@ -119,7 +158,7 @@ X-App-Secret: <your-secret>
 
 **Body**
 
-${buildStep1Body(needsWebhook)}
+${buildStep1Body(params, needsWebhook)}
 
 **Response**
 
@@ -203,7 +242,7 @@ const runRes = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/run\`, 
   method: 'POST',
   headers,
   body: JSON.stringify({
-    input: { startUrls: ['<paste-url-here>'] },${needsWebhook ? `\n    webhookUrl: 'https://your-server.com/webhook/handler',` : ""}
+    input: ${nodeJsInput},${needsWebhook ? `\n    webhookUrl: 'https://your-server.com/webhook/handler',` : ""}
   }),
 });
 const { data: { runId } } = await runRes.json();

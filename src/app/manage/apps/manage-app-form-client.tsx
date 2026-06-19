@@ -205,6 +205,8 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
         onCopy={handleCopyIntegration}
         onDownload={handleDownloadIntegration}
         didCopy={didCopyIntegration}
+        toolId={draft.linkType === "internal" && draft.ctaLink?.startsWith("/tool/") ? draft.ctaLink.replace("/tool/", "").trim() : undefined}
+        appName={draft.name}
       />
     </ManagerShell>
   );

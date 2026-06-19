@@ -1,6 +1,31 @@
 "use client";
 
+import type { ToolParam } from "@/core/interfaces/tool";
+import type { ToolScript } from "@/core/interfaces/tools.interface";
+
 const API_BASE = process.env.NEXT_PUBLIC_STORE_API_BASE_URL ?? "https://library-api.adapterdigital.com/api";
+
+function requiresWebhook(scripts: ToolScript[]): boolean {
+  return scripts.some((s) => s.plugin.toLowerCase().includes("exportcomments"));
+}
+
+function buildInputFromParams(params: ToolParam[]): Record<string, unknown> {
+  if (!params || params.length === 0) return { startUrls: ["<paste-url-here>"] };
+  const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
+  const input: Record<string, unknown> = {};
+  for (const p of sorted) {
+    if (p.type === "url" || p.type === "array") {
+      input[p.key] = p.required ? ["<paste-url-here>"] : [];
+    } else if (p.type === "number") {
+      input[p.key] = p.defaultValue ? Number(p.defaultValue) : (p.required ? 0 : null);
+    } else if (p.type === "boolean") {
+      input[p.key] = p.defaultValue === "true" ? true : false;
+    } else {
+      input[p.key] = p.defaultValue ?? `<${p.key}>`;
+    }
+  }
+  return input;
+}
 
 interface PostmanVariable {
   key: string;
@@ -38,37 +63,36 @@ const AUTH_HEADERS: PostmanHeader[] = [
 ];
 
 function buildUrl(path: string): PostmanRequest["url"] {
-  const full = `${API_BASE}${path}`;
-  const url = new URL(full);
+  const raw = `{{API_ENDPOINT}}${path}`;
+  const segments = path.split("/").filter(Boolean);
   return {
-    raw: full,
-    protocol: url.protocol.replace(":", ""),
-    host: url.hostname.split("."),
-    path: url.pathname.split("/").filter(Boolean),
+    raw,
+    protocol: "",
+    host: ["{{API_ENDPOINT}}"],
+    path: segments,
   };
 }
 
 export function generatePostmanCollection(
   toolId: string,
   appName: string,
+  params: ToolParam[] = [],
+  scripts: ToolScript[] = [],
 ): PostmanCollection {
+  const needsWebhook = requiresWebhook(scripts);
+  const inputBody: Record<string, unknown> = { input: buildInputFromParams(params) };
+  if (needsWebhook) inputBody["webhookUrl"] = "https://your-server.com/webhook/handler";
+
   const items: PostmanItem[] = [
     {
       name: "Step 1 — Run Tool",
       request: {
         method: "POST",
         header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/${toolId}/run`),
+        url: buildUrl(`/integrations/tools/{{TOOL_ID}}/run`),
         body: {
           mode: "raw",
-          raw: JSON.stringify(
-            {
-              input: { startUrls: ["<paste-url-here>"] },
-              webhookUrl: "https://your-server.com/webhook/handler",
-            },
-            null,
-            2,
-          ),
+          raw: JSON.stringify(inputBody, null, 2),
           options: { raw: { language: "json" } },
         },
       },
@@ -78,7 +102,7 @@ export function generatePostmanCollection(
       request: {
         method: "GET",
         header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/${toolId}/runs/{{runId}}`),
+        url: buildUrl(`/integrations/tools/{{TOOL_ID}}/runs/{{runId}}`),
       },
     },
     {
@@ -86,7 +110,7 @@ export function generatePostmanCollection(
       request: {
         method: "GET",
         header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/${toolId}/jobs/{{jobId}}`),
+        url: buildUrl(`/integrations/tools/{{TOOL_ID}}/jobs/{{jobId}}`),
       },
     },
     {
@@ -94,12 +118,7 @@ export function generatePostmanCollection(
       request: {
         method: "GET",
         header: AUTH_HEADERS,
-        url: {
-          raw: `${API_BASE}/integrations/tools/results/{{resultId}}/items?page=1&limit=20`,
-          protocol: "https",
-          host: ["library-api", "adapterdigital", "com"],
-          path: ["api", "integrations", "tools", "results", "{{resultId}}", "items"],
-        },
+        url: buildUrl(`/integrations/tools/results/{{resultId}}/items?page=1&limit=20`),
       },
     },
   ];
@@ -111,6 +130,8 @@ export function generatePostmanCollection(
     },
     item: items,
     variable: [
+      { key: "API_ENDPOINT", value: API_BASE, type: "string" },
+      { key: "TOOL_ID", value: toolId, type: "string" },
       { key: "APP_ID", value: "", type: "string" },
       { key: "APP_SECRET", value: "", type: "string" },
       { key: "runId", value: "", type: "string" },
@@ -120,8 +141,8 @@ export function generatePostmanCollection(
   };
 }
 
-export function downloadPostmanCollection(toolId: string, appName: string) {
-  const collection = generatePostmanCollection(toolId, appName);
+export function downloadPostmanCollection(toolId: string, appName: string, params: ToolParam[] = [], scripts: ToolScript[] = []) {
+  const collection = generatePostmanCollection(toolId, appName, params, scripts);
   const blob = new Blob([JSON.stringify(collection, null, 2)], {
     type: "application/json",
   });

@@ -373,40 +373,31 @@ export function ManageBannersClient() {
               {Array.from({ length: pageSize }).map((_, index) => (
                 <div
                   key={`skeleton-card-${index}`}
-                  className="w-full bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-zinc-100 overflow-hidden flex flex-col"
+                  className="w-full bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-zinc-100 overflow-hidden flex flex-col"
                 >
-                  {/* Header Skeleton */}
-                  <div className="flex items-center justify-between p-4 pb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-5 h-5 rounded-full bg-zinc-100 animate-pulse" />
-                      <div className="h-4 w-24 bg-zinc-100 rounded animate-pulse" />
-                    </div>
-                  </div>
-
-                  {/* Text Skeleton */}
-                  <div className="px-4 pb-3 space-y-2">
-                    <div className="h-3 w-full bg-zinc-50 rounded animate-pulse" />
-                    <div className="h-3 w-2/3 bg-zinc-50 rounded animate-pulse" />
-                  </div>
-
                   {/* Image Skeleton */}
-                  <div className="px-4">
+                  <div className="p-2 pb-0 shrink-0">
                     <div className="w-full aspect-[16/10] bg-zinc-100 rounded-xl animate-pulse" />
                   </div>
 
-                  {/* Lines Skeleton */}
-                  <div className="mt-6 border-t border-zinc-100">
-                    <div className="flex justify-between px-4 py-3 border-b border-zinc-100">
-                      <div className="h-3 w-16 bg-zinc-50 rounded animate-pulse" />
-                      <div className="h-3 w-20 bg-zinc-100 rounded animate-pulse" />
+                  {/* Content Skeleton */}
+                  <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
+                    {/* App header row Skeleton */}
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="size-6 rounded-full bg-zinc-100 animate-pulse shrink-0" />
+                      <div className="h-3 w-24 bg-zinc-100 rounded animate-pulse" />
                     </div>
-                    <div className="flex justify-between px-4 py-3 border-b border-zinc-100">
-                      <div className="h-3 w-12 bg-zinc-50 rounded animate-pulse" />
-                      <div className="h-3 w-32 bg-zinc-100 rounded animate-pulse" />
+
+                    {/* Title + Subtitle Skeleton */}
+                    <div className="mb-3 space-y-1.5">
+                      <div className="h-3 w-full bg-zinc-50 rounded animate-pulse" />
+                      <div className="h-3 w-2/3 bg-zinc-50 rounded animate-pulse" />
                     </div>
-                    <div className="flex justify-between px-4 py-3">
-                      <div className="h-3 w-14 bg-zinc-50 rounded animate-pulse" />
-                      <div className="h-3 w-16 bg-zinc-100 rounded animate-pulse" />
+
+                    {/* Badges Skeleton */}
+                    <div className="mt-auto flex flex-wrap items-center gap-1.5">
+                      <div className="h-5 w-24 rounded-full bg-zinc-100 animate-pulse" />
+                      <div className="h-5 w-16 rounded-full bg-zinc-100 animate-pulse" />
                     </div>
                   </div>
                 </div>

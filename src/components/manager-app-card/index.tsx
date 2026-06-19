@@ -31,6 +31,7 @@ type ManagerAppCardItem = {
   category: string;
   description: string;
   linkType: AppLinkType;
+  ctaLink?: string;
   sortOrder: number;
   isActive: boolean;
   imageUrl?: string;
@@ -270,7 +271,7 @@ export function ManagerAppCard({
           onCopy={handleCopyIntegration}
           onDownload={handleDownloadIntegration}
           didCopy={didCopyIntegration}
-          toolId={item.linkType === "internal" ? item.id : undefined}
+          toolId={item.linkType === "internal" && item.ctaLink?.startsWith("/tool/") ? item.ctaLink.replace("/tool/", "").trim() : undefined}
           appName={item.name}
         />
       )}

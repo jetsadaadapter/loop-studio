@@ -253,7 +253,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     setIsGeneratingIntegration(true);
     try {
       const tool = await getManageTool(toolId);
-      const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? []);
+      const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? [], tool.params ?? []);
       setDraft((prev) => ({ ...prev, integration: guide }));
       pushDialogToast("Integration guide generated successfully.", "success");
     } catch {

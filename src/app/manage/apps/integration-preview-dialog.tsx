@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy, Download, BookOpen, Box } from "lucide-react";
 import { downloadPostmanCollection } from "./postman-generator";
+import { getManageTool } from "@/core/services/manage-tools.service";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -70,9 +71,21 @@ export function IntegrationPreviewDialog({
   toolId,
   appName = "tool",
 }: IntegrationPreviewDialogProps) {
-  const [previewMode, setPreviewMode] = useState<"markdown" | "text">(
-    "markdown",
-  );
+  const [previewMode, setPreviewMode] = useState<"markdown" | "text">("markdown");
+  const [isDownloadingPostman, setIsDownloadingPostman] = useState(false);
+
+  async function handlePostmanDownload() {
+    if (!toolId) return;
+    setIsDownloadingPostman(true);
+    try {
+      const tool = await getManageTool(toolId);
+      downloadPostmanCollection(toolId, appName, tool.params ?? [], tool.scripts ?? []);
+    } catch {
+      toast.error("Failed to fetch tool data for Postman collection.");
+    } finally {
+      setIsDownloadingPostman(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -141,11 +154,12 @@ export function IntegrationPreviewDialog({
                       type="button"
                       size="sm"
                       variant="ghost"
-                      onClick={() => downloadPostmanCollection(toolId, appName)}
+                      onClick={handlePostmanDownload}
+                      disabled={isDownloadingPostman}
                       className="flex items-center gap-1.5 font-sans text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                     >
                       <Box className="size-4" />
-                      Postman
+                      {isDownloadingPostman ? "Exporting…" : "Postman"}
                     </Button>
                   </>
                 )}

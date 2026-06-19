@@ -51,7 +51,7 @@ function getScheduleStatus(startsAt?: string | null, endsAt?: string | null) {
 }
 
 export default function AppBannerCard({ banner, onEdit, onDelete }: AppBannerCardProps) {
-  const { title, subtitle, app, imageId, isActive, sortOrder, startsAt, endsAt } = banner;
+  const { title, subtitle, app, imageId, isActive, startsAt, endsAt } = banner;
   const [imgError, setImgError] = useState(false);
 
   const schedule = getScheduleStatus(startsAt, endsAt);
@@ -166,14 +166,6 @@ export default function AppBannerCard({ banner, onEdit, onDelete }: AppBannerCar
               {app.badgeLabel}
             </span>
           )}
-        </div>
-
-        {/* Divider + sort order */}
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-          <span className="text-[11px] text-slate-400">Sort order</span>
-          <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-            #{sortOrder}
-          </span>
         </div>
       </div>
     </Card>
