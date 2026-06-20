@@ -32,6 +32,7 @@ export function ManageToolsClient() {
     deleteTarget,
     setDeleteTarget,
     deletingId,
+    duplicatingId,
     previewPrompt,
     setPreviewPrompt,
     paramsTarget,
@@ -42,6 +43,7 @@ export function ManageToolsClient() {
     handleCreate,
     handleUpdate,
     handleDelete,
+    handleDuplicate,
     handleOpenEdit,
     handlePreviewPrompt,
     filteredTools,
@@ -96,6 +98,8 @@ export function ManageToolsClient() {
           tools={filteredTools}
           onEdit={(t) => void handleOpenEdit(t)}
           onDelete={(t) => setDeleteTarget(t)}
+          onDuplicate={(t) => void handleDuplicate(t)}
+          duplicatingId={duplicatingId}
           onManageParams={(t) => setParamsTarget(t)}
           onManageScripts={(t) => setScriptsTarget(t)}
           onPreviewPrompt={handlePreviewPrompt}

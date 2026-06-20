@@ -10,6 +10,8 @@ import {
   updateManageTool,
   deleteManageTool,
   getManageToolParams,
+  upsertManageToolParams,
+  createManageToolScript,
 } from "@/core/services/manage-tools.service";
 import type {
   ManageToolApiItem,
@@ -38,6 +40,7 @@ export function useManageTools() {
   const [isFetchingEdit, setIsFetchingEdit] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ManageToolApiItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [previewPrompt, setPreviewPrompt] = useState<{
     label: string;
     model?: string;
@@ -115,6 +118,50 @@ export function useManageTools() {
     }
   }, [deleteTarget, tools, pushToast]);
 
+  const handleDuplicate = useCallback(async (tool: ManageToolApiItem) => {
+    setDuplicatingId(tool.id);
+    try {
+      // Fetch fresh data to get all params + scripts
+      const source = await getManageTool(tool.id);
+
+      // Create new tool (inactive by default so user can review before activating)
+      const newTool = await createManageTool({
+        name: `Copy of ${source.name}`,
+        description: source.description,
+        isActive: false,
+        sortOrder: source.sortOrder,
+      });
+
+      // Copy params (strip id/toolId so API assigns new ones)
+      if (source.params?.length) {
+        await upsertManageToolParams(
+          newTool.id,
+          source.params.map(({ key, label, type, required, sortOrder, defaultValue, placeholder, options, transform, config }) => ({
+            key, label, type, required, sortOrder, defaultValue, placeholder, transform, config,
+            options: options ? options.map(String) : null,
+          })),
+        );
+      }
+
+      // Copy scripts one by one (bulk PUT not supported for new tools)
+      if (source.scripts?.length) {
+        const sorted = [...source.scripts].sort((a, b) => a.sortOrder - b.sortOrder);
+        for (const { plugin, config, label, description, sortOrder } of sorted) {
+          await createManageToolScript(newTool.id, { plugin, config, label, description, sortOrder });
+        }
+      }
+
+      // Refresh the new tool (now has params + scripts populated)
+      const fresh = await getManageTool(newTool.id);
+      setTools((prev) => [fresh, ...prev]);
+      pushToast(`Duplicated as "${fresh.name}".`, "success");
+    } catch {
+      pushToast("Failed to duplicate tool.", "error");
+    } finally {
+      setDuplicatingId(null);
+    }
+  }, [pushToast]);
+
   const handleOpenEdit = useCallback(async (tool: ManageToolApiItem) => {
     setIsFetchingEdit(true);
     try {
@@ -183,7 +230,7 @@ export function useManageTools() {
     const active = tools.filter((t) => t.isActive).length;
     const totalParams = tools.reduce((sum, t) => sum + (t.params?.length || 0), 0);
     const totalScripts = tools.reduce((sum, t) => sum + (t.scripts?.length || 0), 0);
-    
+
     return {
       total,
       active,
@@ -209,6 +256,7 @@ export function useManageTools() {
     deleteTarget,
     setDeleteTarget,
     deletingId,
+    duplicatingId,
     previewPrompt,
     setPreviewPrompt,
     paramsTarget,
@@ -219,6 +267,7 @@ export function useManageTools() {
     handleCreate,
     handleUpdate,
     handleDelete,
+    handleDuplicate,
     handleOpenEdit,
     handlePreviewPrompt,
     filteredTools,

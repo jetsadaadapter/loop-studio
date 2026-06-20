@@ -56,6 +56,8 @@ interface ToolListProps {
   tools: ManageToolApiItem[];
   onEdit: (t: ManageToolApiItem) => void;
   onDelete: (t: ManageToolApiItem) => void;
+  onDuplicate: (t: ManageToolApiItem) => void;
+  duplicatingId?: string | null;
   onPreviewPrompt: (param: ToolParam) => void;
   onManageParams: (t: ManageToolApiItem) => void;
   onManageScripts: (t: ManageToolApiItem) => void;
@@ -65,6 +67,8 @@ export function ToolList({
   tools,
   onEdit,
   onDelete,
+  onDuplicate,
+  duplicatingId,
   onPreviewPrompt,
   onManageParams,
   onManageScripts,
@@ -77,6 +81,8 @@ export function ToolList({
           tool={tool}
           onEdit={() => onEdit(tool)}
           onDelete={() => onDelete(tool)}
+          onDuplicate={() => onDuplicate(tool)}
+          isDuplicating={duplicatingId === tool.id}
           onPreviewPrompt={onPreviewPrompt}
           onManageParams={() => onManageParams(tool)}
           onManageScripts={() => onManageScripts(tool)}

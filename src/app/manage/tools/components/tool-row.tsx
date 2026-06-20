@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check } from "lucide-react";
+import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check, CopyPlus } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
@@ -9,6 +9,16 @@ import {
   PARAM_TYPE_BADGE,
   getSortedScripts,
 } from "./data";
+
+const VISIBLE_LIMIT = 3;
+
+function OverflowBadge({ count }: { count: number }) {
+  return (
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.75 text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200/60 shadow-3xs">
+      +{count}
+    </span>
+  );
+}
 
 // ── Automatic dynamic tool icon resolver based on plugin type or name keywords ───
 
@@ -167,12 +177,14 @@ interface ToolRowProps {
   tool: ManageToolApiItem;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate?: () => void;
+  isDuplicating?: boolean;
   onPreviewPrompt?: (param: ToolParam) => void;
   onManageParams?: () => void;
   onManageScripts?: () => void;
 }
 
-export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParams, onManageScripts }: ToolRowProps) {
+export function ToolRow({ tool, onEdit, onDelete, onDuplicate, isDuplicating, onPreviewPrompt, onManageParams, onManageScripts }: ToolRowProps) {
   const scripts = getSortedScripts(tool);
   const namespace = `adapter/${tool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -241,12 +253,23 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                     },
                   ]
                 : []),
+              ...(onDuplicate
+                ? [
+                    {
+                      label: isDuplicating ? "Duplicating…" : "Duplicate tool",
+                      icon: CopyPlus,
+                      disabled: isDuplicating,
+                      onClick: onDuplicate,
+                      showSeparatorBefore: true,
+                    },
+                  ]
+                : []),
               {
                 label: "Delete",
                 icon: Trash2,
                 onClick: onDelete,
                 variant: "destructive" as const,
-                showSeparatorBefore: true,
+                showSeparatorBefore: !onDuplicate,
               },
             ]}
           />
@@ -273,7 +296,7 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                   Parameters
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {tool.params.map((p) => (
+                  {tool.params.slice(0, VISIBLE_LIMIT).map((p) => (
                     <ParamBadge
                       key={p.id}
                       param={p}
@@ -284,6 +307,9 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                       }}
                     />
                   ))}
+                  {tool.params.length > VISIBLE_LIMIT && (
+                    <OverflowBadge count={tool.params.length - VISIBLE_LIMIT} />
+                  )}
                 </div>
               </div>
             )}
@@ -295,9 +321,12 @@ export function ToolRow({ tool, onEdit, onDelete, onPreviewPrompt, onManageParam
                   Pipeline
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {scripts.map((s, idx) => (
-                    <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1} />
+                  {scripts.slice(0, VISIBLE_LIMIT).map((s, idx) => (
+                    <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1 || (idx === VISIBLE_LIMIT - 1 && scripts.length > VISIBLE_LIMIT)} />
                   ))}
+                  {scripts.length > VISIBLE_LIMIT && (
+                    <OverflowBadge count={scripts.length - VISIBLE_LIMIT} />
+                  )}
                 </div>
               </div>
             )}
