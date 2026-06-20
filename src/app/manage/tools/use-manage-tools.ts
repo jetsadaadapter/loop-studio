@@ -118,6 +118,19 @@ export function useManageTools() {
     }
   }, [deleteTarget, tools, pushToast]);
 
+  const handleToggleActive = useCallback(async (tool: ManageToolApiItem) => {
+    const next = !tool.isActive;
+    // Optimistic update
+    setTools((prev) => prev.map((t) => t.id === tool.id ? { ...t, isActive: next } : t));
+    try {
+      await updateManageTool(tool.id, { name: tool.name, isActive: next });
+    } catch {
+      // Rollback
+      setTools((prev) => prev.map((t) => t.id === tool.id ? { ...t, isActive: tool.isActive } : t));
+      pushToast(`Failed to ${next ? "activate" : "deactivate"} "${tool.name}".`, "error");
+    }
+  }, [pushToast]);
+
   const handleDuplicate = useCallback(async (tool: ManageToolApiItem) => {
     setDuplicatingId(tool.id);
     try {
@@ -267,6 +280,7 @@ export function useManageTools() {
     handleCreate,
     handleUpdate,
     handleDelete,
+    handleToggleActive,
     handleDuplicate,
     handleOpenEdit,
     handlePreviewPrompt,

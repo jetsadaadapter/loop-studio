@@ -43,6 +43,7 @@ export function ManageToolsClient() {
     handleCreate,
     handleUpdate,
     handleDelete,
+    handleToggleActive,
     handleDuplicate,
     handleOpenEdit,
     handlePreviewPrompt,
@@ -98,6 +99,7 @@ export function ManageToolsClient() {
           tools={filteredTools}
           onEdit={(t) => void handleOpenEdit(t)}
           onDelete={(t) => setDeleteTarget(t)}
+          onToggleActive={(t) => void handleToggleActive(t)}
           onDuplicate={(t) => void handleDuplicate(t)}
           duplicatingId={duplicatingId}
           onManageParams={(t) => setParamsTarget(t)}

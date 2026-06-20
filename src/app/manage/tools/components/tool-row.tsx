@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check, CopyPlus } from "lucide-react";
+import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check, CopyPlus, Plus } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
+import { Switch } from "@/components/ui/switch";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
 import {
   PLUGIN_META,
@@ -59,12 +60,23 @@ export function getToolIconData(tool: ManageToolApiItem) {
 function ToolIcon({ tool, isActive }: { tool: ManageToolApiItem; isActive: boolean }) {
   const { Icon, bgActive, bgInactive } = getToolIconData(tool);
   return (
-    <div
-      className={`flex size-12 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
-        isActive ? bgActive : bgInactive
-      }`}
-    >
-      <Icon className={`size-5 ${isActive ? "animate-pulse-slow text-current" : ""}`} />
+    <div className="relative shrink-0">
+      <div
+        className={`flex size-10 items-center justify-center rounded-xl border transition-all duration-300 ${
+          isActive ? bgActive : bgInactive
+        }`}
+      >
+        <Icon className={`size-4 ${isActive ? "animate-pulse-slow text-current" : ""}`} />
+      </div>
+      {/* Status dot — top-right corner */}
+      <span
+        className={`absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full border-2 border-white shadow-sm ${
+          isActive ? "bg-emerald-500" : "bg-slate-300"
+        }`}
+        aria-label={isActive ? "Active" : "Inactive"}
+      >
+        {isActive && <span className="size-1.5 rounded-full bg-white/70 animate-pulse" aria-hidden />}
+      </span>
     </div>
   );
 }
@@ -139,33 +151,68 @@ function ParamBadge({ param, onClick }: { param: ToolParam; onClick?: () => void
   );
 }
 
-function PipelineStep({ script, isLast }: { script: ToolScript; isLast: boolean }) {
+function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className="flex size-6 shrink-0 items-center justify-center rounded-full border border-dashed border-slate-300 bg-white text-slate-400 hover:border-brand hover:text-brand hover:bg-rose-50 transition-all duration-200 cursor-pointer"
+      title={label}
+      aria-label={label}
+    >
+      <Plus className="size-3" />
+    </button>
+  );
+}
+
+const CIRCLE_FALLBACK = {
+  circleBg: "bg-gradient-to-br from-slate-400 to-slate-500",
+  circleText: "text-white",
+  circleBorder: "border-slate-200",
+};
+
+function PipelineCircle({ script, index }: { script: ToolScript; index: number }) {
   const pluginKey = script.plugin.toLowerCase();
   const meta = pluginKey.startsWith("exportcomments")
     ? PLUGIN_META["exportcomments"]
-    : PLUGIN_META[pluginKey];
-  const dotColor = meta ? meta.dot : "bg-slate-400";
+    : (PLUGIN_META[pluginKey] ?? null);
+  const { circleBg, circleText, circleBorder } = meta ?? CIRCLE_FALLBACK;
+  const initial = (script.label || script.plugin).charAt(0).toUpperCase();
+
   return (
-    <div className="flex items-center gap-1">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-slate-50/60 px-2.5 py-0.75 text-[10px] font-semibold text-slate-600 transition-all hover:bg-white hover:border-slate-350 shadow-3xs cursor-default">
-        <span className={`size-1.5 rounded-full ${dotColor} animate-pulse`} aria-hidden />
-        <span>{script.label}</span>
-      </span>
-      {!isLast && (
-        <span className="flex items-center justify-center px-0.5 text-slate-300" aria-hidden>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <div
+      className={`relative flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-white ${circleBg} ${circleText} ${circleBorder} shadow-sm transition-transform duration-200 hover:scale-110 hover:z-10 cursor-default`}
+      style={{ marginLeft: index > 0 ? "-8px" : "0", zIndex: index }}
+      title={script.label}
+    >
+      <span className="text-[10px] font-bold">{initial}</span>
+    </div>
+  );
+}
+
+function PipelineCircles({ scripts, onManageScripts }: { scripts: ToolScript[]; onManageScripts?: () => void }) {
+  const MAX_VISIBLE = 4;
+  const visible = scripts.slice(0, MAX_VISIBLE);
+  const overflow = scripts.length - MAX_VISIBLE;
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center">
+        {visible.map((s, i) => (
+          <PipelineCircle key={s.id} script={s} index={i} />
+        ))}
+        {overflow > 0 && (
+          <div
+            className="relative flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-slate-500 shadow-sm text-[9px] font-bold"
+            style={{ marginLeft: "-8px", zIndex: MAX_VISIBLE }}
+            title={`${overflow} more scripts`}
           >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </span>
+            +{overflow}
+          </div>
+        )}
+      </div>
+      {onManageScripts && (
+        <AddButton onClick={onManageScripts} label="Manage pipeline scripts" />
       )}
     </div>
   );
@@ -177,6 +224,7 @@ interface ToolRowProps {
   tool: ManageToolApiItem;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleActive?: () => void;
   onDuplicate?: () => void;
   isDuplicating?: boolean;
   onPreviewPrompt?: (param: ToolParam) => void;
@@ -184,13 +232,13 @@ interface ToolRowProps {
   onManageScripts?: () => void;
 }
 
-export function ToolRow({ tool, onEdit, onDelete, onDuplicate, isDuplicating, onPreviewPrompt, onManageParams, onManageScripts }: ToolRowProps) {
+export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, isDuplicating, onPreviewPrompt, onManageParams, onManageScripts }: ToolRowProps) {
   const scripts = getSortedScripts(tool);
   const namespace = `adapter/${tool.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
     <article
-      className={`group relative overflow-hidden flex flex-col p-5.5 rounded-2xl border transition-all duration-300 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.015)] ${
+      className={`group relative overflow-hidden flex flex-col p-4 rounded-2xl border transition-all duration-300 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.015)] ${
         tool.isActive
           ? "border-slate-100 hover:border-brand/35 shadow-[0_12px_36px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
           : "border-slate-100 hover:border-slate-300/80 shadow-[0_4px_20px_rgb(0,0,0,0.005)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)]"
@@ -205,94 +253,63 @@ export function ToolRow({ tool, onEdit, onDelete, onDuplicate, isDuplicating, on
       )}
 
       {/* Top Header - Icon and Aligned Info Block next to it */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2.5">
         {/* Automatic Custom Icon */}
         <div className="group-hover:scale-105 transition-transform duration-300">
           <ToolIcon tool={tool} isActive={tool.isActive} />
         </div>
 
         {/* Info Block */}
-        <div className="min-w-0 flex-1 space-y-0.5 pr-8"> {/* Leave exact space for action menu dropdown */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <h3 className="line-clamp-1 text-sm font-semibold tracking-tight text-slate-800 group-hover:text-brand transition-colors">
+        <div className="min-w-0 flex-1 space-y-0">
+          {/* Row 1: name + switch */}
+          <div className="flex items-center gap-1.5">
+            <h3 className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-tight text-slate-800 group-hover:text-brand transition-colors">
               {tool.name}
             </h3>
-            <StatusBadge isActive={tool.isActive} />
-            <CopyableToolIdBadge id={tool.id} />
+            {onToggleActive && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleActive(); }}
+                className="shrink-0 flex items-center cursor-pointer select-none"
+                style={{ background: "none", border: "none", outline: "none", padding: 0 }}
+                aria-label={tool.isActive ? "Deactivate tool" : "Activate tool"}
+              >
+                <Switch
+                  checked={tool.isActive}
+                  className="pointer-events-none data-[checked]:bg-emerald-500"
+                  tabIndex={-1}
+                />
+              </button>
+            )}
           </div>
+          {/* Row 2: namespace path */}
           <p className="line-clamp-1 font-sans text-[9px] font-medium tracking-wide text-slate-400">
             {namespace}
           </p>
-        </div>
-
-        {/* Actions Overlay Dropdown */}
-        <div className="absolute top-4 right-4 z-20">
-          <ManagerActionsDropdown
-            ariaLabel={`Open actions for ${tool.name}`}
-            actions={[
-              {
-                label: "Edit tool",
-                icon: Pencil,
-                onClick: onEdit,
-              },
-              ...(onManageParams
-                ? [
-                    {
-                      label: "Manage params",
-                      icon: SlidersHorizontal,
-                      onClick: onManageParams,
-                    },
-                  ]
-                : []),
-              ...(onManageScripts
-                ? [
-                    {
-                      label: "Manage scripts",
-                      icon: Workflow,
-                      onClick: onManageScripts,
-                    },
-                  ]
-                : []),
-              ...(onDuplicate
-                ? [
-                    {
-                      label: isDuplicating ? "Duplicating…" : "Duplicate tool",
-                      icon: CopyPlus,
-                      disabled: isDuplicating,
-                      onClick: onDuplicate,
-                      showSeparatorBefore: true,
-                    },
-                  ]
-                : []),
-              {
-                label: "Delete",
-                icon: Trash2,
-                onClick: onDelete,
-                variant: "destructive" as const,
-                showSeparatorBefore: !onDuplicate,
-              },
-            ]}
-          />
+          {/* Row 3: ID badge */}
+          <div className="pt-0.5">
+            <CopyableToolIdBadge id={tool.id} />
+          </div>
         </div>
       </div>
 
       {/* Description */}
-      <div className="mt-3.5 flex-1">
+      <div className="mt-2 flex-1">
         {tool.description ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600 font-sans">{tool.description}</p>
+          <p className="line-clamp-1 text-[11px] leading-relaxed text-slate-500 font-sans">{tool.description}</p>
         ) : (
-          <p className="text-xs italic leading-relaxed text-slate-400 font-sans">No description</p>
+          <p className="text-[11px] italic leading-relaxed text-slate-400 font-sans">No description</p>
         )}
       </div>
 
       {/* Grid Footer - Renders parameters or pipelines, or a beautiful configuration prompt if empty */}
       {tool.params.length > 0 || scripts.length > 0 ? (
-        <div className="mt-5 pt-4 border-t border-slate-100/85 space-y-3">
-          <div className="space-y-2.5">
+        <div className="mt-3 pt-3 border-t border-slate-100/85 space-y-2">
+          <div className="space-y-2">
             {/* Parameters Section */}
             {tool.params.length > 0 && (
               <div className="space-y-1">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400/90 mb-1.5">
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400/90">
                   Parameters
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -310,34 +327,45 @@ export function ToolRow({ tool, onEdit, onDelete, onDuplicate, isDuplicating, on
                   {tool.params.length > VISIBLE_LIMIT && (
                     <OverflowBadge count={tool.params.length - VISIBLE_LIMIT} />
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* Pipeline Section */}
-            {scripts.length > 0 && (
-              <div className="space-y-1">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400/90 mb-1.5">
-                  Pipeline
-                </span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {scripts.slice(0, VISIBLE_LIMIT).map((s, idx) => (
-                    <PipelineStep key={s.id} script={s} isLast={idx === scripts.length - 1 || (idx === VISIBLE_LIMIT - 1 && scripts.length > VISIBLE_LIMIT)} />
-                  ))}
-                  {scripts.length > VISIBLE_LIMIT && (
-                    <OverflowBadge count={scripts.length - VISIBLE_LIMIT} />
+                  {onManageParams && (
+                    <AddButton onClick={onManageParams} label="Manage parameters" />
                   )}
                 </div>
               </div>
             )}
+
+            {/* Pipeline Section — always visible */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400/90">
+                  Pipeline
+                </span>
+                {scripts.length > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200/70">
+                    <Workflow className="size-2.5 shrink-0" />
+                    {scripts.length}
+                  </span>
+                )}
+              </div>
+              {scripts.length > 0 ? (
+                <PipelineCircles scripts={scripts} onManageScripts={onManageScripts} />
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  {onManageScripts && (
+                    <AddButton onClick={onManageScripts} label="Configure pipeline" />
+                  )}
+                  <span className="text-[9px] text-slate-400 font-sans">No scripts yet</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="mt-5 pt-4 border-t border-slate-100/80 flex flex-col items-center justify-center p-3 text-center bg-slate-50/40 rounded-xl border border-dashed border-slate-200/50">
+        <div className="mt-3 pt-3 border-t border-slate-100/80 flex flex-col items-center justify-center py-2.5 px-3 text-center bg-slate-50/40 rounded-xl border border-dashed border-slate-200/50">
           <p className="text-[10px] text-slate-400 font-semibold font-sans">
             No parameters or pipeline steps defined.
           </p>
-          <div className="flex items-center gap-1.5 mt-2.5">
+          <div className="flex items-center gap-1.5 mt-2">
             {onManageParams && (
               <button
                 type="button"
@@ -360,6 +388,57 @@ export function ToolRow({ tool, onEdit, onDelete, onDuplicate, isDuplicating, on
             )}
           </div>
         </div>
-      )}    </article>
+      )}
+
+      {/* Actions dropdown — bottom-right */}
+      <div className="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <ManagerActionsDropdown
+          ariaLabel={`Open actions for ${tool.name}`}
+          actions={[
+            {
+              label: "Edit tool",
+              icon: Pencil,
+              onClick: onEdit,
+            },
+            ...(onManageParams
+              ? [
+                  {
+                    label: "Manage params",
+                    icon: SlidersHorizontal,
+                    onClick: onManageParams,
+                  },
+                ]
+              : []),
+            ...(onManageScripts
+              ? [
+                  {
+                    label: "Manage scripts",
+                    icon: Workflow,
+                    onClick: onManageScripts,
+                  },
+                ]
+              : []),
+            ...(onDuplicate
+              ? [
+                  {
+                    label: isDuplicating ? "Duplicating…" : "Duplicate tool",
+                    icon: CopyPlus,
+                    disabled: isDuplicating,
+                    onClick: onDuplicate,
+                    showSeparatorBefore: true,
+                  },
+                ]
+              : []),
+            {
+              label: "Delete",
+              icon: Trash2,
+              onClick: onDelete,
+              variant: "destructive" as const,
+              showSeparatorBefore: !onDuplicate,
+            },
+          ]}
+        />
+      </div>
+    </article>
   );
 }

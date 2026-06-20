@@ -2,21 +2,30 @@ import type { ManageToolApiItem } from "@/core/interfaces/tool";
 
 // ── Plugin badge config ───────────────────────────────────────────────────────
 
-export const PLUGIN_META: Record<string, { color: string; dot: string; label: string }> = {
+export const PLUGIN_META: Record<string, { color: string; dot: string; label: string; circleBg: string; circleText: string; circleBorder: string }> = {
   apify: {
     color: "text-orange-600",
     dot: "bg-orange-400",
     label: "Apify",
+    circleBg: "bg-gradient-to-br from-orange-400 to-amber-500",
+    circleText: "text-white",
+    circleBorder: "border-orange-200",
   },
   gemini: {
     color: "text-sky-600",
     dot: "bg-sky-400",
     label: "Gemini AI",
+    circleBg: "bg-gradient-to-br from-sky-400 to-blue-500",
+    circleText: "text-white",
+    circleBorder: "border-sky-200",
   },
   exportcomments: {
     color: "text-violet-600",
     dot: "bg-violet-400",
     label: "Export Comments",
+    circleBg: "bg-gradient-to-br from-violet-400 to-purple-500",
+    circleText: "text-white",
+    circleBorder: "border-violet-200",
   },
 };
 
