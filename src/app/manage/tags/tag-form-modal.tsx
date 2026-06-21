@@ -29,6 +29,13 @@ interface TagFormModalProps {
 
 const DEFAULT_COLOR = "#6366f1";
 
+const COLOR_SWATCHES = [
+  "#6366f1", "#a78bfa", "#7c3aed", "#c084fc",
+  "#3b82f6", "#93c5fd", "#38bdf8", "#67e8f9",
+  "#16a34a", "#86efac", "#f59e0b", "#fcd34d",
+  "#e11d48", "#fda4af", "#dc2626", "#fca5a5",
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -141,27 +148,48 @@ export function TagFormModal({
             <FieldLabel>
               Color <span className="text-slate-400 font-normal font-sans">(optional)</span>
             </FieldLabel>
-            <div className="flex items-center gap-2.5">
-              <input
-                title="Choose tag color"
-                id="tag-color"
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="h-8 w-10 cursor-pointer rounded-sm border border-slate-200 bg-white p-1 shadow-xs"
-              />
+            {/* Swatch row */}
+            <div className="flex items-center overflow-x-auto pb-0.5">
+              {COLOR_SWATCHES.map((swatch) => {
+                const isSelected = color.toLowerCase() === swatch.toLowerCase();
+                return (
+                  <button
+                    key={swatch}
+                    type="button"
+                    onClick={() => setColor(swatch)}
+                    title={swatch}
+                    className="relative shrink-0 focus:outline-none"
+                  style={{ width: isSelected ? 28 : 24, height: isSelected ? 28 : 24 }}
+                >
+                    {isSelected ? (
+                      <span className="flex h-full w-full items-center justify-center rounded-lg border-2 border-slate-200 bg-white shadow-sm">
+                        <span className="flex size-4 items-center justify-center rounded-full" style={{ backgroundColor: swatch }}>
+                          <svg className="size-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 6 9 17l-5-5" />
+                          </svg>
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center">
+                        <span className="block size-4 rounded-full transition-transform duration-150 hover:scale-110" style={{ backgroundColor: swatch }} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Custom hex input */}
+            <div className="mt-2 flex items-center gap-2">
+              <div className="size-7 shrink-0 rounded-md border border-slate-200 shadow-xs" style={{ backgroundColor: color }} />
               <Input
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="#6366f1"
                 maxLength={7}
-                className="font-sans"
+                className="font-sans text-xs"
               />
             </div>
-            <FieldDescription>
-              Color tag style representation (hex code e.g. #6366f1).
-            </FieldDescription>
             <FieldError
               errors={errors.color ? [{ message: errors.color }] : []}
             />

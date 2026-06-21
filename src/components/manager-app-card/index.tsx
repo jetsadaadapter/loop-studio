@@ -3,17 +3,16 @@
 import Image from "next/image";
 import { useState, type SyntheticEvent } from "react";
 import {
-  Check,
-  Copy,
   ExternalLink,
   Folder,
-  Link as LinkIcon,
   Pencil,
   PlugZap,
   Trash2,
   BookOpen,
+  Wrench,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import { IntegrationPreviewDialog } from "@/app/manage/apps/integration-preview-dialog";
 import {
@@ -44,6 +43,8 @@ type ManagerAppCardProps = {
   isDeleting?: boolean;
   integration?: string;
   tags?: { id: string; name: string; color?: string }[];
+  linkedTool?: { id: string; name: string; isActive: boolean; description?: string };
+  onToggleActive?: () => void;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -59,12 +60,44 @@ function onCardImageError(event: SyntheticEvent<HTMLImageElement>) {
   event.currentTarget.style.display = "none";
 }
 
+function LinkedToolStrip({ tool }: { tool: { name: string; isActive: boolean; description?: string } }) {
+  return (
+    <div className="mx-4 mb-3 border-t border-slate-100 pt-2.5 flex items-center gap-2">
+      {/* Icon */}
+      <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/25">
+        <Wrench className="size-3" />
+      </div>
+      {/* Name */}
+      <p className="min-w-0 flex-1 truncate text-[10px] font-semibold text-slate-700">
+        {tool.name}
+      </p>
+      {/* Connected badge */}
+      <span
+        className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold ${
+          tool.isActive
+            ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+            : "bg-slate-200 text-slate-400"
+        }`}
+      >
+        {tool.isActive && (
+          <svg className="size-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        )}
+        {tool.isActive ? "Connected" : "Inactive"}
+      </span>
+    </div>
+  );
+}
+
 export function ManagerAppCard({
   item,
   isBusy = false,
   isDeleting = false,
   integration = "",
   tags = [],
+  linkedTool,
+  onToggleActive,
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
@@ -112,16 +145,18 @@ export function ManagerAppCard({
           <div className="absolute inset-0 animate-pulse bg-muted" />
 
           {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt={item.name}
-              fill
-              className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              priority
-              unoptimized
-              onError={onCardImageError}
-            />
+            <>
+              <Image
+                src={imageSrc}
+                alt={item.name}
+                fill
+                className="relative z-10 object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                priority
+                unoptimized
+                onError={onCardImageError}
+              />
+            </>
           ) : (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
               <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400/40">
@@ -192,19 +227,41 @@ export function ManagerAppCard({
 
       {/* Content */}
       <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-        {/* Name */}
-        <h3 className="mb-1 truncate text-[14px] font-bold tracking-tight text-slate-900">
-          {item.name}
-        </h3>
+        {/* Name + toggle */}
+        <div className="mb-1 flex items-center gap-2">
+          <h3 className="min-w-0 flex-1 truncate text-[14px] font-bold tracking-tight text-slate-900">
+            {item.name}
+          </h3>
+          {onToggleActive && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onToggleActive(); }}
+              className="shrink-0 flex items-center cursor-pointer select-none"
+              style={{ background: "none", border: "none", outline: "none", padding: 0 }}
+              aria-label={item.isActive ? "Deactivate app" : "Activate app"}
+            >
+              <Switch
+                checked={item.isActive}
+                className="pointer-events-none data-[checked]:bg-emerald-500"
+                tabIndex={-1}
+              />
+            </button>
+          )}
+        </div>
 
         {/* Meta row */}
-        <div className="mb-2 flex items-center gap-3 text-[11px] font-medium text-slate-500">
-          <span className="flex items-center gap-1 truncate">
+        <div className="mb-2 flex items-center gap-2 flex-wrap">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 truncate">
             <Folder className="size-3 shrink-0" />
             {item.category || "—"}
           </span>
-          <span className="flex items-center gap-1 shrink-0">
-            <LinkIcon className="size-3" />
+          {/* Type pill — replaces link icon */}
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold shrink-0",
+              type.className,
+            )}
+          >
             {type.label}
           </span>
           {item.badgeLabel && item.badgeLabel.trim().length > 0 && (
@@ -224,16 +281,8 @@ export function ManagerAppCard({
           {item.description || "No description provided."}
         </p>
 
-        {/* Type pill + tags + dev guide */}
+        {/* Tags + dev guide */}
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium",
-              type.className,
-            )}
-          >
-            {type.label} App
-          </span>
           {tags.filter(t => t.name).map((tag) => (
             <span
               key={tag.id || tag.name}
@@ -262,6 +311,9 @@ export function ManagerAppCard({
           )}
         </div>
       </div>
+
+      {/* Linked tool strip — only when appTool data is available */}
+      {linkedTool && <LinkedToolStrip tool={linkedTool} />}
 
       {hasIntegration && (
         <IntegrationPreviewDialog

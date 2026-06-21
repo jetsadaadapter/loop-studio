@@ -68,9 +68,9 @@ function mapApiItemToRecord(item: LibraryBannerItem): BannerRecord {
     subtitle: item.subtitle,
     appName: item.app?.name || "",
     category:
-      typeof item.app?.category === "object"
+      item.app?.category !== null && typeof item.app?.category === "object"
         ? item.app.category.name
-        : item.app?.category || "",
+        : (typeof item.app?.category === "string" ? item.app.category : ""),
     isActive: item.isActive,
     sortOrder: item.sortOrder,
     updatedAt: (item.updatedAt || "").slice(0, 10),

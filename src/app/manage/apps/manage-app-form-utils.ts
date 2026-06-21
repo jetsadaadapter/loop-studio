@@ -53,7 +53,7 @@ export function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     name: item.name,
     categoryId:
       item.categoryId ||
-      (typeof item.category === "object" ? item.category.id : ""),
+      (item.category !== null && typeof item.category === "object" ? item.category.id : ""),
     description: item.description,
     imageId: item.imageId,
     iconId: item.iconId,

@@ -55,7 +55,11 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
     handleFieldChange,
     handleGenerateIntegration,
     isGeneratingIntegration,
+    generateSuccess,
   } = useManageAppFormData(mode, appId);
+
+  const isInternal = draft.linkType === "internal";
+  const hasToolId = isInternal && !!draft.ctaLink?.startsWith("/tool/") && draft.ctaLink.replace("/tool/", "").trim().length > 0;
 
   const pageTitle = mode === "create" ? "Create App" : "Edit App";
 
@@ -138,6 +142,9 @@ export function ManageAppFormClient({ mode, appId }: ManageAppFormClientProps) {
                 integrationMdInputRef={integrationMdInputRef}
                 onGenerateIntegration={() => void handleGenerateIntegration()}
                 isGeneratingIntegration={isGeneratingIntegration}
+                isInternal={isInternal}
+                hasToolId={hasToolId}
+                generateSuccess={generateSuccess}
               />
             </div>
 

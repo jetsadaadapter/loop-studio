@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deleteManageApp, getManageApps } from "@/core/services/apps.service";
+import { deleteManageApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
 import {
   applyManageAppsListQuery,
   DEFAULT_PAGE_SIZE,
@@ -52,6 +52,7 @@ type AppRecord = {
   id: string;
   name: string;
   category: string;
+  categoryId: string;
   description: string;
   imageId: string;
   iconId: string;
@@ -66,6 +67,7 @@ type AppRecord = {
   tags: { id: string; name: string; color?: string }[];
   updatedAt: string;
   imageUrl?: string;
+  linkedTool?: { id: string; name: string; isActive: boolean; description: string };
 };
 
 function resolveManageAppImageUrl(
@@ -83,9 +85,10 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     id: getAppItemId(item),
     name: item.name,
     category:
-      typeof item.category === "object"
+      item.category !== null && typeof item.category === "object"
         ? item.category.name
-        : (item.category ?? ""),
+        : (typeof item.category === "string" ? item.category : ""),
+    categoryId: item.categoryId ?? (item.category !== null && typeof item.category === "object" && "id" in item.category ? item.category.id : ""),
     description: item.description,
     imageId: item.imageId,
     iconId: item.iconId,
@@ -106,6 +109,9 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
       .filter((t) => t.id || t.name),
     updatedAt: (item.updatedAt || "").slice(0, 10),
     imageUrl: resolveManageAppImageUrl(item),
+    linkedTool: item.appTool?.tool?.id
+      ? { id: item.appTool.tool.id, name: item.appTool.tool.name ?? "", isActive: Boolean(item.appTool.tool.isActive), description: item.appTool.tool.description ?? "" }
+      : undefined,
   };
 }
 
@@ -168,7 +174,8 @@ export function ManageAppsClient() {
           setTotalPages(Math.max(1, Math.ceil(response.data.length / pageSize)));
         }
         setLastUpdatedAt(new Date());
-      } catch {
+      } catch (err) {
+        console.error("[ManageApps] Load failed:", err);
         setLoadError("Failed to load apps.");
         pushToast("Failed to load apps.", "error");
       } finally {
@@ -426,6 +433,32 @@ export function ManageAppsClient() {
     syncListQuery({ page });
   }
 
+  async function handleToggleActive(app: AppRecord) {
+    const next = !app.isActive;
+    setApps((prev) => prev.map((a) => a.id === app.id ? { ...a, isActive: next } : a));
+    try {
+      await updateManageApp(app.id, {
+        name: app.name,
+        description: app.description,
+        categoryId: app.categoryId,
+        instructions: app.instructions,
+        integration: app.integration,
+        ctaLabel: app.ctaLabel,
+        ctaLink: app.ctaLink,
+        linkType: app.linkType,
+        isActive: next,
+        sortOrder: app.sortOrder,
+        badgeLabel: app.badgeLabel,
+        iconId: app.iconId,
+        imageId: app.imageId,
+        tags: app.tags.map((t) => t.id),
+      });
+    } catch {
+      setApps((prev) => prev.map((a) => a.id === app.id ? { ...a, isActive: app.isActive } : a));
+      pushToast(`Failed to ${next ? "activate" : "deactivate"} "${app.name}".`, "error");
+    }
+  }
+
   async function onDelete(target: AppRecord) {
     setDeletingId(target.id);
     const previous = apps;
@@ -615,10 +648,12 @@ export function ManageAppsClient() {
                       item={row}
                       isBusy={deletingId !== null}
                       isDeleting={deletingId === row.id}
+                      onToggleActive={() => void handleToggleActive(row)}
                       onEdit={() => router.push(`/manage/apps/${row.id}/edit`)}
                       onDelete={() => setDeleteTarget(row)}
                       integration={row.integration}
                       tags={row.tags}
+                      linkedTool={row.linkedTool}
                     />
                   );
                 })}

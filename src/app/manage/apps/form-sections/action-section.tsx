@@ -39,18 +39,17 @@ export function ActionSection({
   onChange,
   onBlur,
 }: ActionSectionProps) {
-  // Track previous linkType to detect changes
   const prevLinkType = useRef<AppLinkType | undefined>(linkType);
+  // Preserve last-used ctaLink per type so switching back restores it
+  const savedLinks = useRef<Partial<Record<AppLinkType, string>>>({});
 
   useEffect(() => {
-    if (prevLinkType.current !== linkType) {
-      // If switching between external/internal/instruction, clear CTA link
-      if (
-        (prevLinkType.current === "external" && linkType !== "external") ||
-        (prevLinkType.current !== "external" && linkType === "external")
-      ) {
-        onChange("ctaLink", "");
-      }
+    const prev = prevLinkType.current;
+    if (prev !== linkType) {
+      // Save current ctaLink under the old type before switching
+      if (prev) savedLinks.current[prev] = ctaLink;
+      // Restore saved value for the new type (or empty string)
+      onChange("ctaLink", savedLinks.current[linkType] ?? "");
       prevLinkType.current = linkType;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

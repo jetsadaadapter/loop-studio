@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Check, ChevronDown, Loader2, Search, Wrench } from "lucide-react";
 import { getManageTools } from "@/core/services/manage-tools.service";
 import { ManageToolApiItem } from "@/core/interfaces/tool";
 import { Field, FieldLabel, FieldError, FieldDescription } from "@/components/ui/field";
@@ -19,16 +14,28 @@ interface ToolSelectorProps {
   error?: string;
 }
 
-export function ToolSelector({
-  value,
-  onChange,
-  touched,
-  error,
-}: ToolSelectorProps) {
+export function ToolSelector({ value, onChange, touched, error }: ToolSelectorProps) {
   const [tools, setTools] = useState<ManageToolApiItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const selectedTool = tools.find((t) => t.id === value);
+
+  const activeTools = tools.filter((t) => t.isActive);
+
+  const filtered = query.trim()
+    ? activeTools.filter(
+        (t) =>
+          t.name.toLowerCase().includes(query.toLowerCase()) ||
+          t.id.toLowerCase().includes(query.toLowerCase())
+      )
+    : activeTools;
 
   useEffect(() => {
     getManageTools()
@@ -37,46 +44,148 @@ export function ToolSelector({
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (open) setTimeout(() => searchRef.current?.focus(), 50);
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      setDropdownRect(triggerRef.current.getBoundingClientRect());
+    }
+  }, [open]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      const insideTrigger = containerRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      if (!insideTrigger && !insideDropdown) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function handleSelect(toolId: string) {
+    onChange(toolId);
+    setOpen(false);
+    setQuery("");
+  }
+
   return (
     <Field>
       <FieldLabel>
         CTA Link <span className="text-destructive">*</span>
       </FieldLabel>
-      <Select
-        value={value}
-        onValueChange={(val) => onChange(val)}
-        disabled={loading}
-      >
-        <SelectTrigger className="w-full">
-          {selectedTool ? (
-            <span className="text-xs font-medium truncate">
-              {selectedTool.name}
+
+      <div ref={containerRef} className="relative">
+        {/* Trigger */}
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => !loading && setOpen((v) => !v)}
+          disabled={loading}
+          className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm shadow-xs transition-[color,box-shadow] outline-none
+            ${open ? "border-ring ring-[3px] ring-ring/50" : "border-input"}
+            ${loading ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-slate-300 bg-background"}
+          `}
+        >
+          {loading ? (
+            <span className="flex items-center gap-2 text-muted-foreground text-xs">
+              <Loader2 className="size-3.5 animate-spin" />
+              Loading tools…
             </span>
+          ) : selectedTool ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={`size-2 shrink-0 rounded-full ${selectedTool.isActive ? "bg-emerald-500" : "bg-slate-300"}`}
+              />
+              <span className="truncate text-xs font-medium text-slate-800">
+                {selectedTool.name}
+              </span>
+              <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9px] text-slate-500">
+                {selectedTool.id.slice(0, 10)}…
+              </span>
+            </div>
           ) : (
-            <SelectValue
-              placeholder={loading ? "Loading tools..." : "Select a tool"}
-            />
+            <span className="text-xs text-muted-foreground">Select a tool…</span>
           )}
-        </SelectTrigger>
-        <SelectContent align="start" className="max-w-xs sm:max-w-sm">
-          {tools.map((tool) => (
-            <SelectItem
-              key={tool.id}
-              value={tool.id}
-              className="py-2"
-            >
-              <div className="flex flex-col gap-0.5 min-w-0 overflow-hidden pr-2">
-                <span className="text-xs font-medium leading-snug truncate">
-                  {tool.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-mono leading-snug truncate">
-                  {tool.id}
-                </span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <ChevronDown
+            className={`ml-2 size-4 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {/* Dropdown — rendered via portal to escape parent overflow:hidden */}
+        {open && dropdownRect && typeof document !== "undefined" && createPortal(
+          <div
+            ref={dropdownRef}
+            style={{
+              position: "fixed",
+              top: dropdownRect.bottom + 4,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+              zIndex: 9999,
+            }}
+            className="rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+          >
+            {/* Search */}
+            <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
+              <Search className="size-3.5 shrink-0 text-slate-400" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by name or ID…"
+                className="w-full bg-transparent text-xs text-slate-700 placeholder:text-slate-400 outline-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="text-slate-400 hover:text-slate-600 text-xs font-medium"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* List */}
+            <div className="max-h-64 overflow-y-auto py-1">
+              {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-1.5 py-6 text-center">
+                  <Wrench className="size-4 text-slate-300" />
+                  <span className="text-xs text-slate-400">No tools match your search</span>
+                </div>
+              ) : (
+                filtered.map((tool) => {
+                  const isSelected = tool.id === value;
+                  return (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      onClick={() => handleSelect(tool.id)}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 ${
+                        isSelected ? "bg-slate-50" : ""
+                      }`}
+                    >
+                      <span className={`mt-0.5 size-2 shrink-0 rounded-full ${tool.isActive ? "bg-emerald-500" : "bg-slate-300"}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-slate-800 leading-snug">{tool.name}</p>
+                        <p className="mt-0.5 truncate font-mono text-[9px] text-slate-400 leading-snug">{tool.id}</p>
+                      </div>
+                      {isSelected && <Check className="size-3.5 shrink-0 text-emerald-600" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
+      </div>
+
       {!(touched && error) && (
         <FieldDescription>
           เลือก Tool ที่ต้องการลิงก์ไป (ระบบจะสร้างลิงก์เป็น /tool/รหัสเครื่องมืออัตโนมัติ)

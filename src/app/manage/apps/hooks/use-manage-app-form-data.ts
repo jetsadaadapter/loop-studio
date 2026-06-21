@@ -42,6 +42,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const [showIntegrationPreview, setShowIntegrationPreview] = useState(false);
   const [didCopyIntegration, setDidCopyIntegration] = useState(false);
   const [isGeneratingIntegration, setIsGeneratingIntegration] = useState(false);
+  const [generateSuccess, setGenerateSuccess] = useState(false);
 
   function touch(field: string) {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -243,19 +244,16 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   }
 
   async function handleGenerateIntegration() {
-    // Only works for internal apps with a toolId in ctaLink
     const ctaLink = draft.ctaLink ?? "";
     const toolId = ctaLink.startsWith("/tool/") ? ctaLink.replace("/tool/", "").trim() : "";
-    if (!toolId) {
-      pushDialogToast("No tool linked. Set Link Type to 'Internal' and enter a Tool ID first.", "error");
-      return;
-    }
+    if (!toolId) return;
+    setGenerateSuccess(false);
     setIsGeneratingIntegration(true);
     try {
       const tool = await getManageTool(toolId);
       const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? [], tool.params ?? []);
       setDraft((prev) => ({ ...prev, integration: guide }));
-      pushDialogToast("Integration guide generated successfully.", "success");
+      setGenerateSuccess(true);
     } catch {
       pushDialogToast("Failed to fetch tool data. Make sure the Tool ID is correct.", "error");
     } finally {
@@ -294,5 +292,6 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     handleFieldChange,
     handleGenerateIntegration,
     isGeneratingIntegration,
+    generateSuccess,
   };
 }

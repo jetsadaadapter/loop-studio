@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Eye, FileText, Sparkles } from "lucide-react";
+import { CheckCircle2, Eye, FileText, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Field,
@@ -29,6 +29,9 @@ type ContentSectionProps = {
   integrationMdInputRef: React.RefObject<HTMLInputElement | null>;
   onGenerateIntegration?: () => void;
   isGeneratingIntegration?: boolean;
+  isInternal?: boolean;
+  hasToolId?: boolean;
+  generateSuccess?: boolean;
 };
 
 export function ContentSection({
@@ -50,6 +53,9 @@ export function ContentSection({
   integrationMdInputRef,
   onGenerateIntegration,
   isGeneratingIntegration = false,
+  isInternal = false,
+  hasToolId = false,
+  generateSuccess = false,
 }: ContentSectionProps) {
   const hasinstructions = instructions.trim().length > 0;
   const hasIntegration = integration.trim().length > 0;
@@ -147,24 +153,42 @@ export function ContentSection({
             aria-label="Import markdown integration"
             onChange={onIntegrationMdInputChange}
           />
-          <textarea
-            placeholder="Write integration guide in Markdown..."
-            value={integration}
-            onChange={(event) => onChange("integration", event.target.value)}
-            onPaste={onIntegrationPaste}
-            onBlur={() => onBlur("integration")}
-            rows={8}
-            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
-          />
+          <div className="relative">
+            <textarea
+              placeholder="Write integration guide in Markdown..."
+              value={integration}
+              onChange={(event) => onChange("integration", event.target.value)}
+              onPaste={onIntegrationPaste}
+              onBlur={() => onBlur("integration")}
+              rows={8}
+              disabled={isGeneratingIntegration}
+              className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter) disabled:opacity-60"
+            />
+            {isGeneratingIntegration && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-md bg-white/70 backdrop-blur-[2px]">
+                <div className="flex items-center gap-2 rounded-full border border-brand/20 bg-white px-3 py-1.5 shadow-sm">
+                  <Loader2 className="size-3.5 animate-spin text-brand" />
+                  <span className="text-xs font-medium text-brand">Generating…</span>
+                </div>
+              </div>
+            )}
+          </div>
+          {generateSuccess && !isGeneratingIntegration && (
+            <div className="mt-1.5 flex items-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-3 py-1.5">
+              <CheckCircle2 className="size-3.5 shrink-0 text-teal-600" />
+              <span className="text-xs font-medium text-teal-700">Integration guide generated successfully.</span>
+            </div>
+          )}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {onGenerateIntegration && (
+            {isInternal && onGenerateIntegration && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={onGenerateIntegration}
-                disabled={isGeneratingIntegration}
-                className="flex items-center gap-1.5 border-brand/40 text-brand hover:bg-brand/5"
+                disabled={isGeneratingIntegration || !hasToolId}
+                title={!hasToolId ? "Set a Tool ID in Link Type first" : undefined}
+                className="flex items-center gap-1.5 border-brand/40 text-brand hover:bg-brand/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Sparkles className="size-3.5" />
                 {isGeneratingIntegration ? "Generating…" : "Generate"}
