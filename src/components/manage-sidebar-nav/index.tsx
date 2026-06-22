@@ -18,6 +18,14 @@ import { checkRouteImplemented } from "@/app/manage/actions";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";
+import { getUserCredits, getCreditHistory } from "@/core/services/users.service";
+import type { CreditTransaction } from "@/core/services/users.service";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Collapsible,
   CollapsibleContent,
@@ -119,9 +127,183 @@ function ManageSidebarFooter() {
 
   const isCollapsed = state === "collapsed";
 
+  // ── Credit balance state ──────────────────────────────────────────────────
+  const [credits, setCredits] = useState<number | null>(null);
+  const [usedToday, setUsedToday] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyItems, setHistoryItems] = useState<CreditTransaction[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const HISTORY_LIMIT = 10;
+
+  useEffect(() => {
+    getUserCredits().then((b) => setCredits(b.credits)).catch(() => {});
+    // Fetch recent history to compute today's usage
+    getCreditHistory({ page: 1, limit: 50 })
+      .then((res) => {
+        const today = new Date();
+        const used = (res.data ?? [])
+          .filter((tx) => {
+            if (tx.amount >= 0) return false;
+            const d = new Date(tx.createdAt);
+            return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+          })
+          .reduce((acc, tx) => acc + Math.abs(tx.amount), 0);
+        setUsedToday(used);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!historyOpen) return;
+    setHistoryLoading(true);
+    getCreditHistory({ page: historyPage, limit: HISTORY_LIMIT })
+      .then((res) => { setHistoryItems(res.data ?? []); setHistoryTotal(res.total ?? 0); })
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false));
+  }, [historyOpen, historyPage]);
+
+  const historyTotalPages = Math.max(1, Math.ceil(historyTotal / HISTORY_LIMIT));
+
+  function txColor(amount: number) {
+    return amount > 0 ? "text-emerald-600" : "text-rose-500";
+  }
+  function txBg(type: string) {
+    const m: Record<string, string> = {
+      admin_adjust: "bg-amber-50 text-amber-600",
+      charge: "bg-rose-50 text-rose-500",
+      topup: "bg-emerald-50 text-emerald-600",
+      refund: "bg-sky-50 text-sky-600",
+      bonus: "bg-violet-50 text-violet-600",
+    };
+    return m[type] ?? "bg-slate-50 text-slate-500";
+  }
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
   return (
+    <>
+    {/* Credit history drawer */}
+    <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+      <SheetContent side="left" className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
+        <SheetHeader className="px-5 py-4 border-b border-slate-100 shrink-0">
+          <SheetTitle className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <LucideIcons.Coins className="size-4 text-amber-500" />
+            Credit Transaction History
+          </SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {historyLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <LucideIcons.Loader2 className="size-5 animate-spin text-slate-300" />
+            </div>
+          ) : historyItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <LucideIcons.Coins className="size-8 text-amber-200" />
+              <p className="text-xs text-slate-400">No transactions yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {historyItems.map((tx) => {
+                const isCredit = tx.amount > 0;
+                return (
+                  <div key={tx.id} className="flex items-center gap-3 rounded-2xl px-3 py-3 bg-white border border-slate-100/80 hover:border-slate-200 hover:bg-slate-50/50 transition-all duration-150">
+                    {/* Icon circle */}
+                    <div className={`relative flex size-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txBg(tx.type)}`}>
+                      {tx.type.slice(0, 2).toUpperCase()}
+                      {/* Direction indicator */}
+                      <span className={`absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
+                        {isCredit
+                          ? <LucideIcons.ArrowUpRight className="size-2.5 text-white" />
+                          : <LucideIcons.ArrowDownRight className="size-2.5 text-white" />
+                        }
+                      </span>
+                    </div>
+                    {/* Content */}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-slate-800 leading-snug">{tx.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[9px] text-slate-400">{fmtDate(tx.createdAt)}</p>
+                        {tx.clientType && (
+                          <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
+                            {tx.clientType}
+                          </span>
+                        )}
+                        <span className={`inline-flex items-center rounded-full px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txBg(tx.type)}`}>
+                          {tx.type.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Amount */}
+                    <span className={`shrink-0 text-sm font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
+                      {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {historyTotalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 shrink-0">
+            <button type="button" disabled={historyPage <= 1} onClick={() => setHistoryPage(p => p - 1)}
+              className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
+              ← Prev
+            </button>
+            <span className="text-[11px] text-slate-400 tabular-nums">{historyPage} / {historyTotalPages}</span>
+            <button type="button" disabled={historyPage >= historyTotalPages} onClick={() => setHistoryPage(p => p + 1)}
+              className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
+              Next →
+            </button>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+
     <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
       <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
+        {/* Credit balance widget — expanded sidebar only */}
+        {!isCollapsed && credits !== null && (() => {
+          const total = credits + usedToday;
+          const pct = total > 0 ? Math.round((credits / total) * 100) : 100;
+          const barColor = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-rose-500";
+          return (
+            <button
+              type="button"
+              onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
+              className="group mb-2 w-full rounded-xl border border-amber-100/80 bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-white px-3 pt-2.5 pb-2 hover:border-amber-200 hover:from-amber-50 transition-all duration-200 cursor-pointer text-left"
+            >
+              {/* Top row: icon + label + chevron */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-100 text-amber-600">
+                    <LucideIcons.Coins className="size-3" />
+                  </span>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-amber-500/80">Credits</p>
+                </div>
+                <LucideIcons.ChevronRight className="size-3 text-amber-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all duration-200" />
+              </div>
+              {/* Balance row */}
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="text-[15px] font-bold tabular-nums text-amber-700 leading-none">{credits.toLocaleString()}</span>
+                {usedToday > 0 && (
+                  <span className="text-[9px] text-slate-400 font-medium tabular-nums">−{usedToday} today</span>
+                )}
+              </div>
+              {/* Progress bar */}
+              <div className="h-1 w-full rounded-full bg-amber-100 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="mt-1 text-[9px] text-slate-400 tabular-nums">{pct}% remaining</p>
+            </button>
+          );
+        })()}
+
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -231,6 +413,7 @@ function ManageSidebarFooter() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+    </>
   );
 }
 

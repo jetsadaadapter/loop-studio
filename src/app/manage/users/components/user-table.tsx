@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Edit3 } from "lucide-react";
+import { User, Edit3, Coins } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ interface UserTableProps {
   loadError: string;
   onRetry: () => void;
   onEdit: (user: UserProfile) => void;
+  onAdjustCredits?: (user: UserProfile) => void;
 }
 
 function formatDate(iso?: string) {
@@ -124,6 +125,7 @@ export function UserTable({
   loadError,
   onRetry,
   onEdit,
+  onAdjustCredits,
 }: UserTableProps) {
   return (
     <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
@@ -291,6 +293,11 @@ export function UserTable({
                           icon: Edit3,
                           onClick: () => onEdit(user),
                         },
+                        ...(onAdjustCredits ? [{
+                          label: "Adjust Credits",
+                          icon: Coins,
+                          onClick: () => onAdjustCredits(user),
+                        }] : []),
                       ]}
                     />
                   </div>

@@ -62,3 +62,56 @@ export async function updateManageUser(
     });
     return response.data;
 }
+
+export interface CreditBalance {
+    credits: number;
+}
+
+export interface CreditTransaction {
+    id: string;
+    userId: string;
+    amount: number;
+    type: string;
+    clientType?: string;
+    referenceId?: string | null;
+    description: string;
+    createdAt: string;
+}
+
+export interface CreditHistoryResponse {
+    success: boolean;
+    data: CreditTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
+export async function getUserCredits(init?: RequestInit): Promise<CreditBalance> {
+    const response = await apiFetch<{ success: boolean; data: CreditBalance }>(buildUrl("/profile/credits"), init);
+    return response.data;
+}
+
+export async function getCreditHistory(
+    params?: { page?: number; limit?: number },
+    init?: RequestInit,
+): Promise<CreditHistoryResponse> {
+    const url = buildUrl("/profile/credits/history", {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+    });
+    return apiFetch<CreditHistoryResponse>(url, init);
+}
+
+export async function adjustUserCredits(
+    userId: string,
+    amount: number,
+    description: string,
+    init?: RequestInit,
+): Promise<{ success: boolean }> {
+    const url = buildUrl(`/manage/users/${userId}/credits/adjust`);
+    return apiFetch<{ success: boolean }>(url, {
+        method: "POST",
+        body: JSON.stringify({ amount, description }),
+        ...init,
+    });
+}

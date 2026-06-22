@@ -15,11 +15,12 @@ import { ManagerShell } from "@/components/manager-shell";
 import { useToast } from "@/components/toast-provider";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import type { ManageUserFormValues } from "@/core/validators/users.validator";
-import { getManageUsers, getManageUsersResponse, updateManageUser } from "@/core/services/users.service";
+import { adjustUserCredits, getManageUsers, getManageUsersResponse, updateManageUser } from "@/core/services/users.service";
 
 import { UserSearchFilters } from "./components/user-search-filters";
 import { UserTable } from "./components/user-table";
 import { UserFormModal } from "./components/user-form-modal";
+import { UserCreditModal } from "./components/user-credit-modal";
 import { UserStats } from "./components/user-stats";
 import { ManagerPagination } from "@/components/manager-pagination";
 
@@ -42,10 +43,15 @@ export function ManageUsersClient({
   const [isLoading, setIsLoading] = useState(initialUsers.length === 0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(
-    initialUsers.length > 0 ? new Date() : null
-  );
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [totalItems, setTotalItems] = useState(0);
+
+  useEffect(() => {
+    if (initialUsers.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLastUpdatedAt(new Date());
+    }
+  }, [initialUsers.length]);
 
   const isInitialMount = useRef(true);
 
@@ -69,6 +75,9 @@ export function ManageUsersClient({
 
   // Modal edit states
   const [editTarget, setEditTarget] = useState<UserProfile | null>(null);
+  const [creditTarget, setCreditTarget] = useState<UserProfile | null>(null);
+  const [isCreditSubmitting, setIsCreditSubmitting] = useState(false);
+  const [creditError, setCreditError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -170,6 +179,22 @@ export function ManageUsersClient({
     }
   }
 
+  async function handleCreditSubmit(amount: number, description: string) {
+    if (!creditTarget) return;
+    setIsCreditSubmitting(true);
+    setCreditError("");
+    try {
+      await adjustUserCredits(creditTarget.empid, amount, description);
+      const label = amount > 0 ? `+${amount}` : String(amount);
+      pushToast(`Credits adjusted (${label}) for ${creditTarget.firstName ?? creditTarget.email}.`, "success");
+      setCreditTarget(null);
+    } catch {
+      setCreditError("Failed to adjust credits. Please try again.");
+    } finally {
+      setIsCreditSubmitting(false);
+    }
+  }
+
   return (
     <ManagerShell title={pageTitle} description={pageSubtitle} actions={null}>
       {/* User Statistics Overview */}
@@ -201,6 +226,7 @@ export function ManageUsersClient({
           loadError={loadError}
           onRetry={() => void loadUsers()}
           onEdit={setEditTarget}
+          onAdjustCredits={setCreditTarget}
         />
 
         {!isLoading && totalItems > 0 && (
@@ -225,6 +251,17 @@ export function ManageUsersClient({
           submitError={submitError}
           onClose={() => setEditTarget(null)}
           onSubmit={handleUpdateSubmit}
+        />
+      )}
+
+      {/* Credit adjustment modal */}
+      {creditTarget && (
+        <UserCreditModal
+          user={creditTarget}
+          isSubmitting={isCreditSubmitting}
+          submitError={creditError}
+          onSubmit={(amount, description) => void handleCreditSubmit(amount, description)}
+          onClose={() => { setCreditTarget(null); setCreditError(""); }}
         />
       )}
     </ManagerShell>

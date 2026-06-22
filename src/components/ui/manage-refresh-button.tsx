@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,9 +13,16 @@ interface ManageRefreshButtonProps {
 }
 
 export function ManageRefreshButton({ lastUpdatedAt, isLoading = false, isRefreshing = false, onRefresh, title = "Refresh" }: ManageRefreshButtonProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
   return (
     <div className="flex items-center gap-2">
-      {lastUpdatedAt && (
+      {mounted && lastUpdatedAt && (
         <span className="text-[10px] font-medium text-slate-400">
           Updated {lastUpdatedAt.toLocaleString("en-US", { month: "numeric", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" })}
         </span>
