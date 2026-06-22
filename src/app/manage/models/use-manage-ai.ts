@@ -159,7 +159,7 @@ export function useManageAi() {
   useEffect(() => {
     let formatted = "Not updated yet";
     if (lastUpdatedAt) {
-      formatted = `Updated ${lastUpdatedAt.toLocaleDateString()} ${lastUpdatedAt.toLocaleTimeString()}`;
+      formatted = `Updated ${lastUpdatedAt.toLocaleString("en-US", { month: "numeric", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" })}`;
     }
     if (lastUpdatedStringRef.current !== formatted) {
       setLastUpdatedString(formatted);

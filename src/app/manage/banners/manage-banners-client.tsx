@@ -9,7 +9,11 @@ import {
   useState,
   startTransition,
 } from "react";
-import { Search, SlidersHorizontal, RotateCw, Plus } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
+import { ManageSearchInput } from "@/components/ui/manage-search-input";
+import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
+import { ManageCreateButton } from "@/components/ui/manage-create-button";
+import { ManageFilterSelect } from "@/components/ui/manage-filter-select";
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerFilterSidebar } from "@/components/manager-filter-sidebar";
@@ -23,13 +27,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import {
   getManageBanners,
@@ -301,70 +298,22 @@ export function ManageBannersClient() {
                 <SlidersHorizontal className="size-4" />
               </Button>
 
-              <div className="relative w-full xl:w-80 shrink-0">
-                <Search className="absolute left-3 top-2 size-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(event) => onSearchChange(event.target.value)}
-                  placeholder="Search banner title, app, or category"
-                  className="h-8 w-full rounded-sm border border-slate-200 bg-white pl-9.5 pr-3 text-xs shadow-3xs transition-colors outline-none focus-visible:ring-3 focus-visible:ring-brand/5 placeholder:text-slate-400"
-                />
-              </div>
-
-              {/* Sort selector adjacent to search */}
-              <div className="flex items-center gap-2 flex-1 xl:flex-initial">
-                <span className="text-xs font-semibold text-slate-500 shrink-0">Sort By</span>
-                <div className="flex-1 xl:w-40">
-                  <Select
-                    value={sortBy}
-                    onValueChange={(v) => v && onSortChange(v)}
-                  >
-                    <SelectTrigger className="h-8 rounded-sm border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 w-full shadow-3xs flex items-center justify-between cursor-pointer">
-                      <SelectValue placeholder="Sort" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sort-asc">Sort: Low-High</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="title-asc">Title: A-Z</SelectItem>
-                      <SelectItem value="title-desc">Title: Z-A</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <ManageSearchInput value={searchInput} onChange={onSearchChange} placeholder="Search banner title, app, or category" />
+              <ManageFilterSelect
+                label="Sort By"
+                value={sortBy}
+                options={[
+                  { value: "sort-asc", label: "Sort: Low-High" },
+                  { value: "newest", label: "Newest" },
+                  { value: "title-asc", label: "Title: A-Z" },
+                  { value: "title-desc", label: "Title: Z-A" },
+                ]}
+                onChange={onSortChange}
+              />
             </div>
-
-            {/* Right side controls matching apps style */}
             <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
-              {/* Last updated timestamp and refresh button */}
-              <div className="flex items-center gap-2">
-                {lastUpdatedAt && (
-                  <span className="text-[10px] font-medium text-slate-400">
-                    อัพเดทเมื่อ {lastUpdatedAt.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                  </span>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  disabled={isLoading || isRefreshing}
-                  onClick={() => loadBanners({ silent: true })}
-                  className="size-8 border-slate-200 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
-                  title="Refresh Banners"
-                >
-                  <RotateCw className={`size-3.5 text-slate-500 ${isRefreshing ? "animate-spin text-brand" : ""}`} />
-                </Button>
-              </div>
-
-              <Button
-                type="button"
-                disabled={deletingId !== null}
-                onClick={() => router.push("/manage/banners/create")}
-                className="h-8 bg-brand hover:bg-brand/90 text-white text-xs font-semibold px-4.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-sm shadow-brand/10 transition-all select-none flex-1 xl:flex-none justify-center"
-              >
-                <Plus className="size-4 shrink-0" />
-                Create Banner
-              </Button>
+              <ManageRefreshButton lastUpdatedAt={lastUpdatedAt} isLoading={isLoading} isRefreshing={isRefreshing} onRefresh={() => void loadBanners({ silent: true })} title="Refresh Banners" />
+              <ManageCreateButton onClick={() => router.push("/manage/banners/create")} disabled={deletingId !== null}>Create Banner</ManageCreateButton>
             </div>
           </div>
 

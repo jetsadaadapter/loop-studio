@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, startTransition } from "react";
-import { Search, RotateCw, Plus, SlidersHorizontal, KeyRound, Copy, Check, Eye, EyeOff, BookOpen } from "lucide-react";
+import { KeyRound, Copy, Check, Eye, EyeOff, BookOpen } from "lucide-react";
+import { ManageSearchInput } from "@/components/ui/manage-search-input";
+import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
+import { ManageCreateButton } from "@/components/ui/manage-create-button";
+import { ManageFilterSelect } from "@/components/ui/manage-filter-select";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerKeyTable, type ApiKeyRecord } from "@/components/manager-key-table";
 import { ManagerForm } from "@/components/manager-form";
@@ -12,7 +16,6 @@ import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { InstructionPreviewDialog } from "./instruction-preview-dialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   getManageApiKeysResponse,
@@ -33,6 +36,7 @@ export function ManageKeysClient() {
   const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -65,6 +69,7 @@ export function ManageKeysClient() {
         : [];
       setKeys(data);
       setTotalItems(response.meta?.total ?? data.length);
+      setLastUpdatedAt(new Date());
     } catch {
       setLoadError("Failed to load data.");
       toast.error("Failed to load API keys.");
@@ -226,85 +231,22 @@ export function ManageKeysClient() {
   };
 
   return (
-    <ManagerShell title={pageTitle} description={pageSubtitle}>
-      {/* Header Actions */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 font-sans">API Keys & Integration</h2>
-          <p className="text-xs text-slate-500 mt-0.5 font-sans">Manage access tokens and configure webhooks</p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setIsGuideOpen(true)}
-          className="h-8 bg-white border-slate-200/60 hover:bg-slate-50 text-xs font-semibold px-3.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-xs"
-        >
-          <BookOpen className="size-3.5 shrink-0 text-brand" />
-          Integration Guide
-        </Button>
-      </div>
-
+    <ManagerShell title={pageTitle} description={pageSubtitle} actions={
+      <Button type="button" variant="outline" onClick={() => setIsGuideOpen(true)} className="h-8 bg-white border-slate-200/60 hover:bg-slate-50 text-xs font-semibold px-3.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-xs">
+        <BookOpen className="size-3.5 shrink-0 text-brand" />
+        Integration Guide
+      </Button>
+    }>
       {/* Search and Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search API keys by name or App ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8 pl-9 pr-4 rounded-sm border border-slate-200/60 bg-white font-sans text-xs placeholder-slate-400 focus:outline-hidden focus:border-brand/50 transition-colors"
-          />
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
+          <ManageSearchInput value={search} onChange={setSearch} placeholder="Search API keys by name or App ID..." />
+          <ManageFilterSelect label="Status" value={statusFilter} options={[{ value: "all", label: "All Status" }, { value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} onChange={(v) => setStatusFilter(v || "all")} width="xl:w-32" />
+          <ManageFilterSelect label="Sort By" value={sortBy} options={[{ value: "newest", label: "Newest Created" }, { value: "name-asc", label: "Name (A-Z)" }, { value: "name-desc", label: "Name (Z-A)" }]} onChange={(v) => setSortBy(v || "newest")} />
         </div>
-        <div className="flex items-center gap-2">
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "all")}>
-            <SelectTrigger className="h-8 w-28 text-xs border-slate-200/60 font-sans cursor-pointer bg-white">
-              <SlidersHorizontal className="size-3 text-slate-400 shrink-0 mr-1" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs font-sans">All Status</SelectItem>
-              <SelectItem value="active" className="text-xs font-sans">Active</SelectItem>
-              <SelectItem value="inactive" className="text-xs font-sans">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Sort Filter */}
-          <Select value={sortBy} onValueChange={(val) => setSortBy(val || "newest")}>
-            <SelectTrigger className="h-8 w-32 text-xs border-slate-200/60 font-sans cursor-pointer bg-white">
-              <SelectValue placeholder="Sort By" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest" className="text-xs font-sans">Newest Created</SelectItem>
-              <SelectItem value="name-asc" className="text-xs font-sans">Name (A-Z)</SelectItem>
-              <SelectItem value="name-desc" className="text-xs font-sans">Name (Z-A)</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={isLoading || isRefreshing}
-            onClick={() => void loadKeys({ silent: true })}
-            className="size-8 border-slate-200/60 bg-white hover:bg-slate-50 cursor-pointer shadow-3xs flex items-center justify-center shrink-0"
-            title="Refresh Data"
-          >
-            <RotateCw className={`size-3.5 text-slate-500 ${isRefreshing ? "animate-spin text-brand" : ""}`} />
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              setMode("create");
-              setDraft(EMPTY_KEY);
-              setFieldErrors({});
-            }}
-            className="h-8 bg-brand hover:bg-brand/90 text-white text-xs font-semibold px-4.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            <Plus className="size-4 shrink-0" />
-            Create API Key
-          </Button>
+        <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
+          <ManageRefreshButton lastUpdatedAt={lastUpdatedAt} isLoading={isLoading} isRefreshing={isRefreshing} onRefresh={() => void loadKeys({ silent: true })} title="Refresh Data" />
+          <ManageCreateButton onClick={() => { setMode("create"); setDraft(EMPTY_KEY); setFieldErrors({}); }}>Create API Key</ManageCreateButton>
         </div>
       </div>
 

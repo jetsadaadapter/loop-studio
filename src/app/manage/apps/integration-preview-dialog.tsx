@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Download, BookOpen, Box } from "lucide-react";
+import { Check, Copy, Download, BookOpen, Box, X } from "lucide-react";
 import { downloadPostmanCollection } from "./postman-generator";
 import { getManageTool } from "@/core/services/manage-tools.service";
 import Markdown from "react-markdown";
@@ -73,13 +73,20 @@ export function IntegrationPreviewDialog({
 }: IntegrationPreviewDialogProps) {
   const [previewMode, setPreviewMode] = useState<"markdown" | "text">("markdown");
   const [isDownloadingPostman, setIsDownloadingPostman] = useState(false);
+  const [showApiKeyForm, setShowApiKeyForm] = useState(false);
+  const [postmanAppId, setPostmanAppId] = useState("");
+  const [postmanAppSecret, setPostmanAppSecret] = useState("");
 
   async function handlePostmanDownload() {
     if (!toolId) return;
     setIsDownloadingPostman(true);
     try {
       const tool = await getManageTool(toolId);
-      downloadPostmanCollection(toolId, appName, tool.params ?? [], tool.scripts ?? []);
+      downloadPostmanCollection(toolId, appName, tool.params ?? [], tool.scripts ?? [], {
+        appId: postmanAppId.trim(),
+        appSecret: postmanAppSecret.trim(),
+      });
+      setShowApiKeyForm(false);
     } catch {
       toast.error("Failed to fetch tool data for Postman collection.");
     } finally {
@@ -92,10 +99,20 @@ export function IntegrationPreviewDialog({
       <DialogContent className="max-h-[80vh] max-w-4xl overflow-hidden p-0 rounded-2xl border border-slate-200/60 shadow-lg font-sans">
         <div className="bg-linear-to-r from-slate-50 via-white to-emerald-50/50 px-5 py-4 border-b border-slate-200">
           <DialogHeader className="mb-0 space-y-3">
-            <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2 font-sans">
-              <BookOpen className="size-5 text-brand" />
-              Integration Preview
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2 font-sans">
+                <BookOpen className="size-5 text-brand" />
+                Integration Preview
+              </DialogTitle>
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="inline-flex items-center rounded-md border border-slate-200 bg-white p-1 shadow-xs">
                 <Button
@@ -153,13 +170,12 @@ export function IntegrationPreviewDialog({
                     <Button
                       type="button"
                       size="sm"
-                      variant="ghost"
-                      onClick={handlePostmanDownload}
-                      disabled={isDownloadingPostman}
+                      variant={showApiKeyForm ? "secondary" : "ghost"}
+                      onClick={() => setShowApiKeyForm((v) => !v)}
                       className="flex items-center gap-1.5 font-sans text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                     >
                       <Box className="size-4" />
-                      {isDownloadingPostman ? "Exporting…" : "Postman"}
+                      Postman
                     </Button>
                   </>
                 )}
@@ -167,6 +183,48 @@ export function IntegrationPreviewDialog({
             </div>
           </DialogHeader>
         </div>
+
+        {/* API Key form — shown when Postman is toggled */}
+        {showApiKeyForm && (
+          <div className="border-b border-slate-200 bg-amber-50/50 px-5 py-4">
+            <p className="mb-3 text-xs font-semibold text-slate-700">
+              Enter your API credentials to embed them in the Postman collection variables.
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1 flex-1 min-w-40">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">App ID <span className="text-rose-500">*</span></label>
+                <input
+                  type="text"
+                  value={postmanAppId}
+                  onChange={(e) => setPostmanAppId(e.target.value)}
+                  placeholder="your-app-id"
+                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-mono outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-40">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">App Secret <span className="text-rose-500">*</span></label>
+                <input
+                  type="password"
+                  value={postmanAppSecret}
+                  onChange={(e) => setPostmanAppSecret(e.target.value)}
+                  placeholder="your-app-secret"
+                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-mono outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                disabled={isDownloadingPostman || !postmanAppId.trim() || !postmanAppSecret.trim()}
+                onClick={() => void handlePostmanDownload()}
+                className="h-8 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-4 rounded-md flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50"
+              >
+                <Download className="size-3.5" />
+                {isDownloadingPostman ? "Exporting…" : "Download Collection"}
+              </Button>
+            </div>
+            <p className="mt-2 text-[10px] text-slate-400">Credentials are only used locally to populate the collection — they are never sent to any server.</p>
+          </div>
+        )}
 
         <div className="max-h-[62vh] overflow-y-auto bg-slate-50/30 p-5">
           {!integration.trim() ? (

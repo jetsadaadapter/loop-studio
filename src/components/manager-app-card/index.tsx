@@ -10,6 +10,7 @@ import {
   Trash2,
   BookOpen,
   Wrench,
+  CopyPlus,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -45,6 +46,8 @@ type ManagerAppCardProps = {
   tags?: { id: string; name: string; color?: string }[];
   linkedTool?: { id: string; name: string; isActive: boolean; description?: string };
   onToggleActive?: () => void;
+  onDuplicate?: () => void;
+  isDuplicating?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -98,6 +101,8 @@ export function ManagerAppCard({
   tags = [],
   linkedTool,
   onToggleActive,
+  onDuplicate,
+  isDuplicating = false,
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
@@ -208,6 +213,16 @@ export function ManagerAppCard({
                           e.stopPropagation();
                           setShowIntegration(true);
                         },
+                      },
+                    ]
+                  : []),
+                ...(onDuplicate
+                  ? [
+                      {
+                        label: isDuplicating ? "Duplicating…" : "Duplicate app",
+                        icon: CopyPlus,
+                        disabled: isBusy || isDuplicating,
+                        onClick: (e: React.MouseEvent) => { e.stopPropagation(); onDuplicate(); },
                       },
                     ]
                   : []),

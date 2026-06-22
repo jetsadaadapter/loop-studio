@@ -141,8 +141,14 @@ export function generatePostmanCollection(
   };
 }
 
-export function downloadPostmanCollection(toolId: string, appName: string, params: ToolParam[] = [], scripts: ToolScript[] = []) {
+export function downloadPostmanCollection(toolId: string, appName: string, params: ToolParam[] = [], scripts: ToolScript[] = [], credentials?: { appId: string; appSecret: string }) {
   const collection = generatePostmanCollection(toolId, appName, params, scripts);
+  if (credentials) {
+    const appIdVar = collection.variable.find((v) => v.key === "APP_ID");
+    const appSecretVar = collection.variable.find((v) => v.key === "APP_SECRET");
+    if (appIdVar) appIdVar.value = credentials.appId;
+    if (appSecretVar) appSecretVar.value = credentials.appSecret;
+  }
   const blob = new Blob([JSON.stringify(collection, null, 2)], {
     type: "application/json",
   });
