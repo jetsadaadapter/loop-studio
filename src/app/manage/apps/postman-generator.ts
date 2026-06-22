@@ -45,9 +45,16 @@ interface PostmanRequest {
   body?: { mode: string; raw: string; options: { raw: { language: string } } };
 }
 
+interface PostmanEvent {
+  listen: "test" | "prerequest";
+  script: { type: string; exec: string[] };
+}
+
 interface PostmanItem {
   name: string;
+  description?: string;
   request: PostmanRequest;
+  event?: PostmanEvent[];
 }
 
 interface PostmanCollection {
@@ -96,14 +103,64 @@ export function generatePostmanCollection(
           options: { raw: { language: "json" } },
         },
       },
+      event: [
+        {
+          listen: "test",
+          script: {
+            type: "text/javascript",
+            exec: [
+              "const res = pm.response.json();",
+              "const runId = res?.data?.id || res?.data?.runId || res?.id || res?.runId;",
+              "if (runId) {",
+              "  pm.collectionVariables.set('runId', runId);",
+              "  console.log('✅ runId set:', runId);",
+              "} else {",
+              "  console.warn('⚠️ runId not found in response', JSON.stringify(res));",
+              "}",
+            ],
+          },
+        },
+      ],
     },
     {
       name: "Step 2 — Get Jobs by Run ID",
+      description: "⏳ NOTE: If jobId is not set after sending, it means the pipeline (e.g. Export Comments) has not finished yet.\nPlease wait a moment and click Send again until the job state becomes 'completed'.\nOnly then will jobId and resultId be available for the next steps.",
       request: {
         method: "GET",
         header: AUTH_HEADERS,
         url: buildUrl(`/integrations/tools/{{TOOL_ID}}/runs/{{runId}}`),
       },
+      event: [
+        {
+          listen: "test",
+          script: {
+            type: "text/javascript",
+            exec: [
+              "const res = pm.response.json();",
+              "const jobs = res?.data?.jobs || res?.data || [];",
+              "const jobArr = Array.isArray(jobs) ? jobs : [jobs];",
+              "// jobId = last job (most recently started)",
+              "const lastJob = jobArr[jobArr.length - 1];",
+              "const jobId = lastJob?.jobId || lastJob?.id;",
+              "if (jobId) {",
+              "  pm.collectionVariables.set('jobId', jobId);",
+              "  console.log('✅ jobId set (last job):', jobId);",
+              "} else {",
+              "  console.warn('⏳ jobId not set yet — jobs may still be running (e.g. Export Comments). Please send Step 2 again until state = completed.');",
+              "}",
+              "// resultId = first job (earliest, most likely completed)",
+              "const firstJob = jobArr[0];",
+              "const resultId = firstJob?.resultId || firstJob?.result?.id;",
+              "if (resultId) {",
+              "  pm.collectionVariables.set('resultId', resultId);",
+              "  console.log('✅ resultId set (first job):', resultId);",
+              "} else {",
+              "  console.warn('⚠️ resultId not found in first job', JSON.stringify(firstJob));",
+              "}",
+            ],
+          },
+        },
+      ],
     },
     {
       name: "Step 3 — Get Result by Job ID",
@@ -112,6 +169,24 @@ export function generatePostmanCollection(
         header: AUTH_HEADERS,
         url: buildUrl(`/integrations/tools/{{TOOL_ID}}/jobs/{{jobId}}`),
       },
+      event: [
+        {
+          listen: "test",
+          script: {
+            type: "text/javascript",
+            exec: [
+              "const res = pm.response.json();",
+              "const resultId = res?.data?.resultId || res?.data?.result?.id || res?.data?.id;",
+              "if (resultId) {",
+              "  pm.collectionVariables.set('resultId', resultId);",
+              "  console.log('✅ resultId set:', resultId);",
+              "} else {",
+              "  console.warn('⚠️ resultId not found in response', JSON.stringify(res));",
+              "}",
+            ],
+          },
+        },
+      ],
     },
     {
       name: "Get Paginated Items",

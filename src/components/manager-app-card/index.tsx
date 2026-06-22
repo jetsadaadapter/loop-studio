@@ -100,10 +100,39 @@ function CopyableAppIdBadge({ id }: { id: string }) {
 }
 
 function LinkedToolStrip({ tool, onDetach, isAttaching }: { tool: { name: string; isActive: boolean; description?: string }; onDetach?: () => void; isAttaching?: boolean }) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (confirming) {
+    return (
+      <div className="mx-4 mb-3 border-t border-slate-100 pt-2.5 space-y-2">
+        <p className="text-[10px] text-slate-600 font-medium leading-snug">
+          Unlink <span className="font-bold text-slate-800">{tool.name}</span> from this app?
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setConfirming(false); }}
+            className="flex-1 h-7 rounded-md border border-slate-200 bg-white text-[10px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDetach?.(); setConfirming(false); }}
+            disabled={isAttaching}
+            className="flex-1 h-7 rounded-md bg-brand hover:bg-brand/90 text-white text-[10px] font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50 shadow-sm shadow-brand/20"
+          >
+            {isAttaching ? <Loader2 className="size-3 animate-spin" /> : <><Unlink className="size-3" />Unlink</>}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-4 mb-3 border-t border-slate-100 pt-2.5 flex items-center gap-2">
       {/* Icon */}
-      <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/25">
+      <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-brand to-rose-700 text-white shadow-sm shadow-brand/25">
         <Wrench className="size-3" />
       </div>
       {/* Name */}
@@ -128,12 +157,12 @@ function LinkedToolStrip({ tool, onDetach, isAttaching }: { tool: { name: string
       {onDetach && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onDetach(); }}
+          onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
           disabled={isAttaching}
           className="shrink-0 flex size-5 items-center justify-center rounded text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-40"
           title="Detach tool"
         >
-          {isAttaching ? <Loader2 className="size-3 animate-spin" /> : <Unlink className="size-3" />}
+          <Unlink className="size-3" />
         </button>
       )}
     </div>
