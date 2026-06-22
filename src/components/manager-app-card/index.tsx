@@ -415,19 +415,30 @@ export function ManagerAppCard({
 
         {/* Tags + dev guide */}
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
-          {tags.filter(t => t.name).map((tag) => (
-            <span
-              key={tag.id || tag.name}
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
-              style={
-                tag.color
-                  ? { backgroundColor: `${tag.color}18`, borderColor: `${tag.color}40`, color: tag.color }
-                  : undefined
-              }
-            >
-              {tag.name}
-            </span>
-          ))}
+          {(() => {
+            const validTags = tags.filter(t => t.name);
+            const MAX = 2;
+            const visible = validTags.slice(0, MAX);
+            const overflow = validTags.length - MAX;
+            return (
+              <>
+                {visible.map((tag) => (
+                  <span
+                    key={tag.id || tag.name}
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                    style={tag.color ? { backgroundColor: `${tag.color}18`, borderColor: `${tag.color}40`, color: tag.color } : undefined}
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+                {overflow > 0 && (
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                    +{overflow}
+                  </span>
+                )}
+              </>
+            );
+          })()}
           {hasIntegration && (
             <TooltipProvider>
               <Tooltip>

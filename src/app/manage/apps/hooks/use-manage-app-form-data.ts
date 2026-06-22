@@ -227,8 +227,11 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
         if (toolId) {
           try {
             await attachToolToApp(savedAppId, toolId);
-          } catch {
-            // Attach failure is non-fatal — app was saved successfully
+          } catch (attachErr) {
+            // 409 = already attached, that's fine. Other errors are non-fatal (app was saved).
+            if ((attachErr as { status?: number }).status !== 409) {
+              console.warn("[attachTool] non-fatal attach error:", attachErr);
+            }
           }
         }
       }

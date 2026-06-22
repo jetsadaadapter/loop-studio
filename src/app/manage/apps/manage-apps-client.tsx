@@ -489,8 +489,12 @@ export function ManageAppsClient() {
   async function handleAttachTool(app: AppRecord, toolId: string) {
     setAttachingId(app.id);
     try {
-      // Attach tool relationship
-      await attachToolToApp(app.id, toolId);
+      // Attach tool relationship (ignore 409 = already attached)
+      try {
+        await attachToolToApp(app.id, toolId);
+      } catch (attachErr) {
+        if (!((attachErr as { status?: number }).status === 409)) throw attachErr;
+      }
       // Also sync ctaLink so the form stays consistent
       await updateManageApp(app.id, {
         name: app.name,

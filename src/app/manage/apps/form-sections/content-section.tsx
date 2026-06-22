@@ -1,14 +1,11 @@
 "use client";
 
-import { CheckCircle2, Eye, FileText, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle2, FileText, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { TagInput } from "@/components/ui/tag-input";
+import { PromptEditor } from "@/app/manage/tools/components/prompt-editor";
 
 type ContentSectionProps = {
   instructions: string;
@@ -19,14 +16,15 @@ type ContentSectionProps = {
   fieldErrors: Record<string, string>;
   onChange: (field: string, value: string | string[]) => void;
   onBlur: (field: string) => void;
-  onPaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
-  onMdInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onPreviewClick: () => void;
-  instructionsMdInputRef: React.RefObject<HTMLInputElement | null>;
-  onIntegrationPaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
-  onIntegrationMdInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onIntegrationPreviewClick: () => void;
-  integrationMdInputRef: React.RefObject<HTMLInputElement | null>;
+  // kept for backward compat — no longer used (PromptEditor handles these internally)
+  onPaste?: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+  onMdInputChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPreviewClick?: () => void;
+  instructionsMdInputRef?: React.RefObject<HTMLInputElement | null>;
+  onIntegrationPaste?: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+  onIntegrationMdInputChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onIntegrationPreviewClick?: () => void;
+  integrationMdInputRef?: React.RefObject<HTMLInputElement | null>;
   onGenerateIntegration?: () => void;
   isGeneratingIntegration?: boolean;
   isInternal?: boolean;
@@ -43,14 +41,6 @@ export function ContentSection({
   fieldErrors,
   onChange,
   onBlur,
-  onPaste,
-  onMdInputChange,
-  onPreviewClick,
-  instructionsMdInputRef,
-  onIntegrationPaste,
-  onIntegrationMdInputChange,
-  onIntegrationPreviewClick,
-  integrationMdInputRef,
   onGenerateIntegration,
   isGeneratingIntegration = false,
   isInternal = false,
@@ -74,8 +64,10 @@ export function ContentSection({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+
+        {/* Instructions */}
         <Field>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <FieldLabel>
               Instructions <span className="text-destructive">*</span>
             </FieldLabel>
@@ -86,86 +78,56 @@ export function ContentSection({
               </span>
             )}
           </div>
-          <input
-            ref={instructionsMdInputRef}
-            type="file"
-            accept=".md,text/markdown"
-            className="hidden"
-            title="Import markdown instructions"
-            aria-label="Import markdown instructions"
-            onChange={onMdInputChange}
-          />
-          <textarea
-            placeholder="Write instructions in Markdown..."
+          <PromptEditor
             value={instructions}
-            onChange={(event) => onChange("instructions", event.target.value)}
-            onPaste={onPaste}
-            onBlur={() => onBlur("instructions")}
-            rows={8}
-            className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter)"
+            onChange={(val) => onChange("instructions", val)}
+            placeholder="Write instructions in Markdown…"
+            hasError={!!(touched.instructions && fieldErrors.instructions)}
+            label="Instructions Editor"
           />
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => instructionsMdInputRef.current?.click()}
-            >
-              Import .md
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onPreviewClick}
-              className="flex items-center gap-1.5"
-            >
-              <Eye className="size-3.5" />
-              Preview
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              Paste text, upload .md file, or preview.
-            </span>
-          </div>
-          <FieldError
-            errors={
-              touched.instructions ? [{ message: fieldErrors.instructions }] : []
-            }
-          />
+          <FieldError errors={touched.instructions ? [{ message: fieldErrors.instructions }] : []} />
         </Field>
 
+        {/* Integration */}
         <Field>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <FieldLabel>Integration</FieldLabel>
-            {hasIntegration && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
-                <CheckCircle2 className="size-3" />
-                Filled
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {isInternal && onGenerateIntegration && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onGenerateIntegration}
+                  disabled={isGeneratingIntegration || !hasToolId}
+                  title={!hasToolId ? "Set a Tool ID in Link Type first" : undefined}
+                  className="flex items-center gap-1.5 border-brand/40 text-brand hover:bg-brand/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingIntegration ? (
+                    <><Loader2 className="size-3.5 animate-spin" />Generating…</>
+                  ) : (
+                    <><Sparkles className="size-3.5" />Generate</>
+                  )}
+                </Button>
+              )}
+              {hasIntegration && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
+                  <CheckCircle2 className="size-3" />
+                  Filled
+                </span>
+              )}
+            </div>
           </div>
-          <input
-            ref={integrationMdInputRef}
-            type="file"
-            accept=".md,text/markdown"
-            className="hidden"
-            title="Import markdown integration"
-            aria-label="Import markdown integration"
-            onChange={onIntegrationMdInputChange}
-          />
           <div className="relative">
-            <textarea
-              placeholder="Write integration guide in Markdown..."
+            <PromptEditor
               value={integration}
-              onChange={(event) => onChange("integration", event.target.value)}
-              onPaste={onIntegrationPaste}
-              onBlur={() => onBlur("integration")}
-              rows={8}
+              onChange={(val) => onChange("integration", val)}
+              placeholder="Write integration guide in Markdown…"
               disabled={isGeneratingIntegration}
-              className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs placeholder:text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 font-(family-name:--font-inter) disabled:opacity-60"
+              label="Integration Guide Editor"
             />
             {isGeneratingIntegration && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-md bg-white/70 backdrop-blur-[2px]">
+              <div className="absolute inset-0 flex items-center justify-center rounded-md bg-white/70 backdrop-blur-[2px] z-10">
                 <div className="flex items-center gap-2 rounded-full border border-brand/20 bg-white px-3 py-1.5 shadow-sm">
                   <Loader2 className="size-3.5 animate-spin text-brand" />
                   <span className="text-xs font-medium text-brand">Generating…</span>
@@ -179,50 +141,10 @@ export function ContentSection({
               <span className="text-xs font-medium text-teal-700">Integration guide generated successfully.</span>
             </div>
           )}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {isInternal && onGenerateIntegration && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onGenerateIntegration}
-                disabled={isGeneratingIntegration || !hasToolId}
-                title={!hasToolId ? "Set a Tool ID in Link Type first" : undefined}
-                className="flex items-center gap-1.5 border-brand/40 text-brand hover:bg-brand/5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Sparkles className="size-3.5" />
-                {isGeneratingIntegration ? "Generating…" : "Generate"}
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => integrationMdInputRef.current?.click()}
-            >
-              Import .md
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onIntegrationPreviewClick}
-              className="flex items-center gap-1.5"
-            >
-              <Eye className="size-3.5" />
-              Preview
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              Paste text, upload .md file, or preview.
-            </span>
-          </div>
-          <FieldError
-            errors={
-              touched.integration ? [{ message: fieldErrors.integration }] : []
-            }
-          />
+          <FieldError errors={touched.integration ? [{ message: fieldErrors.integration }] : []} />
         </Field>
 
+        {/* Tags */}
         <Field>
           <FieldLabel>
             Tags <span className="text-destructive">*</span>
@@ -235,10 +157,9 @@ export function ContentSection({
             onChange={(newTags) => onChange("tags", newTags)}
             placeholder="Add tags..."
           />
-          <FieldError
-            errors={touched.tags ? [{ message: fieldErrors.tags }] : []}
-          />
+          <FieldError errors={touched.tags ? [{ message: fieldErrors.tags }] : []} />
         </Field>
+
       </CardContent>
     </Card>
   );

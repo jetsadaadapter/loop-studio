@@ -134,6 +134,7 @@ export async function attachToolToApp(appId: string, toolId: string, init?: Requ
     await apiFetch<{ success?: boolean }>(url, {
         method: "POST",
         body: JSON.stringify({ toolId }),
+        silentErrors: true,
         ...init,
     });
 }

@@ -34,6 +34,7 @@ interface PromptEditorProps {
   disabled?: boolean;
   placeholder?: string;
   hasError?: boolean;
+  label?: string;
 }
 
 export function PromptEditor({
@@ -42,6 +43,7 @@ export function PromptEditor({
   disabled = false,
   placeholder = "Enter system prompt instructions…",
   hasError = false,
+  label = "Advanced Prompt Editor",
 }: PromptEditorProps) {
   const safeValue = typeof value === "string" ? value : "";
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -539,7 +541,7 @@ export function PromptEditor({
           <DialogHeader className="pb-2 border-b">
             <DialogTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
               <Sparkles className="size-4 text-brand animate-pulse-slow" />
-              Advanced Prompt Editor
+              {label}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
               Write, formatting prompt with markdown, and instantly verify JSON
