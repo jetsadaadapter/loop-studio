@@ -247,7 +247,7 @@ export function ManagerKeyTable({
                             disabled: isSubmitting || deletingId !== null,
                           },
                           {
-                            label: deletingId === row.appId ? "Deleting..." : "Delete",
+                            label: deletingId === row.appId ? "Revoking…" : "Revoke",
                             icon: Trash2,
                             onClick: () => onDelete(row.appId),
                             disabled: isSubmitting || deletingId !== null,

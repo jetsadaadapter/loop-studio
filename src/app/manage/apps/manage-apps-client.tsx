@@ -35,7 +35,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { createManageApp, deleteManageApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
+import { attachToolToApp, createManageApp, deleteManageApp, detachToolFromApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
 import {
   applyManageAppsListQuery,
   DEFAULT_PAGE_SIZE,
@@ -64,7 +64,7 @@ type AppRecord = {
   tags: { id: string; name: string; color?: string }[];
   updatedAt: string;
   imageUrl?: string;
-  linkedTool?: { id: string; name: string; isActive: boolean; description: string };
+  linkedTool?: { id: string; name: string; isActive: boolean; description: string; appToolId: string };
 };
 
 function resolveManageAppImageUrl(
@@ -107,7 +107,7 @@ function mapApiItemToRecord(item: ManageAppApiItem): AppRecord {
     updatedAt: (item.updatedAt || "").slice(0, 10),
     imageUrl: resolveManageAppImageUrl(item),
     linkedTool: item.appTool?.tool?.id
-      ? { id: item.appTool.tool.id, name: item.appTool.tool.name ?? "", isActive: Boolean(item.appTool.tool.isActive), description: item.appTool.tool.description ?? "" }
+      ? { id: item.appTool.tool.id, name: item.appTool.tool.name ?? "", isActive: Boolean(item.appTool.tool.isActive), description: item.appTool.tool.description ?? "", appToolId: item.appTool.id }
       : undefined,
   };
 }
@@ -151,6 +151,7 @@ export function ManageAppsClient() {
   const [deleteTarget, setDeleteTarget] = useState<AppRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [attachingId, setAttachingId] = useState<string | null>(null);
 
   const loadApps = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -485,6 +486,51 @@ export function ManageAppsClient() {
     }
   }
 
+  async function handleAttachTool(app: AppRecord, toolId: string) {
+    setAttachingId(app.id);
+    try {
+      // Attach tool relationship
+      await attachToolToApp(app.id, toolId);
+      // Also sync ctaLink so the form stays consistent
+      await updateManageApp(app.id, {
+        name: app.name,
+        description: app.description,
+        categoryId: app.categoryId,
+        instructions: app.instructions,
+        integration: app.integration,
+        ctaLabel: app.ctaLabel,
+        ctaLink: `/tool/${toolId}`,
+        linkType: "internal",
+        isActive: app.isActive,
+        sortOrder: app.sortOrder,
+        badgeLabel: app.badgeLabel,
+        iconId: app.iconId,
+        imageId: app.imageId,
+        tags: app.tags.map((t) => t.id),
+      });
+      await loadApps({ silent: true });
+      pushToast(`Tool attached to "${app.name}".`, "success");
+    } catch {
+      pushToast(`Failed to attach tool to "${app.name}".`, "error");
+    } finally {
+      setAttachingId(null);
+    }
+  }
+
+  async function handleDetachTool(app: AppRecord) {
+    if (!app.linkedTool) return;
+    setAttachingId(app.id);
+    try {
+      await detachToolFromApp(app.id, app.linkedTool.id);
+      setApps((prev) => prev.map((a) => a.id === app.id ? { ...a, linkedTool: undefined } : a));
+      pushToast(`Tool detached from "${app.name}".`, "success");
+    } catch {
+      pushToast(`Failed to detach tool from "${app.name}".`, "error");
+    } finally {
+      setAttachingId(null);
+    }
+  }
+
   async function onDelete(target: AppRecord) {
     setDeletingId(target.id);
     const previous = apps;
@@ -629,6 +675,9 @@ export function ManageAppsClient() {
                       isDeleting={deletingId === row.id}
                       onToggleActive={() => void handleToggleActive(row)}
                       onDuplicate={() => void handleDuplicateApp(row)}
+                      onAttachTool={(toolId) => void handleAttachTool(row, toolId)}
+                      onDetachTool={() => void handleDetachTool(row)}
+                      isAttaching={attachingId === row.id}
                       isDuplicating={duplicatingId === row.id}
                       onEdit={() => router.push(`/manage/apps/${row.id}/edit`)}
                       onDelete={() => setDeleteTarget(row)}

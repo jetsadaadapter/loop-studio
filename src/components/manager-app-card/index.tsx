@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type SyntheticEvent } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
+import { createPortal } from "react-dom";
+import { getManageTools } from "@/core/services/manage-tools.service";
+import type { ManageToolApiItem } from "@/core/interfaces/tool";
 import {
   ExternalLink,
   Folder,
@@ -12,6 +15,11 @@ import {
   Wrench,
   CopyPlus,
   Cpu,
+  Search,
+  Unlink,
+  Loader2,
+  Check,
+  Copy,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -45,10 +53,13 @@ type ManagerAppCardProps = {
   isDeleting?: boolean;
   integration?: string;
   tags?: { id: string; name: string; color?: string }[];
-  linkedTool?: { id: string; name: string; isActive: boolean; description?: string };
+  linkedTool?: { id: string; name: string; isActive: boolean; description?: string; appToolId?: string };
   onToggleActive?: () => void;
   onDuplicate?: () => void;
   isDuplicating?: boolean;
+  onAttachTool?: (toolId: string) => void;
+  onDetachTool?: () => void;
+  isAttaching?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -64,7 +75,31 @@ function onCardImageError(event: SyntheticEvent<HTMLImageElement>) {
   event.currentTarget.style.display = "none";
 }
 
-function LinkedToolStrip({ tool }: { tool: { name: string; isActive: boolean; description?: string } }) {
+function CopyableAppIdBadge({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+        void navigator.clipboard.writeText(id).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }}
+      className="inline-flex items-center gap-1 mb-1.5 px-1.5 py-0.5 rounded bg-slate-100 text-[8px] font-bold text-slate-500 font-sans cursor-pointer hover:bg-slate-200 hover:text-slate-700 transition-colors select-none"
+      title={`Copy App ID: ${id}`}
+    >
+      <span>ID: {id.slice(0, 10)}…</span>
+      {copied ? (
+        <Check className="size-2 shrink-0 text-emerald-600" />
+      ) : (
+        <Copy className="size-2 shrink-0 opacity-60" />
+      )}
+    </span>
+  );
+}
+
+function LinkedToolStrip({ tool, onDetach, isAttaching }: { tool: { name: string; isActive: boolean; description?: string }; onDetach?: () => void; isAttaching?: boolean }) {
   return (
     <div className="mx-4 mb-3 border-t border-slate-100 pt-2.5 flex items-center gap-2">
       {/* Icon */}
@@ -90,6 +125,17 @@ function LinkedToolStrip({ tool }: { tool: { name: string; isActive: boolean; de
         )}
         {tool.isActive ? "Connected" : "Inactive"}
       </span>
+      {onDetach && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onDetach(); }}
+          disabled={isAttaching}
+          className="shrink-0 flex size-5 items-center justify-center rounded text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-40"
+          title="Detach tool"
+        >
+          {isAttaching ? <Loader2 className="size-3 animate-spin" /> : <Unlink className="size-3" />}
+        </button>
+      )}
     </div>
   );
 }
@@ -104,12 +150,52 @@ export function ManagerAppCard({
   onToggleActive,
   onDuplicate,
   isDuplicating = false,
+  onAttachTool,
+  onDetachTool,
+  isAttaching = false,
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showIntegration, setShowIntegration] = useState(false);
   const [didCopyIntegration, setDidCopyIntegration] = useState(false);
+  const [showToolPicker, setShowToolPicker] = useState(false);
+  const [toolPickerQuery, setToolPickerQuery] = useState("");
+  const [tools, setTools] = useState<ManageToolApiItem[]>([]);
+  const [toolsLoading, setToolsLoading] = useState(false);
+  const connectBtnRef = useRef<HTMLButtonElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const [pickerRect, setPickerRect] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    if (!showToolPicker) return;
+    setToolsLoading(true);
+    getManageTools()
+      .then((data) => setTools(data.filter((t) => t.isActive)))
+      .catch(() => setTools([]))
+      .finally(() => setToolsLoading(false));
+  }, [showToolPicker]);
+
+  useEffect(() => {
+    if (showToolPicker && connectBtnRef.current) {
+      setPickerRect(connectBtnRef.current.getBoundingClientRect());
+    }
+  }, [showToolPicker]);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      if (!connectBtnRef.current?.contains(target) && !pickerRef.current?.contains(target)) {
+        setShowToolPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const filteredTools = toolPickerQuery.trim()
+    ? tools.filter((t) => t.name.toLowerCase().includes(toolPickerQuery.toLowerCase()))
+    : tools;
 
   async function handleCopyIntegration() {
     await navigator.clipboard.writeText(integration);
@@ -264,6 +350,7 @@ export function ManagerAppCard({
             </button>
           )}
         </div>
+        <div className="w-fit"><CopyableAppIdBadge id={item.id} /></div>
 
         {/* Meta row */}
         <div className="mb-2 flex items-center gap-2 flex-wrap">
@@ -330,22 +417,69 @@ export function ManagerAppCard({
 
       {/* Linked tool strip — show connected tool or empty state for internal apps */}
       {linkedTool ? (
-        <LinkedToolStrip tool={linkedTool} />
+        <LinkedToolStrip tool={linkedTool} onDetach={onDetachTool} isAttaching={isAttaching} />
       ) : item.linkType === "internal" ? (
         <div className="mx-4 mb-3 flex items-center gap-2 border-t border-slate-100 pt-2.5">
           <div className="flex size-6 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-slate-400">
-            <Wrench className="size-3" />
+            {isAttaching ? <Loader2 className="size-3 animate-spin" /> : <Wrench className="size-3" />}
           </div>
           <p className="min-w-0 flex-1 truncate text-[10px] text-slate-400 font-sans">
             No tool connected
           </p>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="shrink-0 text-[9px] font-bold text-brand hover:text-brand/80 transition-colors cursor-pointer"
-          >
-            Connect →
-          </button>
+          {onAttachTool && (
+            <button
+              ref={connectBtnRef}
+              type="button"
+              disabled={isAttaching}
+              onClick={(e) => { e.stopPropagation(); setShowToolPicker((v) => !v); }}
+              className="shrink-0 text-[9px] font-bold text-brand hover:text-brand/80 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Connect →
+            </button>
+          )}
+          {/* Tool picker portal */}
+          {showToolPicker && pickerRect && typeof document !== "undefined" && createPortal(
+            <div
+              ref={pickerRef}
+              style={{ position: "fixed", top: pickerRect.bottom + 4, left: pickerRect.left - 240 + pickerRect.width, width: 260, zIndex: 9999 }}
+              className="rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
+                <Search className="size-3.5 shrink-0 text-slate-400" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={toolPickerQuery}
+                  onChange={(e) => setToolPickerQuery(e.target.value)}
+                  placeholder="Search tools…"
+                  className="w-full bg-transparent text-xs text-slate-700 placeholder:text-slate-400 outline-none"
+                />
+              </div>
+              <div className="max-h-52 overflow-y-auto py-1">
+                {toolsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="size-4 animate-spin text-slate-400" />
+                  </div>
+                ) : filteredTools.length === 0 ? (
+                  <p className="py-5 text-center text-xs text-slate-400">No tools found</p>
+                ) : filteredTools.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => { onAttachTool?.(t.id); setShowToolPicker(false); setToolPickerQuery(""); }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <span className={`size-2 shrink-0 rounded-full ${t.isActive ? "bg-emerald-500" : "bg-slate-300"}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-slate-800">{t.name}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>,
+            document.body
+          )}
         </div>
       ) : null}
 

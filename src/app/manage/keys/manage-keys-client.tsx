@@ -143,9 +143,9 @@ export function ManageKeysClient() {
     try {
       await deleteManageApiKey(target.appId);
       setKeys(current => current.filter(k => k.appId !== target.appId));
-      toast.success("API key deleted.");
+      toast.success(`"${target.name}" has been revoked permanently.`);
     } catch {
-      toast.error("Failed to delete API key.");
+      toast.error("Failed to revoke API key.");
     } finally {
       setDeletingId(null);
     }
@@ -301,6 +301,8 @@ export function ManageKeysClient() {
           onConfirm={() => void handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
           itemTypeLabel="API Key"
+          actionLabel="Revoke"
+          confirmingLabel="Revoking…"
         />
       )}
 

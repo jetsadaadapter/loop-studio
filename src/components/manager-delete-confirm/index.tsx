@@ -12,6 +12,8 @@ type ManagerDeleteConfirmProps = {
   onConfirm: () => void;
   isLoading?: boolean;
   itemTypeLabel?: string;
+  actionLabel?: string;
+  confirmingLabel?: string;
 };
 
 export function ManagerDeleteConfirm({
@@ -21,6 +23,8 @@ export function ManagerDeleteConfirm({
   onConfirm,
   isLoading = false,
   itemTypeLabel = "app",
+  actionLabel = "Delete",
+  confirmingLabel = "Deleting...",
 }: ManagerDeleteConfirmProps) {
   const [confirmationInput, setConfirmationInput] = useState("");
   const isConfirmationValid = confirmationInput.trim() === itemName.trim();
@@ -54,20 +58,22 @@ export function ManagerDeleteConfirm({
                 data-slot="dialog-title"
                 className="text-sm font-bold tracking-tight text-slate-800 capitalize leading-none"
               >
-                Delete {itemTypeLabel}
+                {actionLabel} {itemTypeLabel}
               </h2>
               <p
                 data-slot="dialog-description"
                 className="text-slate-500 text-[11px] leading-relaxed font-medium mt-1 select-text max-w-[280px]"
               >
-                You are deleting <span className="text-slate-800 font-bold bg-slate-50 border border-slate-100 px-1 py-0.2 rounded mx-0.5">{itemName}</span>
+                You are about to revoke <span className="text-slate-800 font-bold bg-slate-50 border border-slate-100 px-1 py-0.2 rounded mx-0.5">{itemName}</span>
                 {itemId && (
                   <span className="text-[9px] font-sans font-bold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all ml-1.5 shrink-0 uppercase">
                     #{itemId.slice(0, 8)}
                   </span>
                 )}
                 <span className="block mt-1.5 text-slate-400 font-medium">
-                  This action cannot be undone and all data will be permanently removed.
+                  {actionLabel === "Delete"
+                    ? "This action cannot be undone and all data will be permanently removed."
+                    : "This action cannot be undone. The key will be permanently revoked and all access will be disabled immediately."}
                 </span>
               </p>
             </div>
@@ -75,7 +81,7 @@ export function ManagerDeleteConfirm({
             <div className="w-full space-y-4">
               <div className="grid gap-1.5 text-left">
                 <label htmlFor="confirm-input" className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-none">
-                  Type the {itemTypeLabel} name to confirm:
+                  Type the {itemTypeLabel} name to {actionLabel.toLowerCase()}:
                 </label>
                 <Input
                   id="confirm-input"
@@ -111,7 +117,7 @@ export function ManagerDeleteConfirm({
                   onClick={onConfirm}
                   disabled={isLoading || !isConfirmationValid}
                 >
-                  {isLoading ? "Deleting..." : "Delete"}
+                  {isLoading ? confirmingLabel : actionLabel}
                 </Button>
               </div>
             </div>

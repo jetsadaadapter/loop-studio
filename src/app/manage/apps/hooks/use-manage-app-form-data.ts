@@ -13,7 +13,7 @@ import {
   validateAppForm,
 } from "../manage-app-form-utils";
 import type { ManageAppPayload, ManageAppApiItem } from "@/core/interfaces/apps.interface";
-import { createManageApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
+import { attachToolToApp, createManageApp, detachToolFromApp, getManageApps, updateManageApp } from "@/core/services/apps.service";
 import {
   importMarkdownFile,
   handleCopyInstructions,
@@ -211,12 +211,40 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
         if (imageRemove) payload.imageRemove = imageRemove;
       }
 
+      let savedAppId = appId;
       if (mode === "edit" && appId) {
         await updateManageApp(appId, payload);
         pushDialogToast("App updated successfully.", "success");
       } else {
-        await createManageApp(payload);
+        const created = await createManageApp(payload);
+        savedAppId = created.id;
         pushDialogToast("App created successfully.", "success");
+      }
+
+      // Auto-attach tool when linkType=internal and ctaLink points to a tool
+      if (savedAppId && draft.linkType === "internal" && draft.ctaLink?.startsWith("/tool/")) {
+        const toolId = draft.ctaLink.replace("/tool/", "").trim();
+        if (toolId) {
+          try {
+            await attachToolToApp(savedAppId, toolId);
+          } catch {
+            // Attach failure is non-fatal — app was saved successfully
+          }
+        }
+      }
+
+      // Auto-detach when linkType changed away from internal
+      if (mode === "edit" && appId && draft.linkType !== "internal") {
+        try {
+          // Fetch current app to get appTool id if any
+          const pages = await getManageApps({ page: 1, limit: 1000 });
+          const current = (pages.data ?? []).find((a) => a.id === appId);
+          if (current?.appTool?.tool?.id) {
+            await detachToolFromApp(appId, current.appTool.tool.id);
+          }
+        } catch {
+          // Detach failure is non-fatal
+        }
       }
 
       router.push("/manage/apps");

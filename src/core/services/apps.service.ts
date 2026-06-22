@@ -129,6 +129,23 @@ export async function updateManageApp(
     return response.data;
 }
 
+export async function attachToolToApp(appId: string, toolId: string, init?: RequestInit): Promise<void> {
+    const url = buildUrl(`/manage/apps/${appId}/attach`);
+    await apiFetch<{ success?: boolean }>(url, {
+        method: "POST",
+        body: JSON.stringify({ toolId }),
+        ...init,
+    });
+}
+
+export async function detachToolFromApp(appId: string, appToolId: string, init?: RequestInit): Promise<void> {
+    const url = buildUrl(`/manage/apps/${appId}/detach/${appToolId}`);
+    await apiFetch<{ success?: boolean }>(url, {
+        method: "DELETE",
+        ...init,
+    });
+}
+
 export async function deleteManageApp(id: string, init?: RequestInit): Promise<void> {
     const url = buildUrl(`/manage/apps/${id}`);
     await apiFetch<{ success?: boolean; message?: string }>(url, {
