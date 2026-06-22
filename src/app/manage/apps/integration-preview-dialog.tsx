@@ -96,7 +96,7 @@ export function IntegrationPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-4xl overflow-hidden p-0 rounded-2xl border border-slate-200/60 shadow-lg font-sans">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-hidden p-0 rounded-2xl border border-slate-200/60 shadow-lg font-sans flex flex-col">
         <div className="bg-linear-to-r from-slate-50 via-white to-emerald-50/50 px-5 py-4 border-b border-slate-200">
           <DialogHeader className="mb-0 space-y-3">
             <div className="flex items-center justify-between">
@@ -226,7 +226,7 @@ export function IntegrationPreviewDialog({
           </div>
         )}
 
-        <div className="max-h-[62vh] overflow-y-auto bg-slate-50/30 p-5">
+        <div className="flex-1 overflow-y-auto bg-slate-50/30 p-5 min-h-0">
           {!integration.trim() ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-xs italic text-slate-500 font-sans">
               No integration guide provided yet.

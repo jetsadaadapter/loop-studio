@@ -11,6 +11,7 @@ import {
   BookOpen,
   Wrench,
   CopyPlus,
+  Cpu,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -327,8 +328,26 @@ export function ManagerAppCard({
         </div>
       </div>
 
-      {/* Linked tool strip — only when appTool data is available */}
-      {linkedTool && <LinkedToolStrip tool={linkedTool} />}
+      {/* Linked tool strip — show connected tool or empty state for internal apps */}
+      {linkedTool ? (
+        <LinkedToolStrip tool={linkedTool} />
+      ) : item.linkType === "internal" ? (
+        <div className="mx-4 mb-3 flex items-center gap-2 border-t border-slate-100 pt-2.5">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-slate-400">
+            <Cpu className="size-3" />
+          </div>
+          <p className="min-w-0 flex-1 truncate text-[10px] text-slate-400 font-sans">
+            No tool connected
+          </p>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="shrink-0 text-[9px] font-bold text-brand hover:text-brand/80 transition-colors cursor-pointer"
+          >
+            Connect →
+          </button>
+        </div>
+      ) : null}
 
       {hasIntegration && (
         <IntegrationPreviewDialog
