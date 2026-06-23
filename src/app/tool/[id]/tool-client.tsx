@@ -386,8 +386,14 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
       setFormData(buildInitialForm(tool.params));
       setErrors({});
       await refreshJobs();
-    } catch {
-      pushDialogToast("Failed to start job.", "error");
+    } catch (err) {
+      const apiErr = err as { status?: number; details?: { message?: string }; message?: string };
+      const detailMsg = apiErr?.details?.message ?? apiErr?.message ?? "";
+      if (detailMsg.toLowerCase().includes("insufficient credits") || detailMsg.toLowerCase().includes("credits")) {
+        pushDialogToast("Insufficient credits to run this tool. Please top up your credits and try again.", "error");
+      } else {
+        pushDialogToast("Failed to start job.", "error");
+      }
     } finally {
       setIsRunning(false);
     }

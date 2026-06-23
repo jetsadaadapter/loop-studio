@@ -130,6 +130,7 @@ function ManageSidebarFooter() {
   // ── Credit balance state ──────────────────────────────────────────────────
   const [credits, setCredits] = useState<number | null>(null);
   const [usedToday, setUsedToday] = useState(0);
+  const [usedTotal, setUsedTotal] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyItems, setHistoryItems] = useState<CreditTransaction[]>([]);
@@ -139,18 +140,22 @@ function ManageSidebarFooter() {
 
   useEffect(() => {
     getUserCredits().then((b) => setCredits(b.credits)).catch(() => {});
-    // Fetch recent history to compute today's usage
-    getCreditHistory({ page: 1, limit: 50 })
+    // Fetch recent history to compute usage stats
+    getCreditHistory({ page: 1, limit: 100 })
       .then((res) => {
         const today = new Date();
-        const used = (res.data ?? [])
+        const charges = (res.data ?? []).filter((tx) => tx.amount < 0);
+        // today's usage
+        const todayUsed = charges
           .filter((tx) => {
-            if (tx.amount >= 0) return false;
             const d = new Date(tx.createdAt);
             return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
           })
           .reduce((acc, tx) => acc + Math.abs(tx.amount), 0);
-        setUsedToday(used);
+        // all-time usage from fetched history (best approximation)
+        const allUsed = charges.reduce((acc, tx) => acc + Math.abs(tx.amount), 0);
+        setUsedToday(todayUsed);
+        setUsedTotal(allUsed);
       })
       .catch(() => {});
   }, []);
@@ -266,8 +271,8 @@ function ManageSidebarFooter() {
       <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
         {/* Credit balance widget — expanded sidebar only */}
         {!isCollapsed && credits !== null && (() => {
-          const total = credits + usedToday;
-          const pct = total > 0 ? Math.round((credits / total) * 100) : 100;
+          const total = credits + usedTotal;
+          const pct = total > 0 ? Math.floor((credits / total) * 100) : 100;
           const barColor = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-rose-500";
           return (
             <button
