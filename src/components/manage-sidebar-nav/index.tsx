@@ -136,6 +136,7 @@ function ManageSidebarFooter() {
   const [historyItems, setHistoryItems] = useState<CreditTransaction[]>([]);
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historySortAsc, setHistorySortAsc] = useState(false);
   const HISTORY_LIMIT = 10;
 
   useEffect(() => {
@@ -170,36 +171,74 @@ function ManageSidebarFooter() {
   }, [historyOpen, historyPage]);
 
   const historyTotalPages = Math.max(1, Math.ceil(historyTotal / HISTORY_LIMIT));
+  const sortedHistoryItems = historySortAsc
+    ? [...historyItems].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    : [...historyItems].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-  function txColor(amount: number) {
-    return amount > 0 ? "text-emerald-600" : "text-rose-500";
-  }
-  function txBg(type: string) {
+  function txTypeBadge(type: string) {
     const m: Record<string, string> = {
-      admin_adjust: "bg-amber-50 text-amber-600",
-      charge: "bg-rose-50 text-rose-500",
-      topup: "bg-emerald-50 text-emerald-600",
-      refund: "bg-sky-50 text-sky-600",
-      bonus: "bg-violet-50 text-violet-600",
+      admin_adjust: "bg-amber-50 text-amber-600 border-amber-200/60",
+      charge:       "bg-rose-50 text-rose-500 border-rose-200/60",
+      topup:        "bg-emerald-50 text-emerald-600 border-emerald-200/60",
+      refund:       "bg-sky-50 text-sky-600 border-sky-200/60",
+      bonus:        "bg-violet-50 text-violet-600 border-violet-200/60",
     };
-    return m[type] ?? "bg-slate-50 text-slate-500";
+    return m[type] ?? "bg-slate-50 text-slate-500 border-slate-200/60";
   }
-  function fmtDate(iso: string) {
-    return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  function txIconBg(type: string) {
+    const m: Record<string, string> = {
+      admin_adjust: "bg-amber-100 text-amber-600",
+      charge:       "bg-rose-100 text-rose-500",
+      topup:        "bg-emerald-100 text-emerald-600",
+      refund:       "bg-sky-100 text-sky-600",
+      bonus:        "bg-violet-100 text-violet-600",
+    };
+    return m[type] ?? "bg-slate-100 text-slate-500";
+  }
+  function fmtTime(iso: string) {
+    return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }
+  function fmtDayHeader(iso: string) {
+    return new Date(iso).toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
+  function isSameDay(a: string, b: string) {
+    const da = new Date(a), db = new Date(b);
+    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
   }
 
   return (
     <>
     {/* Credit history drawer */}
     <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-      <SheetContent side="left" className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
-        <SheetHeader className="px-5 py-4 border-b border-slate-100 shrink-0">
-          <SheetTitle className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <LucideIcons.Coins className="size-4 text-amber-500" />
-            Credit Transaction History
+      <SheetContent side="left" showCloseButton={false} className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
+        <SheetHeader className="px-5 py-3.5 border-b border-slate-100 shrink-0">
+          <SheetTitle className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <LucideIcons.Coins className="size-4 text-amber-500" />
+              Credit Transaction History
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setHistorySortAsc((v) => !v)}
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                title={historySortAsc ? "Showing oldest first" : "Showing newest first"}
+              >
+                {historySortAsc ? "Old First" : "New First"}
+                <LucideIcons.ArrowUpDown className={`size-3 transition-transform duration-200 ${historySortAsc ? "rotate-180" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(false)}
+                className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <LucideIcons.X className="size-4" />
+              </button>
+            </div>
           </SheetTitle>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 overflow-y-auto px-5 py-4">
           {historyLoading ? (
             <div className="flex items-center justify-center py-12">
               <LucideIcons.Loader2 className="size-5 animate-spin text-slate-300" />
@@ -210,41 +249,56 @@ function ManageSidebarFooter() {
               <p className="text-xs text-slate-400">No transactions yet.</p>
             </div>
           ) : (
-            <div className="space-y-1.5">
-              {historyItems.map((tx) => {
+            <div>
+              {sortedHistoryItems.map((tx, idx) => {
                 const isCredit = tx.amount > 0;
+                const showDayHeader = idx === 0 || !isSameDay(tx.createdAt, sortedHistoryItems[idx - 1].createdAt);
                 return (
-                  <div key={tx.id} className="flex items-center gap-3 rounded-2xl px-3 py-3 bg-white border border-slate-100/80 hover:border-slate-200 hover:bg-slate-50/50 transition-all duration-150">
-                    {/* Icon circle */}
-                    <div className={`relative flex size-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txBg(tx.type)}`}>
-                      {tx.type.slice(0, 2).toUpperCase()}
-                      {/* Direction indicator */}
-                      <span className={`absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
-                        {isCredit
-                          ? <LucideIcons.ArrowUpRight className="size-2.5 text-white" />
-                          : <LucideIcons.ArrowDownRight className="size-2.5 text-white" />
-                        }
+                  <div key={tx.id}>
+                    {/* Day group header */}
+                    {showDayHeader && (
+                      <div className={`flex items-baseline gap-2 ${idx > 0 ? "mt-6 mb-3 pt-4 border-t border-slate-100" : "mb-3"}`}>
+                        <span className="text-[11px] font-bold text-slate-700">{fmtDayHeader(tx.createdAt).split(",")[0]}{","}</span>
+                        <span className="text-[11px] font-semibold text-slate-700">{fmtDayHeader(tx.createdAt).split(",").slice(1).join(",").trim().replace(/\s+\d{4}$/, "")}</span>
+                        <span className="text-[11px] text-slate-400 font-normal">{new Date(tx.createdAt).getFullYear()}</span>
+                      </div>
+                    )}
+                    {/* Transaction row — divider between rows within same day */}
+                    {!showDayHeader && <div className="ml-[4.25rem] h-px bg-slate-100" />}
+                    <div className="flex items-center gap-3 py-3">
+                      {/* Time */}
+                      <span className="w-14 shrink-0 text-[10px] font-medium text-slate-400 tabular-nums text-right">
+                        {fmtTime(tx.createdAt)}
                       </span>
-                    </div>
-                    {/* Content */}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold text-slate-800 leading-snug">{tx.description}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-[9px] text-slate-400">{fmtDate(tx.createdAt)}</p>
-                        {tx.clientType && (
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
-                            {tx.clientType}
-                          </span>
-                        )}
-                        <span className={`inline-flex items-center rounded-full px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txBg(tx.type)}`}>
-                          {tx.type.replace(/_/g, " ")}
+                      {/* Status icon */}
+                      <div className={`relative shrink-0 flex size-9 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txIconBg(tx.type)}`}>
+                        {tx.type.slice(0, 2).toUpperCase()}
+                        <span className={`absolute -bottom-0.5 -right-0.5 flex size-[14px] items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
+                          {isCredit
+                            ? <LucideIcons.ArrowUpRight className="size-2 text-white" />
+                            : <LucideIcons.ArrowDownRight className="size-2 text-white" />
+                          }
                         </span>
                       </div>
+                      {/* Content */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] font-semibold text-slate-800 leading-snug">{tx.description}</p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                          {tx.clientType && (
+                            <span className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
+                              {tx.clientType}
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center rounded border px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txTypeBadge(tx.type)}`}>
+                            {tx.type.replace(/_/g, " ")}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Amount */}
+                      <span className={`shrink-0 text-base font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
+                        {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
+                      </span>
                     </div>
-                    {/* Amount */}
-                    <span className={`shrink-0 text-sm font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
-                      {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
-                    </span>
                   </div>
                 );
               })}

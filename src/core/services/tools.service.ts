@@ -44,6 +44,7 @@ export async function runTool(
     return apiFetch<{ success: boolean; jobId: string }>(url, {
         method: "POST",
         body: JSON.stringify({ input }),
+        silentErrors: true,
         ...init,
     });
 }
