@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check, CopyPlus, Plus } from "lucide-react";
+import { Wrench, Sparkles, Globe, LineChart, Pencil, Trash2, Workflow, SlidersHorizontal, Copy, Check, CopyPlus, Plus, Coins } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import { Switch } from "@/components/ui/switch";
 import type { ManageToolApiItem, ToolParam, ToolScript } from "@/core/interfaces/tool";
@@ -123,6 +123,15 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
         aria-hidden
       />
       {isActive ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
+function CreditCostBadge({ cost }: { cost: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-3xs">
+      <Coins className="size-2.5 shrink-0" />
+      {cost} credit{cost !== 1 ? "s" : ""}
     </span>
   );
 }
@@ -300,6 +309,11 @@ export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, i
         ) : (
           <p className="text-[11px] italic leading-relaxed text-slate-400 font-sans">No description</p>
         )}
+      </div>
+
+      {/* Credit cost */}
+      <div className="mt-1.5">
+        <CreditCostBadge cost={tool.creditCost ?? 1} />
       </div>
 
       {/* Grid Footer - Renders parameters or pipelines, or a beautiful configuration prompt if empty */}

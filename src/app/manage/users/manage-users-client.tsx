@@ -68,6 +68,8 @@ export function ManageUsersClient({
   // Filter states
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "department">("name-asc");
+  const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterRole, setFilterRole] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,19 +118,46 @@ export function ManageUsersClient({
     });
   }, [loadUsers, initialUsers.length]);
 
+  // Derive unique department + role options from all loaded users
+  const departmentOptions = useMemo(() => {
+    const depts = Array.from(new Set(
+      (allUsersForStats.length > 0 ? allUsersForStats : users)
+        .map((u) => u.department?.trim())
+        .filter(Boolean)
+    )).sort();
+    return depts.map((d) => ({ value: d as string, label: d as string }));
+  }, [allUsersForStats, users]);
+
+  const roleOptions = useMemo(() => {
+    const roles = Array.from(new Set(
+      (allUsersForStats.length > 0 ? allUsersForStats : users)
+        .flatMap((u) => u.roles ?? [])
+        .filter(Boolean)
+    )).sort();
+    return roles.map((r) => ({ value: r, label: r }));
+  }, [allUsersForStats, users]);
+
   // Client-side filtering & sorting
+  // When any filter is active, search across the full dataset (allUsersForStats),
+  // otherwise show the paginated server slice (users).
+  const isFiltering = search.trim() !== "" || filterDepartment !== "" || filterRole !== "";
   const filteredUsers = useMemo(() => {
-    let list = users.filter((u) => {
+    const source = isFiltering && allUsersForStats.length > 0 ? allUsersForStats : users;
+    let list = source.filter((u) => {
       const s = search.toLowerCase().trim();
-      if (!s) return true;
-      return (
-        (u.firstName ?? "").toLowerCase().includes(s) ||
-        (u.lastName ?? "").toLowerCase().includes(s) ||
-        (u.email ?? "").toLowerCase().includes(s) ||
-        (u.empid ?? "").toLowerCase().includes(s) ||
-        (u.department ?? "").toLowerCase().includes(s) ||
-        (u.position ?? "").toLowerCase().includes(s)
-      );
+      if (s) {
+        const match =
+          (u.firstName ?? "").toLowerCase().includes(s) ||
+          (u.lastName ?? "").toLowerCase().includes(s) ||
+          (u.email ?? "").toLowerCase().includes(s) ||
+          (u.empid ?? "").toLowerCase().includes(s) ||
+          (u.department ?? "").toLowerCase().includes(s) ||
+          (u.position ?? "").toLowerCase().includes(s);
+        if (!match) return false;
+      }
+      if (filterDepartment && (u.department ?? "").trim() !== filterDepartment) return false;
+      if (filterRole && !(u.roles ?? []).includes(filterRole as never)) return false;
+      return true;
     });
 
     if (sortBy === "name-desc") {
@@ -150,7 +179,7 @@ export function ManageUsersClient({
     }
 
     return list;
-  }, [users, search, sortBy]);
+  }, [users, allUsersForStats, isFiltering, search, filterDepartment, filterRole, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -203,15 +232,15 @@ export function ManageUsersClient({
       {/* Search and Filters Bar */}
       <UserSearchFilters
         search={search}
-        onSearchChange={(val) => {
-          setSearch(val);
-          setCurrentPage(1);
-        }}
+        onSearchChange={(val) => { setSearch(val); setCurrentPage(1); }}
         sortBy={sortBy}
-        onSortByChange={(val) => {
-          setSortBy(val);
-          setCurrentPage(1);
-        }}
+        onSortByChange={(val) => { setSortBy(val); setCurrentPage(1); }}
+        department={filterDepartment}
+        onDepartmentChange={(val) => { setFilterDepartment(val); setCurrentPage(1); }}
+        departmentOptions={departmentOptions}
+        role={filterRole}
+        onRoleChange={(val) => { setFilterRole(val); setCurrentPage(1); }}
+        roleOptions={roleOptions}
         lastUpdatedAt={lastUpdatedAt}
         isLoading={isLoading}
         isRefreshing={isRefreshing}

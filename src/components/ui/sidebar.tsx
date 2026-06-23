@@ -10,13 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -28,7 +22,7 @@ import { PanelLeftIcon } from "lucide-react";
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
+const SIDEBAR_WIDTH_MOBILE_PCT = "90vw";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -181,27 +175,22 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          dir={dir}
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+      <SheetPrimitive.Root open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetPrimitive.Portal>
+          {/* Dark overlay — visible on the 10% exposed right strip */}
+          <SheetPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/50 transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0" />
+          <SheetPrimitive.Popup
+            dir={dir}
+            data-sidebar="sidebar"
+            data-slot="sidebar"
+            data-mobile="true"
+            className="fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-sidebar text-sidebar-foreground shadow-xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:-translate-x-full data-starting-style:-translate-x-full rounded-tr-3xl"
+            style={{ width: SIDEBAR_WIDTH_MOBILE_PCT } as React.CSSProperties}
+          >
+            <div className="flex h-full w-full flex-col">{children}</div>
+          </SheetPrimitive.Popup>
+        </SheetPrimitive.Portal>
+      </SheetPrimitive.Root>
     );
   }
 

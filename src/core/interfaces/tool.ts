@@ -32,6 +32,7 @@ export interface ManageToolApiItem {
     description: string | null;
     sortOrder: number;
     isActive: boolean;
+    creditCost: number;
     userId: string;
     params: ToolParam[];
     scripts: ToolScript[];
@@ -70,6 +71,7 @@ export interface CreateToolPayload {
     description?: string | null;
     sortOrder?: number;
     isActive?: boolean;
+    creditCost?: number;
     params?: ToolParamPayload[];
 }
 

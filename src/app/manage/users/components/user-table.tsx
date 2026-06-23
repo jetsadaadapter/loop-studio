@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Edit3, Coins } from "lucide-react";
+import { User, Edit3, Coins, Zap } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { Button } from "@/components/ui/button";
@@ -85,10 +85,6 @@ function UserTableSkeletonRows() {
               </div>
             </div>
           </td>
-          {/* Employee ID */}
-          <td className="p-3 hidden md:table-cell">
-            <div className="h-3.5 w-16 bg-slate-100 rounded" />
-          </td>
           {/* Department / Position */}
           <td className="p-3 hidden md:table-cell">
             <div className="space-y-1.5">
@@ -102,6 +98,10 @@ function UserTableSkeletonRows() {
               <div className="h-5 w-16 bg-slate-100 rounded-full" />
               <div className="h-5 w-14 bg-slate-100 rounded-full" />
             </div>
+          </td>
+          {/* Credits */}
+          <td className="p-3 hidden md:table-cell">
+            <div className="h-4 w-12 bg-slate-100 rounded-full" />
           </td>
           {/* Last Updated */}
           <td className="p-3 hidden md:table-cell">
@@ -132,25 +132,25 @@ export function UserTable({
       <table className="w-full caption-bottom text-xs min-w-full md:min-w-4xl">
         <thead className="[&_tr]:border-b bg-slate-50/50">
           <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-10 hidden xs:table-cell">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 hidden xs:table-cell">
               #
             </th>
             <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
               User Profile
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
-              Employee ID
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-48 hidden md:table-cell">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
               Department / Position
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-44 hidden md:table-cell">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
               Security Roles
             </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
+              Credits
+            </th>
+            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
               Last Updated
             </th>
-            <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12"></th>
+            <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
@@ -202,7 +202,7 @@ export function UserTable({
                 </td>
 
                 {/* Profile Card */}
-                <td className="p-3 align-middle min-w-[240px]">
+                <td className="p-3 align-middle">
                   <div className="flex items-center gap-3">
                     <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold shadow-3xs ${getAvatarBgColor(user.empid)}`}>
                       {getInitials(user.firstName, user.lastName)}
@@ -214,11 +214,11 @@ export function UserTable({
                       <span className="text-[10px] font-sans text-slate-400 block mt-0.5 leading-none">
                         {user.email}
                       </span>
+                      <span className="text-[9px] font-sans text-slate-300 block mt-0.5 leading-none">
+                        #{user.empid.slice(0, 8)}
+                      </span>
                       {/* Mobile-only inline attributes */}
                       <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
-                        <span className="inline-flex items-center rounded-sm bg-slate-50 px-1.5 py-0.5 text-[8px] font-bold text-slate-600 border border-slate-200">
-                          ID: {user.empid}
-                        </span>
                         {(user.department || user.position) && (
                           <span className="inline-flex items-center rounded-sm bg-slate-50 px-1.5 py-0.5 text-[8px] font-bold text-slate-600 border border-slate-200">
                             {[user.department, user.position].filter(Boolean).join(" / ")}
@@ -236,6 +236,12 @@ export function UserTable({
                             ))}
                           </div>
                         )}
+                        {user.credits !== undefined && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 border border-amber-200/70 px-1.5 py-0.5 text-[8px] font-bold text-amber-700">
+                            <Coins className="size-2.5 shrink-0" />
+                            {user.credits.toLocaleString()}
+                          </span>
+                        )}
                         <span className="text-[9px] text-slate-400 font-sans ml-auto">
                           Updated: {formatDate(user.updatedAt)}
                         </span>
@@ -244,13 +250,8 @@ export function UserTable({
                   </div>
                 </td>
 
-                {/* Emp ID */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs font-sans text-slate-500 hidden md:table-cell">
-                  {user.empid}
-                </td>
-
                 {/* Dept / Pos */}
-                <td className="p-3 align-middle min-w-[160px] hidden md:table-cell">
+                <td className="p-3 align-middle hidden md:table-cell">
                   <span className="text-xs font-semibold text-slate-700 block leading-tight">
                     {user.department}
                   </span>
@@ -275,6 +276,18 @@ export function UserTable({
                       <span className="text-slate-400 italic">No Roles</span>
                     )}
                   </div>
+                </td>
+
+                {/* Credits */}
+                <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
+                  {user.credits !== undefined ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/70 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      <Zap className="size-2.5 shrink-0" />
+                      {user.credits.toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-xs">—</span>
+                  )}
                 </td>
 
                 {/* Updated */}

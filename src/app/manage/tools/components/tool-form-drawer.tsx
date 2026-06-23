@@ -106,15 +106,17 @@ interface FormState {
   name: string;
   description: string;
   isActive: boolean;
+  creditCost: number;
   params: ParamDraft[];
 }
 
 function buildInitialState(tool: ManageToolApiItem | null): FormState {
-  if (!tool) return { name: "", description: "", isActive: true, params: [] };
+  if (!tool) return { name: "", description: "", isActive: true, creditCost: 1, params: [] };
   return {
     name: tool.name,
     description: tool.description ?? "",
     isActive: tool.isActive,
+    creditCost: tool.creditCost ?? 1,
     params: tool.params.map(paramToDraft),
   };
 }
@@ -217,6 +219,7 @@ function ToolFormInner({
       name: form.name.trim(),
       description: form.description.trim() || null,
       isActive: form.isActive,
+      creditCost: form.creditCost,
       params: form.params.map((p, idx) => draftToPayload(p, idx)),
     };
     if (mode === "create") {
@@ -269,6 +272,21 @@ function ToolFormInner({
               onChange={(e) => update({ description: e.target.value })}
               placeholder="Optional short description"
               className="bg-white"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="tf-credit-cost" className="text-sm font-medium text-slate-700">
+              Credit Cost <span className="text-slate-400 font-normal text-xs">(per run)</span>
+            </Label>
+            <Input
+              id="tf-credit-cost"
+              type="number"
+              min={0}
+              step={1}
+              value={form.creditCost}
+              onChange={(e) => update({ creditCost: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+              className="bg-white w-32"
             />
           </div>
 

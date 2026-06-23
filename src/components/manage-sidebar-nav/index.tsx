@@ -273,38 +273,38 @@ function ManageSidebarFooter() {
         {!isCollapsed && credits !== null && (() => {
           const total = credits + usedTotal;
           const pct = total > 0 ? Math.floor((credits / total) * 100) : 100;
-          const barColor = pct > 50 ? "bg-emerald-500" : pct > 20 ? "bg-amber-500" : "bg-rose-500";
+          const barColor = pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
           return (
             <button
               type="button"
               onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
-              className="group mb-2 w-full rounded-xl border border-amber-100/80 bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-white px-3 pt-2.5 pb-2 hover:border-amber-200 hover:from-amber-50 transition-all duration-200 cursor-pointer text-left"
+              className="group mb-2 w-full rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 px-3 pt-2.5 pb-2.5 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] hover:shadow-[0_6px_20px_-4px_rgba(234,88,12,0.7)] hover:brightness-105 transition-all duration-200 cursor-pointer text-left"
             >
               {/* Top row: icon + label + chevron */}
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-100 text-amber-600">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
                     <LucideIcons.Coins className="size-3" />
                   </span>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-amber-500/80">Credits</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-white/80">Credits</p>
                 </div>
-                <LucideIcons.ChevronRight className="size-3 text-amber-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all duration-200" />
+                <LucideIcons.ChevronRight className="size-3 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
               </div>
               {/* Balance row */}
-              <div className="flex items-baseline justify-between mb-1.5">
-                <span className="text-[15px] font-bold tabular-nums text-amber-700 leading-none">{credits.toLocaleString()}</span>
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight drop-shadow-sm">{credits.toLocaleString()}</span>
                 {usedToday > 0 && (
-                  <span className="text-[9px] text-slate-400 font-medium tabular-nums">−{usedToday} today</span>
+                  <span className="text-[9px] text-white/70 font-semibold tabular-nums">−{usedToday} today</span>
                 )}
               </div>
               {/* Progress bar */}
-              <div className="h-1 w-full rounded-full bg-amber-100 overflow-hidden">
+              <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="mt-1 text-[9px] text-slate-400 tabular-nums">{pct}% remaining</p>
+              <p className="mt-1 text-[9px] text-white/60 tabular-nums font-medium">{pct}% remaining</p>
             </button>
           );
         })()}
@@ -424,6 +424,7 @@ function ManageSidebarFooter() {
 
 export function ManageSidebarNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -519,33 +520,48 @@ export function ManageSidebarNav() {
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader className={isCollapsed ? "items-center" : undefined}>
-        <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
-          <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
-            <SidebarMenuButton
-              size="lg"
-              className={isCollapsed ? "h-auto justify-center" : "h-auto"}
-              render={<Link href="/manage" />}
+        {isMobile && (
+          <div className="flex items-center justify-between px-2 pt-2 pb-1">
+            <ManageLogo width={110} height={32} alt="Adapter Digital Group" />
+            <button
+              type="button"
+              onClick={() => setOpenMobile?.(false)}
+              aria-label="Close menu"
+              className="flex size-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             >
-              <div className="hidden aspect-square size-8 items-center justify-center overflow-hidden rounded-2xl bg-[#C20019] shadow-[0_16px_24px_-16px_rgba(194,0,25,0.75)] ring-1 ring-black/5 group-data-[collapsible=icon]:flex">
-                <Image
-                  src="/images/logo/logo-app-1200x1200.svg"
-                  alt="Adapter app logo"
-                  width={32}
-                  height={32}
-                  className="size-full object-cover"
-                  priority
-                />
-              </div>
-              <div className="group-data-[collapsible=icon]:hidden">
-                <ManageLogo
-                  width={130}
-                  height={38}
-                  alt="Adapter Digital Group"
-                />
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+              <LucideIcons.X className="size-5" />
+            </button>
+          </div>
+        )}
+        {!isMobile && (
+          <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
+            <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
+              <SidebarMenuButton
+                size="lg"
+                className={isCollapsed ? "h-auto justify-center" : "h-auto"}
+                render={<Link href="/manage" />}
+              >
+                <div className="hidden aspect-square size-8 items-center justify-center overflow-hidden rounded-2xl bg-[#C20019] shadow-[0_16px_24px_-16px_rgba(194,0,25,0.75)] ring-1 ring-black/5 group-data-[collapsible=icon]:flex">
+                  <Image
+                    src="/images/logo/logo-app-1200x1200.svg"
+                    alt="Adapter app logo"
+                    width={32}
+                    height={32}
+                    className="size-full object-cover"
+                    priority
+                  />
+                </div>
+                <div className="group-data-[collapsible=icon]:hidden">
+                  <ManageLogo
+                    width={130}
+                    height={38}
+                    alt="Adapter Digital Group"
+                  />
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarHeader>
 
       <SidebarContent className="px-2">
@@ -565,7 +581,7 @@ export function ManageSidebarNav() {
                   <Collapsible
                     key={section.title}
                     open={
-                      isSectionActive || (openSections[section.title] ?? false)
+                      openSections[section.title] ?? isSectionActive
                     }
                     onOpenChange={(open) => {
                       setOpenSections((previous) => ({
@@ -578,7 +594,21 @@ export function ManageSidebarNav() {
                     <SidebarMenuButton
                       tooltip={section.title}
                       isActive={isSectionActive}
-                      render={<Link href={section.href} />}
+                      render={
+                        isMobile && section.items.length > 0
+                          ? <button type="button" />
+                          : <Link href={section.href} />
+                      }
+                      onClick={() => {
+                        if (isMobile && section.items.length > 0) {
+                          setOpenSections((prev) => {
+                            const current = prev[section.title] ?? isSectionActive;
+                            return { ...prev, [section.title]: !current };
+                          });
+                        } else if (!isMobile) {
+                          router.push(section.href);
+                        }
+                      }}
                     >
                       <Icon />
                       <span>{section.title}</span>
@@ -603,6 +633,9 @@ export function ManageSidebarNav() {
                                   isActive={isActivePath(pathname, item.href)}
                                   className="h-9 text-slate-400 data-[active=true]:text-brand"
                                   render={<Link href={item.href} />}
+                                  onClick={() => {
+                                    if (isMobile) setOpenMobile?.(false);
+                                  }}
                                 >
                                   {item.icon && (
                                     <item.icon className="size-4 opacity-70" />

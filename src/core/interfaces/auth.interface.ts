@@ -24,6 +24,7 @@ export interface UserProfile {
     department: string;
     position: string;
     roles: UserRole[];
+    credits?: number;
     createdAt: string;
     updatedAt: string;
 }
