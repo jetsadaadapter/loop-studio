@@ -44,7 +44,7 @@ export function AllFieldsTable({
                   <span className="text-slate-655 font-bold">
                     {getHeaderLabel(key)}
                   </span>
-                  <span className="text-slate-400 text-[8.5px] font-mono lowercase tracking-normal font-semibold mt-0.5">
+                  <span className="text-slate-400 text-[8.5px] font-sans lowercase tracking-normal font-semibold mt-0.5">
                     {key}
                   </span>
                 </div>

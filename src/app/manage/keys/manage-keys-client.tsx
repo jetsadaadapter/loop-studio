@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, startTransition } from "react";
-import { KeyRound, Copy, Check, Eye, EyeOff, BookOpen } from "lucide-react";
+import { KeyRound, Copy, Check, Eye, EyeOff, BookOpen, Code2, Plus } from "lucide-react";
 import { ManageSearchInput } from "@/components/ui/manage-search-input";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
-import { ManageCreateButton } from "@/components/ui/manage-create-button";
 import { ManageFilterSelect } from "@/components/ui/manage-filter-select";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerKeyTable, type ApiKeyRecord } from "@/components/manager-key-table";
@@ -231,12 +230,57 @@ export function ManageKeysClient() {
   };
 
   return (
-    <ManagerShell title={pageTitle} description={pageSubtitle} actions={
-      <Button type="button" variant="outline" onClick={() => setIsGuideOpen(true)} className="h-8 bg-white border-slate-200/60 hover:bg-slate-50 text-xs font-semibold px-3.5 rounded-sm flex items-center gap-1.5 cursor-pointer shadow-xs">
-        <BookOpen className="size-3.5 shrink-0 text-brand" />
-        Integration Guide
-      </Button>
-    }>
+    <ManagerShell title={pageTitle} description={pageSubtitle} actions={null}>
+      {/* Developer quick-start banner */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        {/* Guide card */}
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs hover:shadow-sm hover:border-slate-300/60 transition-all duration-200">
+          <div className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <BookOpen className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800 leading-tight">How to use the API</p>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed font-sans">
+                Authenticate your requests using <code className="bg-slate-100 px-1 rounded text-[10px] font-sans">X-App-Id</code> and <code className="bg-slate-100 px-1 rounded text-[10px] font-sans">X-App-Secret</code> headers. View the full integration guide for endpoints and examples.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsGuideOpen(true)}
+            className="w-fit h-8 px-4 text-[11px] font-bold rounded-sm border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer shadow-none"
+          >
+            <BookOpen className="size-3.5 mr-1.5" />
+            View Integration Guide
+          </Button>
+        </div>
+
+        {/* Create card */}
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs hover:shadow-sm hover:border-slate-300/60 transition-all duration-200">
+          <div className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/8 text-brand border border-brand/15">
+              <Code2 className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800 leading-tight">Developer Tools</p>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed font-sans">
+                Generate a new API key to connect your app or service. Each key is scoped to a unique App ID and secret for secure access control.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => { setMode("create"); setDraft(EMPTY_KEY); setFieldErrors({}); }}
+            className="w-fit h-8 px-4 text-[11px] font-bold rounded-sm bg-brand hover:bg-brand/90 text-white border-none shadow-sm shadow-brand/15 transition-all cursor-pointer"
+          >
+            <Plus className="size-3.5 mr-1.5" />
+            Create API Key
+          </Button>
+        </div>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
@@ -246,7 +290,6 @@ export function ManageKeysClient() {
         </div>
         <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
           <ManageRefreshButton lastUpdatedAt={lastUpdatedAt} isLoading={isLoading} isRefreshing={isRefreshing} onRefresh={() => void loadKeys({ silent: true })} title="Refresh Data" />
-          <ManageCreateButton onClick={() => { setMode("create"); setDraft(EMPTY_KEY); setFieldErrors({}); }}>Create API Key</ManageCreateButton>
         </div>
       </div>
 
@@ -385,7 +428,7 @@ export function ManageKeysClient() {
                 App ID <span className="normal-case font-medium text-slate-400">(X-App-Id header)</span>
               </label>
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2.5">
-                <code className="flex-1 min-w-0 font-mono text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
+                <code className="flex-1 min-w-0 font-sans text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
                   {createdKeyData?.appId ?? ""}
                 </code>
                 <Button
@@ -407,7 +450,7 @@ export function ManageKeysClient() {
                 Secret Key <span className="normal-case font-medium text-slate-400">(X-App-Secret header)</span>
               </label>
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2.5">
-                <code className="flex-1 min-w-0 font-mono text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
+                <code className="flex-1 min-w-0 font-sans text-xs text-slate-700 font-semibold tracking-wide select-all truncate">
                   {showKey
                     ? createdKeyData?.secret
                     : (createdKeyData ? ("•".repeat(24) + createdKeyData.secret.slice(-6)) : "")}

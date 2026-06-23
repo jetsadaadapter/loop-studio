@@ -37,7 +37,7 @@ function CodeBlock({ children, className, ...rest }: React.HTMLAttributes<HTMLEl
 
   return (
     <div className="relative group my-3">
-      <pre className="overflow-x-auto rounded-md border border-slate-200 bg-slate-950 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5">
+      <pre className="overflow-x-auto rounded-md border border-slate-200 bg-slate-950 p-4 text-xs font-sans text-slate-100 shadow-sm leading-5">
         <code className={className} {...rest}>{children}</code>
       </pre>
       <Button
@@ -153,7 +153,7 @@ export function InstructionsPreviewDialog({
                       const isInline = !match && !String(children).includes("\n");
                       return isInline ? (
                         <code
-                          className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] font-mono text-slate-800"
+                          className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] font-sans text-slate-800"
                           {...rest}
                         >
                           {children}

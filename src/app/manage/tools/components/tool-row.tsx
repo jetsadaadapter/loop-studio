@@ -311,11 +311,6 @@ export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, i
         )}
       </div>
 
-      {/* Credit cost */}
-      <div className="mt-1.5">
-        <CreditCostBadge cost={tool.creditCost ?? 1} />
-      </div>
-
       {/* Grid Footer - Renders parameters or pipelines, or a beautiful configuration prompt if empty */}
       {tool.params.length > 0 || scripts.length > 0 ? (
         <div className="mt-3 pt-3 border-t border-slate-100/85 space-y-2">
@@ -354,12 +349,15 @@ export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, i
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400/90">
                   Pipeline
                 </span>
-                {scripts.length > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200/70">
-                    <Workflow className="size-2.5 shrink-0" />
-                    {scripts.length}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {scripts.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 border border-slate-200/70">
+                      <Workflow className="size-2.5 shrink-0" />
+                      {scripts.length}
+                    </span>
+                  )}
+                  <CreditCostBadge cost={tool.creditCost ?? 1} />
+                </div>
               </div>
               {scripts.length > 0 ? (
                 <PipelineCircles scripts={scripts} onManageScripts={onManageScripts} />
@@ -379,7 +377,8 @@ export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, i
           <p className="text-[10px] text-slate-400 font-semibold font-sans">
             No parameters or pipeline steps defined.
           </p>
-          <div className="flex items-center gap-1.5 mt-2">
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
+            <CreditCostBadge cost={tool.creditCost ?? 1} />
             {onManageParams && (
               <button
                 type="button"

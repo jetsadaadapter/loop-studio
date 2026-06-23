@@ -279,7 +279,7 @@ export function PreProcessOverview({ result }: PreProcessOverviewProps) {
                       <span className="text-[10px] text-slate-500 font-semibold block pl-1">
                         Example Output Structure:
                       </span>
-                      <pre className="p-4 rounded-xl border border-indigo-200/60 bg-indigo-50/30 text-xs font-mono text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-80 overflow-y-auto">
+                      <pre className="p-4 rounded-xl border border-indigo-200/60 bg-indigo-50/30 text-xs font-sans text-slate-700 leading-relaxed overflow-x-auto whitespace-pre-wrap select-text max-h-80 overflow-y-auto">
                         {JSON.stringify(schemaExample, null, 2)}
                       </pre>
                     </div>

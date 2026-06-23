@@ -8,7 +8,7 @@ import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { ManageFilterSelect } from "@/components/ui/manage-filter-select";
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
-import { ManagerModelTable } from "@/components/manager-model-table";
+import { ModelCardGrid } from "./model-card-grid";
 import { ManagerForm } from "@/components/manager-form";
 import { ManagerPagination } from "@/components/manager-pagination";
 import {
@@ -78,6 +78,7 @@ export function ManageAiClient() {
     setDeleteTarget,
     handleEdit,
     handleDeleteTrigger,
+    handleToggleActive,
     mode,
     totalItems,
   } = useManageAi();
@@ -112,18 +113,16 @@ export function ManageAiClient() {
       </div>
 
       <div className="space-y-6">
-        <ManagerModelTable
-          models={isLoading ? [] : pagedModels}
+        <ModelCardGrid
+          models={pagedModels}
           isLoading={isLoading}
-          isSubmitting={isSubmitting}
           settingDefaultId={settingDefaultId}
           deletingId={deletingId}
-          loadError={!!loadError}
           hasActiveFilter={hasActiveFilter}
           onEdit={handleEdit}
           onSetDefault={onSetDefault}
           onDelete={handleDeleteTrigger}
-          onRetry={() => void loadModels()}
+          onToggleActive={handleToggleActive}
           onAdd={openCreateForm}
           onClearFilters={clearFilters}
         />

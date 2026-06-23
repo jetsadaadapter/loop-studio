@@ -104,7 +104,7 @@ export function ToolSelector({ value, onChange, touched, error }: ToolSelectorPr
               <span className="truncate text-xs font-medium text-slate-800">
                 {selectedTool.name}
               </span>
-              <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9px] text-slate-500">
+              <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-sans text-[9px] text-slate-500">
                 {selectedTool.id.slice(0, 10)}…
               </span>
             </div>
@@ -173,7 +173,7 @@ export function ToolSelector({ value, onChange, touched, error }: ToolSelectorPr
                       <span className={`mt-0.5 size-2 shrink-0 rounded-full ${tool.isActive ? "bg-emerald-500" : "bg-slate-300"}`} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-slate-800 leading-snug">{tool.name}</p>
-                        <p className="mt-0.5 truncate font-mono text-[9px] text-slate-400 leading-snug">{tool.id}</p>
+                        <p className="mt-0.5 truncate font-sans text-[9px] text-slate-400 leading-snug">{tool.id}</p>
                       </div>
                       {isSelected && <Check className="size-3.5 shrink-0 text-emerald-600" />}
                     </button>

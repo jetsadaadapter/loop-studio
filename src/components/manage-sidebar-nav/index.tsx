@@ -140,7 +140,7 @@ function ManageSidebarFooter() {
   const HISTORY_LIMIT = 10;
 
   useEffect(() => {
-    getUserCredits().then((b) => setCredits(b.credits)).catch(() => {});
+    getUserCredits().then((b) => setCredits(b.credits)).catch(() => { });
     // Fetch recent history to compute usage stats
     getCreditHistory({ page: 1, limit: 100 })
       .then((res) => {
@@ -158,7 +158,7 @@ function ManageSidebarFooter() {
         setUsedToday(todayUsed);
         setUsedTotal(allUsed);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -166,7 +166,7 @@ function ManageSidebarFooter() {
     setHistoryLoading(true);
     getCreditHistory({ page: historyPage, limit: HISTORY_LIMIT })
       .then((res) => { setHistoryItems(res.data ?? []); setHistoryTotal(res.total ?? 0); })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setHistoryLoading(false));
   }, [historyOpen, historyPage]);
 
@@ -178,20 +178,20 @@ function ManageSidebarFooter() {
   function txTypeBadge(type: string) {
     const m: Record<string, string> = {
       admin_adjust: "bg-amber-50 text-amber-600 border-amber-200/60",
-      charge:       "bg-rose-50 text-rose-500 border-rose-200/60",
-      topup:        "bg-emerald-50 text-emerald-600 border-emerald-200/60",
-      refund:       "bg-sky-50 text-sky-600 border-sky-200/60",
-      bonus:        "bg-violet-50 text-violet-600 border-violet-200/60",
+      charge: "bg-rose-50 text-rose-500 border-rose-200/60",
+      topup: "bg-emerald-50 text-emerald-600 border-emerald-200/60",
+      refund: "bg-sky-50 text-sky-600 border-sky-200/60",
+      bonus: "bg-violet-50 text-violet-600 border-violet-200/60",
     };
     return m[type] ?? "bg-slate-50 text-slate-500 border-slate-200/60";
   }
   function txIconBg(type: string) {
     const m: Record<string, string> = {
       admin_adjust: "bg-amber-100 text-amber-600",
-      charge:       "bg-rose-100 text-rose-500",
-      topup:        "bg-emerald-100 text-emerald-600",
-      refund:       "bg-sky-100 text-sky-600",
-      bonus:        "bg-violet-100 text-violet-600",
+      charge: "bg-rose-100 text-rose-500",
+      topup: "bg-emerald-100 text-emerald-600",
+      refund: "bg-sky-100 text-sky-600",
+      bonus: "bg-violet-100 text-violet-600",
     };
     return m[type] ?? "bg-slate-100 text-slate-500";
   }
@@ -208,270 +208,270 @@ function ManageSidebarFooter() {
 
   return (
     <>
-    {/* Credit history drawer */}
-    <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-      <SheetContent side="left" showCloseButton={false} className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
-        <SheetHeader className="px-5 py-3.5 border-b border-slate-100 shrink-0">
-          <SheetTitle className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-              <LucideIcons.Coins className="size-4 text-amber-500" />
-              Credit Transaction History
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setHistorySortAsc((v) => !v)}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                title={historySortAsc ? "Showing oldest first" : "Showing newest first"}
-              >
-                {historySortAsc ? "Old First" : "New First"}
-                <LucideIcons.ArrowUpDown className={`size-3 transition-transform duration-200 ${historySortAsc ? "rotate-180" : ""}`} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setHistoryOpen(false)}
-                className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <LucideIcons.X className="size-4" />
-              </button>
-            </div>
-          </SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {historyLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <LucideIcons.Loader2 className="size-5 animate-spin text-slate-300" />
-            </div>
-          ) : historyItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <LucideIcons.Coins className="size-8 text-amber-200" />
-              <p className="text-xs text-slate-400">No transactions yet.</p>
-            </div>
-          ) : (
-            <div>
-              {sortedHistoryItems.map((tx, idx) => {
-                const isCredit = tx.amount > 0;
-                const showDayHeader = idx === 0 || !isSameDay(tx.createdAt, sortedHistoryItems[idx - 1].createdAt);
-                return (
-                  <div key={tx.id}>
-                    {/* Day group header */}
-                    {showDayHeader && (
-                      <div className={`flex items-baseline gap-2 ${idx > 0 ? "mt-6 mb-3 pt-4 border-t border-slate-100" : "mb-3"}`}>
-                        <span className="text-[11px] font-bold text-slate-700">{fmtDayHeader(tx.createdAt).split(",")[0]}{","}</span>
-                        <span className="text-[11px] font-semibold text-slate-700">{fmtDayHeader(tx.createdAt).split(",").slice(1).join(",").trim().replace(/\s+\d{4}$/, "")}</span>
-                        <span className="text-[11px] text-slate-400 font-normal">{new Date(tx.createdAt).getFullYear()}</span>
-                      </div>
-                    )}
-                    {/* Transaction row — divider between rows within same day */}
-                    {!showDayHeader && <div className="ml-[4.25rem] h-px bg-slate-100" />}
-                    <div className="flex items-center gap-3 py-3">
-                      {/* Time */}
-                      <span className="w-14 shrink-0 text-[10px] font-medium text-slate-400 tabular-nums text-right">
-                        {fmtTime(tx.createdAt)}
-                      </span>
-                      {/* Status icon */}
-                      <div className={`relative shrink-0 flex size-9 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txIconBg(tx.type)}`}>
-                        {tx.type.slice(0, 2).toUpperCase()}
-                        <span className={`absolute -bottom-0.5 -right-0.5 flex size-[14px] items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
-                          {isCredit
-                            ? <LucideIcons.ArrowUpRight className="size-2 text-white" />
-                            : <LucideIcons.ArrowDownRight className="size-2 text-white" />
-                          }
-                        </span>
-                      </div>
-                      {/* Content */}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-semibold text-slate-800 leading-snug">{tx.description}</p>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                          {tx.clientType && (
-                            <span className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
-                              {tx.clientType}
-                            </span>
-                          )}
-                          <span className={`inline-flex items-center rounded border px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txTypeBadge(tx.type)}`}>
-                            {tx.type.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                      </div>
-                      {/* Amount */}
-                      <span className={`shrink-0 text-base font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
-                        {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        {historyTotalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 shrink-0">
-            <button type="button" disabled={historyPage <= 1} onClick={() => setHistoryPage(p => p - 1)}
-              className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
-              ← Prev
-            </button>
-            <span className="text-[11px] text-slate-400 tabular-nums">{historyPage} / {historyTotalPages}</span>
-            <button type="button" disabled={historyPage >= historyTotalPages} onClick={() => setHistoryPage(p => p + 1)}
-              className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
-              Next →
-            </button>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
-
-    <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
-      <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
-        {/* Credit balance widget — expanded sidebar only */}
-        {!isCollapsed && credits !== null && (() => {
-          const total = credits + usedTotal;
-          const pct = total > 0 ? Math.floor((credits / total) * 100) : 100;
-          const barColor = pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
-          return (
-            <button
-              type="button"
-              onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
-              className="group mb-2 w-full rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 px-3 pt-2.5 pb-2.5 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] hover:shadow-[0_6px_20px_-4px_rgba(234,88,12,0.7)] hover:brightness-105 transition-all duration-200 cursor-pointer text-left"
-            >
-              {/* Top row: icon + label + chevron */}
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
-                    <LucideIcons.Coins className="size-3" />
-                  </span>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-white/80">Credits</p>
-                </div>
-                <LucideIcons.ChevronRight className="size-3 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
-              </div>
-              {/* Balance row */}
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight drop-shadow-sm">{credits.toLocaleString()}</span>
-                {usedToday > 0 && (
-                  <span className="text-[9px] text-white/70 font-semibold tabular-nums">−{usedToday} today</span>
-                )}
-              </div>
-              {/* Progress bar */}
-              <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="mt-1 text-[9px] text-white/60 tabular-nums font-medium">{pct}% remaining</p>
-            </button>
-          );
-        })()}
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              isCollapsed ? (
+      {/* Credit history drawer */}
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="left" showCloseButton={false} className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
+          <SheetHeader className="px-5 py-3.5 border-b border-slate-100 shrink-0">
+            <SheetTitle className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <LucideIcons.Coins className="size-4 text-amber-500" />
+                Credit Transaction History
+              </span>
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  aria-label={profileName}
-                  title={profileName}
-                  className="flex size-8 items-center justify-center bg-transparent p-0 text-inherit shadow-none outline-hidden ring-0 transition hover:bg-transparent hover:text-inherit focus-visible:ring-0 active:bg-transparent active:text-inherit"
-                />
-              ) : (
-                <SidebarMenuButton
-                  size="lg"
-                  className="min-h-16 rounded-2xl border border-slate-200/80 bg-white/85 px-3 shadow-[0_16px_40px_-30px_rgba(15,23,42,0.95)] transition hover:border-slate-300 hover:bg-white aria-expanded:border-slate-300 aria-expanded:bg-white"
-                />
-              )
-            }
-          >
-            <div className="relative rounded-full bg-brand/20 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 group-data-[collapsible=icon]:p-0.5 group-data-[collapsible=icon]:shadow-[0_12px_20px_-16px_rgba(15,23,42,0.45)]">
-              <span
-                className="absolute right-0 top-0 hidden size-2.5 translate-x-1/5 -translate-y-1/5 rounded-full border-2 border-white bg-emerald-400 shadow-sm group-data-[collapsible=icon]:block"
-                aria-hidden="true"
-              />
-              <Avatar className="size-10 bg-white group-data-[collapsible=icon]:size-7">
-                {profileImage ? (
-                  <AvatarImage src={profileImage} alt={profileName} />
-                ) : null}
-                <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
-                  {profileInitials}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate font-semibold text-slate-900">
-                {profileName}
-              </span>
-              <span className="truncate text-xs text-slate-500">
-                {profileSubtitle}
-              </span>
-            </div>
-            <LucideIcons.ChevronsUpDown className="ml-auto size-4 text-slate-400 group-data-[collapsible=icon]:hidden" />
-            {isCollapsed ? (
-              <span className="sr-only">{profileName}</span>
-            ) : null}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="min-w-64 rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-3 rounded-xl bg-linear-to-br from-slate-50 via-white to-sky-50/70 px-3 py-3 text-left text-sm">
-                  <div className="rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
-                    <Avatar className="size-10 bg-white">
-                      {profileImage ? (
-                        <AvatarImage src={profileImage} alt={profileName} />
-                      ) : null}
-                      <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
-                        {profileInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold text-slate-900">
-                      {profileName}
-                    </span>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px]">
-                      {profileDetails ? (
-                        <>
-                          <span
-                            className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDetails.department)}`}
-                          >
-                            {profileDetails.department}
-                          </span>
-                          <span className="truncate font-medium text-slate-500">
-                            {profileDetails.position}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="truncate text-slate-500">
-                          Workspace Console
-                        </span>
+                  onClick={() => setHistorySortAsc((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title={historySortAsc ? "Showing oldest first" : "Showing newest first"}
+                >
+                  {historySortAsc ? "Old First" : "New First"}
+                  <LucideIcons.ArrowUpDown className={`size-3 transition-transform duration-200 ${historySortAsc ? "rotate-180" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen(false)}
+                  className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <LucideIcons.X className="size-4" />
+                </button>
+              </div>
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {historyLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <LucideIcons.Loader2 className="size-5 animate-spin text-slate-300" />
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2">
+                <LucideIcons.Coins className="size-8 text-amber-200" />
+                <p className="text-xs text-slate-400">No transactions yet.</p>
+              </div>
+            ) : (
+              <div>
+                {sortedHistoryItems.map((tx, idx) => {
+                  const isCredit = tx.amount > 0;
+                  const showDayHeader = idx === 0 || !isSameDay(tx.createdAt, sortedHistoryItems[idx - 1].createdAt);
+                  return (
+                    <div key={tx.id}>
+                      {/* Day group header */}
+                      {showDayHeader && (
+                        <div className={`flex items-baseline gap-2 ${idx > 0 ? "mt-6 mb-3 pt-4 border-t border-slate-100" : "mb-3"}`}>
+                          <span className="text-[11px] font-bold text-slate-700">{fmtDayHeader(tx.createdAt).split(",")[0]}{","}</span>
+                          <span className="text-[11px] font-semibold text-slate-700">{fmtDayHeader(tx.createdAt).split(",").slice(1).join(",").trim().replace(/\s+\d{4}$/, "")}</span>
+                          <span className="text-[11px] text-slate-400 font-normal">{new Date(tx.createdAt).getFullYear()}</span>
+                        </div>
                       )}
+                      {/* Transaction row — divider between rows within same day */}
+                      {!showDayHeader && <div className="ml-[4.25rem] h-px bg-slate-100" />}
+                      <div className="flex items-center gap-3 py-3">
+                        {/* Time */}
+                        <span className="w-14 shrink-0 text-[10px] font-medium text-slate-400 tabular-nums text-right">
+                          {fmtTime(tx.createdAt)}
+                        </span>
+                        {/* Status icon */}
+                        <div className={`relative shrink-0 flex size-9 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txIconBg(tx.type)}`}>
+                          {tx.type.slice(0, 2).toUpperCase()}
+                          <span className={`absolute -bottom-0.5 -right-0.5 flex size-[14px] items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
+                            {isCredit
+                              ? <LucideIcons.ArrowUpRight className="size-2 text-white" />
+                              : <LucideIcons.ArrowDownRight className="size-2 text-white" />
+                            }
+                          </span>
+                        </div>
+                        {/* Content */}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[12px] font-semibold text-slate-800 leading-snug">{tx.description}</p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            {tx.clientType && (
+                              <span className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
+                                {tx.clientType}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center rounded border px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txTypeBadge(tx.type)}`}>
+                              {tx.type.replace(/_/g, " ")}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Amount */}
+                        <span className={`shrink-0 text-base font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
+                          {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {historyTotalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 shrink-0">
+              <button type="button" disabled={historyPage <= 1} onClick={() => setHistoryPage(p => p - 1)}
+                className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
+                ← Prev
+              </button>
+              <span className="text-[11px] text-slate-400 tabular-nums">{historyPage} / {historyTotalPages}</span>
+              <button type="button" disabled={historyPage >= historyTotalPages} onClick={() => setHistoryPage(p => p + 1)}
+                className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
+                Next →
+              </button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
+        <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>
+          {/* Credit balance widget — expanded sidebar only */}
+          {!isCollapsed && credits !== null && (() => {
+            const total = credits + usedTotal;
+            const pct = total > 0 ? Math.floor((credits / total) * 100) : 100;
+            const barColor = pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
+            return (
+              <button
+                type="button"
+                onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
+                className="group mb-2 w-full rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 px-3 pt-2.5 pb-2.5 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] hover:shadow-[0_6px_20px_-4px_rgba(234,88,12,0.7)] hover:brightness-105 transition-all duration-200 cursor-pointer text-left"
+              >
+                {/* Top row: icon + label + chevron */}
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-white/20 text-white">
+                      <LucideIcons.Coins className="size-3" />
+                    </span>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-white/80">Credits</p>
+                  </div>
+                  <LucideIcons.ChevronRight className="size-3 text-white/60 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200" />
+                </div>
+                {/* Balance row */}
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight drop-shadow-sm">{credits.toLocaleString()}</span>
+                  {usedToday > 0 && (
+                    <span className="text-[9px] text-white/70 font-semibold tabular-nums">−{usedToday} today</span>
+                  )}
+                </div>
+                {/* Progress bar */}
+                <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-[9px] text-white/60 tabular-nums font-medium">{pct}% remaining</p>
+              </button>
+            );
+          })()}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                isCollapsed ? (
+                  <button
+                    type="button"
+                    aria-label={profileName}
+                    title={profileName}
+                    className="flex size-8 items-center justify-center bg-transparent p-0 text-inherit shadow-none outline-hidden ring-0 transition hover:bg-transparent hover:text-inherit focus-visible:ring-0 active:bg-transparent active:text-inherit"
+                  />
+                ) : (
+                  <SidebarMenuButton
+                    size="lg"
+                    className="min-h-16 rounded-2xl border border-slate-200/80 bg-white/85 px-3 shadow-[0_16px_40px_-30px_rgba(15,23,42,0.95)] transition hover:border-slate-300 hover:bg-white aria-expanded:border-slate-300 aria-expanded:bg-white"
+                  />
+                )
+              }
+            >
+              <div className="relative rounded-full bg-brand/20 p-0.75 shadow-[0_10px_24px_-14px_rgba(15,23,42,0.55)] ring-1 ring-slate-200/80 group-data-[collapsible=icon]:p-0.5 group-data-[collapsible=icon]:shadow-[0_12px_20px_-16px_rgba(15,23,42,0.45)]">
+                <span
+                  className="absolute right-0 top-0 hidden size-2.5 translate-x-1/5 -translate-y-1/5 rounded-full border-2 border-white bg-emerald-400 shadow-sm group-data-[collapsible=icon]:block"
+                  aria-hidden="true"
+                />
+                <Avatar className="size-10 bg-white group-data-[collapsible=icon]:size-7">
+                  {profileImage ? (
+                    <AvatarImage src={profileImage} alt={profileName} />
+                  ) : null}
+                  <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
+                    {profileInitials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate font-semibold text-slate-900">
+                  {profileName}
+                </span>
+                <span className="truncate text-xs text-slate-500">
+                  {profileSubtitle}
+                </span>
+              </div>
+              <LucideIcons.ChevronsUpDown className="ml-auto size-4 text-slate-400 group-data-[collapsible=icon]:hidden" />
+              {isCollapsed ? (
+                <span className="sr-only">{profileName}</span>
+              ) : null}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="min-w-64 rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl"
+              side={isMobile ? "bottom" : "right"}
+              align="end"
+              sideOffset={4}
+            >
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-3 rounded-xl bg-linear-to-br from-slate-50 via-white to-sky-50/70 px-3 py-3 text-left text-sm">
+                    <div className="rounded-full bg-brand/20 p-1 shadow-inner ring-1 ring-slate-200/80">
+                      <Avatar className="size-10 bg-white">
+                        {profileImage ? (
+                          <AvatarImage src={profileImage} alt={profileName} />
+                        ) : null}
+                        <AvatarFallback className="bg-brand text-[11px] font-semibold tracking-tight text-white shadow-inner">
+                          {profileInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold text-slate-900">
+                        {profileName}
+                      </span>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px]">
+                        {profileDetails ? (
+                          <>
+                            <span
+                              className={`rounded-full px-2 py-0.5 font-semibold ring-1 ${getDepartmentBadgeClass(profileDetails.department)}`}
+                            >
+                              {profileDetails.department}
+                            </span>
+                            <span className="truncate font-medium text-slate-500">
+                              {profileDetails.position}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="truncate text-slate-500">
+                            Workspace Console
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem className="rounded-xl">
-                <LucideIcons.Bell />
-                Notifications
-              </DropdownMenuItem>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="rounded-xl"
-                onClick={() => router.push("/api/auth/logout")}
-              >
-                <LucideIcons.LogOut />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+              <DropdownMenuGroup>
+                <DropdownMenuItem className="rounded-xl">
+                  <LucideIcons.Bell />
+                  Notifications
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="rounded-xl"
+                  onClick={() => router.push("/api/auth/logout")}
+                >
+                  <LucideIcons.LogOut />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
     </>
   );
 }
@@ -500,10 +500,18 @@ export function ManageSidebarNav() {
         const activeMenus = checkedItems.filter((m): m is NonNullable<typeof m> => m !== null);
 
         // Grouping logic:
-        // type "main" -> Overview
-        // type "manage" -> Workspace
-        const overviewItems = activeMenus.filter((m) => m.type === "main");
-        const manageItems = activeMenus.filter((m) => m.type === "manage");
+        // type "main" -> Overview  (excludes keys)
+        // type "manage" -> Workspace (excludes keys)
+        // path /keys or /manage/keys -> Developer (always)
+        const isDeveloperItem = (m: { path: string }) =>
+          m.path === "/keys" || m.path === "/manage/keys";
+
+        const resolveHref = (path: string) =>
+          path === "/manage/dashboard" ? "/manage" : path === "/keys" ? "/manage/keys" : path;
+
+        const overviewItems = activeMenus.filter((m) => m.type === "main" && !isDeveloperItem(m));
+        const manageItems = activeMenus.filter((m) => m.type === "manage" && !isDeveloperItem(m));
+        const developerItems = activeMenus.filter(isDeveloperItem);
         const nextSections: MenuSection[] = [];
 
         if (overviewItems.length > 0) {
@@ -513,12 +521,7 @@ export function ManageSidebarNav() {
             icon: LucideIcons.Home,
             items: overviewItems.map((m) => ({
               title: m.name,
-              href:
-                m.path === "/manage/dashboard"
-                  ? "/manage"
-                  : m.path === "/keys"
-                    ? "/manage/keys"
-                    : m.path,
+              href: resolveHref(m.path),
               icon: ICON_MAP[m.icon],
             })),
           });
@@ -532,12 +535,20 @@ export function ManageSidebarNav() {
             icon: LucideIcons.Layers,
             items: manageItems.map((m) => ({
               title: m.name,
-              href:
-                m.path === "/manage/dashboard"
-                  ? "/manage"
-                  : m.path === "/keys"
-                    ? "/manage/keys"
-                    : m.path,
+              href: resolveHref(m.path),
+              icon: ICON_MAP[m.icon],
+            })),
+          });
+        }
+
+        if (developerItems.length > 0) {
+          nextSections.push({
+            title: "Developers",
+            href: "/manage/keys",
+            icon: LucideIcons.Code2,
+            items: developerItems.map((m) => ({
+              title: m.name,
+              href: resolveHref(m.path),
               icon: ICON_MAP[m.icon],
             })),
           });
@@ -619,98 +630,101 @@ export function ManageSidebarNav() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/80">
-            Management
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sections.map((section) => {
-                const Icon = section.icon;
-                const isSectionActive = section.items.some((item) =>
-                  isActivePath(pathname, item.href),
-                );
-
-                return (
-                  <Collapsible
-                    key={section.title}
-                    open={
-                      openSections[section.title] ?? isSectionActive
-                    }
-                    onOpenChange={(open) => {
-                      setOpenSections((previous) => ({
-                        ...previous,
-                        [section.title]: open,
-                      }));
-                    }}
-                    render={<SidebarMenuItem />}
-                  >
-                    <SidebarMenuButton
-                      tooltip={section.title}
-                      isActive={isSectionActive}
-                      render={
-                        isMobile && section.items.length > 0
-                          ? <button type="button" />
-                          : <Link href={section.href} />
-                      }
-                      onClick={() => {
-                        if (isMobile && section.items.length > 0) {
-                          setOpenSections((prev) => {
-                            const current = prev[section.title] ?? isSectionActive;
-                            return { ...prev, [section.title]: !current };
-                          });
-                        } else if (!isMobile) {
-                          router.push(section.href);
-                        }
-                      }}
-                    >
-                      <Icon />
-                      <span>{section.title}</span>
-                    </SidebarMenuButton>
-                    {section.items.length > 0 && (
-                      <>
-                        <CollapsibleTrigger
+        {/* Helper: renders a list of sections into collapsible menu items */}
+        {(["Management", "Developers"] as const).map((groupLabel) => {
+          const groupSections = sections.filter((s) =>
+            groupLabel === "Developers" ? s.title === "Developers" : s.title !== "Developers"
+          );
+          if (groupSections.length === 0) return null;
+          return (
+            <SidebarGroup key={groupLabel}>
+              <SidebarGroupLabel className="px-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500/80">
+                {groupLabel}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {groupSections.map((section) => {
+                    const Icon = section.icon;
+                    const isSectionActive = section.items.some((item) =>
+                      isActivePath(pathname, item.href),
+                    );
+                    return (
+                      <Collapsible
+                        key={section.title}
+                        open={openSections[section.title] ?? isSectionActive}
+                        onOpenChange={(open) => {
+                          setOpenSections((previous) => ({
+                            ...previous,
+                            [section.title]: open,
+                          }));
+                        }}
+                        render={<SidebarMenuItem />}
+                      >
+                        <SidebarMenuButton
+                          tooltip={section.title}
+                          isActive={isSectionActive}
                           render={
-                            <SidebarMenuAction className="aria-expanded:rotate-90" />
+                            isMobile && section.items.length > 0
+                              ? <button type="button" />
+                              : <Link href={section.href} />
                           }
+                          onClick={() => {
+                            if (isMobile && section.items.length > 0) {
+                              setOpenSections((prev) => {
+                                const current = prev[section.title] ?? isSectionActive;
+                                return { ...prev, [section.title]: !current };
+                              });
+                            } else if (!isMobile) {
+                              router.push(section.href);
+                            }
+                          }}
                         >
-                          <LucideIcons.ChevronRight className="size-4" />
-                          <span className="sr-only">
-                            Toggle {section.title}
-                          </span>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub className="ml-0 border-l-0 px-1.5">
-                            {section.items.map((item) => (
-                              <SidebarMenuSubItem key={item.href}>
-                                <SidebarMenuSubButton
-                                  isActive={isActivePath(pathname, item.href)}
-                                  className="h-9 text-slate-400 data-[active=true]:text-brand"
-                                  render={<Link href={item.href} />}
-                                  onClick={() => {
-                                    if (isMobile) setOpenMobile?.(false);
-                                  }}
-                                >
-                                  {item.icon && (
-                                    <item.icon className="size-4 opacity-70" />
-                                  )}
-                                  <span className="transition-colors group-data-[active=true]:text-brand!">
-                                    {item.title}
-                                  </span>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </>
-                    )}
-                  </Collapsible>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
+                          <Icon />
+                          <span>{section.title}</span>
+                        </SidebarMenuButton>
+                        {section.items.length > 0 && (
+                          <>
+                            <CollapsibleTrigger
+                              render={
+                                <SidebarMenuAction className="aria-expanded:rotate-90" />
+                              }
+                            >
+                              <LucideIcons.ChevronRight className="size-4" />
+                              <span className="sr-only">Toggle {section.title}</span>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <SidebarMenuSub className="ml-0 border-l-0 px-1.5">
+                                {section.items.map((item) => (
+                                  <SidebarMenuSubItem key={item.href}>
+                                    <SidebarMenuSubButton
+                                      isActive={isActivePath(pathname, item.href)}
+                                      className="h-9 text-slate-400 data-[active=true]:text-brand"
+                                      render={<Link href={item.href} />}
+                                      onClick={() => {
+                                        if (isMobile) setOpenMobile?.(false);
+                                      }}
+                                    >
+                                      {item.icon && (
+                                        <item.icon className="size-4 opacity-70" />
+                                      )}
+                                      <span className="transition-colors group-data-[active=true]:text-brand!">
+                                        {item.title}
+                                      </span>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                ))}
+                              </SidebarMenuSub>
+                            </CollapsibleContent>
+                          </>
+                        )}
+                      </Collapsible>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className={isCollapsed ? "items-center" : undefined}>

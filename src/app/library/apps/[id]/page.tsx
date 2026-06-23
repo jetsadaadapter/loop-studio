@@ -286,13 +286,13 @@ export default async function AppDetailPage({ params }: Props) {
                         const isInline = !match && !String(children).includes("\n");
                         return isInline ? (
                           <code
-                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-mono"
+                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-sans"
                             {...rest}
                           >
                             {children}
                           </code>
                         ) : (
-                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5 mb-4">
+                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-sans text-slate-100 shadow-sm leading-5 mb-4">
                             <code {...rest}>{children}</code>
                           </pre>
                         );
@@ -387,13 +387,13 @@ export default async function AppDetailPage({ params }: Props) {
                         const isInline = !match && !String(children).includes("\n");
                         return isInline ? (
                           <code
-                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-mono"
+                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800 font-sans"
                             {...rest}
                           >
                             {children}
                           </code>
                         ) : (
-                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5 mb-4">
+                          <pre className="overflow-x-auto rounded-md bg-slate-900 p-4 text-xs font-sans text-slate-100 shadow-sm leading-5 mb-4">
                             <code {...rest}>{children}</code>
                           </pre>
                         );

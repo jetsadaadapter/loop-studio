@@ -41,7 +41,7 @@ function CodeBlock({ children, className, ...rest }: React.HTMLAttributes<HTMLEl
 
   return (
     <div className="relative group my-3">
-      <pre className="overflow-x-auto rounded-md border border-slate-200 bg-slate-950 p-4 text-xs font-mono text-slate-100 shadow-sm leading-5">
+      <pre className="overflow-x-auto rounded-md border border-slate-200 bg-slate-950 p-4 text-xs font-sans text-slate-100 shadow-sm leading-5">
         <code className={className} {...rest}>{children}</code>
       </pre>
       <Button
@@ -198,7 +198,7 @@ export function IntegrationPreviewDialog({
                   value={postmanAppId}
                   onChange={(e) => setPostmanAppId(e.target.value)}
                   placeholder="your-app-id"
-                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-mono outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
+                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
                 />
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-40">
@@ -208,7 +208,7 @@ export function IntegrationPreviewDialog({
                   value={postmanAppSecret}
                   onChange={(e) => setPostmanAppSecret(e.target.value)}
                   placeholder="your-app-secret"
-                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-mono outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
+                  className="h-8 rounded-md border border-slate-200 bg-white px-3 text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:border-brand/50 transition-colors"
                 />
               </div>
               <Button
@@ -246,7 +246,7 @@ export function IntegrationPreviewDialog({
                       const isInline = !match && !String(children).includes("\n");
                       return isInline ? (
                         <code
-                          className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] font-mono text-slate-800"
+                          className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] font-sans text-slate-800"
                           {...rest}
                         >
                           {children}

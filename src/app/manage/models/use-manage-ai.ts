@@ -413,6 +413,23 @@ export function useManageAi() {
     });
   }
 
+  async function handleToggleActive(modelId: string) {
+    const target = models.find((m) => m.id === modelId);
+    if (!target) return;
+    const nextActive = !target.isActive;
+    setModels((current) =>
+      current.map((m) => m.id === modelId ? { ...m, isActive: nextActive } : m)
+    );
+    try {
+      await updateManageAiModel(modelId, { isActive: nextActive });
+    } catch {
+      setModels((current) =>
+        current.map((m) => m.id === modelId ? { ...m, isActive: target.isActive } : m)
+      );
+      toast.error("Failed to update model status.");
+    }
+  }
+
   async function onSetDefault(modelId: string) {
     setSettingDefaultId(modelId);
     const previous = models;
@@ -542,6 +559,7 @@ export function useManageAi() {
     setDeleteTarget,
     handleEdit,
     handleDeleteTrigger,
+    handleToggleActive,
     pathname,
   };
 }

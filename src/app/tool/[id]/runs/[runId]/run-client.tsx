@@ -256,7 +256,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
             </div>
             {run.runId && (
               <p className="text-[10px] text-slate-400 font-semibold pl-[24px] select-all">
-                Run ID: <span className="font-mono text-slate-500 uppercase">#{run.runId.toUpperCase()}</span>
+                Run ID: <span className="font-sans text-slate-500 uppercase">#{run.runId.toUpperCase()}</span>
               </p>
             )}
           </div>
@@ -326,7 +326,7 @@ export function RunClient({ tool, run, runId }: RunClientProps) {
                         {formattedTime(job.createdAt)}
                       </span>
                       <span className="size-1 rounded-full bg-slate-200 shrink-0" />
-                      <span className="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[9px] font-mono font-semibold tracking-tight rounded border border-slate-150 uppercase select-all shrink-0">
+                      <span className="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[9px] font-sans font-semibold tracking-tight rounded border border-slate-150 uppercase select-all shrink-0">
                         {slicedJobId}
                       </span>
                     </div>
