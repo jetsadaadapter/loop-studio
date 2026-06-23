@@ -18,8 +18,11 @@ import { checkRouteImplemented } from "@/app/manage/actions";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";
-import { getUserCredits, getCreditHistory } from "@/core/services/users.service";
+import { getUserCredits, getCreditHistory, adjustUserCredits } from "@/core/services/users.service";
 import type { CreditTransaction } from "@/core/services/users.service";
+import { UserCreditModal } from "@/app/manage/users/components/user-credit-modal";
+import { useNotifications } from "@/components/notification-provider";
+import { NotificationPanel } from "@/components/notification-panel";
 import {
   Sheet,
   SheetContent,
@@ -138,6 +141,11 @@ function ManageSidebarFooter() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historySortAsc, setHistorySortAsc] = useState(false);
   const HISTORY_LIMIT = 10;
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [topUpSubmitting, setTopUpSubmitting] = useState(false);
+  const [topUpError, setTopUpError] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { unreadCount, push: pushNotif } = useNotifications();
 
   useEffect(() => {
     getUserCredits().then((b) => setCredits(b.credits)).catch(() => { });
@@ -206,8 +214,42 @@ function ManageSidebarFooter() {
     return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
   }
 
+  async function handleTopUpSubmit(amount: number, description: string) {
+    if (!profile) return;
+    setTopUpSubmitting(true);
+    setTopUpError("");
+    try {
+      await adjustUserCredits(profile.empid, amount, description);
+      setTopUpOpen(false);
+      getUserCredits().then((b) => setCredits(b.credits)).catch(() => {});
+      router.refresh();
+      pushNotif("Credits adjusted", {
+        message: `${amount > 0 ? "+" : ""}${amount} credits — ${description}`,
+        type: amount > 0 ? "success" : "warning",
+      });
+    } catch {
+      setTopUpError("Failed to adjust credits. Please try again.");
+    } finally {
+      setTopUpSubmitting(false);
+    }
+  }
+
   return (
     <>
+      {/* Notification panel */}
+      <NotificationPanel open={notifOpen} onOpenChange={setNotifOpen} />
+
+      {/* Top-up credits modal */}
+      {topUpOpen && profile && (
+        <UserCreditModal
+          user={profile}
+          isSubmitting={topUpSubmitting}
+          submitError={topUpError}
+          onSubmit={handleTopUpSubmit}
+          onClose={() => { setTopUpOpen(false); setTopUpError(""); }}
+        />
+      )}
+
       {/* Credit history drawer */}
       <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
         <SheetContent side="left" showCloseButton={false} className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
@@ -327,12 +369,64 @@ function ManageSidebarFooter() {
           {!isCollapsed && credits !== null && (() => {
             const total = credits + usedTotal;
             const pct = total > 0 ? Math.floor((credits / total) * 100) : 100;
-            const barColor = pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
+            const isDepleted = credits === 0;
+            const isLow = !isDepleted && pct <= 20;
+            const barColor = isDepleted ? "bg-rose-400" : pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
+
+            if (isDepleted) {
+              return (
+                <div className="mb-2 w-full rounded-xl overflow-hidden bg-[#1a0a0a] border border-rose-900/60 shadow-[0_4px_16px_-4px_rgba(220,38,38,0.4)] text-left">
+                  {/* Top row */}
+                  <div className="px-3 pt-3 pb-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-rose-500/20 text-rose-400">
+                          <LucideIcons.Coins className="size-3" />
+                        </span>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-rose-400/90">Credits</p>
+                      </div>
+                      <span className="text-[9px] font-bold text-rose-400 uppercase tracking-wide">Limit reached</span>
+                    </div>
+                    {/* Balance */}
+                    <div className="flex items-baseline justify-between mb-2">
+                      <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight">0</span>
+                      {usedToday > 0 && (
+                        <span className="text-[9px] text-rose-400/70 font-semibold tabular-nums">−{usedToday} today</span>
+                      )}
+                    </div>
+                    {/* Full red bar */}
+                    <div className="h-1.5 w-full rounded-full bg-rose-900/40 overflow-hidden">
+                      <div className="h-full w-full rounded-full bg-rose-500" />
+                    </div>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-[9px] text-rose-400/60 font-medium">0% remaining</p>
+                      {total > 0 && (
+                        <p className="text-[9px] text-rose-400/50 tabular-nums font-medium">0<span className="opacity-60">/{total.toLocaleString()}</span></p>
+                      )}
+                    </div>
+                  </div>
+                  {/* CTA */}
+                  <button
+                    type="button"
+                    onClick={() => setTopUpOpen(true)}
+                    className="group w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border-t border-rose-900/50 px-3 py-2.5 text-[11px] font-bold text-white transition-all duration-200 cursor-pointer"
+                  >
+                    <LucideIcons.ArrowUpCircle className="size-3.5 text-rose-400 group-hover:text-rose-300" />
+                    Top Up Credits
+                  </button>
+                </div>
+              );
+            }
+
             return (
               <button
                 type="button"
                 onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
-                className="group mb-2 w-full rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 px-3 pt-2.5 pb-2.5 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] hover:shadow-[0_6px_20px_-4px_rgba(234,88,12,0.7)] hover:brightness-105 transition-all duration-200 cursor-pointer text-left"
+                className={`group mb-2 w-full rounded-xl px-3 pt-2.5 pb-2.5 transition-all duration-200 cursor-pointer text-left ${
+                  isLow
+                    ? "bg-gradient-to-br from-rose-600 via-rose-500 to-orange-500 shadow-[0_4px_16px_-4px_rgba(220,38,38,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(220,38,38,0.65)] hover:brightness-105"
+                    : "bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 shadow-[0_4px_16px_-4px_rgba(234,88,12,0.55)] hover:shadow-[0_6px_20px_-4px_rgba(234,88,12,0.7)] hover:brightness-105"
+                }`}
               >
                 {/* Top row: icon + label + chevron */}
                 <div className="flex items-center justify-between mb-1.5">
@@ -346,7 +440,12 @@ function ManageSidebarFooter() {
                 </div>
                 {/* Balance row */}
                 <div className="flex items-baseline justify-between mb-2">
-                  <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight drop-shadow-sm">{credits.toLocaleString()}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[22px] font-extrabold tabular-nums text-white leading-none tracking-tight drop-shadow-sm">{credits.toLocaleString()}</span>
+                    {isLow && (
+                      <span className="text-[8px] font-bold text-white/90 uppercase tracking-wide bg-white/20 rounded-full px-1.5 py-0.5 leading-none">Low</span>
+                    )}
+                  </div>
                   {usedToday > 0 && (
                     <span className="text-[9px] text-white/70 font-semibold tabular-nums">−{usedToday} today</span>
                   )}
@@ -358,7 +457,12 @@ function ManageSidebarFooter() {
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[9px] text-white/60 tabular-nums font-medium">{pct}% remaining</p>
+                <div className="mt-1 flex items-center justify-between">
+                  <p className="text-[9px] text-white/60 tabular-nums font-medium">{pct}% remaining</p>
+                  {total > 0 && (
+                    <p className="text-[9px] text-white/50 tabular-nums font-medium">{credits.toLocaleString()}<span className="opacity-60">/{total.toLocaleString()}</span></p>
+                  )}
+                </div>
               </button>
             );
           })()}
@@ -449,15 +553,35 @@ function ManageSidebarFooter() {
                           </span>
                         )}
                       </div>
+                      {credits !== null && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/70 px-2 py-0.5 text-[9px] font-bold text-amber-700">
+                            <LucideIcons.Coins className="size-2.5 shrink-0" />
+                            {credits.toLocaleString()} credits
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem className="rounded-xl">
-                  <LucideIcons.Bell />
-                  Notifications
+                <DropdownMenuItem className="rounded-xl" onClick={() => setNotifOpen(true)}>
+                  <div className="relative">
+                    <LucideIcons.Bell className="size-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-brand text-white text-[7px] font-bold">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span>Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center rounded-full bg-brand/10 text-brand text-[9px] font-bold min-w-[18px] h-4 px-1">
+                      {unreadCount}
+                    </span>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

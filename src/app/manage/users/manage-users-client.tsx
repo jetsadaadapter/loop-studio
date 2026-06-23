@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { getLocalizedText, getManageRouteMeta } from "@/app/manage/config";
 import { ManagerShell } from "@/components/manager-shell";
 import { useToast } from "@/components/toast-provider";
+import { useNotifications } from "@/components/notification-provider";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import type { ManageUserFormValues } from "@/core/validators/users.validator";
 import { adjustUserCredits, getManageUsers, getManageUsersResponse, updateManageUser } from "@/core/services/users.service";
@@ -33,6 +34,7 @@ export function ManageUsersClient({
 }: ManageUsersClientProps) {
   const pathname = usePathname();
   const { pushToast } = useToast();
+  const { push: pushNotif } = useNotifications();
   const routeMeta = useMemo(() => getManageRouteMeta(pathname), [pathname]);
   const pageTitle = useMemo(() => getLocalizedText(routeMeta.title), [routeMeta]);
   const pageSubtitle = useMemo(() => getLocalizedText(routeMeta.subtitle), [routeMeta]);
@@ -199,7 +201,9 @@ export function ManageUsersClient({
       );
 
       pushToast(`Saved changes for ${updated.firstName} successfully.`, "success");
+      pushNotif("User updated", { message: `${updated.firstName} ${updated.lastName} profile saved.`, type: "success" });
       setEditTarget(null);
+      void loadUsers({ silent: true });
     } catch {
       setSubmitError("Failed to update user. Please try again.");
       pushToast("Failed to update user console configuration.", "error");
@@ -216,7 +220,9 @@ export function ManageUsersClient({
       await adjustUserCredits(creditTarget.empid, amount, description);
       const label = amount > 0 ? `+${amount}` : String(amount);
       pushToast(`Credits adjusted (${label}) for ${creditTarget.firstName ?? creditTarget.email}.`, "success");
+      pushNotif("Credits adjusted", { message: `${label} credits for ${creditTarget.firstName ?? creditTarget.email} — ${description}`, type: amount > 0 ? "success" : "warning" });
       setCreditTarget(null);
+      void loadUsers({ silent: true });
     } catch {
       setCreditError("Failed to adjust credits. Please try again.");
     } finally {

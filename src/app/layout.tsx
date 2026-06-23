@@ -4,6 +4,7 @@ import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
+import { NotificationProvider } from "@/components/notification-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -119,11 +120,13 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <TooltipProvider>
-          <AlertDialogToastProvider>
-            <ToastProvider>
-              <main className="flex-1 flex flex-col">{children}</main>
-            </ToastProvider>
-          </AlertDialogToastProvider>
+          <NotificationProvider>
+            <AlertDialogToastProvider>
+              <ToastProvider>
+                <main className="flex-1 flex flex-col">{children}</main>
+              </ToastProvider>
+            </AlertDialogToastProvider>
+          </NotificationProvider>
         </TooltipProvider>
         <Toaster />
       </body>
