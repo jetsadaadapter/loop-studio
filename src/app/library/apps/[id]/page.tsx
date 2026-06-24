@@ -243,39 +243,39 @@ export default async function AppDetailPage({ params }: Props) {
                     components={{
                       h1: (props) => (
                         <h1
-                          className="text-xl sm:text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
+                          className="text-base font-bold text-slate-900 mt-5 mb-3 first:mt-0"
                           {...props}
                         />
                       ),
                       h2: (props) => (
                         <h2
-                          className="text-lg sm:text-xl font-bold text-slate-900 mt-5 mb-3"
+                          className="text-sm font-bold text-slate-900 mt-4 mb-2"
                           {...props}
                         />
                       ),
                       h3: (props) => (
                         <h3
-                          className="text-base sm:text-lg font-semibold text-slate-900 mt-4 mb-2"
+                          className="text-xs font-semibold text-slate-900 mt-3 mb-1.5 uppercase tracking-wide"
                           {...props}
                         />
                       ),
                       p: (props) => (
-                        <p className="text-slate-700 mb-3" {...props} />
+                        <p className="text-sm text-slate-700 mb-2.5 leading-relaxed" {...props} />
                       ),
                       ul: (props) => (
                         <ul
-                          className="list-disc list-inside text-slate-700 mb-3 space-y-1"
+                          className="list-disc list-inside text-sm text-slate-700 mb-2.5 space-y-1"
                           {...props}
                         />
                       ),
                       ol: (props) => (
                         <ol
-                          className="list-decimal list-inside text-slate-700 mb-3 space-y-1"
+                          className="list-decimal list-inside text-sm text-slate-700 mb-2.5 space-y-1"
                           {...props}
                         />
                       ),
                       li: (props) => (
-                        <li className="text-slate-700" {...props} />
+                        <li className="text-sm text-slate-700" {...props} />
                       ),
                       code: ({
                         className,
@@ -344,39 +344,39 @@ export default async function AppDetailPage({ params }: Props) {
                     components={{
                       h1: (props) => (
                         <h1
-                          className="text-xl sm:text-2xl font-bold text-slate-900 mt-6 mb-4 first:mt-0"
+                          className="text-base font-bold text-slate-900 mt-5 mb-3 first:mt-0"
                           {...props}
                         />
                       ),
                       h2: (props) => (
                         <h2
-                          className="text-lg sm:text-xl font-bold text-slate-900 mt-5 mb-3"
+                          className="text-sm font-bold text-slate-900 mt-4 mb-2"
                           {...props}
                         />
                       ),
                       h3: (props) => (
                         <h3
-                          className="text-base sm:text-lg font-semibold text-slate-900 mt-4 mb-2"
+                          className="text-xs font-semibold text-slate-900 mt-3 mb-1.5 uppercase tracking-wide"
                           {...props}
                         />
                       ),
                       p: (props) => (
-                        <p className="text-slate-700 mb-3" {...props} />
+                        <p className="text-sm text-slate-700 mb-2.5 leading-relaxed" {...props} />
                       ),
                       ul: (props) => (
                         <ul
-                          className="list-disc list-inside text-slate-700 mb-3 space-y-1"
+                          className="list-disc list-inside text-sm text-slate-700 mb-2.5 space-y-1"
                           {...props}
                         />
                       ),
                       ol: (props) => (
                         <ol
-                          className="list-decimal list-inside text-slate-700 mb-3 space-y-1"
+                          className="list-decimal list-inside text-sm text-slate-700 mb-2.5 space-y-1"
                           {...props}
                         />
                       ),
                       li: (props) => (
-                        <li className="text-slate-700" {...props} />
+                        <li className="text-sm text-slate-700" {...props} />
                       ),
                       code: ({
                         className,
