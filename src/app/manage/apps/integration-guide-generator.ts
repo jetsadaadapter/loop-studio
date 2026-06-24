@@ -1,7 +1,8 @@
 import type { ToolScript } from "@/core/interfaces/tools.interface";
 import type { ToolParam } from "@/core/interfaces/tool";
 
-const API_BASE = process.env.NEXT_PUBLIC_STORE_API_BASE_URL ?? "https://library-api.adapterdigital.com/api";
+// Always use production URL in generated guides — dev localhost must not leak into customer-facing docs
+const API_BASE = "https://library-api.adapterdigital.com/api";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
