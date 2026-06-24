@@ -24,6 +24,7 @@ import {
 import { useTagsAndCategories } from "./use-tags-and-categories";
 import { getManageTool } from "@/core/services/manage-tools.service";
 import { generateIntegrationGuide } from "../integration-guide-generator";
+import { getManageApiKeysResponse } from "@/core/services/keys.service";
 
 export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const router = useRouter();
@@ -281,8 +282,14 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
     setGenerateSuccess(false);
     setIsGeneratingIntegration(true);
     try {
-      const tool = await getManageTool(toolId);
-      const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? [], tool.params ?? []);
+      const [tool, keysResp] = await Promise.all([
+        getManageTool(toolId),
+        getManageApiKeysResponse(1, 10).catch(() => null),
+      ]);
+      const existingWebhookUrl = (keysResp as { data?: Array<{ isActive?: boolean; webhookUrl?: string }> } | null)
+        ?.data?.find((k) => k.isActive && k.webhookUrl?.trim())
+        ?.webhookUrl?.trim() ?? undefined;
+      const guide = generateIntegrationGuide(toolId, draft.name || tool.name, tool.scripts ?? [], tool.params ?? [], existingWebhookUrl);
       setDraft((prev) => ({ ...prev, integration: guide }));
       setGenerateSuccess(true);
     } catch {

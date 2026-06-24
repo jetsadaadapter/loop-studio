@@ -3,129 +3,237 @@ import type { ToolParam } from "@/core/interfaces/tool";
 
 const API_BASE = process.env.NEXT_PUBLIC_STORE_API_BASE_URL ?? "https://library-api.adapterdigital.com/api";
 
-// Detect if tool requires webhook (ExportComments pipeline)
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function requiresWebhook(scripts: ToolScript[]): boolean {
   return scripts.some((s) => s.plugin.toLowerCase().includes("exportcomments"));
 }
 
-// Map plugin name to human-readable label
 function pluginLabel(plugin: string): string {
   const map: Record<string, string> = {
     apify: "Apify Scraper",
-    gemini: "Gemini AI",
+    gemini: "Gemini AI Analyzer",
     "exportcomments-create": "Create an Export Job",
     "exportcomments-fetch": "Retrieve an Export Job",
   };
   return map[plugin.toLowerCase()] || plugin;
 }
 
-// Build pipeline table rows
-function buildPipelineTable(scripts: ToolScript[]): string {
-  const sorted = [...scripts].sort((a, b) => a.sortOrder - b.sortOrder);
-  const rows = sorted
-    .map((s, i) => `| ${i + 1} | ${s.label || pluginLabel(s.plugin)} | \`${s.plugin}\` |`)
-    .join("\n");
-  return `| # | Label | Plugin |\n|---|---|---|\n${rows}`;
+function pluginRole(plugin: string, index: number, total: number): string {
+  const p = plugin.toLowerCase();
+  if (p.includes("exportcomments-create") || p.includes("apify")) return "Fetch raw data from source";
+  if (p.includes("gemini") || p.includes("analyze") || p.includes("ai")) return "AI analysis / enrichment";
+  if (p.includes("exportcomments-fetch")) return "Retrieve export job results";
+  if (index === 0) return "Fetch / collect input data";
+  if (index === total - 1) return "Final processing step";
+  return "Intermediate processing";
 }
 
-// Delivery note
-function buildDeliveryNote(scripts: ToolScript[]): string {
-  if (requiresWebhook(scripts)) {
-    return `> ⚠️ This tool depends on an external callback from the ExportComments service. A \`webhookUrl\` must be configured on your API key or provided in the request body. Polling alone will not complete the run.`;
-  }
-  return `Both jobs are queued immediately on Step 1 and can run in parallel. You can poll or use a webhook.`;
-}
-
-// Build params table
+// Build params table with Constraints column
 function buildParamsTable(params: ToolParam[]): string {
   if (!params || params.length === 0) return "";
   const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
-  const rows = sorted
-    .map((p) => `| \`${p.key}\` | ${p.label} | \`${p.type}\` | ${p.required ? "**Required**" : "Optional"} | ${p.placeholder ?? p.defaultValue ?? "—"} |`)
-    .join("\n");
-  return `| Key | Label | Type | Required | Notes |\n|---|---|---|---|---|\n${rows}`;
+  const rows = sorted.map((p) => {
+    // Try to extract constraints from config or options
+    let constraints = "—";
+    if (p.options && Array.isArray(p.options) && p.options.length > 0) {
+      constraints = `One of: ${p.options.map((o) => `\`${String(o)}\``).join(", ")}`;
+    } else if (p.type === "url") {
+      constraints = "Full URL format only";
+    } else if (p.defaultValue) {
+      constraints = `Default: \`${p.defaultValue}\``;
+    } else if (p.placeholder) {
+      constraints = p.placeholder;
+    }
+    return `| \`${p.key}\` | ${p.label} | \`${p.type}\` | ${p.required ? "**Required**" : "Optional"} | ${constraints} |`;
+  }).join("\n");
+  return `| Key | Label | Type | Required | Constraints |\n|---|---|---|---|---|\n${rows}`;
 }
 
-// Build Step 1 request body from actual params
+// Build Step 1 JSON body — pure valid JSON, no comments
 function buildStep1Body(params: ToolParam[], needsWebhook: boolean): string {
   const inputFields: Record<string, unknown> = {};
   if (params && params.length > 0) {
     const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
     for (const p of sorted) {
       if (p.type === "url" || p.type === "array") {
-        inputFields[p.key] = p.required ? ["<paste-url-here>"] : [];
+        inputFields[p.key] = [`<${p.key}>`];
       } else if (p.type === "number") {
         inputFields[p.key] = p.defaultValue ? Number(p.defaultValue) : (p.required ? 0 : null);
       } else if (p.type === "boolean") {
         inputFields[p.key] = p.defaultValue === "true" ? true : false;
       } else {
-        inputFields[p.key] = p.defaultValue ?? `<${p.key}>`;
+        inputFields[p.key] = `<${p.key}>`;
       }
     }
   } else {
     inputFields["startUrls"] = ["<paste-url-here>"];
   }
-
   const body: Record<string, unknown> = { input: inputFields };
   if (needsWebhook) body["webhookUrl"] = "https://your-server.com/webhook/handler";
-
   return `\`\`\`json\n${JSON.stringify(body, null, 2)}\n\`\`\``;
 }
 
-// Build Node.js code example input object from params
+// Build Node.js input object
 function buildNodeJsInput(params: ToolParam[]): string {
-  if (!params || params.length === 0) {
-    return `{ startUrls: ['<paste-url-here>'] }`;
-  }
+  if (!params || params.length === 0) return `{ startUrls: ['<paste-url-here>'] }`;
   const sorted = [...params].sort((a, b) => a.sortOrder - b.sortOrder);
   const fields = sorted.map((p) => {
-    if (p.type === "url" || p.type === "array") {
-      return `      ${p.key}: ['<paste-url-here>']`;
-    } else if (p.type === "number") {
-      return `      ${p.key}: ${p.defaultValue ?? (p.required ? 0 : "null")}`;
-    } else if (p.type === "boolean") {
-      return `      ${p.key}: ${p.defaultValue === "true" ? "true" : "false"}`;
-    }
+    if (p.type === "url" || p.type === "array") return `      ${p.key}: ['<paste-url-here>']`;
+    if (p.type === "number") return `      ${p.key}: ${p.defaultValue ?? (p.required ? 0 : "null")}`;
+    if (p.type === "boolean") return `      ${p.key}: ${p.defaultValue === "true" ? "true" : "false"}`;
     return `      ${p.key}: '<${p.key}>'`;
   });
   return `{\n${fields.join(",\n")}\n    }`;
 }
+
+// Build pipeline section with flow diagram
+function buildPipelineSection(scripts: ToolScript[], jobScript?: ToolScript): string {
+  const sorted = [...scripts].sort((a, b) => a.sortOrder - b.sortOrder);
+  const total = sorted.length;
+
+  const rows = sorted.map((s, i) => {
+    const role = pluginRole(s.plugin, i, total);
+    const isActualFinal = i === total - 1;
+    // jobScript = exportcomments-fetch (if present) or jobs[0] — the intermediate data source
+    const isJobSource = jobScript ? s.plugin === jobScript.plugin : i === 0;
+    const note = isActualFinal
+      ? `✅ **Final \`resultId\`** — use this job's \`resultId\` for Phase 3`
+      : isJobSource
+        ? `🔑 **\`jobId\` source** — used for intermediate job detail`
+        : `→ output passed to Script ${i + 2}`;
+    return `| ${i + 1} | ${s.label || pluginLabel(s.plugin)} | \`${s.plugin}\` | ${role} | ${note} |`;
+  }).join("\n");
+
+  const table = `| # | Label | Plugin | Role | Notes |\n|---|---|---|---|---|\n${rows}`;
+
+  const diagramLines = sorted.map((s, i) => {
+    const label = s.label || pluginLabel(s.plugin);
+    const isActualFinal = i === total - 1;
+    return isActualFinal
+      ? `[Script ${i + 1}: ${label}]\n → ✅ FINAL resultId → GET /results/{resultId}/items`
+      : `[Script ${i + 1}: ${label}]\n → output →`;
+  }).join("\n");
+
+  return `${table}
+
+\`\`\`
+INPUT (params)
+     │
+     ▼
+${diagramLines}
+\`\`\``;
+}
+
+// Webhook section (only for webhook-required tools)
+function buildWebhookPhase(toolId: string, lastPlugin: string): string {
+  return `---
+
+## Phase 2b — WEBHOOK: Receive Completion Event
+
+When the pipeline finishes, the API fires a \`POST\` request to your \`webhookUrl\`:
+
+\`\`\`json
+{
+  "event": "run.completed",
+  "runId": "<runId>",
+  "toolId": "${toolId}",
+  "result": {
+    "resultId": "<resultId>",
+    "itemCount": 47
+  }
+}
+\`\`\`
+
+| Field | Description |
+|---|---|
+| \`event\` | Always \`"run.completed"\` on success |
+| \`runId\` | Matches the \`runId\` from Phase 1 |
+| \`result.resultId\` | Use this to fetch the final output in Phase 3 |
+| \`result.itemCount\` | Total number of processed items |
+
+> ✅ Respond with HTTP \`200\` immediately. The API retries on non-2xx or timeout.
+
+**Example webhook handler (Node.js / Express):**
+
+\`\`\`typescript
+app.post('/webhook/handler', (req, res) => {
+  const { event, runId, result } = req.body;
+  res.sendStatus(200); // acknowledge immediately
+  if (event === 'run.completed' && result?.resultId) {
+    handleCompletion(runId, result.resultId);
+  }
+});
+\`\`\`
+
+`;
+}
+
+// ── Main Generator ─────────────────────────────────────────────────────────────
 
 export function generateIntegrationGuide(
   toolId: string,
   appName: string,
   scripts: ToolScript[],
   params: ToolParam[] = [],
+  existingWebhookUrl?: string,
 ): string {
   const needsWebhook = requiresWebhook(scripts);
+  // If API key already has webhookUrl configured, don't ask them to add it in the body
+  const webhookAlreadyConfigured = needsWebhook && !!existingWebhookUrl;
   const sorted = [...scripts].sort((a, b) => a.sortOrder - b.sortOrder);
-  const delivery = needsWebhook ? "**Webhook required**" : "Polling **or** Webhook";
+  // exportcomments-create only triggers the export job — the actual data is produced by
+  // exportcomments-fetch (the next script). So the "effective final" output script is
+  // exportcomments-fetch when it follows exportcomments-create, not exportcomments-create itself.
+  const lastScript = sorted[sorted.length - 1]; // always last — holds final resultId
+  // jobScript: the job whose jobId is used to GET intermediate result detail
+  //   - exportcomments pipelines → exportcomments-fetch (has raw scraped data)
+  //   - apify / custom tools    → first job (index 0)
+  const jobScript = (() => {
+    const fetchScript = sorted.find((s) => s.plugin.toLowerCase() === "exportcomments-fetch");
+    if (fetchScript) return fetchScript;
+    return sorted[0]; // first job for apify / custom
+  })();
+  const jobScriptIndex = sorted.indexOf(jobScript);
   const paramsTable = buildParamsTable(params);
   const nodeJsInput = buildNodeJsInput(params);
+  const delivery = needsWebhook ? "**Webhook required**" : "Polling **or** Webhook";
+  const pollingNote = needsWebhook
+    ? `This is a **supplementary** check — the webhook (Phase 2b) is the authoritative signal for completion.`
+    : `Poll every **4 seconds** until all jobs are \`completed\` or \`failed\`.`;
+
+  const webhookBodyNote = webhookAlreadyConfigured
+    ? `> ✅ Your API key already has a Webhook URL configured (\`${existingWebhookUrl}\`). You do not need to include \`webhookUrl\` in the request body.`
+    : needsWebhook
+      ? `> ⚠️ \`webhookUrl\` is **required** in every request — the pipeline will not complete without a reachable webhook endpoint.`
+      : "";
 
   return `# ${appName} — API Integration Guide
 
 ## Overview
 
-The Adapter Library API lets you run AI-powered data tools programmatically. Each tool invocation creates a **run** containing one or more **jobs**. Results can be retrieved via polling or delivered automatically via webhook.
+The Adapter Library API lets you run AI-powered data tools programmatically. Each tool invocation creates a **run** containing one or more **jobs** (pipeline scripts). The flow ends when all scripts complete and a final \`resultId\` is available.
 
 **Base URL**
 \`\`\`
 ${API_BASE}
 \`\`\`
 
+**Terminal condition — flow is complete when:**
+\`\`\`
+event === "run.completed"  AND  result.resultId !== null
+\`\`\`
+
 ---
 
 ## Authentication
-
-All requests require two headers:
 
 | Header | Description |
 |---|---|
 | \`X-App-Id\` | Your application ID |
 | \`X-App-Secret\` | Your secret key |
 
-> **Security note:** Never expose your \`X-App-Secret\` in client-side code or public repositories. Store it as an environment variable on your server.
+> ⚠️ Never expose \`X-App-Secret\` in client-side code or repositories. Use environment variables.
 
 ---
 
@@ -135,32 +243,38 @@ All requests require two headers:
 |---|---|
 | Tool ID | \`${toolId}\` |
 | Delivery | ${delivery} |
+| Pipeline steps | ${sorted.length} script(s) |
 
-**Pipeline**
-
-${buildPipelineTable(scripts)}
-
-${buildDeliveryNote(scripts)}
-
-${paramsTable ? `---\n\n## Input Parameters\n\n${paramsTable}\n` : ""}
 ---
 
-## The 3-Step Flow
+## Pipeline Architecture
 
-### Step 1 — Run the Tool
+Each script in the pipeline runs **sequentially**. The output of each script becomes the input to the next. **Only the last script produces the final output.**
 
-\`\`\`
+${buildPipelineSection(scripts, jobScript)}
+
+${needsWebhook
+  ? `> ⚠️ This tool uses ExportComments which operates asynchronously. A \`webhookUrl\` **must** be provided in every request — the webhook fires when the pipeline completes. Polling the run status is optional and supplementary; the pipeline **will not reach completion** without a reachable webhook endpoint.`
+  : `> ✅ All jobs queue immediately on POST /run. Poll or use webhook to receive completion.`}
+
+${paramsTable ? `---\n\n## Input Parameters\n\n${paramsTable}\n` : ""}---
+
+## Phase 1 — INPUT: Run the Tool
+
+\`\`\`http
 POST ${API_BASE}/integrations/tools/${toolId}/run
 Content-Type: application/json
 X-App-Id: <your-app-id>
 X-App-Secret: <your-secret>
 \`\`\`
 
-**Body**
+**Request Body**
 
-${buildStep1Body(params, needsWebhook)}
+${buildStep1Body(params, needsWebhook && !webhookAlreadyConfigured)}
 
-**Response**
+${webhookBodyNote}
+
+**Response (200 OK)**
 
 \`\`\`json
 {
@@ -168,105 +282,136 @@ ${buildStep1Body(params, needsWebhook)}
   "data": {
     "toolId": "${toolId}",
     "runId": "<runId>",
-    "jobs": [${sorted.map((s) => `\n      { "jobId": "<jobId>", "plugin": "${s.plugin}" }`).join(",")}
+    "jobs": [${sorted.map((s, i) => `\n      { "jobId": "<jobId-${i + 1}>", "plugin": "${s.plugin}", "state": "queued" }`).join(",")}
     ]
   }
 }
 \`\`\`
 
-Save the \`runId\` — you will need it for Step 2.
+> Save \`runId\` — required for Phase 2. Also note: **\`jobs[${jobScriptIndex}]\`** (plugin: \`${jobScript?.plugin}\`) is used for intermediate job detail; **\`jobs[${sorted.length - 1}]\`** (plugin: \`${lastScript?.plugin}\`) holds the **final \`resultId\`**.
 
 ---
 
-### Step 2 — Get Jobs by Run ID
+## Phase 2 — PIPELINE: Monitor Job States
 
-\`\`\`
+${pollingNote}
+
+\`\`\`http
 GET ${API_BASE}/integrations/tools/${toolId}/runs/{runId}
 X-App-Id: <your-app-id>
 X-App-Secret: <your-secret>
 \`\`\`
 
-Poll every 3–5 seconds until all jobs are \`completed\` or \`failed\`.
-
 | State | Meaning |
 |---|---|
-| \`queued\` | Waiting to be picked up |
-| \`active\` | Currently processing |
-| \`waiting\` | Waiting for an upstream job |
-| \`completed\` | Finished — \`resultId\` is available |
-| \`failed\` | Error — check the \`error\` field |
+| \`queued\` | Waiting to start |
+| \`running\` | Currently processing |
+| \`waiting\` | Waiting for upstream script |
+| \`completed\` | Done — \`resultId\` available |
+| \`failed\` | Error — check \`error\` field |
 
----
+**Recommended polling config:**
+- Interval: every **4 seconds**
+- Max attempts: **150** (≈ 10 minutes total)
+- Timeout action: treat as failed and surface an error to the user
 
-### Step 3 — Get Result by Job ID
+> **Flow is complete** when **all** \`jobs[n].state === "completed"\`${needsWebhook ? ` and webhook fires \`event: "run.completed"\`` : ""}.
 
-\`\`\`
-GET ${API_BASE}/integrations/tools/${toolId}/jobs/{jobId}
-X-App-Id: <your-app-id>
-X-App-Secret: <your-secret>
-\`\`\`
+${needsWebhook ? buildWebhookPhase(toolId, lastScript?.plugin ?? "") : ""}---
 
----
+## Phase 3 — OUTPUT: Get Final Result
 
-## Paginated Items
+Use \`resultId\` from **\`jobs[${sorted.length - 1}]\`** (plugin: \`${lastScript?.plugin ?? "last-script"}\`, last job) set in Phase 2 to retrieve the final merged output.
 
-For large datasets, use \`resultId\` from Step 2:
-
-\`\`\`
+\`\`\`http
 GET ${API_BASE}/integrations/tools/results/{resultId}/items?page=1&limit=20
 X-App-Id: <your-app-id>
 X-App-Secret: <your-secret>
 \`\`\`
 
-| Query param | Default | Max |
-|---|---|---|
-| \`page\` | \`1\` | — |
-| \`limit\` | \`10\` | \`100\` |
+> ✅ This is the **final output** of the pipeline — the fully processed and merged result from all scripts.
+
+**Response**
+
+\`\`\`json
+{
+  "success": true,
+  "data": [],
+  "meta": { "total": 47, "page": 1, "limit": 20, "totalPages": 3 }
+}
+\`\`\`
 
 ---
 
-## Code Example (Node.js)
+## Optional — Get Paginated Items (Raw Data per Script)
+
+Use \`resultId\` from **any intermediate script** (not the last) to inspect raw data at that pipeline stage.
+
+\`\`\`http
+GET ${API_BASE}/integrations/tools/results/{resultId}/items?page=1&limit=20
+X-App-Id: <your-app-id>
+X-App-Secret: <your-secret>
+\`\`\`
+
+| Query param | Default | Max | Use for |
+|---|---|---|---|
+| \`page\` | \`1\` | — | Pagination |
+| \`limit\` | \`10\` | \`100\` | Items per page |
+
+> ℹ️ For the **final output**, use Phase 3 (GET job) instead. Paginated items are for inspecting intermediate script results only.
+
+---
+
+## Complete Node.js Example
 
 \`\`\`typescript
 const API_BASE = '${API_BASE}';
 const TOOL_ID  = '${toolId}';
-
-const headers = {
+const headers  = {
   'X-App-Id':     process.env.APP_ID!,
   'X-App-Secret': process.env.APP_SECRET!,
   'Content-Type': 'application/json',
 };
 
-// Step 1 — Run the tool
+// Phase 1 — Run the tool
 const runRes = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/run\`, {
   method: 'POST',
   headers,
   body: JSON.stringify({
-    input: ${nodeJsInput},${needsWebhook ? `\n    webhookUrl: 'https://your-server.com/webhook/handler',` : ""}
+    input: ${nodeJsInput},${needsWebhook && !webhookAlreadyConfigured ? `\n    webhookUrl: 'https://your-server.com/webhook/handler', // required` : webhookAlreadyConfigured ? `\n    // webhookUrl already configured on your API key (${existingWebhookUrl})` : ""}
   }),
 });
-const { data: { runId } } = await runRes.json();
+const { data: { runId, jobs } } = await runRes.json();
+// jobId = exportcomments-fetch (if present) or first job — for intermediate detail
+const jobScript = jobs.find((j: any) => j.plugin === 'exportcomments-fetch') || jobs[0];
+const jobId = jobScript?.jobId || jobScript?.id;
+// resultId = last job always — holds the final merged pipeline output
+const resultId = jobs[jobs.length - 1]?.resultId;
 
-// Step 2 — Poll until all jobs complete
+// Phase 2 — Poll${needsWebhook ? " (supplementary — webhook is authoritative)" : ""}
+const POLL_INTERVAL_MS = 4_000;
+const MAX_ATTEMPTS     = 150; // ~10 minutes
+
 async function waitForRun(runId: string) {
-  while (true) {
-    const res = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/runs/\${runId}\`, { headers });
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const res    = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/runs/\${runId}\`, { headers });
     const { data } = await res.json();
-    const allDone = data.jobs.every((j: any) =>
-      j.state === 'completed' || j.state === 'failed'
-    );
+    const allDone = data.jobs.every((j: any) => j.state === 'completed' || j.state === 'failed');
     if (allDone) return data.jobs;
-    await new Promise(r => setTimeout(r, 4000));
+    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
   }
+  throw new Error(\`Run \${runId} did not complete within the timeout period.\`);
 }
 const completedJobs = await waitForRun(runId);
 
-// Step 3 — Fetch results
-for (const job of completedJobs) {
-  if (job.state !== 'completed' || !job.jobId) continue;
-  const res = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/jobs/\${job.jobId}\`, { headers });
+// Phase 3 — Fetch final merged output using resultId from last job
+const lastJob = completedJobs[completedJobs.length - 1];
+if (lastJob?.state === 'completed' && resultId) {
+  const res    = await fetch(\`\${API_BASE}/integrations/tools/results/\${resultId}/items?page=1&limit=20\`, { headers });
   const result = await res.json();
-  console.log(\`[\${job.label}]\`, result);
+  console.log('Final output (' + result.meta?.total + ' items):', result.data);
+} else {
+  console.error('Pipeline failed or resultId missing. Last job:', lastJob?.plugin, lastJob?.state, lastJob?.error);
 }
 \`\`\`
 
@@ -274,12 +419,13 @@ for (const job of completedJobs) {
 
 ## Error Reference
 
-| HTTP Status | Meaning |
-|---|---|
-| \`401\` | Missing or invalid credentials |
-| \`403\` | Key inactive or resource not owned |
-| \`404\` | Tool, run, or job not found |
-| \`400\` | Invalid request body |
-| \`500\` | Internal server error |
+| HTTP Status | Meaning | Action |
+|---|---|---|
+| \`400\` | Invalid input or insufficient credits | Check request body / error message |
+| \`401\` | Missing or invalid credentials | Verify X-App-Id / X-App-Secret |
+| \`403\` | Key inactive or resource not owned | Contact admin |
+| \`404\` | Tool, run, or job not found | Verify toolId / runId / jobId |
+| \`429\` | Rate limit exceeded | Wait and retry with exponential backoff |
+| \`500\` | Internal server error | Retry or contact support |
 `;
 }

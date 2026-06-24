@@ -1,186 +1,254 @@
 # ADT Library API — Integration Guide
 
-เอกสารนี้อธิบายวิธีการเรียกใช้ Tool ผ่าน API Key และรับผลลัพธ์ผ่าน Webhook
+> **วัตถุประสงค์:** อธิบาย lifecycle ของการเรียกใช้ Tool ตั้งแต่ต้นจนจบ ครอบคลุม input, pipeline processing, และ output เพื่อให้ทั้งนักพัฒนาและ AI Agent เข้าใจ flow ได้อย่างสมบูรณ์
+
+---
+
+## สถาปัตยกรรมภาพรวม (Architecture Overview)
+
+ADT Library Tool ทำงานเป็น **asynchronous pipeline** ประกอบด้วย 3 phase:
+
+```
+[Phase 1] INPUT          [Phase 2] PIPELINE               [Phase 3] OUTPUT
+───────────────          ────────────────────────────     ────────────────
+Client ส่ง params  →     Script 1 (e.g. exportcomments) → GET /results
+via POST /run            Script 2 (e.g. gemini-analyze)   /{resultId}/items
+                         Script N ...
+                         → FINAL resultId = last job
+```
+
+**กฎสำคัญ:**
+- Scripts ทำงาน **ตามลำดับ** — output ของ script ก่อนหน้าเป็น input ของ script ถัดไป
+- **`resultId`** ที่ใช้ดึงผลลัพธ์ขั้นสุดท้าย = **`jobs[last].resultId`** เสมอ
+- **`jobId`** ที่ใช้ดู intermediate detail = `exportcomments-fetch` (ถ้ามี) หรือ `jobs[0]`
+- Flow **จบ** เมื่อ Webhook ส่ง `event: "run.completed"` และ `result.resultId` มีค่า
+
+**Terminal condition — flow is complete when:**
+```
+event === "run.completed"  AND  result.resultId !== null
+```
 
 ---
 
 ## Authentication
 
-ทุก Request ต้องส่ง Header ดังนี้:
+ทุก Request ต้องส่ง Header:
 
 | Header | Description |
 |--------|-------------|
-| `X-App-Id` | App ID ที่ได้รับจาก Developer |
+| `X-App-Id` | App ID ที่ได้รับจากหน้า API Keys |
 | `X-App-Secret` | Secret Key สำหรับยืนยันตัวตน |
 | `Content-Type` | `application/json` |
 
-**ตัวอย่าง Header:**
-
-```
-X-App-Id: app_01ktqt92zh947r0d96p09w2ssh
-X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g
-Content-Type: application/json
-```
-
-> ⚠️ **อย่าเปิดเผย `X-App-Secret`** ต่อสาธารณะหรือ commit ลง Source Code โดยตรง
+> ⚠️ **อย่าเปิดเผย `X-App-Secret`** ต่อสาธารณะหรือ commit ลง source code
 
 ---
 
-## Step 1 — Run Tool
+## Phase 1 — INPUT: Run Tool
 
-ส่ง Request เพื่อเริ่มประมวลผล Tool ที่ต้องการ
-
-**Endpoint:**
+### Endpoint
 
 ```
-POST {{api}}/integrations/tools/{toolId}/run
+POST /integrations/tools/{toolId}/run
 ```
 
-- `{toolId}` คือ Tool ID ที่ได้รับจาก Developer เช่น `01KTV6RCYVTJMVTY37M5WQRY5T`
-
-**Request Body:**
+### Request Body
 
 ```json
 {
   "input": {
-    "postUrl": ["https://www.facebook.com/Wongnai/posts/1406554364840112/"],
-    "limit": 10,
-    "replies": false
+    "startUrls": ["https://www.facebook.com/example/posts/123456789"]
+  },
+  "webhookUrl": "https://your-server.com/webhook/handler"
+}
+```
+
+> **หมายเหตุ:** `webhookUrl` จำเป็นสำหรับ Tool ที่ใช้ ExportComments pipeline — ถ้า API Key มี webhookUrl อยู่แล้วไม่ต้องใส่ซ้ำ
+
+### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    "toolId": "<toolId>",
+    "runId": "<runId>",
+    "jobs": [
+      { "jobId": "<jobId-1>", "plugin": "exportcomments-create", "state": "queued" },
+      { "jobId": "<jobId-2>", "plugin": "exportcomments-fetch",  "state": "queued" },
+      { "jobId": "<jobId-3>", "plugin": "gemini",                "state": "queued" }
+    ]
   }
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `postUrl` | `string[]` | รายการ URL ที่ต้องการดึงข้อมูล |
-| `limit` | `number` | จำนวน Comment สูงสุดที่ต้องการ |
-| `replies` | `boolean` | ดึง Reply Comments ด้วยหรือไม่ |
+**บันทึกค่าไว้:**
+- `runId` — ใช้ใน Phase 2
+- `jobs[last].jobId` — last job = final resultId source
+- `jobs[index of exportcomments-fetch].jobId` หรือ `jobs[0].jobId` — jobId สำหรับดู intermediate detail
 
-**ตัวอย่าง cURL:**
+---
 
-```bash
-curl -X POST "{{api}}/integrations/tools/01KTV6RCYVTJMVTY37M5WQRY5T/run" \
-  -H "X-App-Id: app_01ktqt92zh947r0d96p09w2ssh" \
-  -H "X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": {
-      "postUrl": ["https://www.facebook.com/Wongnai/posts/1406554364840112/"],
-      "limit": 10,
-      "replies": false
-    }
-  }'
+## Phase 2 — PIPELINE: Monitor Job States
+
+```http
+GET /integrations/tools/{toolId}/runs/{runId}
+```
+
+Poll ทุก **4 วินาที** จนกว่าทุก job จะเป็น `completed` หรือ `failed` (แนะนำ max 150 ครั้ง ≈ 10 นาที)
+
+| State | ความหมาย |
+|-------|----------|
+| `queued` | รอคิว |
+| `running` | กำลังประมวลผล |
+| `waiting` | รอ upstream script |
+| `completed` | เสร็จ — `resultId` พร้อมใช้ |
+| `failed` | เกิด error — ตรวจ `error` field |
+
+**การ assign variables จาก Phase 2 response:**
+
+```
+jobId              = exportcomments-fetch.jobId  (ถ้ามี)
+                   = jobs[0].jobId               (apify / custom tool)
+
+resultId           = jobs[last].resultId         (final output เสมอ)
+
+intermediateResultId = exportcomments-fetch.resultId  (ถ้ามี)
+                     = jobs[0].resultId               (apify / custom tool)
 ```
 
 ---
 
-## Step 2 — รับผลลัพธ์ผ่าน Webhook
+## Phase 2b — WEBHOOK: Receive Completion (webhook tools only)
 
-เมื่อ Tool ประมวลผลเสร็จ ระบบจะส่ง HTTP POST ไปยัง Webhook URL ที่ลงทะเบียนไว้ พร้อม Payload ดังนี้:
+เมื่อ pipeline เสร็จ ระบบส่ง POST ไปยัง webhookUrl:
 
 ```json
 {
   "event": "run.completed",
-  "runId": "01KTV87B391GNYGCGKEGB18BB8",
-  "toolId": "01KTV6RCYVTJMVTY37M5WQRY5T",
-  "appId": null,
-  "completedAt": "2026-06-11T11:49:24.345Z",
+  "runId": "<runId>",
+  "toolId": "<toolId>",
   "result": {
-    "resultId": "6a2aa0c4b09302eaffe658af",
-    "resultUrl": "https://library-api.adapterdigital.com/api//integrations/tools/results/6a2aa0c4b09302eaffe658af/items"
-  },
-  "jobs": [
-    {
-      "jobId": "93aa0f4c-c30a-49ff-939a-d4182265ab1b",
-      "plugin": "exportcomments-fetch",
-      "state": "completed",
-      "resultId": "6a2aa0c4b09302eaffe658af",
-      "resultUrl": "https://library-api.adapterdigital.com/api//integrations/tools/results/6a2aa0c4b09302eaffe658af/items"
-    },
-    {
-      "jobId": "01KTV87B3903DE7WFEYRTCC3HJ",
-      "plugin": "exportcomments-create",
-      "state": "completed",
-      "resultId": "6a2aa0afb09302eaffe658ad",
-      "resultUrl": "https://library-api.adapterdigital.com/api//integrations/tools/results/6a2aa0afb09302eaffe658ad/items"
-    }
-  ]
+    "resultId": "<resultId>",
+    "itemCount": 47
+  }
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `event` | ประเภทของ Event (`run.completed` = ประมวลผลเสร็จ) |
-| `runId` | ID ของ Run นี้ |
-| `toolId` | ID ของ Tool ที่ถูกเรียก |
-| `completedAt` | เวลาที่ประมวลผลเสร็จ (ISO 8601) |
-| `result.resultId` | ID ของผลลัพธ์หลัก |
-| `result.resultUrl` | URL สำหรับดึงข้อมูลผลลัพธ์ |
-| `jobs` | รายการ Job ย่อยแต่ละตัวพร้อม State และ Result URL |
+> ✅ ตอบกลับ HTTP `200` ทันที — API จะ retry ถ้าไม่ได้รับ 2xx
 
 ---
 
-## Step 3 — ดึงข้อมูลผลลัพธ์
+## Phase 3 — OUTPUT: Get Final Result
 
-ใช้ `resultUrl` จาก Webhook Payload เพื่อดึงข้อมูลผ่าน API พร้อม Header เดิม
-
-**Endpoint:**
+ใช้ **`resultId`** จาก `jobs[last]` (Phase 2) เพื่อดึงผลลัพธ์ขั้นสุดท้าย:
 
 ```
-GET {{api}}/integrations/tools/results/{resultId}/items?page=1&limit=10
+GET /integrations/tools/results/{resultId}/items?page=1&limit=20
 ```
 
-**ตัวอย่าง:**
+> ✅ นี่คือ **final output** ของ pipeline — ผลรวมจากทุก script
 
-```bash
-curl "https://library-api.adapterdigital.com/api//integrations/tools/results/6a2aa0c4b09302eaffe658af/items?page=1&limit=10" \
-  -H "X-App-Id: app_01ktqt92zh947r0d96p09w2ssh" \
-  -H "X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g"
+### Response
+
+```json
+{
+  "success": true,
+  "data": [],
+  "meta": {
+    "total": 47,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 3
+  }
+}
 ```
 
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | `number` | `1` | หน้าที่ต้องการ |
-| `limit` | `number` | `10` | จำนวนรายการต่อหน้า |
+| Parameter | Type | Default | Max |
+|-----------|------|---------|-----|
+| `page` | `number` | `1` | — |
+| `limit` | `number` | `10` | `100` |
 
 ---
 
-## Flow Overview
+## Optional — Get Paginated Items (Intermediate Script)
+
+ใช้ **`intermediateResultId`** เพื่อดู raw data ของ script ก่อน final:
 
 ```
-Client                        ADT Library API              Webhook Endpoint
-  │                                  │                            │
-  │── POST /tools/{toolId}/run ─────>│                            │
-  │                                  │  (ประมวลผล async)          │
-  │<─ 200 OK (runId) ───────────────│                            │
-  │                                  │                            │
-  │                                  │── POST webhook payload ──>│
-  │                                  │                            │
-  │<─────────────────────────────────────── resultUrl ──────────│
-  │                                  │                            │
-  │── GET /results/{resultId}/items >│                            │
-  │<─ 200 OK (items) ───────────────│                            │
+GET /integrations/tools/results/{intermediateResultId}/items?page=1&limit=20
+```
+
+> ℹ️ ใช้เพื่อ debug หรือดู raw data ของ script ย่อย — **ไม่ใช่** final output
+
+---
+
+## Pipeline ตัวอย่าง: ExportComments + Gemini (3 Scripts)
+
+```
+INPUT (startUrls)
+     │
+     ▼
+[Script 1: exportcomments-create]
+ → สร้าง export job ใน ExportComments
+ → output → ecGuid, jsonUrl
+     │
+     ▼
+[Script 2: exportcomments-fetch]  ← 🔑 jobId source (intermediate detail)
+ → ดึงข้อมูล comments จาก export job
+ → output → รายการ comments (raw data)
+     │
+     ▼
+[Script 3: gemini]  ← ✅ FINAL resultId → GET /results/{resultId}/items
+ → วิเคราะห์ sentiment ด้วย AI
+ → output → ผลการวิเคราะห์ per comment
 ```
 
 ---
 
-## Error Handling
+## Complete Flow Diagram
 
-| HTTP Status | ความหมาย |
-|-------------|----------|
-| `200` | สำเร็จ |
-| `401` | ไม่มี Header หรือ Credentials ไม่ถูกต้อง |
-| `403` | ไม่มีสิทธิ์เข้าถึง Tool นี้ |
-| `404` | ไม่พบ Tool หรือ Result ที่ระบุ |
-| `429` | เกิน Rate Limit |
-| `500` | เกิดข้อผิดพลาดภายในระบบ |
+```
+CLIENT                    ADT LIBRARY API               WEBHOOK ENDPOINT
+  │                              │                              │
+  │  POST /tools/{id}/run ──────>│                              │
+  │<── 200 { runId, jobs[] } ───│                              │
+  │                              │ Script 1: [queued→completed] │
+  │                              │ Script 2: [queued→completed] │
+  │                              │ Script 3: [queued→completed] │
+  │                              │ → FINAL jobs[last].resultId  │
+  │                              │── POST webhook payload ─────>│
+  │                              │   { event:"run.completed",   │
+  │                              │     result.resultId }        │
+  │  GET /results/{resultId}     │                              │
+  │  /items?page=1&limit=20 ────>│                              │
+  │<── 200 { data: [...] } ─────│                              │
+  │                              │                              │
+[END]                          [END]                          [END]
+```
 
 ---
 
-## Notes
+## Error Reference
 
-- ผลลัพธ์ของแต่ละ Job (`jobs[].resultUrl`) อาจแตกต่างกัน ขึ้นอยู่กับ Plugin ที่ใช้
-- `result.resultUrl` คือผลลัพธ์รวมหลัก ใช้ URL นี้เพื่อดึงข้อมูลสุดท้าย
-- Webhook จะถูก Retry อัตโนมัติหาก Endpoint ไม่ตอบสนองภายในเวลาที่กำหนด
+| HTTP Status | ความหมาย | วิธีจัดการ |
+|-------------|----------|----------|
+| `200` | สำเร็จ | ดำเนินการต่อ |
+| `400` | Input ไม่ถูกต้อง / credit ไม่พอ | ตรวจ error message |
+| `401` | Credentials ไม่ถูกต้อง | ตรวจ X-App-Id / X-App-Secret |
+| `403` | ไม่มีสิทธิ์เข้าถึง Tool | ติดต่อ Admin |
+| `404` | ไม่พบ Tool หรือ Result | ตรวจ toolId / resultId |
+| `429` | เกิน Rate Limit | รอแล้ว retry with exponential backoff |
+| `500` | ระบบมีปัญหา | retry หรือติดต่อ support |
+
+---
+
+## Notes สำหรับ AI Agent
+
+1. **ก่อน POST /run** — ตรวจว่า Tool มี params อะไรบ้าง (required/optional) และ map input ให้ตรง key
+2. **หลัง POST /run** — เก็บ `runId` และ `jobs[]` ไว้
+3. **Phase 2** — poll GET /runs/{runId} จนทุก job = `completed`
+4. **`resultId`** = `jobs[last].resultId` — ใช้สำหรับ final output เสมอ
+5. **`jobId`** = `exportcomments-fetch.jobId` หรือ `jobs[0].jobId` — ใช้สำหรับ intermediate detail เท่านั้น
+6. **Flow จบที่:** `GET /results/{resultId}/items` ได้ `data[]` — นี่คือ output สุดท้าย
+7. **Webhook tools:** รอ `event: "run.completed"` ก่อน Phase 3

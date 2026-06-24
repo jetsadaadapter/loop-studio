@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Copy, Download, BookOpen, Box, X } from "lucide-react";
 import { downloadPostmanCollection } from "./postman-generator";
 import { getManageTool } from "@/core/services/manage-tools.service";
+import { getManageApiKeysResponse } from "@/core/services/keys.service";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -81,11 +82,23 @@ export function IntegrationPreviewDialog({
     if (!toolId) return;
     setIsDownloadingPostman(true);
     try {
-      const tool = await getManageTool(toolId);
-      downloadPostmanCollection(toolId, appName, tool.params ?? [], tool.scripts ?? [], {
-        appId: postmanAppId.trim(),
-        appSecret: postmanAppSecret.trim(),
-      });
+      const [tool, keysResp] = await Promise.all([
+        getManageTool(toolId),
+        getManageApiKeysResponse(1, 10).catch(() => null),
+      ]);
+      // Find first active API key that has a webhookUrl already configured
+      const existingWebhookUrl = keysResp?.data
+        ?.find((k) => k.isActive && k.webhookUrl?.trim())
+        ?.webhookUrl?.trim() ?? undefined;
+
+      downloadPostmanCollection(
+        toolId,
+        appName,
+        tool.params ?? [],
+        tool.scripts ?? [],
+        { appId: postmanAppId.trim(), appSecret: postmanAppSecret.trim() },
+        existingWebhookUrl,
+      );
       setShowApiKeyForm(false);
     } catch {
       toast.error("Failed to fetch tool data for Postman collection.");

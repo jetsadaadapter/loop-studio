@@ -85,10 +85,15 @@ export function generatePostmanCollection(
   appName: string,
   params: ToolParam[] = [],
   scripts: ToolScript[] = [],
+  credentials?: { appId: string; appSecret: string },
+  existingWebhookUrl?: string,
 ): PostmanCollection {
   const needsWebhook = requiresWebhook(scripts);
   const inputBody: Record<string, unknown> = { input: buildInputFromParams(params) };
-  if (needsWebhook) inputBody["webhookUrl"] = "https://your-server.com/webhook/handler";
+  // Only include webhookUrl if the tool requires it AND the API key doesn't already have one configured
+  if (needsWebhook && !existingWebhookUrl) {
+    inputBody["webhookUrl"] = "https://your-server.com/webhook/handler";
+  }
 
   const items: PostmanItem[] = [
     {
@@ -139,23 +144,42 @@ export function generatePostmanCollection(
               "const res = pm.response.json();",
               "const jobs = res?.data?.jobs || res?.data || [];",
               "const jobArr = Array.isArray(jobs) ? jobs : [jobs];",
-              "// jobId = last job (most recently started)",
-              "const lastJob = jobArr[jobArr.length - 1];",
-              "const jobId = lastJob?.jobId || lastJob?.id;",
+              "if (!jobArr.length) { console.warn('⚠️ No jobs in response'); return; }",
+              "",
+              "// ── jobId (for Step 3 final result) ──────────────────────────────",
+              "// If pipeline has exportcomments-fetch → use its jobId (actual data source).",
+              "// Otherwise → use first job (index 0, typically apify or custom tool).",
+              "const fetchJob = jobArr.find(function(j) { return j.plugin === 'exportcomments-fetch'; });",
+              "const jobForId = fetchJob || jobArr[0];",
+              "const jobId = jobForId?.jobId || jobForId?.id;",
               "if (jobId) {",
               "  pm.collectionVariables.set('jobId', jobId);",
-              "  console.log('✅ jobId set (last job):', jobId);",
+              "  console.log('✅ jobId set (' + jobForId.plugin + '):', jobId);",
               "} else {",
-              "  console.warn('⏳ jobId not set yet — jobs may still be running (e.g. Export Comments). Please send Step 2 again until state = completed.');",
+              "  console.warn('⏳ jobId not ready yet. Resend Step 2 until all jobs = completed.');",
               "}",
-              "// resultId = first job (earliest, most likely completed)",
-              "const firstJob = jobArr[0];",
-              "const resultId = firstJob?.resultId || firstJob?.result?.id;",
+              "",
+              "// ── resultId (for Step 3 and final paginated fetch) ──────────────",
+              "// Always use the LAST job's resultId — it holds the final merged pipeline output.",
+              "const lastJob = jobArr[jobArr.length - 1];",
+              "const resultId = lastJob?.resultId || lastJob?.result?.id;",
               "if (resultId) {",
               "  pm.collectionVariables.set('resultId', resultId);",
-              "  console.log('✅ resultId set (first job):', resultId);",
+              "  console.log('✅ resultId set (last job: ' + lastJob.plugin + '):', resultId);",
               "} else {",
-              "  console.warn('⚠️ resultId not found in first job', JSON.stringify(firstJob));",
+              "  console.warn('⚠️ resultId not found in last job. State: ' + lastJob?.state, JSON.stringify(lastJob));",
+              "}",
+              "",
+              "// ── intermediateResultId (for Optional — Intermediate paginated view) ──",
+              "// Case 1: exportcomments-fetch present → use its own resultId (raw scraped data)",
+              "// Case 2: apify or other → use jobs[0].resultId (first job output)",
+              "const intermediateJob = jobArr.find(function(j) { return j.plugin === 'exportcomments-fetch'; }) || jobArr[0];",
+              "const intermediateResultId = intermediateJob?.resultId || intermediateJob?.result?.id;",
+              "if (intermediateResultId) {",
+              "  pm.collectionVariables.set('intermediateResultId', intermediateResultId);",
+              "  console.log('✅ intermediateResultId set (' + intermediateJob.plugin + '):', intermediateResultId);",
+              "} else {",
+              "  console.warn('⚠️ intermediateResultId not found for job:', intermediateJob?.plugin);",
               "}",
             ],
           },
@@ -163,11 +187,12 @@ export function generatePostmanCollection(
       ],
     },
     {
-      name: "Step 3 — Get Result by Job ID",
+      name: "Step 3 — Get Final Result (Paginated)",
+      description: "Fetches the final pipeline output using {{resultId}} from Step 2 (last job's resultId).\nThis is the definitive merged output of the entire pipeline.",
       request: {
         method: "GET",
         header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/{{TOOL_ID}}/jobs/{{jobId}}`),
+        url: buildUrl(`/integrations/tools/results/{{resultId}}/items?page=1&limit=20`),
       },
       event: [
         {
@@ -176,24 +201,20 @@ export function generatePostmanCollection(
             type: "text/javascript",
             exec: [
               "const res = pm.response.json();",
-              "const resultId = res?.data?.resultId || res?.data?.result?.id || res?.data?.id;",
-              "if (resultId) {",
-              "  pm.collectionVariables.set('resultId', resultId);",
-              "  console.log('✅ resultId set:', resultId);",
-              "} else {",
-              "  console.warn('⚠️ resultId not found in response', JSON.stringify(res));",
-              "}",
+              "const total = res?.meta?.total ?? res?.data?.length ?? '?';",
+              "console.log('✅ Final result — total items:', total);",
             ],
           },
         },
       ],
     },
     {
-      name: "Get Paginated Items",
+      name: "Optional — Get Paginated Items (Intermediate Script)",
+      description: "Use this to inspect raw data from an intermediate pipeline step.\nReplace {{intermediateResultId}} with the resultId of any non-final job from Step 2.\n\nDo NOT use {{resultId}} here — that holds the final output.",
       request: {
         method: "GET",
         header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/results/{{resultId}}/items?page=1&limit=20`),
+        url: buildUrl(`/integrations/tools/results/{{intermediateResultId}}/items?page=1&limit=20`),
       },
     },
   ];
@@ -212,12 +233,13 @@ export function generatePostmanCollection(
       { key: "runId", value: "", type: "string" },
       { key: "jobId", value: "", type: "string" },
       { key: "resultId", value: "", type: "string" },
+      { key: "intermediateResultId", value: "", type: "string" },
     ],
   };
 }
 
-export function downloadPostmanCollection(toolId: string, appName: string, params: ToolParam[] = [], scripts: ToolScript[] = [], credentials?: { appId: string; appSecret: string }) {
-  const collection = generatePostmanCollection(toolId, appName, params, scripts);
+export function downloadPostmanCollection(toolId: string, appName: string, params: ToolParam[] = [], scripts: ToolScript[] = [], credentials?: { appId: string; appSecret: string }, existingWebhookUrl?: string) {
+  const collection = generatePostmanCollection(toolId, appName, params, scripts, credentials, existingWebhookUrl);
   if (credentials) {
     const appIdVar = collection.variable.find((v) => v.key === "APP_ID");
     const appSecretVar = collection.variable.find((v) => v.key === "APP_SECRET");
