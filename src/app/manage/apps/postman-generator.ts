@@ -96,6 +96,7 @@ export function generatePostmanCollection(
   }
 
   const items: PostmanItem[] = [
+    // ── Step 1: Run Tool ──────────────────────────────────────────────────────
     {
       name: "Step 1 — Run Tool",
       request: {
@@ -115,21 +116,22 @@ export function generatePostmanCollection(
             type: "text/javascript",
             exec: [
               "const res = pm.response.json();",
-              "const runId = res?.data?.id || res?.data?.runId || res?.id || res?.runId;",
+              "const runId = res?.data?.runId || res?.data?.id || res?.runId;",
               "if (runId) {",
               "  pm.collectionVariables.set('runId', runId);",
-              "  console.log('✅ runId set:', runId);",
+              "  console.log('✅ runId:', runId);",
               "} else {",
-              "  console.warn('⚠️ runId not found in response', JSON.stringify(res));",
+              "  console.warn('⚠️ runId not found', JSON.stringify(res));",
               "}",
             ],
           },
         },
       ],
     },
+    // ── Step 2: Get Jobs by Run ID ────────────────────────────────────────────
     {
       name: "Step 2 — Get Jobs by Run ID",
-      description: "⏳ NOTE: If jobId is not set after sending, it means the pipeline (e.g. Export Comments) has not finished yet.\nPlease wait a moment and click Send again until the job state becomes 'completed'.\nOnly then will jobId and resultId be available for the next steps.",
+      description: "Poll this until all jobs state = 'completed'.\n\nSets jobId = last job's jobId (final output).\nAlso sets intermediateJobId = exportcomments-fetch.jobId (if present) or jobs[0].jobId.",
       request: {
         method: "GET",
         header: AUTH_HEADERS,
@@ -146,49 +148,68 @@ export function generatePostmanCollection(
               "const jobArr = Array.isArray(jobs) ? jobs : [jobs];",
               "if (!jobArr.length) { console.warn('⚠️ No jobs in response'); return; }",
               "",
-              "// ── jobId (for Step 3 final result) ──────────────────────────────",
-              "// If pipeline has exportcomments-fetch → use its jobId (actual data source).",
-              "// Otherwise → use first job (index 0, typically apify or custom tool).",
-              "const fetchJob = jobArr.find(function(j) { return j.plugin === 'exportcomments-fetch'; });",
-              "const jobForId = fetchJob || jobArr[0];",
-              "const jobId = jobForId?.jobId || jobForId?.id;",
+              "const allDone = jobArr.every(function(j) { return j.state === 'completed' || j.state === 'failed'; });",
+              "if (!allDone) { console.warn('⏳ Jobs still running — resend until all states = completed.'); }",
+              "",
+              "// jobId = last job (used in Step 3)",
+              "const lastJob = jobArr[jobArr.length - 1];",
+              "const jobId = lastJob?.jobId || lastJob?.id;",
               "if (jobId) {",
               "  pm.collectionVariables.set('jobId', jobId);",
-              "  console.log('✅ jobId set (' + jobForId.plugin + '):', jobId);",
+              "  console.log('✅ jobId (last: ' + lastJob.plugin + '):', jobId);",
               "} else {",
-              "  console.warn('⏳ jobId not ready yet. Resend Step 2 until all jobs = completed.');",
+              "  console.warn('⚠️ jobId not found');",
               "}",
               "",
-              "// ── resultId (for Step 3 and final paginated fetch) ──────────────",
-              "// Always use the LAST job's resultId — it holds the final merged pipeline output.",
-              "const lastJob = jobArr[jobArr.length - 1];",
-              "const resultId = lastJob?.resultId || lastJob?.result?.id;",
+              "// resultId — 2 cases:",
+              "// Case 1: exportcomments-fetch present → use its resultId (raw scraped data for paginating)",
+              "// Case 2: no exportcomments-fetch → use first job's resultId (jobs[0])",
+              "const fetchJob = jobArr.find(function(j) { return j.plugin === 'exportcomments-fetch'; });",
+              "const resultSource = fetchJob || jobArr[0];",
+              "const resultId = resultSource?.resultId || resultSource?.result?.id;",
               "if (resultId) {",
               "  pm.collectionVariables.set('resultId', resultId);",
-              "  console.log('✅ resultId set (last job: ' + lastJob.plugin + '):', resultId);",
+              "  console.log('✅ resultId (' + resultSource.plugin + '):', resultId);",
               "} else {",
-              "  console.warn('⚠️ resultId not found in last job. State: ' + lastJob?.state, JSON.stringify(lastJob));",
-              "}",
-              "",
-              "// ── intermediateResultId (for Optional — Intermediate paginated view) ──",
-              "// Case 1: exportcomments-fetch present → use its own resultId (raw scraped data)",
-              "// Case 2: apify or other → use jobs[0].resultId (first job output)",
-              "const intermediateJob = jobArr.find(function(j) { return j.plugin === 'exportcomments-fetch'; }) || jobArr[0];",
-              "const intermediateResultId = intermediateJob?.resultId || intermediateJob?.result?.id;",
-              "if (intermediateResultId) {",
-              "  pm.collectionVariables.set('intermediateResultId', intermediateResultId);",
-              "  console.log('✅ intermediateResultId set (' + intermediateJob.plugin + '):', intermediateResultId);",
-              "} else {",
-              "  console.warn('⚠️ intermediateResultId not found for job:', intermediateJob?.plugin);",
+              "  console.warn('⚠️ resultId not found in ' + resultSource?.plugin + '. State: ' + resultSource?.state);",
               "}",
             ],
           },
         },
       ],
     },
+    // ── Step 3: Get Results by Job ID ─────────────────────────────────────────
     {
-      name: "Step 3 — Get Final Result (Paginated)",
-      description: "Fetches the final pipeline output using {{resultId}} from Step 2 (last job's resultId).\nThis is the definitive merged output of the entire pipeline.",
+      name: "Step 3 — Get Results by Job ID",
+      description: "Uses {{jobId}} (last job) to get the final job result.\nSets {{resultId}} from the response for Step 4.",
+      request: {
+        method: "GET",
+        header: AUTH_HEADERS,
+        url: buildUrl(`/integrations/tools/{{TOOL_ID}}/jobs/{{jobId}}`),
+      },
+      event: [
+        {
+          listen: "test",
+          script: {
+            type: "text/javascript",
+            exec: [
+              "const res = pm.response.json();",
+              "const resultId = res?.data?.resultId || res?.data?.result?.id;",
+              "if (resultId) {",
+              "  pm.collectionVariables.set('resultId', resultId);",
+              "  console.log('✅ resultId:', resultId, '| state:', res?.data?.state);",
+              "} else {",
+              "  console.warn('⚠️ resultId not found. Job state:', res?.data?.state);",
+              "}",
+            ],
+          },
+        },
+      ],
+    },
+    // ── Step 4: Get Paginated Items ───────────────────────────────────────────
+    {
+      name: "Optional — Get Paginated Items",
+      description: "Uses {{resultId}} set in Step 2 to fetch paginated output.\n• exportcomments pipeline: resultId = exportcomments-fetch job's resultId (raw scraped data)\n• Other pipelines: resultId = last job's resultId (final output)",
       request: {
         method: "GET",
         header: AUTH_HEADERS,
@@ -202,26 +223,17 @@ export function generatePostmanCollection(
             exec: [
               "const res = pm.response.json();",
               "const total = res?.meta?.total ?? res?.data?.length ?? '?';",
-              "console.log('✅ Final result — total items:', total);",
+              "console.log('✅ Items total:', total, '| page:', res?.meta?.page);",
             ],
           },
         },
       ],
     },
-    {
-      name: "Optional — Get Paginated Items (Intermediate Script)",
-      description: "Use this to inspect raw data from an intermediate pipeline step.\nReplace {{intermediateResultId}} with the resultId of any non-final job from Step 2.\n\nDo NOT use {{resultId}} here — that holds the final output.",
-      request: {
-        method: "GET",
-        header: AUTH_HEADERS,
-        url: buildUrl(`/integrations/tools/results/{{intermediateResultId}}/items?page=1&limit=20`),
-      },
-    },
   ];
 
   return {
     info: {
-      name: `${appName} — Adapter Library API`,
+      name: `${appName} — Adapter Library API v2`,
       schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     },
     item: items,
@@ -233,7 +245,6 @@ export function generatePostmanCollection(
       { key: "runId", value: "", type: "string" },
       { key: "jobId", value: "", type: "string" },
       { key: "resultId", value: "", type: "string" },
-      { key: "intermediateResultId", value: "", type: "string" },
     ],
   };
 }

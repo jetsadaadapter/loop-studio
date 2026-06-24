@@ -1,38 +1,34 @@
 # ADT Library API — Integration Guide
 
-> **วัตถุประสงค์:** อธิบาย lifecycle ของการเรียกใช้ Tool ตั้งแต่ต้นจนจบ ครอบคลุม input, pipeline processing, และ output เพื่อให้ทั้งนักพัฒนาและ AI Agent เข้าใจ flow ได้อย่างสมบูรณ์
+> **วัตถุประสงค์:** อธิบาย lifecycle ของการเรียกใช้ Tool ตั้งแต่ต้นจนจบ เพื่อให้ทั้งนักพัฒนาและ AI Agent เข้าใจ flow ได้อย่างสมบูรณ์
 
 ---
 
-## สถาปัตยกรรมภาพรวม (Architecture Overview)
-
-ADT Library Tool ทำงานเป็น **asynchronous pipeline** ประกอบด้วย 3 phase:
+## สถาปัตยกรรมภาพรวม
 
 ```
-[Phase 1] INPUT          [Phase 2] PIPELINE               [Phase 3] OUTPUT
-───────────────          ────────────────────────────     ────────────────
-Client ส่ง params  →     Script 1 (e.g. exportcomments) → GET /results
-via POST /run            Script 2 (e.g. gemini-analyze)   /{resultId}/items
-                         Script N ...
-                         → FINAL resultId = last job
+Step 1: POST /run           Step 2: GET /runs/{runId}      Step 3: GET /jobs/{jobId}
+────────────────────        ──────────────────────────     ──────────────────────────
+{ input: {...} }     →      Poll until completed      →    → resultId
+                            Set jobId = last job            
+                            Set resultId (see cases)        Optional: GET /results/{resultId}/items
 ```
 
-**กฎสำคัญ:**
-- Scripts ทำงาน **ตามลำดับ** — output ของ script ก่อนหน้าเป็น input ของ script ถัดไป
-- **`resultId`** ที่ใช้ดึงผลลัพธ์ขั้นสุดท้าย = **`jobs[last].resultId`** เสมอ
-- **`jobId`** ที่ใช้ดู intermediate detail = `exportcomments-fetch` (ถ้ามี) หรือ `jobs[0]`
-- Flow **จบ** เมื่อ Webhook ส่ง `event: "run.completed"` และ `result.resultId` มีค่า
+**Terminal condition:**
+```
+all jobs[n].state === "completed"
+```
 
-**Terminal condition — flow is complete when:**
-```
-event === "run.completed"  AND  result.resultId !== null
-```
+**Variable mapping:**
+
+| Variable | Source | ใช้ใน |
+|---|---|---|
+| `jobId` | `jobs[last].jobId` | Step 3 |
+| `resultId` | มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId` | Optional — Get Paginated Items |
 
 ---
 
 ## Authentication
-
-ทุก Request ต้องส่ง Header:
 
 | Header | Description |
 |--------|-------------|
@@ -40,19 +36,15 @@ event === "run.completed"  AND  result.resultId !== null
 | `X-App-Secret` | Secret Key สำหรับยืนยันตัวตน |
 | `Content-Type` | `application/json` |
 
-> ⚠️ **อย่าเปิดเผย `X-App-Secret`** ต่อสาธารณะหรือ commit ลง source code
+> ⚠️ อย่าเปิดเผย `X-App-Secret` ใน source code หรือ client-side
 
 ---
 
-## Phase 1 — INPUT: Run Tool
-
-### Endpoint
+## Step 1 — Run Tool
 
 ```
 POST /integrations/tools/{toolId}/run
 ```
-
-### Request Body
 
 ```json
 {
@@ -63,15 +55,14 @@ POST /integrations/tools/{toolId}/run
 }
 ```
 
-> **หมายเหตุ:** `webhookUrl` จำเป็นสำหรับ Tool ที่ใช้ ExportComments pipeline — ถ้า API Key มี webhookUrl อยู่แล้วไม่ต้องใส่ซ้ำ
+> `webhookUrl` จำเป็นสำหรับ Tool ที่ใช้ ExportComments — ถ้า API Key มี webhookUrl อยู่แล้วไม่ต้องใส่ซ้ำ
 
-### Response (200 OK)
+**Response:**
 
 ```json
 {
   "success": true,
   "data": {
-    "toolId": "<toolId>",
     "runId": "<runId>",
     "jobs": [
       { "jobId": "<jobId-1>", "plugin": "exportcomments-create", "state": "queued" },
@@ -82,173 +73,178 @@ POST /integrations/tools/{toolId}/run
 }
 ```
 
-**บันทึกค่าไว้:**
-- `runId` — ใช้ใน Phase 2
-- `jobs[last].jobId` — last job = final resultId source
-- `jobs[index of exportcomments-fetch].jobId` หรือ `jobs[0].jobId` — jobId สำหรับดู intermediate detail
-
 ---
 
-## Phase 2 — PIPELINE: Monitor Job States
+## Step 2 — Get Jobs by Run ID
 
-```http
+```
 GET /integrations/tools/{toolId}/runs/{runId}
 ```
 
-Poll ทุก **4 วินาที** จนกว่าทุก job จะเป็น `completed` หรือ `failed` (แนะนำ max 150 ครั้ง ≈ 10 นาที)
+Poll ทุก 4 วินาที (max 150 ครั้ง ≈ 10 นาที) จนทุก job เป็น `completed`
 
 | State | ความหมาย |
 |-------|----------|
 | `queued` | รอคิว |
 | `running` | กำลังประมวลผล |
 | `waiting` | รอ upstream script |
-| `completed` | เสร็จ — `resultId` พร้อมใช้ |
-| `failed` | เกิด error — ตรวจ `error` field |
+| `completed` | เสร็จ |
+| `failed` | error — ตรวจ `error` field |
 
-**การ assign variables จาก Phase 2 response:**
+**Set variables จาก response:**
 
-```
-jobId              = exportcomments-fetch.jobId  (ถ้ามี)
-                   = jobs[0].jobId               (apify / custom tool)
-
-resultId           = jobs[last].resultId         (final output เสมอ)
-
-intermediateResultId = exportcomments-fetch.resultId  (ถ้ามี)
-                     = jobs[0].resultId               (apify / custom tool)
-```
+| Variable | Logic |
+|---|---|
+| `jobId` | `jobs[last].jobId` เสมอ |
+| `resultId` | มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId` |
 
 ---
 
-## Phase 2b — WEBHOOK: Receive Completion (webhook tools only)
-
-เมื่อ pipeline เสร็จ ระบบส่ง POST ไปยัง webhookUrl:
+## Step 2b — WEBHOOK (webhook tools only)
 
 ```json
 {
   "event": "run.completed",
   "runId": "<runId>",
-  "toolId": "<toolId>",
-  "result": {
+  "result": { "resultId": "<resultId>", "itemCount": 47 }
+}
+```
+
+> ✅ ตอบกลับ HTTP 200 ทันที
+
+---
+
+## Step 3 — Get Results by Job ID
+
+ใช้ `jobId` (last job) จาก Step 2:
+
+```
+GET /integrations/tools/{toolId}/jobs/{jobId}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "<jobId>",
+    "plugin": "gemini",
+    "state": "completed",
     "resultId": "<resultId>",
-    "itemCount": 47
+    "result": { "itemCount": 47 }
   }
 }
 ```
 
-> ✅ ตอบกลับ HTTP `200` ทันที — API จะ retry ถ้าไม่ได้รับ 2xx
-
 ---
 
-## Phase 3 — OUTPUT: Get Final Result
+## Optional — Get Paginated Items
 
-ใช้ **`resultId`** จาก `jobs[last]` (Phase 2) เพื่อดึงผลลัพธ์ขั้นสุดท้าย:
+ใช้ `resultId` จาก Step 2:
 
 ```
 GET /integrations/tools/results/{resultId}/items?page=1&limit=20
 ```
 
-> ✅ นี่คือ **final output** ของ pipeline — ผลรวมจากทุก script
+| Parameter | Default | Max |
+|-----------|---------|-----|
+| `page` | `1` | — |
+| `limit` | `10` | `100` |
 
-### Response
+**Response:**
 
 ```json
 {
   "success": true,
   "data": [],
-  "meta": {
-    "total": 47,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 3
-  }
+  "meta": { "total": 47, "page": 1, "limit": 20, "totalPages": 3 }
 }
 ```
 
-| Parameter | Type | Default | Max |
-|-----------|------|---------|-----|
-| `page` | `number` | `1` | — |
-| `limit` | `number` | `10` | `100` |
-
 ---
 
-## Optional — Get Paginated Items (Intermediate Script)
-
-ใช้ **`intermediateResultId`** เพื่อดู raw data ของ script ก่อน final:
-
-```
-GET /integrations/tools/results/{intermediateResultId}/items?page=1&limit=20
-```
-
-> ℹ️ ใช้เพื่อ debug หรือดู raw data ของ script ย่อย — **ไม่ใช่** final output
-
----
-
-## Pipeline ตัวอย่าง: ExportComments + Gemini (3 Scripts)
+## Pipeline ตัวอย่าง: ExportComments + Gemini
 
 ```
 INPUT (startUrls)
      │
      ▼
-[Script 1: exportcomments-create]
- → สร้าง export job ใน ExportComments
- → output → ecGuid, jsonUrl
+[Script 1: exportcomments-create]  → สร้าง export job
      │
      ▼
-[Script 2: exportcomments-fetch]  ← 🔑 jobId source (intermediate detail)
- → ดึงข้อมูล comments จาก export job
- → output → รายการ comments (raw data)
+[Script 2: exportcomments-fetch]   → ดึง raw comments
+     │  resultId ของ script นี้ → ใช้เป็น resultId สำหรับ paginated items
+     ▼
+[Script 3: gemini]                 → AI analysis (last job → jobId)
      │
      ▼
-[Script 3: gemini]  ← ✅ FINAL resultId → GET /results/{resultId}/items
- → วิเคราะห์ sentiment ด้วย AI
- → output → ผลการวิเคราะห์ per comment
+Step 3: GET /jobs/{lastJobId}
+Optional: GET /results/{exportcomments-fetch.resultId}/items
 ```
 
 ---
 
-## Complete Flow Diagram
+## Complete Flow (Node.js)
 
-```
-CLIENT                    ADT LIBRARY API               WEBHOOK ENDPOINT
-  │                              │                              │
-  │  POST /tools/{id}/run ──────>│                              │
-  │<── 200 { runId, jobs[] } ───│                              │
-  │                              │ Script 1: [queued→completed] │
-  │                              │ Script 2: [queued→completed] │
-  │                              │ Script 3: [queued→completed] │
-  │                              │ → FINAL jobs[last].resultId  │
-  │                              │── POST webhook payload ─────>│
-  │                              │   { event:"run.completed",   │
-  │                              │     result.resultId }        │
-  │  GET /results/{resultId}     │                              │
-  │  /items?page=1&limit=20 ────>│                              │
-  │<── 200 { data: [...] } ─────│                              │
-  │                              │                              │
-[END]                          [END]                          [END]
+```typescript
+const API_BASE = 'https://library-api.adapterdigital.com/api';
+const TOOL_ID  = '<toolId>';
+const headers  = {
+  'X-App-Id': process.env.APP_ID!,
+  'X-App-Secret': process.env.APP_SECRET!,
+  'Content-Type': 'application/json',
+};
+
+// Step 1 — Run
+const runRes = await fetch(`${API_BASE}/integrations/tools/${TOOL_ID}/run`, {
+  method: 'POST', headers,
+  body: JSON.stringify({ input: { startUrls: ['<url>'] }, webhookUrl: '<webhook>' }),
+});
+const { data: { runId } } = await runRes.json();
+
+// Step 2 — Poll
+async function waitForRun(runId: string) {
+  for (let i = 0; i < 150; i++) {
+    const { data } = await (await fetch(
+      `${API_BASE}/integrations/tools/${TOOL_ID}/runs/${runId}`, { headers }
+    )).json();
+    const done = data.jobs.every((j: any) => j.state === 'completed' || j.state === 'failed');
+    if (done) return data.jobs;
+    await new Promise(r => setTimeout(r, 4000));
+  }
+  throw new Error('Timeout');
+}
+const jobs = await waitForRun(runId);
+
+// Set variables from Step 2
+const lastJob   = jobs[jobs.length - 1];
+const jobId     = lastJob.jobId;
+const fetchJob  = jobs.find((j: any) => j.plugin === 'exportcomments-fetch');
+const resultId  = (fetchJob || jobs[0])?.resultId;
+
+// Step 3 — Get final job result
+const jobRes  = await fetch(`${API_BASE}/integrations/tools/${TOOL_ID}/jobs/${jobId}`, { headers });
+const jobData = await jobRes.json();
+console.log('Step 3 state:', jobData.data?.state);
+
+// Optional — Get paginated items
+if (resultId) {
+  const res    = await fetch(`${API_BASE}/integrations/tools/results/${resultId}/items?page=1&limit=20`, { headers });
+  const result = await res.json();
+  console.log('Items:', result.data, 'total:', result.meta?.total);
+}
 ```
 
 ---
 
 ## Error Reference
 
-| HTTP Status | ความหมาย | วิธีจัดการ |
-|-------------|----------|----------|
-| `200` | สำเร็จ | ดำเนินการต่อ |
-| `400` | Input ไม่ถูกต้อง / credit ไม่พอ | ตรวจ error message |
+| HTTP Status | ความหมาย | Action |
+|-------------|----------|--------|
+| `400` | Invalid input / insufficient credits | ตรวจ error message |
 | `401` | Credentials ไม่ถูกต้อง | ตรวจ X-App-Id / X-App-Secret |
-| `403` | ไม่มีสิทธิ์เข้าถึง Tool | ติดต่อ Admin |
-| `404` | ไม่พบ Tool หรือ Result | ตรวจ toolId / resultId |
-| `429` | เกิน Rate Limit | รอแล้ว retry with exponential backoff |
-| `500` | ระบบมีปัญหา | retry หรือติดต่อ support |
-
----
-
-## Notes สำหรับ AI Agent
-
-1. **ก่อน POST /run** — ตรวจว่า Tool มี params อะไรบ้าง (required/optional) และ map input ให้ตรง key
-2. **หลัง POST /run** — เก็บ `runId` และ `jobs[]` ไว้
-3. **Phase 2** — poll GET /runs/{runId} จนทุก job = `completed`
-4. **`resultId`** = `jobs[last].resultId` — ใช้สำหรับ final output เสมอ
-5. **`jobId`** = `exportcomments-fetch.jobId` หรือ `jobs[0].jobId` — ใช้สำหรับ intermediate detail เท่านั้น
-6. **Flow จบที่:** `GET /results/{resultId}/items` ได้ `data[]` — นี่คือ output สุดท้าย
-7. **Webhook tools:** รอ `event: "run.completed"` ก่อน Phase 3
+| `403` | ไม่มีสิทธิ์ | ติดต่อ Admin |
+| `404` | ไม่พบ Tool / Result | ตรวจ toolId / jobId / resultId |
+| `429` | Rate limit exceeded | รอแล้ว retry |
+| `500` | Internal server error | retry หรือติดต่อ support |

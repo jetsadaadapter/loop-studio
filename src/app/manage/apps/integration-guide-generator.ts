@@ -319,33 +319,38 @@ X-App-Secret: <your-secret>
 
 ${needsWebhook ? buildWebhookPhase(toolId, lastScript?.plugin ?? "") : ""}---
 
-## Phase 3 — OUTPUT: Get Final Result
+## Step 3 — Get Results by Job ID
 
-Use \`resultId\` from **\`jobs[${sorted.length - 1}]\`** (plugin: \`${lastScript?.plugin ?? "last-script"}\`, last job) set in Phase 2 to retrieve the final merged output.
+Use \`jobs[${sorted.length - 1}].jobId\` (plugin: \`${lastScript?.plugin ?? "last-script"}\`, last job) from Step 2:
 
 \`\`\`http
-GET ${API_BASE}/integrations/tools/results/{resultId}/items?page=1&limit=20
+GET ${API_BASE}/integrations/tools/${toolId}/jobs/{jobId}
 X-App-Id: <your-app-id>
 X-App-Secret: <your-secret>
 \`\`\`
-
-> ✅ This is the **final output** of the pipeline — the fully processed and merged result from all scripts.
 
 **Response**
 
 \`\`\`json
 {
   "success": true,
-  "data": [],
-  "meta": { "total": 47, "page": 1, "limit": 20, "totalPages": 3 }
+  "data": {
+    "jobId": "<jobId>",
+    "plugin": "${lastScript?.plugin ?? ""}",
+    "state": "completed",
+    "resultId": "<resultId>",
+    "result": { "itemCount": 47 }
+  }
 }
 \`\`\`
 
 ---
 
-## Optional — Get Paginated Items (Raw Data per Script)
+## Optional — Get Paginated Items
 
-Use \`resultId\` from **any intermediate script** (not the last) to inspect raw data at that pipeline stage.
+Use \`resultId\` from **Step 2**:
+- มี \`exportcomments-fetch\` → ใช้ \`resultId\` ของมัน
+- ไม่มี → ใช้ \`jobs[0].resultId\`
 
 \`\`\`http
 GET ${API_BASE}/integrations/tools/results/{resultId}/items?page=1&limit=20
@@ -353,12 +358,10 @@ X-App-Id: <your-app-id>
 X-App-Secret: <your-secret>
 \`\`\`
 
-| Query param | Default | Max | Use for |
-|---|---|---|---|
-| \`page\` | \`1\` | — | Pagination |
-| \`limit\` | \`10\` | \`100\` | Items per page |
-
-> ℹ️ For the **final output**, use Phase 3 (GET job) instead. Paginated items are for inspecting intermediate script results only.
+| Query param | Default | Max |
+|---|---|---|
+| \`page\` | \`1\` | — |
+| \`limit\` | \`10\` | \`100\` |
 
 ---
 
@@ -381,12 +384,7 @@ const runRes = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/run\`, 
     input: ${nodeJsInput},${needsWebhook && !webhookAlreadyConfigured ? `\n    webhookUrl: 'https://your-server.com/webhook/handler', // required` : webhookAlreadyConfigured ? `\n    // webhookUrl already configured on your API key (${existingWebhookUrl})` : ""}
   }),
 });
-const { data: { runId, jobs } } = await runRes.json();
-// jobId = exportcomments-fetch (if present) or first job — for intermediate detail
-const jobScript = jobs.find((j: any) => j.plugin === 'exportcomments-fetch') || jobs[0];
-const jobId = jobScript?.jobId || jobScript?.id;
-// resultId = last job always — holds the final merged pipeline output
-const resultId = jobs[jobs.length - 1]?.resultId;
+const { data: { runId } } = await runRes.json();
 
 // Phase 2 — Poll${needsWebhook ? " (supplementary — webhook is authoritative)" : ""}
 const POLL_INTERVAL_MS = 4_000;
@@ -402,16 +400,28 @@ async function waitForRun(runId: string) {
   }
   throw new Error(\`Run \${runId} did not complete within the timeout period.\`);
 }
-const completedJobs = await waitForRun(runId);
+const jobs = await waitForRun(runId);
 
-// Phase 3 — Fetch final merged output using resultId from last job
-const lastJob = completedJobs[completedJobs.length - 1];
-if (lastJob?.state === 'completed' && resultId) {
+// Set variables (same logic as Postman Step 2)
+const lastJob   = jobs[jobs.length - 1];
+const jobId     = lastJob?.jobId || lastJob?.id;
+const fetchJob  = jobs.find((j: any) => j.plugin === 'exportcomments-fetch');
+const resultId  = (fetchJob || jobs[0])?.resultId;
+
+// Step 3 — Get results by last jobId
+if (jobId) {
+  const jobRes  = await fetch(\`\${API_BASE}/integrations/tools/\${TOOL_ID}/jobs/\${jobId}\`, { headers });
+  const jobData = await jobRes.json();
+  console.log('Step 3 — state:', jobData?.data?.state, '| plugin:', jobData?.data?.plugin);
+}
+
+// Optional — Get paginated items using resultId from Step 2
+if (resultId) {
   const res    = await fetch(\`\${API_BASE}/integrations/tools/results/\${resultId}/items?page=1&limit=20\`, { headers });
   const result = await res.json();
-  console.log('Final output (' + result.meta?.total + ' items):', result.data);
+  console.log('Items (' + result.meta?.total + '):', result.data);
 } else {
-  console.error('Pipeline failed or resultId missing. Last job:', lastJob?.plugin, lastJob?.state, lastJob?.error);
+  console.error('No resultId. Last job:', lastJob?.plugin, lastJob?.state, lastJob?.error);
 }
 \`\`\`
 
