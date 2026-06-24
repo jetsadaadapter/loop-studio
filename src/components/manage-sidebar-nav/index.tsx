@@ -69,7 +69,7 @@ type MenuSection = {
   title: string;
   href: string;
   icon: LucideIcon;
-  items: { title: string; href: string; icon?: LucideIcon }[];
+  items: { title: string; href: string; icon?: LucideIcon; external?: boolean }[];
 };
 
 function isActivePath(pathname: string, href: string): boolean {
@@ -373,6 +373,10 @@ function ManageSidebarFooter() {
             const isLow = !isDepleted && pct <= 20;
             const barColor = isDepleted ? "bg-rose-400" : pct > 50 ? "bg-white/60" : pct > 20 ? "bg-amber-200" : "bg-rose-300";
 
+            const isUserRole = (profile?.roles ?? []).every(
+              (r) => r === "user" || r === "viewer"
+            );
+
             if (isDepleted) {
               return (
                 <div className="mb-2 w-full rounded-xl overflow-hidden bg-[#1a0a0a] border border-rose-900/60 shadow-[0_4px_16px_-4px_rgba(220,38,38,0.4)] text-left">
@@ -405,15 +409,17 @@ function ManageSidebarFooter() {
                       )}
                     </div>
                   </div>
-                  {/* CTA */}
-                  <button
-                    type="button"
-                    onClick={() => setTopUpOpen(true)}
-                    className="group w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border-t border-rose-900/50 px-3 py-2.5 text-[11px] font-bold text-white transition-all duration-200 cursor-pointer"
-                  >
-                    <LucideIcons.ArrowUpCircle className="size-3.5 text-rose-400 group-hover:text-rose-300" />
-                    Top Up Credits
-                  </button>
+                  {/* CTA — only for users who cannot self-adjust */}
+                  {isUserRole && (
+                    <button
+                      type="button"
+                      onClick={() => setTopUpOpen(true)}
+                      className="group w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border-t border-rose-900/50 px-3 py-2.5 text-[11px] font-bold text-white transition-all duration-200 cursor-pointer"
+                    >
+                      <LucideIcons.ArrowUpCircle className="size-3.5 text-rose-400 group-hover:text-rose-300" />
+                      Top Up Credits
+                    </button>
+                  )}
                 </div>
               );
             }
@@ -606,6 +612,11 @@ export function ManageSidebarNav() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [navProfile, setNavProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    getUserProfile().then(setNavProfile).catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -665,18 +676,29 @@ export function ManageSidebarNav() {
           });
         }
 
-        if (developerItems.length > 0) {
-          nextSections.push({
-            title: "Developers",
-            href: "/manage/keys",
-            icon: LucideIcons.Code2,
-            items: developerItems.map((m) => ({
+        // Always show Developers group — includes API Keys (from API) + static docs links
+        // API Reference is only shown to users with the "developer" role
+        const isDeveloperRole = (navProfile?.roles ?? []).some(
+          (r) => r === "developer" || r === "system-admin" || r === "admin"
+        );
+        nextSections.push({
+          title: "Developers",
+          href: developerItems.length > 0 ? "/manage/keys" : "/docs",
+          icon: LucideIcons.Code2,
+          items: [
+            ...developerItems.map((m) => ({
               title: m.name,
               href: resolveHref(m.path),
               icon: ICON_MAP[m.icon],
             })),
-          });
-        }
+            ...(isDeveloperRole ? [{
+              title: "API Reference",
+              href: "/docs",
+              icon: LucideIcons.BookOpen,
+              external: true,
+            }] : []),
+          ],
+        });
 
         setSections(nextSections);
 
@@ -696,7 +718,7 @@ export function ManageSidebarNav() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, navProfile]);
 
   useEffect(() => {
     if (isMobile && setOpenMobile) {
@@ -823,7 +845,7 @@ export function ManageSidebarNav() {
                                     <SidebarMenuSubButton
                                       isActive={isActivePath(pathname, item.href)}
                                       className="h-9 text-slate-400 data-[active=true]:text-brand"
-                                      render={<Link href={item.href} />}
+                                      render={<Link href={item.href} {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} />}
                                       onClick={() => {
                                         if (isMobile) setOpenMobile?.(false);
                                       }}

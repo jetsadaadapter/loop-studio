@@ -20,6 +20,9 @@ const TRUSTED_CONNECT_SRCS = [
     "'self'",
     "https://auth.adapterinternal.com",
     "https://library-api.adapterdigital.com",
+    // Scalar API Reference — registry, search, and proxy endpoints
+    "https://api.scalar.com",
+    "https://proxy.scalar.com",
 ].join(" ");
 
 const TRUSTED_IMG_SRCS = [
@@ -66,7 +69,7 @@ function buildCsp(nonce: string): string {
         "script-src": scriptSrc,
         "style-src": "'self' 'unsafe-inline'",
         "img-src": TRUSTED_IMG_SRCS,
-        "font-src": "'self'",
+        "font-src": "'self' https://fonts.scalar.com https://fonts.gstatic.com",
         "connect-src": TRUSTED_CONNECT_SRCS,
         "frame-ancestors": "'none'",
         "form-action": "'self'",

@@ -1,0 +1,210 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ADT Library API",
+    "version": "1.0.0",
+    "description": "API สำหรับเรียกใช้ Tool, ดึงผลลัพธ์, และรับ Webhook Events จากระบบ Adapter Library\n\nทุก Request ต้องส่ง Header `X-App-Id` และ `X-App-Secret` ที่ได้รับจากหน้า **API Keys**",
+    "contact": {
+      "name": "Adapter Digital Group",
+      "url": "https://adapterdigital.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://library-api.adapterdigital.com/api",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    { "AppId": [], "AppSecret": [] }
+  ],
+  "components": {
+    "securitySchemes": {
+      "AppId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-App-Id",
+        "description": "App ID ที่ได้รับจากหน้า API Keys"
+      },
+      "AppSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-App-Secret",
+        "description": "Secret Key สำหรับยืนยันตัวตน — ห้ามเปิดเผยหรือ commit ลง repository"
+      }
+    },
+    "schemas": {
+      "RunToolRequest": {
+        "type": "object",
+        "required": ["input"],
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "พารามิเตอร์ที่ส่งให้ Tool — แต่ละ Tool มี input schema แตกต่างกัน",
+            "example": {
+              "postUrl": ["https://www.facebook.com/Wongnai/posts/1406554364840112/"],
+              "limit": 10,
+              "replies": false
+            }
+          }
+        }
+      },
+      "RunToolResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "runId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" },
+          "toolId": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" },
+          "message": { "type": "string", "example": "Tool run started successfully" }
+        }
+      },
+      "ResultItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "sourceKey": { "type": "string" },
+          "sourceKeyValue": { "type": "string" },
+          "analysis": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "ResultItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ResultItem" }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer" },
+              "page": { "type": "integer" },
+              "limit": { "type": "integer" },
+              "totalPages": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "statusCode": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/integrations/tools/{toolId}/run": {
+      "post": {
+        "summary": "Run Tool",
+        "description": "เริ่มประมวลผล Tool แบบ Asynchronous ระบบจะตอบกลับ `runId` ทันที และส่ง Webhook เมื่อประมวลผลเสร็จ",
+        "operationId": "runTool",
+        "tags": ["Tools"],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "description": "Tool ID (ULID) ที่ต้องการเรียกใช้",
+            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RunToolRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunToolResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "403": {
+            "description": "No permission to access this Tool",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    },
+    "/integrations/tools/results/{resultId}/items": {
+      "get": {
+        "summary": "Get Result Items",
+        "description": "ดึงรายการผลลัพธ์จาก `resultId` ที่ได้รับผ่าน Webhook Payload (`result.resultId`)",
+        "operationId": "getResultItems",
+        "tags": ["Results"],
+        "parameters": [
+          {
+            "name": "resultId",
+            "in": "path",
+            "required": true,
+            "description": "Result ID จาก Webhook Payload",
+            "schema": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "หน้าที่ต้องการ (เริ่มที่ 1)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "จำนวนรายการต่อหน้า"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result items",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ResultItemsResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Result not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Tools",
+      "description": "เรียกใช้ Tool และรับ runId สำหรับติดตามสถานะ"
+    },
+    {
+      "name": "Results",
+      "description": "ดึงผลลัพธ์หลังจาก Tool ประมวลผลเสร็จสิ้น"
+    }
+  ]
+}
