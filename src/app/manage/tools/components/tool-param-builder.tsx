@@ -92,20 +92,34 @@ export function ToolParamBuilder({ params, onChange, errors }: ToolParamBuilderP
       )}
 
       {/* Param cards */}
-      {params.length > 0 && (
+      {params.length > 0 && (() => {
+        // prompt type / key="prompt" are single-param-only features.
+        // Exception: a param that already has key="prompt" or type="prompt" keeps its values;
+        // only OTHER params in a multi-param tool are blocked.
+        const isMulti = params.length > 1;
+        const promptParamIdx = params.findIndex(
+          (p) => p.type === "prompt" || p.key === "prompt"
+        );
+        return (
         <div ref={listRef} className="space-y-3">
-          {params.map((param, idx) => (
+          {params.map((param, idx) => {
+            const isPromptParam = idx === promptParamIdx;
+            return (
             <ToolParamItem
               key={param._localId}
+              promptReserved={isMulti && !isPromptParam}
+              promptKeyReserved={isMulti && !isPromptParam}
               param={param}
               index={idx}
               onChange={(draft) => updateParam(idx, draft)}
               onRemove={() => removeParam(idx)}
               error={errors?.[param._localId]}
             />
-          ))}
+            );
+          })}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

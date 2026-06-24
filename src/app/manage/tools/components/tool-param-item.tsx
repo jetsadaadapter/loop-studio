@@ -26,9 +26,11 @@ interface ToolParamItemProps {
   onChange: (draft: ParamDraft) => void;
   onRemove: () => void;
   error?: { key?: string; label?: string; configPrompt?: string };
+  promptReserved?: boolean;
+  promptKeyReserved?: boolean;
 }
 
-export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolParamItemProps) {
+export function ToolParamItem({ param, index, onChange, onRemove, error, promptReserved = false, promptKeyReserved = false }: ToolParamItemProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [promptsList, setPromptsList] = useState<PromptItem[]>([]);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
@@ -139,7 +141,7 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
         </Button>
       </div>
 
-      {/* Core fields grid */}
+      {/* Row 1: Key + Label */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className={`text-xs font-semibold ${error?.key ? "text-brand" : "text-slate-600"}`}>
@@ -150,12 +152,19 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
             onChange={(e) => update({ key: e.target.value.replace(/[^a-zA-Z0-9_]/g, "") })}
             placeholder="e.g. startUrls"
             className={`h-8 bg-white text-xs ${
-              error?.key
-                ? "border-brand focus-visible:ring-brand focus-visible:border-brand-strong/30 shadow-xs shadow-brand/5"
-                : "border-slate-200"
+              error?.key || (promptKeyReserved && param.key === "prompt")
+                ? "border-amber-400 focus-visible:ring-amber-400/30 focus-visible:border-amber-400"
+                : error?.key
+                  ? "border-brand focus-visible:ring-brand focus-visible:border-brand-strong/30 shadow-xs shadow-brand/5"
+                  : "border-slate-200"
             }`}
           />
           {error?.key && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.key}</p>}
+          {!error?.key && promptKeyReserved && param.key === "prompt" && (
+            <p className="text-[9px] text-amber-600 font-semibold leading-none mt-1">
+              Key &quot;prompt&quot; is only allowed on single-param tools — use a different name (e.g. prompt2)
+            </p>
+          )}
         </div>
         <div className="space-y-1">
           <Label className={`text-xs font-semibold ${error?.label ? "text-brand" : "text-slate-600"}`}>
@@ -173,24 +182,30 @@ export function ToolParamItem({ param, index, onChange, onRemove, error }: ToolP
           />
           {error?.label && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{error.label}</p>}
         </div>
+      </div>
 
-        <div className="space-y-1">
+      {/* Row 2: Type (full width) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2 space-y-1">
           <Label className="text-xs font-semibold text-slate-600">Type <span className="text-brand">*</span></Label>
           <Select value={param.type} onValueChange={(v) => { if (v !== null) update({ type: v }); }}>
-            <SelectTrigger className="h-8 bg-white border-slate-200 text-xs">
+            <SelectTrigger className="h-8 bg-white border-slate-200 text-xs w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {Object.values(PARAM_TYPE_CONFIGS).map((t) => (
-                <SelectItem key={t.type} value={t.type} className="text-xs">
-                  {t.label}
-                </SelectItem>
-              ))}
+            <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+              {Object.values(PARAM_TYPE_CONFIGS).map((t) => {
+                const isPromptDisabled = t.type === "prompt" && promptReserved;
+                return (
+                  <SelectItem key={t.type} value={t.type} className="text-xs" disabled={isPromptDisabled}>
+                    {t.label}{isPromptDisabled ? " (single-param only)" : ""}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex items-end gap-2.5 pb-1.5">
+        <div className="flex items-center gap-2.5">
           <Switch
             id={`req-${param._localId}`}
             checked={param.required}

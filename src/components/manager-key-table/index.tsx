@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { KeyRound, Edit3, Trash2, ToggleLeft, ToggleRight, Link2, Copy, Check } from "lucide-react";
+import { Switch } from "../ui/switch";
+import {
+  KeyRound,
+  Edit3,
+  Trash2,
+  Copy,
+  Check,
+  ExternalLink,
+} from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ManagerActionsDropdown } from "../manager-actions-dropdown";
 
@@ -58,6 +66,33 @@ export interface ManagerKeyTableProps {
   onClearFilters: () => void;
 }
 
+const getDisplayUrl = (url?: string) => {
+  if (!url) return "api.adapterdigital.com";
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  } catch {
+    return url.replace(/https?:\/\//, "").split("/")[0] || "api.adapterdigital.com";
+  }
+};
+
+const getGradientStyle = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = [
+    "from-blue-500 to-indigo-600 text-white",
+    "from-emerald-500 to-teal-600 text-white",
+    "from-rose-500 to-pink-600 text-white",
+    "from-amber-500 to-orange-600 text-white",
+    "from-violet-500 to-purple-600 text-white",
+    "from-cyan-500 to-sky-600 text-white",
+  ];
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 export function ManagerKeyTable({
   keys,
   isLoading,
@@ -72,197 +107,168 @@ export function ManagerKeyTable({
   onAdd,
   onClearFilters,
 }: ManagerKeyTableProps) {
-  return (
-    <div className="relative w-full overflow-x-auto border border-slate-200/60 rounded-2xl bg-white shadow-xs">
-      <table className="w-full caption-bottom text-xs min-w-full md:min-w-3xl">
-        <thead className="[&_tr]:border-b bg-slate-50/50">
-          <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 w-12 hidden xs:table-cell">
-              #
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
-              API Key Name / App ID
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-80 hidden md:table-cell">
-              Webhook URL
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 w-36 hidden md:table-cell">
-              Status
-            </th>
-            <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4 w-12">
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i} className="animate-pulse">
-                <td className="p-3 px-4 hidden xs:table-cell">
-                  <Skeleton className="h-4 w-4 rounded" />
-                </td>
-                <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-9 w-9 rounded-full" />
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-40" />
-                    </div>
-                  </div>
-                </td>
-                <td className="p-3 hidden md:table-cell">
-                  <Skeleton className="h-4 w-48" />
-                </td>
-                <td className="p-3 hidden md:table-cell">
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                </td>
-                <td className="p-3 px-4">
-                  <Skeleton className="h-8 w-8 rounded" />
-                </td>
-              </tr>
-            ))
-          ) : keys.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="p-8 text-center text-slate-400 select-none animate-in fade-in duration-300">
-                {loadError
-                  ? "Unable to load API Keys right now."
-                  : "No API Keys configured yet. Create one to begin authentication."}
-                <div className="flex gap-2 justify-center mt-3">
-                  {loadError ? (
-                    <Button type="button" size="sm" onClick={onRetry} className="h-8 cursor-pointer">
-                      Retry
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      disabled={isSubmitting || deletingId !== null}
-                      onClick={onAdd}
-                      className="h-8 cursor-pointer bg-brand hover:bg-brand/90 text-white font-sans"
-                    >
-                      Create API Key
-                    </Button>
-                  )}
-                  {hasActiveFilter && !loadError && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={onClearFilters}
-                      className="h-8 border-slate-200/60 cursor-pointer font-sans"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </td>
-            </tr>
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-300">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="animate-pulse bg-white border border-slate-200/60 rounded-2xl p-4 h-40 flex flex-col justify-between shadow-3xs"
+          >
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-11 w-11 rounded-xl" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="space-y-2 mt-3 flex-1">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="border-t border-slate-100 pt-2.5 mt-3 flex items-center justify-between">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-9 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (loadError || keys.length === 0) {
+    return (
+      <div className="border border-slate-200/60 rounded-2xl bg-white p-8 text-center text-slate-400 shadow-xs animate-in fade-in duration-300">
+        {loadError
+          ? "Unable to load API Keys right now."
+          : "No API Keys configured yet. Create one to begin authentication."}
+        <div className="flex gap-2 justify-center mt-3">
+          {loadError ? (
+            <Button type="button" size="sm" onClick={onRetry} className="h-8 cursor-pointer">
+              Retry
+            </Button>
           ) : (
-            keys.map((row, index) => {
-              return (
-                <tr
-                  key={row.id}
-                  className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
-                >
-                  {/* Index */}
-                  <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
-                    {index + 1}
-                  </td>
-                  
-                  {/* Name and App ID */}
-                  <td className="p-3 align-middle min-w-[240px]">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0 border bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200/60 text-slate-500 shadow-3xs">
-                        <KeyRound className="size-4.5" aria-hidden="true" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-sm font-semibold text-slate-800 tracking-tight truncate block">
-                          {row.name}
-                        </span>
-                        <div className="mt-1">
-                          <CopyableAppIdBadge appId={row.appId} />
-                        </div>
-                        
-                        {/* Mobile-only inline attributes */}
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5 md:hidden">
-                          {row.webhookUrl && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-slate-50 text-[8px] font-bold text-slate-600 border border-slate-200/60 font-sans truncate max-w-[160px]">
-                              <Link2 className="size-2 shrink-0" />
-                              {row.webhookUrl}
-                            </span>
-                          )}
-                          <span
-                            className={`inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${row.isActive
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs"
-                              : "bg-slate-150 text-slate-500 border border-slate-200/60"
-                              }`}
-                          >
-                            <span
-                              className={`size-1 rounded-full ${row.isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}
-                              aria-hidden
-                            />
-                            {row.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  
-                  {/* Webhook URL */}
-                  <td className="p-3 align-middle hidden md:table-cell max-w-xs font-sans text-xs text-slate-500 truncate">
-                    {row.webhookUrl || <span className="text-slate-400 italic font-sans">None configured</span>}
-                  </td>
-                  
-                  {/* Status Badge */}
-                  <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${row.isActive
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs"
-                        : "bg-slate-150 text-slate-500 border border-slate-200/60"
-                        }`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${row.isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}
-                        aria-hidden
-                      />
-                      {row.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  
-                  {/* Row Actions */}
-                  <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
-                    <div className="flex justify-end">
-                      <ManagerActionsDropdown
-                        triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
-                        actions={[
-                          {
-                            label: "Edit",
-                            icon: Edit3,
-                            onClick: () => onEdit(row.appId),
-                            disabled: isSubmitting || deletingId !== null,
-                          },
-                          {
-                            label: row.isActive ? "Deactivate" : "Activate",
-                            icon: row.isActive ? ToggleLeft : ToggleRight,
-                            onClick: () => onToggleStatus(row.appId),
-                            disabled: isSubmitting || deletingId !== null,
-                          },
-                          {
-                            label: deletingId === row.appId ? "Revoking…" : "Revoke",
-                            icon: Trash2,
-                            onClick: () => onDelete(row.appId),
-                            disabled: isSubmitting || deletingId !== null,
-                            variant: "destructive" as const,
-                          },
-                        ]}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
+            <Button
+              type="button"
+              size="sm"
+              disabled={isSubmitting || deletingId !== null}
+              onClick={onAdd}
+              className="h-8 cursor-pointer bg-brand hover:bg-brand/90 text-white font-sans"
+            >
+              Create API Key
+            </Button>
           )}
-        </tbody>
-      </table>
+          {hasActiveFilter && !loadError && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onClearFilters}
+              className="h-8 border-slate-200/60 cursor-pointer font-sans"
+            >
+              Clear Filters
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-300">
+      {keys.map((row) => {
+        const displayUrl = getDisplayUrl(row.webhookUrl);
+        return (
+          <div
+            key={row.id}
+            className="relative flex flex-col justify-between rounded-2xl border border-slate-200/60 bg-white p-4 shadow-3xs hover:-translate-y-0.5 hover:shadow-xs hover:border-slate-350 transition-all duration-300"
+          >
+            {/* Top row */}
+            <div className="flex items-start justify-between w-full">
+              {/* Clean professional icon container with border and iOS squircle style */}
+              <div className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 bg-white border border-slate-200/80 shadow-3xs">
+                <div
+                  className={`h-7.5 w-7.5 rounded-md flex items-center justify-center bg-gradient-to-br ${getGradientStyle(
+                    row.name,
+                  )}`}
+                >
+                  <KeyRound className="size-4" aria-hidden="true" />
+                </div>
+              </div>
+
+              {/* URL Link and Actions */}
+              <div className="flex items-center gap-2">
+                <a
+                  href={row.webhookUrl || undefined}
+                  target={row.webhookUrl ? "_blank" : undefined}
+                  rel="noreferrer"
+                  className={`inline-flex items-center gap-1 text-[11px] font-semibold transition-colors ${
+                    row.webhookUrl
+                      ? "text-indigo-600 hover:text-indigo-800"
+                      : "text-slate-400 cursor-default"
+                  }`}
+                  onClick={(e) => {
+                    if (!row.webhookUrl) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <span className="truncate max-w-[120px]">{displayUrl}</span>
+                  {row.webhookUrl && <ExternalLink className="size-3" />}
+                </a>
+
+                <ManagerActionsDropdown
+                  triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
+                  actions={[
+                    {
+                      label: "Edit",
+                      icon: Edit3,
+                      onClick: () => onEdit(row.appId),
+                      disabled: isSubmitting || deletingId !== null,
+                    },
+                    {
+                      label: deletingId === row.appId ? "Revoking…" : "Revoke",
+                      icon: Trash2,
+                      onClick: () => onDelete(row.appId),
+                      disabled: isSubmitting || deletingId !== null,
+                      variant: "destructive" as const,
+                    },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* Title & Description */}
+            <div className="flex-1 mt-3">
+              <h3 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                {row.name}
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed font-sans line-clamp-2">
+                {row.webhookUrl
+                  ? `Dispatches real-time event notifications to the configured webhook endpoint.`
+                  : `Authorized API client for secure programmatic access and integration.`}
+              </p>
+              
+              <div className="mt-2.5 flex items-center gap-2">
+                <CopyableAppIdBadge appId={row.appId} />
+              </div>
+            </div>
+
+            {/* Footer with category-tag and toggle switch */}
+            <div className="border-t border-slate-100 pt-2.5 mt-3 flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-sans">
+                {row.webhookUrl ? "Webhook Channel" : "API Access Client"}
+              </span>
+              <div className="flex items-center">
+                <Switch
+                  id={`key-toggle-${row.appId}`}
+                  checked={row.isActive}
+                  disabled={isSubmitting || deletingId !== null}
+                  onCheckedChange={() => onToggleStatus(row.appId)}
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

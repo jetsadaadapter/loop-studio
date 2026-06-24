@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";
 import { getUserCredits, getCreditHistory, adjustUserCredits } from "@/core/services/users.service";
 import type { CreditTransaction } from "@/core/services/users.service";
+import { CreditHistoryDrawer } from "@/components/credit-history-drawer";
 import { UserCreditModal } from "@/app/manage/users/components/user-credit-modal";
 import { useNotifications } from "@/components/notification-provider";
 import { NotificationPanel } from "@/components/notification-panel";
@@ -147,6 +148,15 @@ function ManageSidebarFooter() {
   const [notifOpen, setNotifOpen] = useState(false);
   const { unreadCount, push: pushNotif } = useNotifications();
 
+  // Refresh credit balance when a tool run completes or is refunded
+  useEffect(() => {
+    function handleCreditRefresh() {
+      getUserCredits().then((b) => setCredits(b.credits)).catch(() => {});
+    }
+    window.addEventListener("adt:credit-refresh", handleCreditRefresh);
+    return () => window.removeEventListener("adt:credit-refresh", handleCreditRefresh);
+  }, []);
+
   useEffect(() => {
     getUserCredits().then((b) => setCredits(b.credits)).catch(() => { });
     // Fetch recent history to compute usage stats
@@ -251,117 +261,13 @@ function ManageSidebarFooter() {
       )}
 
       {/* Credit history drawer */}
-      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-        <SheetContent side="left" showCloseButton={false} className="w-[340px] sm:w-[400px] flex flex-col p-0 overflow-hidden">
-          <SheetHeader className="px-5 py-3.5 border-b border-slate-100 shrink-0">
-            <SheetTitle className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                <LucideIcons.Coins className="size-4 text-amber-500" />
-                Credit Transaction History
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setHistorySortAsc((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                  title={historySortAsc ? "Showing oldest first" : "Showing newest first"}
-                >
-                  {historySortAsc ? "Old First" : "New First"}
-                  <LucideIcons.ArrowUpDown className={`size-3 transition-transform duration-200 ${historySortAsc ? "rotate-180" : ""}`} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHistoryOpen(false)}
-                  className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                  aria-label="Close"
-                >
-                  <LucideIcons.X className="size-4" />
-                </button>
-              </div>
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            {historyLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <LucideIcons.Loader2 className="size-5 animate-spin text-slate-300" />
-              </div>
-            ) : historyItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <LucideIcons.Coins className="size-8 text-amber-200" />
-                <p className="text-xs text-slate-400">No transactions yet.</p>
-              </div>
-            ) : (
-              <div>
-                {sortedHistoryItems.map((tx, idx) => {
-                  const isCredit = tx.amount > 0;
-                  const showDayHeader = idx === 0 || !isSameDay(tx.createdAt, sortedHistoryItems[idx - 1].createdAt);
-                  return (
-                    <div key={tx.id}>
-                      {/* Day group header */}
-                      {showDayHeader && (
-                        <div className={`flex items-baseline gap-2 ${idx > 0 ? "mt-6 mb-3 pt-4 border-t border-slate-100" : "mb-3"}`}>
-                          <span className="text-[11px] font-bold text-slate-700">{fmtDayHeader(tx.createdAt).split(",")[0]}{","}</span>
-                          <span className="text-[11px] font-semibold text-slate-700">{fmtDayHeader(tx.createdAt).split(",").slice(1).join(",").trim().replace(/\s+\d{4}$/, "")}</span>
-                          <span className="text-[11px] text-slate-400 font-normal">{new Date(tx.createdAt).getFullYear()}</span>
-                        </div>
-                      )}
-                      {/* Transaction row — divider between rows within same day */}
-                      {!showDayHeader && <div className="ml-[4.25rem] h-px bg-slate-100" />}
-                      <div className="flex items-center gap-3 py-3">
-                        {/* Time */}
-                        <span className="w-14 shrink-0 text-[10px] font-medium text-slate-400 tabular-nums text-right">
-                          {fmtTime(tx.createdAt)}
-                        </span>
-                        {/* Status icon */}
-                        <div className={`relative shrink-0 flex size-9 items-center justify-center rounded-full text-[10px] font-bold uppercase ${txIconBg(tx.type)}`}>
-                          {tx.type.slice(0, 2).toUpperCase()}
-                          <span className={`absolute -bottom-0.5 -right-0.5 flex size-[14px] items-center justify-center rounded-full border-2 border-white ${isCredit ? "bg-emerald-500" : "bg-rose-500"}`}>
-                            {isCredit
-                              ? <LucideIcons.ArrowUpRight className="size-2 text-white" />
-                              : <LucideIcons.ArrowDownRight className="size-2 text-white" />
-                            }
-                          </span>
-                        </div>
-                        {/* Content */}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[12px] font-semibold text-slate-800 leading-snug">{tx.description}</p>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                            {tx.clientType && (
-                              <span className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
-                                {tx.clientType}
-                              </span>
-                            )}
-                            <span className={`inline-flex items-center rounded border px-1.5 py-0 text-[8px] font-bold uppercase tracking-wide ${txTypeBadge(tx.type)}`}>
-                              {tx.type.replace(/_/g, " ")}
-                            </span>
-                          </div>
-                        </div>
-                        {/* Amount */}
-                        <span className={`shrink-0 text-base font-bold tabular-nums ${isCredit ? "text-emerald-600" : "text-rose-500"}`}>
-                          {isCredit ? "+" : ""}{tx.amount.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          {historyTotalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 shrink-0">
-              <button type="button" disabled={historyPage <= 1} onClick={() => setHistoryPage(p => p - 1)}
-                className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
-                ← Prev
-              </button>
-              <span className="text-[11px] text-slate-400 tabular-nums">{historyPage} / {historyTotalPages}</span>
-              <button type="button" disabled={historyPage >= historyTotalPages} onClick={() => setHistoryPage(p => p + 1)}
-                className="text-[11px] font-semibold text-slate-500 hover:text-brand disabled:opacity-40 cursor-pointer transition-colors">
-                Next →
-              </button>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      <CreditHistoryDrawer
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        currentBalance={credits}
+        usedToday={usedToday}
+        usedTotal={usedTotal}
+      />
 
       <SidebarMenu className={isCollapsed ? "items-center" : undefined}>
         <SidebarMenuItem className={isCollapsed ? "mx-auto" : undefined}>

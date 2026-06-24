@@ -223,6 +223,8 @@ export function ToolClient({ tool, initialJobs }: ToolClientProps) {
                 clearInterval(pollRef.current);
                 pollRef.current = null;
               }
+              // Notify sidebar to refresh credit balance (handles both completed and refunded cases)
+              window.dispatchEvent(new CustomEvent("adt:credit-refresh"));
 
               if (shouldCloseModal) {
                 setIsJobComplete(true);
