@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
     "/login",
     "/callback",
     "/api/auth",
+    "/docs",
 ];
 
 // Static asset patterns — skip middleware entirely

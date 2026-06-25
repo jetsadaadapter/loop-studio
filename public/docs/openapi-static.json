@@ -1,0 +1,380 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ADT Library API",
+    "version": "1.0.0",
+    "description": "API สำหรับเรียกใช้ Tool, ดึงผลลัพธ์, และรับ Webhook Events จากระบบ Adapter Library\n\nทุก Request ต้องส่ง Header `X-App-Id` และ `X-App-Secret` ที่ได้รับจากหน้า **API Keys**",
+    "contact": {
+      "name": "Adapter Digital Group",
+      "url": "https://adapterdigital.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://library-api.adapterdigital.com/api",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    { "AppId": [], "AppSecret": [] }
+  ],
+  "components": {
+    "securitySchemes": {
+      "AppId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-App-Id",
+        "description": "App ID ที่ได้รับจากหน้า API Keys"
+      },
+      "AppSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-App-Secret",
+        "description": "Secret Key สำหรับยืนยันตัวตน — ห้ามเปิดเผยหรือ commit ลง repository"
+      }
+    },
+    "schemas": {
+      "RunToolRequest": {
+        "type": "object",
+        "required": ["input"],
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "พารามิเตอร์ที่ส่งให้ Tool — แต่ละ Tool มี input schema แตกต่างกัน",
+            "example": {
+              "startUrls": ["https://www.facebook.com/example/posts/123456789"]
+            }
+          },
+          "webhookUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ — จำเป็นสำหรับ Tool ที่ใช้ ExportComments (ถ้า API Key มี webhookUrl อยู่แล้วไม่ต้องใส่ซ้ำ)",
+            "example": "https://your-server.com/webhook/handler"
+          }
+        }
+      },
+      "RunToolResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "runId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" },
+              "jobs": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/JobSummary" }
+              }
+            }
+          }
+        }
+      },
+      "JobSummary": {
+        "type": "object",
+        "properties": {
+          "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
+          "plugin": { "type": "string", "example": "exportcomments-create" },
+          "state": {
+            "type": "string",
+            "enum": ["queued", "running", "waiting", "completed", "failed"],
+            "example": "queued"
+          }
+        }
+      },
+      "RunStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "runId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" },
+              "jobs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
+                    "plugin": { "type": "string", "example": "exportcomments-fetch" },
+                    "state": {
+                      "type": "string",
+                      "enum": ["queued", "running", "waiting", "completed", "failed"],
+                      "example": "completed"
+                    },
+                    "resultId": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" },
+                    "error": { "type": "string", "nullable": true, "description": "Error message เมื่อ state = failed" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "JobDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
+              "plugin": { "type": "string", "example": "gemini" },
+              "state": {
+                "type": "string",
+                "enum": ["queued", "running", "waiting", "completed", "failed"],
+                "example": "completed"
+              },
+              "resultId": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" },
+              "result": {
+                "type": "object",
+                "properties": {
+                  "itemCount": { "type": "integer", "example": 47 }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "ResultItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "sourceKey": { "type": "string" },
+          "sourceKeyValue": { "type": "string" },
+          "analysis": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "ResultItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ResultItem" }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer", "example": 47 },
+              "page": { "type": "integer", "example": 1 },
+              "limit": { "type": "integer", "example": 20 },
+              "totalPages": { "type": "integer", "example": 3 }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "statusCode": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/integrations/tools/{toolId}/run": {
+      "post": {
+        "summary": "Run Tool",
+        "description": "เริ่มประมวลผล Tool แบบ Asynchronous — ระบบตอบกลับ `runId` และ `jobs[]` ทันที จากนั้นใช้ Step 2 เพื่อ poll สถานะ หรือรอรับ Webhook",
+        "operationId": "runTool",
+        "tags": ["Tools"],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "description": "Tool ID (ULID) ที่ต้องการเรียกใช้",
+            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RunToolRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and initial jobs list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunToolResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "403": {
+            "description": "No permission to access this Tool",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    },
+    "/integrations/tools/{toolId}/runs/{runId}": {
+      "get": {
+        "summary": "Get Jobs by Run ID",
+        "description": "ดึงสถานะทุก job ภายใน run — Poll ทุก 4 วินาที (max 150 ครั้ง ≈ 10 นาที) จนทุก job เป็น `completed`\n\n**Variable mapping:**\n- `jobId` = `jobs[last].jobId`\n- `resultId` = มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId`",
+        "operationId": "getRunStatus",
+        "tags": ["Tools"],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "description": "Tool ID (ULID)",
+            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "description": "Run ID ที่ได้จาก Step 1",
+            "schema": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current status of all jobs in the run",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunStatusResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    },
+    "/integrations/tools/{toolId}/jobs/{jobId}": {
+      "get": {
+        "summary": "Get Results by Job ID",
+        "description": "ดึงผลลัพธ์ของ job เดี่ยว — ใช้ `jobId` (last job) จาก Step 2",
+        "operationId": "getJobResult",
+        "tags": ["Tools"],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "description": "Tool ID (ULID)",
+            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "description": "Job ID จาก Step 2 (last job)",
+            "schema": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JobDetailResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    },
+    "/integrations/tools/results/{resultId}/items": {
+      "get": {
+        "summary": "Get Paginated Items",
+        "description": "ดึงรายการผลลัพธ์แบบแบ่งหน้า — ใช้ `resultId` จาก Step 2 (มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId`)",
+        "operationId": "getResultItems",
+        "tags": ["Results"],
+        "parameters": [
+          {
+            "name": "resultId",
+            "in": "path",
+            "required": true,
+            "description": "Result ID จาก Step 2",
+            "schema": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "หน้าที่ต้องการ (เริ่มที่ 1)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10, "maximum": 100 },
+            "description": "จำนวนรายการต่อหน้า (max 100)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated result items",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ResultItemsResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "404": {
+            "description": "Result not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Tools",
+      "description": "เรียกใช้ Tool, ติดตามสถานะ Run, และดึงผลลัพธ์ Job"
+    },
+    {
+      "name": "Results",
+      "description": "ดึงผลลัพธ์แบบแบ่งหน้าหลังจาก Tool ประมวลผลเสร็จสิ้น"
+    }
+  ]
+}
