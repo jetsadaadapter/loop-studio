@@ -16,7 +16,10 @@
     }
   ],
   "security": [
-    { "AppId": [], "AppSecret": [] }
+    {
+      "AppId": [],
+      "AppSecret": []
+    }
   ],
   "components": {
     "securitySchemes": {
@@ -34,36 +37,24 @@
       }
     },
     "schemas": {
-      "RunToolRequest": {
-        "type": "object",
-        "required": ["input"],
-        "properties": {
-          "input": {
-            "type": "object",
-            "description": "พารามิเตอร์ที่ส่งให้ Tool — แต่ละ Tool มี input schema แตกต่างกัน",
-            "example": {
-              "startUrls": ["https://www.facebook.com/example/posts/123456789"]
-            }
-          },
-          "webhookUrl": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ — จำเป็นสำหรับ Tool ที่ใช้ ExportComments (ถ้า API Key มี webhookUrl อยู่แล้วไม่ต้องใส่ซ้ำ)",
-            "example": "https://your-server.com/webhook/handler"
-          }
-        }
-      },
       "RunToolResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
           "data": {
             "type": "object",
             "properties": {
-              "runId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" },
+              "runId": {
+                "type": "string"
+              },
               "jobs": {
                 "type": "array",
-                "items": { "$ref": "#/components/schemas/JobSummary" }
+                "items": {
+                  "$ref": "#/components/schemas/JobSummary"
+                }
               }
             }
           }
@@ -72,37 +63,65 @@
       "JobSummary": {
         "type": "object",
         "properties": {
-          "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
-          "plugin": { "type": "string", "example": "exportcomments-create" },
+          "jobId": {
+            "type": "string"
+          },
+          "plugin": {
+            "type": "string"
+          },
           "state": {
             "type": "string",
-            "enum": ["queued", "running", "waiting", "completed", "failed"],
-            "example": "queued"
+            "enum": [
+              "queued",
+              "running",
+              "waiting",
+              "completed",
+              "failed"
+            ]
           }
         }
       },
       "RunStatusResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean"
+          },
           "data": {
             "type": "object",
             "properties": {
-              "runId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" },
+              "runId": {
+                "type": "string"
+              },
               "jobs": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
-                    "plugin": { "type": "string", "example": "exportcomments-fetch" },
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "plugin": {
+                      "type": "string"
+                    },
                     "state": {
                       "type": "string",
-                      "enum": ["queued", "running", "waiting", "completed", "failed"],
-                      "example": "completed"
+                      "enum": [
+                        "queued",
+                        "running",
+                        "waiting",
+                        "completed",
+                        "failed"
+                      ]
                     },
-                    "resultId": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" },
-                    "error": { "type": "string", "nullable": true, "description": "Error message เมื่อ state = failed" }
+                    "resultId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true
+                    }
                   }
                 }
               }
@@ -113,24 +132,70 @@
       "JobDetailResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean", "example": true },
+          "success": {
+            "type": "boolean"
+          },
           "data": {
             "type": "object",
             "properties": {
-              "jobId": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" },
-              "plugin": { "type": "string", "example": "gemini" },
+              "jobId": {
+                "type": "string"
+              },
+              "plugin": {
+                "type": "string"
+              },
               "state": {
                 "type": "string",
-                "enum": ["queued", "running", "waiting", "completed", "failed"],
-                "example": "completed"
+                "enum": [
+                  "queued",
+                  "running",
+                  "waiting",
+                  "completed",
+                  "failed"
+                ]
               },
-              "resultId": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" },
+              "resultId": {
+                "type": "string"
+              },
               "result": {
                 "type": "object",
                 "properties": {
-                  "itemCount": { "type": "integer", "example": 47 }
+                  "itemCount": {
+                    "type": "integer"
+                  }
                 },
                 "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "ResultItemsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultItem"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
               }
             }
           }
@@ -139,164 +204,247 @@
       "ResultItem": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "sourceKey": { "type": "string" },
-          "sourceKeyValue": { "type": "string" },
-          "analysis": { "type": "object", "additionalProperties": true }
-        }
-      },
-      "ResultItemsResponse": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean" },
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ResultItem" }
+          "id": {
+            "type": "string"
           },
-          "meta": {
+          "sourceKey": {
+            "type": "string"
+          },
+          "sourceKeyValue": {
+            "type": "string"
+          },
+          "analysis": {
             "type": "object",
-            "properties": {
-              "total": { "type": "integer", "example": 47 },
-              "page": { "type": "integer", "example": 1 },
-              "limit": { "type": "integer", "example": 20 },
-              "totalPages": { "type": "integer", "example": 3 }
-            }
+            "additionalProperties": true
           }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean", "example": false },
-          "error": { "type": "string" },
-          "message": { "type": "string" },
-          "statusCode": { "type": "integer" }
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          }
         }
       }
     }
   },
   "paths": {
-    "/integrations/tools/{toolId}/run": {
+    "/integrations/tools/01KR0925J7QEDZ8JCCXHE19XEX/run": {
       "post": {
-        "summary": "Run Tool",
-        "description": "เริ่มประมวลผล Tool แบบ Asynchronous — ระบบตอบกลับ `runId` และ `jobs[]` ทันที จากนั้นใช้ Step 2 เพื่อ poll สถานะ หรือรอรับ Webhook",
-        "operationId": "runTool",
-        "tags": ["Tools"],
+        "summary": "Run — Social Analyzer",
+        "description": "เรียกใช้ Tool \"Social Analyzer\"\n\n**Pipeline:**\n1. Scrape Posts\n2. Scrap Comment\n3. AI Analyzer",
+        "operationId": "runTool_01KR0925J7QEDZ8JCCXHE19XEX",
+        "tags": [
+          "Social Analyzer"
+        ],
         "parameters": [
           {
             "name": "toolId",
             "in": "path",
             "required": true,
-            "description": "Tool ID (ULID) ที่ต้องการเรียกใช้",
-            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KR0925J7QEDZ8JCCXHE19XEX"
+              ]
+            },
+            "description": "Tool ID"
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RunToolRequest" }
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Post URLs",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "example": "ระบุ URL Post ที่ต้องการ Scrape"
+                      },
+                      "task": {
+                        "description": "Task",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "startUrls",
+                      "task"
+                    ]
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Tool started — returns runId and initial jobs list",
+            "description": "Tool started — returns runId and jobs",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RunToolResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
               }
             }
           },
           "400": {
             "description": "Invalid input or insufficient credits",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          },
-          "401": {
-            "description": "Missing or invalid credentials",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          },
-          "403": {
-            "description": "No permission to access this Tool",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          },
-          "404": {
-            "description": "Tool not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          },
-          "429": {
-            "description": "Rate limit exceeded",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
-          }
-        }
-      }
-    },
-    "/integrations/tools/{toolId}/runs/{runId}": {
-      "get": {
-        "summary": "Get Jobs by Run ID",
-        "description": "ดึงสถานะทุก job ภายใน run — Poll ทุก 4 วินาที (max 150 ครั้ง ≈ 10 นาที) จนทุก job เป็น `completed`\n\n**Variable mapping:**\n- `jobId` = `jobs[last].jobId`\n- `resultId` = มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId`",
-        "operationId": "getRunStatus",
-        "tags": ["Tools"],
-        "parameters": [
-          {
-            "name": "toolId",
-            "in": "path",
-            "required": true,
-            "description": "Tool ID (ULID)",
-            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
-          },
-          {
-            "name": "runId",
-            "in": "path",
-            "required": true,
-            "description": "Run ID ที่ได้จาก Step 1",
-            "schema": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18BB8" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current status of all jobs in the run",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RunStatusResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
           "401": {
             "description": "Unauthorized",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Run not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/integrations/tools/{toolId}/jobs/{jobId}": {
+    "/integrations/tools/01KR0925J7QEDZ8JCCXHE19XEX/runs/{runId}": {
       "get": {
-        "summary": "Get Results by Job ID",
-        "description": "ดึงผลลัพธ์ของ job เดี่ยว — ใช้ `jobId` (last job) จาก Step 2",
-        "operationId": "getJobResult",
-        "tags": ["Tools"],
+        "summary": "Poll Status — Social Analyzer",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KR0925J7QEDZ8JCCXHE19XEX",
+        "tags": [
+          "Social Analyzer"
+        ],
         "parameters": [
           {
             "name": "toolId",
             "in": "path",
             "required": true,
-            "description": "Tool ID (ULID)",
-            "schema": { "type": "string", "example": "01KTV6RCYVTJMVTY37M5WQRY5T" }
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KR0925J7QEDZ8JCCXHE19XEX"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KR0925J7QEDZ8JCCXHE19XEX/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Social Analyzer",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KR0925J7QEDZ8JCCXHE19XEX",
+        "tags": [
+          "Social Analyzer"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KR0925J7QEDZ8JCCXHE19XEX"
+              ]
+            }
           },
           {
             "name": "jobId",
             "in": "path",
             "required": true,
-            "description": "Job ID จาก Step 2 (last job)",
-            "schema": { "type": "string", "example": "01KTV87B391GNYGCGKEGB18CC9" }
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
           }
         ],
         "responses": {
@@ -304,17 +452,1991 @@
             "description": "Job detail with result",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/JobDetailResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
               }
             }
           },
           "401": {
             "description": "Unauthorized",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "Job not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTAX5SH7QB22C8WVJXQBS5T5/run": {
+      "post": {
+        "summary": "Run — Universal Comments Analyzer x EC",
+        "description": "เรียกใช้ Tool \"Universal Comments Analyzer x EC\"\n\n**Pipeline:**\n1. Create an Export Job\n2. Retrieve an Export Job\n3. AI Summary",
+        "operationId": "runTool_01KTAX5SH7QB22C8WVJXQBS5T5",
+        "tags": [
+          "Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTAX5SH7QB22C8WVJXQBS5T5"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Social Media URLs",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "limit": {
+                        "description": "limit",
+                        "type": "number",
+                        "default": 500
+                      },
+                      "replies": {
+                        "description": "replies",
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "required": [
+                      "startUrls"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTAX5SH7QB22C8WVJXQBS5T5/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Universal Comments Analyzer x EC",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KTAX5SH7QB22C8WVJXQBS5T5",
+        "tags": [
+          "Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTAX5SH7QB22C8WVJXQBS5T5"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTAX5SH7QB22C8WVJXQBS5T5/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Universal Comments Analyzer x EC",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KTAX5SH7QB22C8WVJXQBS5T5",
+        "tags": [
+          "Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTAX5SH7QB22C8WVJXQBS5T5"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTK0QYJFVHCA9RZ9YHWX87ED/run": {
+      "post": {
+        "summary": "Run — Sentiment Analyzer",
+        "description": "เรียกใช้ Tool \"Sentiment Analyzer\"\n\n**Pipeline:**\n1. Scrap Comment\n2. Sentiment Analyzer",
+        "operationId": "runTool_01KTK0QYJFVHCA9RZ9YHWX87ED",
+        "tags": [
+          "Sentiment Analyzer"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTK0QYJFVHCA9RZ9YHWX87ED"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Facebook Post",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    },
+                    "required": [
+                      "startUrls"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTK0QYJFVHCA9RZ9YHWX87ED/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Sentiment Analyzer",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KTK0QYJFVHCA9RZ9YHWX87ED",
+        "tags": [
+          "Sentiment Analyzer"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTK0QYJFVHCA9RZ9YHWX87ED"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTK0QYJFVHCA9RZ9YHWX87ED/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Sentiment Analyzer",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KTK0QYJFVHCA9RZ9YHWX87ED",
+        "tags": [
+          "Sentiment Analyzer"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTK0QYJFVHCA9RZ9YHWX87ED"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTTJNC968G2D4GXSHB3KM540/run": {
+      "post": {
+        "summary": "Run — Social Media Analysis Mixed Content",
+        "description": "เรียกใช้ Tool \"Social Media Analysis Mixed Content\"\n\n**Pipeline:**\n1. Pre-processing\n2. Scrape Posts\n3. Scrap Comment\n4. PROMPT A — Meta Prompt\n5. PROMPT B — Analyzer Prompt",
+        "operationId": "runTool_01KTTJNC968G2D4GXSHB3KM540",
+        "tags": [
+          "Social Media Analysis Mixed Content"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTTJNC968G2D4GXSHB3KM540"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "prompt": {
+                        "description": "Prompt",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "prompt"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTTJNC968G2D4GXSHB3KM540/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Social Media Analysis Mixed Content",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KTTJNC968G2D4GXSHB3KM540",
+        "tags": [
+          "Social Media Analysis Mixed Content"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTTJNC968G2D4GXSHB3KM540"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTTJNC968G2D4GXSHB3KM540/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Social Media Analysis Mixed Content",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KTTJNC968G2D4GXSHB3KM540",
+        "tags": [
+          "Social Media Analysis Mixed Content"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTTJNC968G2D4GXSHB3KM540"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9VGVV7ZJSWQ06RN0K8XGPX/run": {
+      "post": {
+        "summary": "Run — Facebook Analyzer x EC",
+        "description": "เรียกใช้ Tool \"Facebook Analyzer x EC\"\n\n**Pipeline:**\n1. Scrape Facebook Posts\n2. Create an Export Job\n3. Retrieve an Export Job\n4. AI Analyzer",
+        "operationId": "runTool_01KV9VGVV7ZJSWQ06RN0K8XGPX",
+        "tags": [
+          "Facebook Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9VGVV7ZJSWQ06RN0K8XGPX"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Post URLs",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "example": "ระบุ URL Post ที่ต้องการ Scrape"
+                      },
+                      "task": {
+                        "description": "Task",
+                        "type": "string"
+                      },
+                      "limit": {
+                        "description": "limit",
+                        "type": "number",
+                        "default": 500
+                      },
+                      "replies": {
+                        "description": "replies",
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "startUrls",
+                      "task"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9VGVV7ZJSWQ06RN0K8XGPX/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Facebook Analyzer x EC",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KV9VGVV7ZJSWQ06RN0K8XGPX",
+        "tags": [
+          "Facebook Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9VGVV7ZJSWQ06RN0K8XGPX"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9VGVV7ZJSWQ06RN0K8XGPX/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Facebook Analyzer x EC",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KV9VGVV7ZJSWQ06RN0K8XGPX",
+        "tags": [
+          "Facebook Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9VGVV7ZJSWQ06RN0K8XGPX"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9W8JF1G2K0GT169GKFWECT/run": {
+      "post": {
+        "summary": "Run — Universal Sentiment Analyzer x EC",
+        "description": "เรียกใช้ Tool \"Universal Sentiment Analyzer x EC\"\n\n**Pipeline:**\n1. Create an Export Job\n2. Retrieve an Export Job\n3. Sentiment Analyzer",
+        "operationId": "runTool_01KV9W8JF1G2K0GT169GKFWECT",
+        "tags": [
+          "Universal Sentiment Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9W8JF1G2K0GT169GKFWECT"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Facebook Post",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    },
+                    "required": [
+                      "startUrls"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9W8JF1G2K0GT169GKFWECT/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Universal Sentiment Analyzer x EC",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KV9W8JF1G2K0GT169GKFWECT",
+        "tags": [
+          "Universal Sentiment Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9W8JF1G2K0GT169GKFWECT"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KV9W8JF1G2K0GT169GKFWECT/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Universal Sentiment Analyzer x EC",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KV9W8JF1G2K0GT169GKFWECT",
+        "tags": [
+          "Universal Sentiment Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KV9W8JF1G2K0GT169GKFWECT"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVAK5C1E485SKN6DV2NSTSSK/run": {
+      "post": {
+        "summary": "Run — Mixed Content Analysis x EC",
+        "description": "เรียกใช้ Tool \"Mixed Content Analysis x EC\"\n\n**Pipeline:**\n1. Pre-processing\n2. Scrape Facebook Posts\n3. Create an Export Job\n4. Retrieve an Export Job\n5. PROMPT A — Meta Prompt\n6. PROMPT B — Analyzer Prompt",
+        "operationId": "runTool_01KVAK5C1E485SKN6DV2NSTSSK",
+        "tags": [
+          "Mixed Content Analysis x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVAK5C1E485SKN6DV2NSTSSK"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "prompt": {
+                        "description": "Prompt",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "prompt"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVAK5C1E485SKN6DV2NSTSSK/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Mixed Content Analysis x EC",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KVAK5C1E485SKN6DV2NSTSSK",
+        "tags": [
+          "Mixed Content Analysis x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVAK5C1E485SKN6DV2NSTSSK"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVAK5C1E485SKN6DV2NSTSSK/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Mixed Content Analysis x EC",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KVAK5C1E485SKN6DV2NSTSSK",
+        "tags": [
+          "Mixed Content Analysis x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVAK5C1E485SKN6DV2NSTSSK"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVWHK3HX6T1P2M2ACXMYKY82/run": {
+      "post": {
+        "summary": "Run — Boat Universal Comments Analyzer x EC",
+        "description": "เรียกใช้ Tool \"Boat Universal Comments Analyzer x EC\"\n\n**Pipeline:**\n1. Create an Export Job\n2. Retrieve an Export Job\n3. AI Summary",
+        "operationId": "runTool_01KVWHK3HX6T1P2M2ACXMYKY82",
+        "tags": [
+          "Boat Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVWHK3HX6T1P2M2ACXMYKY82"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Social Media URLs",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "limit": {
+                        "description": "limit",
+                        "type": "number",
+                        "default": 500
+                      },
+                      "replies": {
+                        "description": "replies",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "prompt2": {
+                        "description": "Prompt2",
+                        "type": "string"
+                      },
+                      "outputFormat": {
+                        "description": "Output Format",
+                        "type": "string",
+                        "enum": [
+                          "text/plain",
+                          "application/json"
+                        ],
+                        "default": "text/plain"
+                      }
+                    },
+                    "required": [
+                      "startUrls",
+                      "prompt2"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVWHK3HX6T1P2M2ACXMYKY82/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Boat Universal Comments Analyzer x EC",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KVWHK3HX6T1P2M2ACXMYKY82",
+        "tags": [
+          "Boat Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVWHK3HX6T1P2M2ACXMYKY82"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KVWHK3HX6T1P2M2ACXMYKY82/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Boat Universal Comments Analyzer x EC",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KVWHK3HX6T1P2M2ACXMYKY82",
+        "tags": [
+          "Boat Universal Comments Analyzer x EC"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KVWHK3HX6T1P2M2ACXMYKY82"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTV6RCYVTJMVTY37M5WQRY5T/run": {
+      "post": {
+        "summary": "Run — Universal Comments Scraper",
+        "description": "เรียกใช้ Tool \"Universal Comments Scraper\"\n\n**Pipeline:**\n1. Create an Export Job\n2. Retrieve an Export Job",
+        "operationId": "runTool_01KTV6RCYVTJMVTY37M5WQRY5T",
+        "tags": [
+          "Universal Comments Scraper"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTV6RCYVTJMVTY37M5WQRY5T"
+              ]
+            },
+            "description": "Tool ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "startUrls": {
+                        "description": "Facebook Post URL",
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "limit": {
+                        "description": "limit",
+                        "type": "number",
+                        "default": 10
+                      },
+                      "replies": {
+                        "description": "replies",
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "startUrls"
+                    ]
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL สำหรับรับ Webhook เมื่อ run เสร็จ (จำเป็นสำหรับ Tool ที่ใช้ ExportComments)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool started — returns runId and jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunToolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tool not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTV6RCYVTJMVTY37M5WQRY5T/runs/{runId}": {
+      "get": {
+        "summary": "Poll Status — Universal Comments Scraper",
+        "description": "ดึงสถานะ jobs ทั้งหมดภายใน run — Poll ทุก 4 วินาที จน state = completed",
+        "operationId": "getRunStatus_01KTV6RCYVTJMVTY37M5WQRY5T",
+        "tags": [
+          "Universal Comments Scraper"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTV6RCYVTJMVTY37M5WQRY5T"
+              ]
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Run ID จาก Step 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/tools/01KTV6RCYVTJMVTY37M5WQRY5T/jobs/{jobId}": {
+      "get": {
+        "summary": "Job Result — Universal Comments Scraper",
+        "description": "ดึงผลลัพธ์ของ job — ใช้ jobId (last job) จาก Step 2",
+        "operationId": "getJobResult_01KTV6RCYVTJMVTY37M5WQRY5T",
+        "tags": [
+          "Universal Comments Scraper"
+        ],
+        "parameters": [
+          {
+            "name": "toolId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "01KTV6RCYVTJMVTY37M5WQRY5T"
+              ]
+            }
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID จาก Step 2 (last job)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job detail with result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -322,46 +2444,71 @@
     "/integrations/tools/results/{resultId}/items": {
       "get": {
         "summary": "Get Paginated Items",
-        "description": "ดึงรายการผลลัพธ์แบบแบ่งหน้า — ใช้ `resultId` จาก Step 2 (มี `exportcomments-fetch` → ใช้ `resultId` ของมัน / ไม่มี → ใช้ `jobs[0].resultId`)",
+        "description": "ดึงผลลัพธ์แบบแบ่งหน้า — ใช้ resultId จาก Step 2",
         "operationId": "getResultItems",
-        "tags": ["Results"],
+        "tags": [
+          "Results"
+        ],
         "parameters": [
           {
             "name": "resultId",
             "in": "path",
             "required": true,
-            "description": "Result ID จาก Step 2",
-            "schema": { "type": "string", "example": "6a2aa0c4b09302eaffe658af" }
+            "schema": {
+              "type": "string"
+            },
+            "description": "Result ID จาก Step 2"
           },
           {
             "name": "page",
             "in": "query",
-            "schema": { "type": "integer", "default": 1 },
-            "description": "หน้าที่ต้องการ (เริ่มที่ 1)"
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "หน้าที่ต้องการ"
           },
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 10, "maximum": 100 },
-            "description": "จำนวนรายการต่อหน้า (max 100)"
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            },
+            "description": "จำนวนต่อหน้า (max 100)"
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated result items",
+            "description": "Paginated items",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ResultItemsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ResultItemsResponse"
+                }
               }
             }
           },
           "401": {
             "description": "Unauthorized",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "Result not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -369,8 +2516,40 @@
   },
   "tags": [
     {
-      "name": "Tools",
-      "description": "เรียกใช้ Tool, ติดตามสถานะ Run, และดึงผลลัพธ์ Job"
+      "name": "Social Analyzer",
+      "description": "Social Analyzer"
+    },
+    {
+      "name": "Universal Comments Analyzer x EC",
+      "description": "Comments Analyzer"
+    },
+    {
+      "name": "Sentiment Analyzer",
+      "description": "Sentiment Analysis"
+    },
+    {
+      "name": "Social Media Analysis Mixed Content",
+      "description": "Social Media Analysis Mixed Content"
+    },
+    {
+      "name": "Facebook Analyzer x EC",
+      "description": "Social Analyzer x Export Comments"
+    },
+    {
+      "name": "Universal Sentiment Analyzer x EC",
+      "description": "Universal Sentiment Analyzer x Export Comments"
+    },
+    {
+      "name": "Mixed Content Analysis x EC",
+      "description": "Social Media Analysis Mixed Content x Export Comments"
+    },
+    {
+      "name": "Boat Universal Comments Analyzer x EC",
+      "description": "Comments Analyzer"
+    },
+    {
+      "name": "Universal Comments Scraper",
+      "description": "Universal Comments Scraper"
     },
     {
       "name": "Results",
