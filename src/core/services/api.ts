@@ -74,9 +74,18 @@ export async function getAuthToken(): Promise<string | null> {
     }
 
     try {
-        const { cookies } = await import("next/headers");
+        const { cookies, headers } = await import("next/headers");
         const cookieStore = await cookies();
-        const token = cookieStore.get(TOKEN_COOKIE_KEY)?.value || null;
+        let token = cookieStore.get(TOKEN_COOKIE_KEY)?.value || null;
+
+        if (!token) {
+            const headerStore = await headers();
+            const authHeader = headerStore.get("authorization");
+            if (authHeader && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7).trim();
+            }
+        }
+
         console.log(`[Library API] Server token: ${token ? "✓ Found" : "✗ Missing"}`);
         return token;
     } catch (err) {

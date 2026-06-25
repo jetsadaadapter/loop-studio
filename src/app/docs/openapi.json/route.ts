@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { getManageApps } from "@/core/services/apps.service";
@@ -167,9 +167,25 @@ function buildToolPaths(toolId: string, toolName: string, params: ToolParam[], s
   return paths;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const appsPage = await getManageApps({ page: 1, limit: 200 });
+    let token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+
+    if (!token) {
+      token = request.cookies.get("zt_token")?.value;
+    }
+
+    if (!token) {
+      const { searchParams } = new URL(request.url);
+      token = searchParams.get("token") || searchParams.get("zt_token") || undefined;
+    }
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const appsPage = await getManageApps({ page: 1, limit: 200 }, { headers });
     const apps: ManageAppApiItem[] = appsPage.data ?? [];
 
     const toolApps = apps.filter((app) => app.appTool?.tool);
