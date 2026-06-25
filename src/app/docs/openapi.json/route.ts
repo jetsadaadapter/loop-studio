@@ -331,13 +331,14 @@ export async function GET() {
     };
 
     return NextResponse.json(spec, {
-      headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" },
+      headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
     });
-  } catch {
+  } catch (error) {
+    console.error("[OpenAPI Spec] Failed to generate dynamic spec, falling back to static:", error);
     const filePath = path.join(process.cwd(), "public/docs/openapi-static.json");
     const raw = await fs.readFile(filePath, "utf-8");
     return NextResponse.json(JSON.parse(raw), {
-      headers: { "Cache-Control": "public, max-age=300" },
+      headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
     });
   }
 }
