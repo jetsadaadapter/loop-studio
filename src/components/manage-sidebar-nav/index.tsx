@@ -540,19 +540,18 @@ export function ManageSidebarNav() {
         );
         const activeMenus = checkedItems.filter((m): m is NonNullable<typeof m> => m !== null);
 
-        // Grouping logic:
-        // type "main" -> Overview  (excludes keys)
-        // type "manage" -> Workspace (excludes keys)
-        // path /keys or /manage/keys -> Developer (always)
-        const isDeveloperItem = (m: { path: string }) =>
-          m.path === "/keys" || m.path === "/manage/keys";
-
         const resolveHref = (path: string) =>
           path === "/manage/dashboard" ? "/manage" : path === "/keys" ? "/manage/keys" : path;
 
-        const overviewItems = activeMenus.filter((m) => m.type === "main" && !isDeveloperItem(m));
-        const manageItems = activeMenus.filter((m) => m.type === "manage" && !isDeveloperItem(m));
-        const developerItems = activeMenus.filter(isDeveloperItem);
+        // Safe icon resolver to map custom names (e.g. ToolCase) and prevent runtime crashes
+        const getMenuIcon = (name: string) => {
+          const mappedName = name === "ToolCase" ? "Briefcase" : name;
+          return ICON_MAP[mappedName] || LucideIcons.Layers;
+        };
+
+        const overviewItems = activeMenus.filter((m) => m.type === "main");
+        const manageItems = activeMenus.filter((m) => m.type === "manage");
+        const developerItems = activeMenus.filter((m) => m.type === "developer");
         const nextSections: MenuSection[] = [];
 
         if (overviewItems.length > 0) {
@@ -563,7 +562,7 @@ export function ManageSidebarNav() {
             items: overviewItems.map((m) => ({
               title: m.name,
               href: resolveHref(m.path),
-              icon: ICON_MAP[m.icon],
+              icon: getMenuIcon(m.icon),
             })),
           });
         }
@@ -577,27 +576,28 @@ export function ManageSidebarNav() {
             items: manageItems.map((m) => ({
               title: m.name,
               href: resolveHref(m.path),
-              icon: ICON_MAP[m.icon],
+              icon: getMenuIcon(m.icon),
             })),
           });
         }
 
-        // Always show Developers group — includes API Keys (from API) + static docs links
-        // API Reference is only shown to users with the "developer" role
+        // Always show Developers group — includes API Keys & API Reference (from API) + static docs links if missing
         const isDeveloperRole = (navProfile?.roles ?? []).some(
           (r) => r === "developer" || r === "system-admin" || r === "admin"
         );
+        const hasApiReference = developerItems.some((m) => m.path === "/docs");
+
         nextSections.push({
           title: "Developers",
-          href: developerItems.length > 0 ? "/manage/keys" : "/docs",
+          href: developerItems.length > 0 ? resolveHref(developerItems[0].path) : "/docs",
           icon: LucideIcons.Code2,
           items: [
             ...developerItems.map((m) => ({
               title: m.name,
               href: resolveHref(m.path),
-              icon: ICON_MAP[m.icon],
+              icon: getMenuIcon(m.icon),
             })),
-            ...(isDeveloperRole ? [{
+            ...(isDeveloperRole && !hasApiReference ? [{
               title: "API Reference",
               href: "/docs",
               icon: LucideIcons.BookOpen,

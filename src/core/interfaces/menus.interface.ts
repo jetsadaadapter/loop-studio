@@ -4,7 +4,7 @@ export type ManageMenuItem = {
     name: string;
     path: string;
     icon: string;
-    type: "main" | "manage" | string;
+    type: "main" | "manage" | "developer" | string;
 };
 
 export type ManageMenuResponse = ManageApiEnvelope<ManageMenuItem[]>;
