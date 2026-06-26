@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Override Scalar's font variables with the project's font stack
 const fontOverride = `
@@ -149,8 +151,9 @@ export function ApiDocsClient() {
               height: 40px;
               display: flex;
               align-items: center;
-              justify-content: flex-start;
+              justify-content: space-between;
               padding-left: 24px;
+              padding-right: 12px;
               z-index: 100;
               pointer-events: none;
               background: var(--scalar-background-1);
@@ -283,18 +286,27 @@ export function ApiDocsClient() {
       />
       
       <div className="docs-logo-overlay">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/logo/logo-white-330x99.svg"
-          alt="Adapter Digital"
-          className="logo-dark"
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/logo/logo-black-383x115.svg"
-          alt="Adapter Digital"
-          className="logo-light"
-        />
+        <Link href="/apps" className="pointer-events-auto flex items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo/logo-white-330x99.svg"
+            alt="Adapter Digital"
+            className="logo-dark"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo/logo-black-383x115.svg"
+            alt="Adapter Digital"
+            className="logo-light"
+          />
+        </Link>
+        <Link
+          href="/manage"
+          className="pointer-events-auto flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all font-sans"
+        >
+          <ArrowLeft className="w-3 h-3" />
+          Console
+        </Link>
       </div>
     </>
   );
