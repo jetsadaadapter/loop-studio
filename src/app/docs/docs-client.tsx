@@ -78,7 +78,7 @@ export function ApiDocsClient() {
 
           {/* Centered Premium Overlay Loader */}
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-xs z-50">
-            <div className="flex flex-col items-center gap-5 p-6 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 shadow-xl max-w-[280px] w-full mx-4 transition-all scale-100 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center gap-5 p-6 rounded-2xl bg-white/90 dark:bg-slate-900/90 max-w-[280px] w-full mx-4 transition-all scale-100 animate-in fade-in zoom-in-95 duration-300">
               <div className="relative h-10 w-auto flex items-center justify-center animate-pulse">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -98,7 +98,7 @@ export function ApiDocsClient() {
                 <div className="h-1 w-24 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-[#c20019] rounded-full animate-[loading-bar_1.5s_infinite_linear] absolute left-0 top-0 w-1/3" />
                 </div>
-                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-1">
+                <span className="text-xs uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-1">
                   Loading API Reference
                 </span>
               </div>
