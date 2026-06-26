@@ -78,27 +78,27 @@ export function ApiDocsClient() {
 
           {/* Centered Premium Overlay Loader */}
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-xs z-50">
-            <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 shadow-2xl max-w-sm w-full mx-4 transition-all scale-100 animate-in fade-in zoom-in-95 duration-300">
-              <div className="relative h-20 w-auto flex items-center justify-center animate-pulse">
+            <div className="flex flex-col items-center gap-5 p-6 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 shadow-xl max-w-[280px] w-full mx-4 transition-all scale-100 animate-in fade-in zoom-in-95 duration-300">
+              <div className="relative h-10 w-auto flex items-center justify-center animate-pulse">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/logo/logo-white-330x99.svg"
                   alt="Adapter Digital"
-                  className="h-14 w-auto hidden dark:block"
+                  className="h-7 w-auto hidden dark:block"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/logo/logo-black-383x115.svg"
                   alt="Adapter Digital"
-                  className="h-14 w-auto block dark:hidden"
+                  className="h-7 w-auto block dark:hidden"
                 />
               </div>
               
               <div className="flex flex-col items-center gap-2">
-                <div className="h-1.5 w-32 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative">
+                <div className="h-1 w-24 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-[#c20019] rounded-full animate-[loading-bar_1.5s_infinite_linear] absolute left-0 top-0 w-1/3" />
                 </div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-2">
+                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-1">
                   Loading API Reference
                 </span>
               </div>
