@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
 
@@ -9,12 +10,103 @@ const fontOverride = `
     --scalar-font: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
     --scalar-font-code: var(--font-mono), ui-monospace, SFMono-Regular, monospace !important;
   }
+  @keyframes loading-bar {
+    0% { left: -33%; }
+    100% { left: 100%; }
+  }
 `;
 
+const SKELETON_WIDTHS = ["60%", "75%", "50%", "85%", "70%", "65%", "80%", "55%"];
+
 export function ApiDocsClient() {
+  const [loading, setLoading] = useState(true);
+  const [fade, setFade] = useState(false);
+
+  useEffect(() => {
+    // Start fading out the loader slightly before unmounting
+    const fadeTimer = setTimeout(() => setFade(true), 800);
+    const destroyTimer = setTimeout(() => setLoading(false), 1100);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(destroyTimer);
+    };
+  }, []);
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: fontOverride }} />
+      
+      {loading && (
+        <div
+          className={`fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-950 transition-opacity duration-300 ${
+            fade ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          {/* Skeleton Layout */}
+          <div className="flex h-full w-full">
+            {/* Sidebar Skeleton */}
+            <div className="hidden md:flex w-72 border-r border-slate-200/60 dark:border-slate-800 flex-col p-6 gap-6 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+              <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-md animate-pulse" />
+              <div className="flex flex-col gap-3 mt-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-slate-200 dark:bg-slate-800 rounded-xs animate-pulse" />
+                    <div
+                      className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md animate-pulse"
+                      style={{ width: SKELETON_WIDTHS[i % SKELETON_WIDTHS.length] }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Content Skeleton */}
+            <div className="flex-1 p-6 md:p-12 flex flex-col gap-6 bg-white dark:bg-slate-950 overflow-hidden">
+              <div className="h-10 w-2/3 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+              <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-800 rounded-md animate-pulse" />
+              
+              <div className="mt-8 flex flex-col gap-4">
+                <div className="h-32 w-full bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 animate-pulse flex flex-col p-4 gap-3 justify-center">
+                  <div className="h-4 w-1/4 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                  <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-md" />
+                </div>
+                <div className="h-40 w-full bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800 animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Centered Premium Overlay Loader */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-xs z-50">
+            <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 shadow-2xl max-w-sm w-full mx-4 transition-all scale-100 animate-in fade-in zoom-in-95 duration-300">
+              <div className="relative h-20 w-auto flex items-center justify-center animate-pulse">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/logo/logo-white-330x99.svg"
+                  alt="Adapter Digital"
+                  className="h-14 w-auto hidden dark:block"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/logo/logo-black-383x115.svg"
+                  alt="Adapter Digital"
+                  className="h-14 w-auto block dark:hidden"
+                />
+              </div>
+              
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-1.5 w-32 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative">
+                  <div className="h-full bg-[#c20019] rounded-full animate-[loading-bar_1.5s_infinite_linear] absolute left-0 top-0 w-1/3" />
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-2">
+                  Loading API Reference
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ApiReferenceReact
         configuration={{
           sources: [
@@ -189,13 +281,15 @@ export function ApiDocsClient() {
           `,
         }}
       />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      
       <div className="docs-logo-overlay">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo/logo-white-330x99.svg"
           alt="Adapter Digital"
           className="logo-dark"
         />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo/logo-black-383x115.svg"
           alt="Adapter Digital"
