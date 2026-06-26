@@ -41,7 +41,7 @@ export function ApiDocsClient() {
       
       {loading && (
         <div
-          className={`fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-950 transition-opacity duration-300 ${
+          className={`fixed inset-0 z-[150] flex flex-col bg-white dark:bg-slate-950 transition-opacity duration-300 ${
             fade ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
         >
@@ -100,7 +100,7 @@ export function ApiDocsClient() {
                 <div className="h-1 w-24 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative">
                   <div className="h-full bg-[#c20019] rounded-full animate-[loading-bar_1.5s_infinite_linear] absolute left-0 top-0 w-1/3" />
                 </div>
-                <span className="text-xs uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-1">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 font-sans mt-1">
                   Loading API Reference
                 </span>
               </div>
@@ -193,24 +193,29 @@ export function ApiDocsClient() {
                 padding-top: 40px !important;
               }
             }
-            * {
+            .scalar-app, .scalar-app * {
               font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
             }
-            code, pre, .cm-editor, .cm-content {
+            .scalar-app code, .scalar-app pre, .scalar-app .cm-editor, .scalar-app .cm-content {
               font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace !important;
               font-size: 0.75rem !important;
               line-height: 1.6 !important;
             }
-            .sidebar-item, .sidebar-group-item, .sidebar-heading {
+            .scalar-app .sidebar-item, .scalar-app .sidebar-group-item, .scalar-app .sidebar-heading {
               font-size: 0.75rem !important;
             }
-            .endpoint-path, .operation-path {
+            .scalar-app .endpoint-path, .scalar-app .operation-path {
               font-size: 0.8125rem !important;
             }
-            h1 { font-size: 1.5rem !important; font-weight: 700 !important; }
-            h2 { font-size: 1.125rem !important; font-weight: 600 !important; }
-            h3 { font-size: 0.9375rem !important; font-weight: 600 !important; }
-            p, li, td, th, label, span:not(.cm-content) {
+            .scalar-app h1 { font-size: 1.5rem !important; font-weight: 700 !important; }
+            .scalar-app h2 { font-size: 1.125rem !important; font-weight: 600 !important; }
+            .scalar-app h3 { font-size: 0.9375rem !important; font-weight: 600 !important; }
+            .scalar-app p, 
+            .scalar-app li, 
+            .scalar-app td, 
+            .scalar-app th, 
+            .scalar-app label, 
+            .scalar-app span:not(.cm-content) {
               font-size: 0.8125rem !important;
               line-height: 1.6 !important;
             }
