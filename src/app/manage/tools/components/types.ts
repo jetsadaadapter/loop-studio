@@ -26,6 +26,7 @@ export interface ScriptDraft {
   description: string;
   sortOrder: number;
   config: Record<string, unknown>;
+  creditCost: number | null;
 }
 
 export type ToolFormMode = "create" | "edit";

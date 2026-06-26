@@ -53,7 +53,7 @@ Every time the user asks you to perform a task, you MUST follow these phases wit
 - **Elevation & Aesthetics:** Wrap UI segments (forms, lists, cards) in Individual cards (`bg-white rounded-2xl border border-slate-200/60 shadow-xs`) with subtle `hover:-translate-y-0.5` interactions.
 - **CLS Mitigation:** Always implement custom layout skeletons for asynchronous queries to prevent Cumulative Layout Shift.
 - **Illustrative Empty States:** Design empty states with glassmorphic icons and distinct action buttons instead of blank space.
-- **Typography Standards:** Enforce UI typography using `font-sans` only. Never use `font-mono` for standard UI text, numbers, or labels to keep visual branding consistent.
+- **Typography Standards (STRICT PROHIBITION):** All UI elements (including text, numbers, metrics, labels, values, buttons, and identifiers like IDs) MUST strictly use `font-sans`. The use of `font-mono` is strictly forbidden for any UI components, except for pure raw code blocks/syntax highlights (e.g., in documentation or pre-formatted logs).
 
 ---
 

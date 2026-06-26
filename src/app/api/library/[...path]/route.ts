@@ -184,12 +184,13 @@ async function proxyToLibraryApi(
     }
 
     const isKeysEndpoint = pathStr === "keys" || pathStr.startsWith("keys/");
+    const isProjectsEndpoint = pathStr === "projects" || pathStr.startsWith("projects/");
 
-    if (upstreamResponse.status === 404 && isKeysEndpoint) {
+    if (upstreamResponse.status === 404 && (isKeysEndpoint || isProjectsEndpoint)) {
         return NextResponse.json({
             success: false,
             fallback: true,
-            message: "Keys endpoint not found on upstream, proxy falling back",
+            message: `${isKeysEndpoint ? "Keys" : "Projects"} endpoint not found on upstream, proxy falling back`,
         }, { status: 200 });
     }
 

@@ -17,6 +17,7 @@ function createEmptyScript(sortOrder: number): ScriptDraft {
       model: "",
       prompt: "",
     },
+    creditCost: null,
   };
 }
 

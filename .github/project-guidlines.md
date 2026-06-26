@@ -105,7 +105,7 @@ Behavior บังคับ:
 - ใช้ Server Components เป็น default
 - ใส่ `"use client"` เฉพาะเมื่อจำเป็นต้องใช้ state/effect/browser API
 - ต้องมี loading/empty/error state สำหรับหน้าที่ดึงข้อมูล
-- ข้อกำหนดเรื่อง Typography: สำหรับ UI design typography ให้ใช้ `font-sans` เท่านั้น ห้ามใช้ `font-mono` สำหรับตัวอักษรหรือตัวเลขบน UI หลัก (ยกเว้นกรณีเฉพาะ เช่น code/JSON viewer) เพื่อคงเอกลักษณ์การออกแบบของระบบ
+- ข้อกำหนดเรื่อง Typography (ข้อห้ามเด็ดขาด): ทุกการสร้างองค์ประกอบบนหน้า UI (รวมถึง ข้อความ, ตัวเลข, สถิติ, ป้ายกำกับ, ปุ่ม, ID, และ metadata) จะต้องใช้คลาส `font-sans` เท่านั้น ห้ามใช้ `font-mono` บนหน้า UI ทั่วไปโดยเด็ดขาด ยกเว้นกรณีเฉพาะ เช่น กล่องแสดงโค้ดดิบ (Code Blocks), หน้าต่างแสดงผล JSON ล็อก หรือ syntax editor
 
 
 ### App Cover Asset Guideline

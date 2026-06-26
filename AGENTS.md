@@ -68,6 +68,8 @@ When these files diverge, update both in the same change.
 
 - Example: `{typeof category === "string" ? category : category?.name || ""}`
 
+**Strict Typography Prohibitions:** All UI text elements, labels, buttons, numbers, metrics, and identifiers (e.g., IDs) MUST strictly use `font-sans`. Using `font-mono` is strictly forbidden across all user interface components. The only exception is for raw code blocks, pre-formatted logs, or technical syntax highlights.
+
 **Error checks after every change:** After every code change, always run lint, type check, and build. If any error/warning or build fails, you must fix it before proceeding to the next task.
 
 ### Start-of-Task Guidelines (Required Every Time)

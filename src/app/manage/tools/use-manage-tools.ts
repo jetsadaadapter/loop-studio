@@ -159,8 +159,8 @@ export function useManageTools() {
       // Copy scripts one by one (bulk PUT not supported for new tools)
       if (source.scripts?.length) {
         const sorted = [...source.scripts].sort((a, b) => a.sortOrder - b.sortOrder);
-        for (const { plugin, config, label, description, sortOrder } of sorted) {
-          await createManageToolScript(newTool.id, { plugin, config, label, description, sortOrder });
+        for (const { plugin, config, label, description, sortOrder, creditCost } of sorted) {
+          await createManageToolScript(newTool.id, { plugin, config, label, description, sortOrder, creditCost });
         }
       }
 

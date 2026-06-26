@@ -249,10 +249,10 @@ export function ToolScriptItem({
   const badgeStyles = pluginKey.startsWith("exportcomments")
     ? { bg: "bg-violet-50/70", border: "border-violet-100/40", text: "text-violet-600" }
     : pluginKey === "gemini"
-    ? { bg: "bg-sky-50/70", border: "border-sky-100/40", text: "text-sky-600" }
-    : pluginKey === "apify"
-    ? { bg: "bg-orange-50/70", border: "border-orange-100/40", text: "text-orange-600" }
-    : { bg: "bg-slate-100", border: "border-slate-200/50", text: "text-slate-500" };
+      ? { bg: "bg-sky-50/70", border: "border-sky-100/40", text: "text-sky-600" }
+      : pluginKey === "apify"
+        ? { bg: "bg-orange-50/70", border: "border-orange-100/40", text: "text-orange-600" }
+        : { bg: "bg-slate-100", border: "border-slate-200/50", text: "text-slate-500" };
 
   const displayPlugins = [...plugins];
   if (script.plugin && !displayPlugins.some((p) => p.value === script.plugin)) {
@@ -334,8 +334,8 @@ export function ToolScriptItem({
               {isGemini
                 ? (script.config.model as string) || "Select AI Model"
                 : isApify
-                ? (script.config.actorId as string) || "Enter Actor ID"
-                : "Configured"}
+                  ? (script.config.actorId as string) || "Enter Actor ID"
+                  : "Configured"}
             </span>
           )}
         </div>
@@ -414,7 +414,24 @@ export function ToolScriptItem({
 
             <div className="space-y-1 col-span-2">
               <Label className="text-xs font-semibold text-slate-600">Description</Label>
-              <Input value={script.description} onChange={(e) => update({ description: e.target.value })} placeholder="Describe what this step does" className="h-8 bg-white border-slate-200 text-xs" />
+              <Input value={script.description} onChange={(e) => update({ description: e.target.value })} placeholder="Describe what this step does" className="h-8 bg-white border-slate-200 text-xs font-sans" />
+            </div>
+
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label className="text-xs font-semibold text-slate-600 font-sans">
+                Credit Cost <span className="text-[10px] font-normal text-slate-400 ml-1 select-none">(Credit per script)</span>
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                placeholder="Free (null)"
+                value={script.creditCost !== null && script.creditCost !== undefined ? script.creditCost : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  update({ creditCost: val === "" ? null : Math.max(0, parseInt(val, 10) || 0) });
+                }}
+                className="h-8 bg-white border-slate-200 text-xs font-sans"
+              />
             </div>
           </div>
 
@@ -463,7 +480,7 @@ export function ToolScriptItem({
                       setPromptMode("customize");
                       const nextConfig = { ...script.config };
                       delete nextConfig.promptId;
-                      
+
                       if (userCustomizePromptRef.current !== null) {
                         nextConfig.prompt = userCustomizePromptRef.current;
                       } else if (initialConfigRef.current?.promptMode === "customize") {
@@ -471,18 +488,17 @@ export function ToolScriptItem({
                       } else {
                         nextConfig.prompt = "";
                       }
-                      
+
                       // Reset model parameter when switching to Customize Prompt tab so it does not persist
                       nextConfig.model = "";
                       userCustomizeModelRef.current = "";
-                      
+
                       updateConfig(nextConfig);
                     }}
-                    className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                      promptMode === "customize"
+                    className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${promptMode === "customize"
                         ? "bg-white text-slate-800 shadow-2xs"
                         : "text-slate-400 hover:text-slate-750"
-                    }`}
+                      }`}
                   >
                     Customize Prompt
                   </Button>
@@ -495,7 +511,7 @@ export function ToolScriptItem({
 
                       setPromptMode("central");
                       const nextConfig = { ...script.config };
-                      
+
                       if (initialConfigRef.current?.promptMode === "central") {
                         nextConfig.promptId = initialConfigRef.current.promptId;
                         nextConfig.prompt = initialConfigRef.current.prompt || "";
@@ -506,14 +522,13 @@ export function ToolScriptItem({
                         delete nextConfig.promptId;
                         nextConfig.prompt = "";
                       }
-                      
+
                       updateConfig(nextConfig);
                     }}
-                    className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                      promptMode === "central"
+                    className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${promptMode === "central"
                         ? "bg-white text-slate-800 shadow-2xs"
                         : "text-slate-400 hover:text-slate-750"
-                    }`}
+                      }`}
                   >
                     Central Prompt
                   </Button>
@@ -638,13 +653,11 @@ export function ToolScriptItem({
           )}
 
           {isCustom && (
-            <div className={`space-y-3.5 border-l-2 pl-3.5 pb-2 ${
-              pluginKey.startsWith("exportcomments") ? "border-violet-500" : "border-slate-400"
-            }`}>
+            <div className={`space-y-3.5 border-l-2 pl-3.5 pb-2 ${pluginKey.startsWith("exportcomments") ? "border-violet-500" : "border-slate-400"
+              }`}>
               <div className="flex items-center justify-between">
-                <div className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider ${
-                  pluginKey.startsWith("exportcomments") ? "text-violet-600" : "text-slate-500"
-                }`}>
+                <div className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider ${pluginKey.startsWith("exportcomments") ? "text-violet-600" : "text-slate-500"
+                  }`}>
                   <Terminal className="size-3.5 shrink-0" /><span>Plugin Configuration</span>
                 </div>
                 <div className="flex items-center gap-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/40">
@@ -655,11 +668,10 @@ export function ToolScriptItem({
                       setRawJson(JSON.stringify(script.config, null, 2));
                       setEditMode("visual");
                     }}
-                    className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${
-                      editMode === "visual"
+                    className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${editMode === "visual"
                         ? "bg-white text-slate-800 shadow-2xs"
                         : "text-slate-400 hover:text-slate-750"
-                    }`}
+                      }`}
                   >
                     Visual Builder
                   </Button>
@@ -670,11 +682,10 @@ export function ToolScriptItem({
                       setRawJson(JSON.stringify(script.config, null, 2));
                       setEditMode("raw");
                     }}
-                    className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${
-                      editMode === "raw"
+                    className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${editMode === "raw"
                         ? "bg-white text-slate-800 shadow-2xs"
                         : "text-slate-400 hover:text-slate-750"
-                    }`}
+                      }`}
                   >
                     Raw JSON
                   </Button>
@@ -689,9 +700,8 @@ export function ToolScriptItem({
                       value={inputTemplateJson}
                       onChange={(e) => handleTemplateChange(e.target.value)}
                       placeholder='{"url": "{{url}}"}'
-                      className={`font-sans text-xs placeholder:text-xs bg-white ${
-                        templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
-                      }`}
+                      className={`font-sans text-xs placeholder:text-xs bg-white ${templateError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
+                        }`}
                       rows={4}
                     />
                     {templateError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{templateError}</p>}
@@ -723,9 +733,8 @@ export function ToolScriptItem({
                     value={rawJson}
                     onChange={(e) => handleJsonChange(e.target.value)}
                     placeholder='{"key": "value"}'
-                    className={`font-sans text-xs placeholder:text-xs bg-white ${
-                      jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
-                    }`}
+                    className={`font-sans text-xs placeholder:text-xs bg-white ${jsonError ? "border-brand focus-visible:ring-brand" : "border-slate-200"
+                      }`}
                     rows={5}
                   />
                   {jsonError && <p className="text-[9px] text-brand font-semibold leading-none mt-1">{jsonError}</p>}

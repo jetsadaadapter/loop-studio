@@ -27,6 +27,7 @@ function scriptToDraft(script: ToolScript): ScriptDraft {
     description: script.description ?? "",
     sortOrder: script.sortOrder,
     config: script.config || {},
+    creditCost: script.creditCost ?? null,
   };
 }
 
@@ -37,6 +38,7 @@ function draftToPayload(draft: ScriptDraft, idx: number): Partial<ToolScript> {
     description: draft.description.trim() || null,
     sortOrder: idx,
     config: draft.config,
+    creditCost: draft.creditCost,
   };
   if (draft.id && !draft.id.startsWith("local-") && draft.id.length > 8) {
     payload.id = draft.id;

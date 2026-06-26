@@ -23,6 +23,7 @@ export interface ToolScript {
     label: string;
     description: string | null;
     sortOrder: number;
+    creditCost?: number | null;
 }
 
 
