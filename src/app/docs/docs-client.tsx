@@ -302,7 +302,7 @@ export function ApiDocsClient() {
         </Link>
         <Link
           href="/manage"
-          className="pointer-events-auto flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all font-sans"
+          className="pointer-events-auto flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold text-[#c20019] hover:bg-red-50/50 border border-[#c20019] dark:text-white dark:border-white dark:hover:bg-white/10 transition-all font-sans"
         >
           <ArrowLeft className="w-3 h-3" />
           Console
