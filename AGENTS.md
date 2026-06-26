@@ -70,6 +70,19 @@ When these files diverge, update both in the same change.
 
 **Strict Typography Prohibitions:** All UI text elements, labels, buttons, numbers, metrics, and identifiers (e.g., IDs) MUST strictly use `font-sans`. Using `font-mono` is strictly forbidden across all user interface components. The only exception is for raw code blocks, pre-formatted logs, or technical syntax highlights.
 
+**Unified Table Reuse & Typography Weights:** All tables MUST strictly reuse the component system in `src/components/ui/table.tsx` (`TableContainer`, `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`).
+- Do NOT apply local style overrides on header cells (`TableHead`) such as custom colors or weight classes (e.g., `font-bold text-slate-650`). Let it inherit default `TableHead` styling.
+- Row cell styling weights must align with the User Management table standards:
+  - Entity names/primary columns use `font-semibold` (never `font-bold`).
+  - Secondary metadata, action terms, time, dates, or descriptions use standard font weight (never `font-medium` or `font-bold`).
+  - Badges and initials fallback inside avatar backgrounds may use `font-bold`.
+  - Custom buttons in row columns use `font-semibold` instead of `font-bold`.
+
+**Standardized Toolbar & Filters:** Every dashboard list view containing a data table MUST use a standardized filter and search UI pattern.
+- Always use `ManagerToolbar` (from `@/components/manager-toolbar`) which wraps the premium `ManageSearchInput` and `ManageFilterSelect` components.
+- Do NOT write custom toolbar divs with raw HTML `<input>` or native `<select>` tags. All search bars and dropdown selectors must follow this design system.
+- Include a refresh control (using `ManageRefreshButton` passed inside the `trailing` prop of `ManagerToolbar`) to let users refresh table contents.
+
 **Error checks after every change:** After every code change, always run lint, type check, and build. If any error/warning or build fails, you must fix it before proceeding to the next task.
 
 ### Start-of-Task Guidelines (Required Every Time)

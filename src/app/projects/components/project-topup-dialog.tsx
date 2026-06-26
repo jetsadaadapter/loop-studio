@@ -2,8 +2,8 @@
 
 import { useEffect, useState, startTransition } from "react";
 import { Coins, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,15 @@ import {
 import { getUserCredits } from "@/core/services/users.service";
 import type { ProjectItem } from "@/core/interfaces/projects.interface";
 
+const QUICK_AMOUNTS = [10, 50, 100, 500];
+const QUICK_DESCRIPTIONS = ["Monthly top-up", "Bonus reward", "Correction", "Refund"];
+
 interface ProjectTopUpDialogProps {
   project: ProjectItem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (updatedProject: ProjectItem) => void;
-  onTopUp: (projectId: string, amount: number) => Promise<{ success: boolean; data: ProjectItem }>;
+  onSuccess: (updatedProject?: ProjectItem) => void;
+  onTopUp: (projectId: string, amount: number, description?: string) => Promise<{ success: boolean; data?: ProjectItem }>;
 }
 
 export function ProjectTopUpDialog({
@@ -30,6 +33,9 @@ export function ProjectTopUpDialog({
   onTopUp,
 }: ProjectTopUpDialogProps) {
   const [amountStr, setAmountStr] = useState("");
+  const [descriptionStr, setDescriptionStr] = useState("");
+  const [amountTouched, setAmountTouched] = useState(false);
+  const [descTouched, setDescTouched] = useState(false);
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +46,9 @@ export function ProjectTopUpDialog({
       startTransition(() => {
         setErrorMsg("");
         setAmountStr("");
+        setDescriptionStr("");
+        setAmountTouched(false);
+        setDescTouched(false);
         setIsLoadingCredits(true);
         getUserCredits()
           .then((res) => {
@@ -58,25 +67,36 @@ export function ProjectTopUpDialog({
 
   if (!project) return null;
 
+  const amount = parseInt(amountStr, 10);
+  const amountError = amountTouched
+    ? !amountStr
+      ? "Amount is required."
+      : isNaN(amount) || amount <= 0
+      ? "Enter a valid amount greater than 0."
+      : ""
+    : "";
+
+  const descError = descTouched && !descriptionStr.trim()
+    ? "Description is required."
+    : "";
+
   const handleTopUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAmountTouched(true);
+    setDescTouched(true);
     setErrorMsg("");
 
-    const amount = parseInt(amountStr, 10);
-    if (isNaN(amount) || amount <= 0) {
-      setErrorMsg("Please enter a valid amount greater than 0.");
-      return;
-    }
+    const isAmountValid = !isNaN(amount) && amount > 0;
+    const isDescValid = descriptionStr.trim().length > 0;
 
-    if (userCredits !== null && amount > userCredits) {
-      setErrorMsg(`Insufficient credits. You only have ${userCredits.toLocaleString()} credits available.`);
+    if (!isAmountValid || !isDescValid) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await onTopUp(project.id, amount);
-      if (res.success && res.data) {
+      const res = await onTopUp(project.id, amount, descriptionStr.trim());
+      if (res.success) {
         onSuccess(res.data);
         onOpenChange(false);
       } else {
@@ -94,7 +114,7 @@ export function ProjectTopUpDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[420px] w-full rounded-2xl bg-white border border-slate-200/60 shadow-xl font-sans p-6 select-none">
         <DialogHeader className="space-y-1 pb-4 border-b border-slate-100">
-          <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <DialogTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
             <Coins className="size-5 text-brand" />
             <span>Credit Top-up</span>
           </DialogTitle>
@@ -104,29 +124,34 @@ export function ProjectTopUpDialog({
         </DialogHeader>
 
         <form onSubmit={handleTopUpSubmit} className="space-y-4 pt-4">
-          <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-3 flex justify-between items-center">
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Your Balance</p>
+          <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-4 flex items-center justify-between select-none">
+            <div className="flex-1 text-center">
               {isLoadingCredits ? (
-                <Loader2 className="size-4 animate-spin text-slate-400 mt-1" />
+                <div className="flex justify-center items-center h-8">
+                  <Loader2 className="size-4 animate-spin text-slate-400" />
+                </div>
               ) : (
-                <p className="text-lg font-bold text-slate-800 font-sans mt-0.5">
-                  {userCredits !== null ? `${userCredits.toLocaleString()} cr` : "--"}
+                <p className="text-xl font-bold text-slate-800 font-sans">
+                  {userCredits !== null ? userCredits.toLocaleString() : "--"}
+                  <span className="text-xs font-semibold text-slate-400 ml-1">cr</span>
                 </p>
               )}
+              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Your Balance</p>
             </div>
-            <div className="text-right border-l border-slate-200 pl-4">
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Project Balance</p>
-              <p className="text-lg font-bold text-slate-800 font-sans mt-0.5">
-                {project.credits.toLocaleString()} cr
+            <div className="w-px h-8 bg-slate-200" />
+            <div className="flex-1 text-center">
+              <p className="text-xl font-bold text-slate-800 font-sans">
+                {project.credits.toLocaleString()}
+                <span className="text-xs font-semibold text-slate-400 ml-1">cr</span>
               </p>
+              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Project Balance</p>
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="topup-amount" className="text-xs font-bold text-slate-600">
-              Top-up Amount
-            </label>
+          <Field>
+            <FieldLabel htmlFor="topup-amount">
+              Top-up Amount <span className="text-destructive">*</span>
+            </FieldLabel>
             <div className="relative">
               <Input
                 id="topup-amount"
@@ -135,42 +160,110 @@ export function ProjectTopUpDialog({
                 placeholder="Enter credit amount"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
+                onBlur={() => setAmountTouched(true)}
                 disabled={isSubmitting || isLoadingCredits}
-                className="pr-12 text-sm font-semibold text-slate-800 h-10 rounded-lg border-slate-200/80 focus:border-brand/40"
+                className="pr-12"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none font-sans">
                 credits
               </div>
             </div>
-            {errorMsg && (
-              <p className="text-xs font-semibold text-red-600 mt-1">{errorMsg}</p>
-            )}
-          </div>
+            {/* Quick amounts */}
+            <div className="flex gap-1.5 flex-wrap mt-1 select-none">
+              {QUICK_AMOUNTS.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => {
+                    setAmountStr(String(q));
+                    setAmountTouched(true);
+                  }}
+                  disabled={isSubmitting || isLoadingCredits}
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${
+                    amountStr === String(q)
+                      ? "bg-brand text-white border-brand"
+                      : "bg-slate-50 text-slate-600 border-slate-200 hover:border-brand/40 hover:text-brand"
+                  }`}
+                >
+                  +{q}
+                </button>
+              ))}
+            </div>
+            <FieldDescription>
+              Enter the amount of credits to transfer from your balance to this project.
+            </FieldDescription>
+            <FieldError errors={amountError ? [{ message: amountError }] : []} />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="topup-desc">
+              Description <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Input
+              id="topup-desc"
+              type="text"
+              placeholder="e.g. Monthly top-up"
+              value={descriptionStr}
+              onChange={(e) => setDescriptionStr(e.target.value)}
+              onBlur={() => setDescTouched(true)}
+              disabled={isSubmitting || isLoadingCredits}
+            />
+            {/* Quick descriptions */}
+            <div className="flex gap-1.5 flex-wrap mt-1 select-none">
+              {QUICK_DESCRIPTIONS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => {
+                    setDescriptionStr(d);
+                    setDescTouched(true);
+                  }}
+                  disabled={isSubmitting || isLoadingCredits}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all cursor-pointer ${
+                    descriptionStr === d
+                      ? "bg-slate-700 text-white border-slate-700"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400"
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            <FieldDescription>
+              Provide a brief description or reference note for this credit transaction.
+            </FieldDescription>
+            <FieldError errors={descError ? [{ message: descError }] : []} />
+          </Field>
+
+          {errorMsg && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-650 border border-red-100 font-medium">
+              {errorMsg}
+            </p>
+          )}
 
           <div className="pt-2 border-t border-slate-100 flex gap-2 justify-end">
-            <Button
+            <button
               type="button"
-              variant="ghost"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="h-10 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer w-full sm:w-auto"
+              className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 w-full sm:w-auto"
             >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
               disabled={isSubmitting || isLoadingCredits || !amountStr}
-              className="h-10 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer w-full sm:w-auto min-w-[100px]"
+              className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60 w-full sm:w-auto min-w-[100px]"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="size-4 animate-spin mr-1.5" />
-                  Top-up...
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Top-up...</span>
                 </>
               ) : (
                 "Top-up Now"
               )}
-            </Button>
+            </button>
           </div>
         </form>
       </DialogContent>

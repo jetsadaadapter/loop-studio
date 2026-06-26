@@ -1,5 +1,10 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { Input } from "@/components/ui/input";
+import { ManageSearchInput } from "@/components/ui/manage-search-input";
+import { ManageFilterSelect } from "@/components/ui/manage-filter-select";
+import { Button } from "@/components/ui/button";
+import { SlidersHorizontal } from "lucide-react";
 import type { ManagerFilter } from "./types";
 
 type ManagerToolbarProps = {
@@ -9,70 +14,67 @@ type ManagerToolbarProps = {
   filters?: ManagerFilter[];
   trailing?: ReactNode;
   className?: string;
-  layout?: "horizontal" | "vertical";
+  onResetFilters?: () => void;
 };
 
 export function ManagerToolbar({
   searchValue,
   onSearchChange,
-  searchPlaceholder = "Search",
+  searchPlaceholder = "Search…",
   filters = [],
   trailing,
   className = "",
-  layout = "horizontal",
+  onResetFilters,
 }: ManagerToolbarProps) {
-  // Responsive layout: horizontal (default) or vertical
-  const isHorizontal = layout === "horizontal";
+  // Determine if there is any active filter to show the reset button
+  const hasActiveFilter = searchValue !== "" || filters.some((f) => f.value !== "" && f.value !== "all");
+
+  const handleReset = () => {
+    onSearchChange("");
+    filters.forEach((f) => f.onChange("all"));
+    if (onResetFilters) onResetFilters();
+  };
+
   return (
-    <div
-      className={`rounded-xl border border-slate-200 bg-white px-4 py-3 ${className}`}
-      style={{ minHeight: 64 }}
-    >
-      <div
-        className={`flex w-full items-center gap-3 ${
-          isHorizontal ? "flex-col md:flex-row md:gap-4" : "flex-col gap-3"
-        }`}
-      >
-        <div className="flex w-full max-w-md flex-1 items-center">
-          <Input
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full"
-          />
-        </div>
-        {filters.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+    <div className={`flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none ${className}`}>
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
+        <ManageSearchInput
+          value={searchValue}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+        />
+        {(filters.length > 0 || hasActiveFilter) && (
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             {filters.map((filter) => (
-              <label
+              <ManageFilterSelect
                 key={filter.key}
-                className="flex items-center gap-2 text-sm"
-              >
-                <span className="text-slate-600">{filter.label}</span>
-                <select
-                  value={filter.value}
-                  onChange={(event) => filter.onChange(event.target.value)}
-                  className="h-8 rounded-md border border-slate-300 px-2 text-sm bg-white"
-                >
-                  {filter.options.map((option) => (
-                    <option
-                      key={`${filter.key}:${option.value}`}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                label={filter.label}
+                value={filter.value}
+                options={filter.options}
+                onChange={filter.onChange}
+                width={filter.width}
+              />
             ))}
+            {hasActiveFilter && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleReset}
+                className="size-8 rounded-sm border border-slate-200 hover:bg-slate-50 cursor-pointer text-slate-500 shadow-3xs flex items-center justify-center shrink-0"
+                title="Reset Filters"
+              >
+                <SlidersHorizontal className="size-4" />
+              </Button>
+            )}
           </div>
         )}
-        {trailing ? (
-          <div className="flex flex-1 justify-end items-center min-w-fit md:ml-auto">
-            {trailing}
-          </div>
-        ) : null}
       </div>
+      {trailing && (
+        <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
+          {trailing}
+        </div>
+      )}
     </div>
   );
 }

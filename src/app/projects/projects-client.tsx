@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, startTransition } from "react";
+import { useEffect, useState, useCallback, startTransition, useRef, useMemo } from "react";
 import { Plus, LayoutDashboard, Layers, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useToast } from "@/components/toast-provider";
 import { ManagerShell } from "@/components/manager-shell";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 
 import type { ProjectItem } from "@/core/interfaces/projects.interface";
 import type { ProjectActivity } from "@/core/services/projects-mock-data";
@@ -49,12 +50,46 @@ export function ProjectsClient() {
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [activities, setActivities] = useState<ProjectActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Pagination & Search for Projects
   const [totalProjects, setTotalProjects] = useState(0);
   const [projectsPage, setProjectsPage] = useState(1);
   const [projectsPageSize, setProjectsPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((val: string) => {
+    setSearchInput(val);
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(val);
+      setProjectsPage(1);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
+
+  // Client-side filtering & pagination for Projects
+  const filteredProjects = useMemo(() => {
+    let list = projects;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((p) => p.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [projects, searchQuery]);
+
 
   // Pagination for Activities
   const [totalActivities, setTotalActivities] = useState(0);
@@ -64,25 +99,56 @@ export function ProjectsClient() {
   // Modal States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [createTouched, setCreateTouched] = useState(false);
   const [renameProject, setRenameProject] = useState<ProjectItem | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [renameTouched, setRenameTouched] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<ProjectItem | null>(null);
   const [selectedTopUpProject, setSelectedTopUpProject] = useState<ProjectItem | null>(null);
   const [selectedConnectProject, setSelectedConnectProject] = useState<ProjectItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load Projects
-  const fetchProjects = useCallback(async () => {
+  // Reset touched states when modals open
+  useEffect(() => {
+    if (isCreateOpen) {
+      setNewProjectName("");
+      setCreateTouched(false);
+    }
+  }, [isCreateOpen]);
+
+  useEffect(() => {
+    if (renameProject) {
+      setRenameTouched(false);
+    }
+  }, [renameProject]);
+
+  const createError = createTouched && !newProjectName.trim()
+    ? "Project name is required."
+    : "";
+
+  const renameError = renameTouched && !renameValue.trim()
+    ? "Project name is required."
+    : "";
+
+  // Load Projects (fetches projects page-by-page from the backend)
+  const fetchProjects = useCallback(async (options?: { silent?: boolean }) => {
+    const isSilent = options?.silent ?? false;
+    if (isSilent) setIsRefreshing(true);
+    else setIsLoading(true);
     try {
-      const res = await getProjectsResponse(projectsPage, projectsPageSize, searchQuery);
+      const res = await getProjectsResponse(projectsPage, projectsPageSize);
       if (res.success && res.data) {
         setProjects(res.data);
         setTotalProjects(res.meta?.total ?? res.data.length);
+        setLastUpdatedAt(new Date());
       }
     } catch {
       pushToast("Failed to load projects.", "error");
+    } finally {
+      if (isSilent) setIsRefreshing(false);
+      else setIsLoading(false);
     }
-  }, [projectsPage, projectsPageSize, searchQuery, pushToast]);
+  }, [projectsPage, projectsPageSize, pushToast]);
 
   // Load Activities
   const fetchActivities = useCallback(async () => {
@@ -98,20 +164,55 @@ export function ProjectsClient() {
   }, [activitiesPage, activitiesPageSize, pushToast]);
 
   // Combined fetch
-  const reloadData = useCallback(async () => {
-    setIsLoading(true);
-    await Promise.all([fetchProjects(), fetchActivities()]);
-    setIsLoading(false);
+  const reloadData = useCallback(async (options?: { silent?: boolean }) => {
+    const isSilent = options?.silent ?? true;
+    if (isSilent) setIsRefreshing(true);
+    else setIsLoading(true);
+    try {
+      await Promise.all([fetchProjects({ silent: isSilent }), fetchActivities()]);
+    } finally {
+      if (isSilent) setIsRefreshing(false);
+      else setIsLoading(false);
+    }
   }, [fetchProjects, fetchActivities]);
 
+  const isProjectsInitialMount = useRef(true);
+
+  // Projects loader & reaction effect: initial load and pagination reaction
   useEffect(() => {
+    if (isProjectsInitialMount.current) {
+      isProjectsInitialMount.current = false;
+      startTransition(() => {
+        void fetchProjects({ silent: false });
+      });
+      return;
+    }
+
     startTransition(() => {
-      void reloadData();
+      void fetchProjects({ silent: false });
     });
-  }, [reloadData]);
+  }, [fetchProjects, projectsPage, projectsPageSize]);
+
+  const isActivitiesInitialMount = useRef(true);
+
+  // Activities loader & reaction effect: initial load and pagination reaction
+  useEffect(() => {
+    if (isActivitiesInitialMount.current) {
+      isActivitiesInitialMount.current = false;
+      startTransition(() => {
+        void fetchActivities();
+      });
+      return;
+    }
+
+    startTransition(() => {
+      void fetchActivities();
+    });
+  }, [fetchActivities, activitiesPage, activitiesPageSize]);
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreateTouched(true);
     if (!newProjectName.trim()) return;
     setIsSubmitting(true);
     try {
@@ -119,6 +220,7 @@ export function ProjectsClient() {
       pushToast("Project created successfully.", "success");
       setIsCreateOpen(false);
       setNewProjectName("");
+      setCreateTouched(false);
       reloadData();
     } catch {
       pushToast("Failed to create project.", "error");
@@ -129,6 +231,7 @@ export function ProjectsClient() {
 
   const handleRenameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRenameTouched(true);
     if (!renameProject || !renameValue.trim()) return;
     setIsSubmitting(true);
     try {
@@ -136,6 +239,7 @@ export function ProjectsClient() {
       pushToast("Project renamed successfully.", "success");
       setRenameProject(null);
       setRenameValue("");
+      setRenameTouched(false);
       reloadData();
     } catch {
       pushToast("Failed to rename project.", "error");
@@ -212,13 +316,10 @@ export function ProjectsClient() {
 
         {activeTab === "projects" && (
           <ProjectsTab
-            projects={projects}
+            projects={filteredProjects}
             isLoading={isLoading}
-            searchQuery={searchQuery}
-            onSearchChange={(val) => {
-              setSearchQuery(val);
-              setProjectsPage(1);
-            }}
+            searchQuery={searchInput}
+            onSearchChange={handleSearchChange}
             currentPage={projectsPage}
             pageSize={projectsPageSize}
             totalItems={totalProjects}
@@ -234,6 +335,9 @@ export function ProjectsClient() {
             }}
             onConnectClick={setSelectedConnectProject}
             onDeleteClick={setProjectToDelete}
+            onRefresh={() => reloadData({ silent: true })}
+            isRefreshing={isRefreshing}
+            lastUpdatedAt={lastUpdatedAt}
           />
         )}
 
@@ -258,43 +362,43 @@ export function ProjectsClient() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-[400px] w-full rounded-2xl bg-white border border-slate-200/60 shadow-xl font-sans p-6 select-none">
           <DialogHeader className="space-y-1 pb-4 border-b border-slate-100">
-            <DialogTitle className="text-lg font-bold text-slate-900">Create Project</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-slate-900">Create Project</DialogTitle>
             <DialogDescription className="text-xs text-slate-500 font-medium">
               Add a new project to allocate credits and link resources.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="space-y-4 pt-4">
-            <div className="space-y-1.5">
-              <label htmlFor="new-project-name" className="text-xs font-bold text-slate-600">
-                Project Name
-              </label>
+            <Field>
+              <FieldLabel htmlFor="new-project-name">
+                Project Name <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="new-project-name"
                 placeholder="Enter project name"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
+                onBlur={() => setCreateTouched(true)}
                 disabled={isSubmitting}
-                className="text-sm font-semibold text-slate-805 h-10 rounded-lg border-slate-200/80 focus:border-brand/40"
                 required
               />
-            </div>
+              <FieldError errors={createError ? [{ message: createError }] : []} />
+            </Field>
             <div className="pt-2 border-t border-slate-100 flex gap-2 justify-end">
-              <Button
+              <button
                 type="button"
-                variant="ghost"
                 onClick={() => setIsCreateOpen(false)}
                 disabled={isSubmitting}
-                className="h-10 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 disabled={isSubmitting || !newProjectName.trim()}
-                className="h-10 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer"
+                className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
               >
                 Create Project
-              </Button>
+              </button>
             </div>
           </form>
         </DialogContent>
@@ -303,43 +407,43 @@ export function ProjectsClient() {
       <Dialog open={!!renameProject} onOpenChange={(open) => !open && setRenameProject(null)}>
         <DialogContent className="max-w-[400px] w-full rounded-2xl bg-white border border-slate-200/60 shadow-xl font-sans p-6 select-none">
           <DialogHeader className="space-y-1 pb-4 border-b border-slate-100">
-            <DialogTitle className="text-lg font-bold text-slate-900">Rename Project</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-slate-900">Rename Project</DialogTitle>
             <DialogDescription className="text-xs text-slate-500 font-medium">
               Update the name of your project.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRenameSubmit} className="space-y-4 pt-4">
-            <div className="space-y-1.5">
-              <label htmlFor="rename-project-name" className="text-xs font-bold text-slate-600">
-                New Project Name
-              </label>
+            <Field>
+              <FieldLabel htmlFor="rename-project-name">
+                New Project Name <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="rename-project-name"
                 placeholder="Enter new name"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
+                onBlur={() => setRenameTouched(true)}
                 disabled={isSubmitting}
-                className="text-sm font-semibold text-slate-805 h-10 rounded-lg border-slate-200/80 focus:border-brand/40"
                 required
               />
-            </div>
+              <FieldError errors={renameError ? [{ message: renameError }] : []} />
+            </Field>
             <div className="pt-2 border-t border-slate-100 flex gap-2 justify-end">
-              <Button
+              <button
                 type="button"
-                variant="ghost"
                 onClick={() => setRenameProject(null)}
                 disabled={isSubmitting}
-                className="h-10 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 disabled={isSubmitting || !renameValue.trim()}
-                className="h-10 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer"
+                className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
               >
                 Save Changes
-              </Button>
+              </button>
             </div>
           </form>
         </DialogContent>
@@ -364,7 +468,7 @@ export function ProjectsClient() {
           pushToast("Credits topped up successfully.", "success");
           reloadData();
         }}
-        onTopUp={(id, amount) => topUpProjectCredits(id, amount, undefined, userContext)}
+        onTopUp={(id, amount, description) => topUpProjectCredits(id, amount, description, undefined, userContext)}
       />
 
       <ConnectionDialog

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, startTransition } from "react";
 import { Link2, Loader2, Sparkles, LayoutGrid, KeyRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +9,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { getManageApiKeysResponse } from "@/core/services/keys.service";
 import { getManageTools } from "@/core/services/manage-tools.service";
 import { getManageApps } from "@/core/services/apps.service";
@@ -171,29 +172,36 @@ export function ConnectionDialog({
     }
 
     return (
-      <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1">
+      <FieldGroup className="max-h-[220px] overflow-y-auto gap-2 pr-1 select-none">
         {options.map((opt) => {
           const isSelected = selectedList.includes(opt.id);
+          const checkboxId = `${type}:${opt.id}`;
           return (
-            <label
-              key={`${type}:${opt.id}`}
-              className={`flex items-center justify-between p-2.5 rounded-lg border text-xs font-bold transition-all cursor-pointer select-none ${
+            <Field
+              key={checkboxId}
+              orientation="horizontal"
+              className={`flex items-center justify-between p-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                 isSelected
                   ? "border-brand/35 bg-brand/5 text-slate-800"
                   : "border-slate-200/60 bg-white text-slate-650 hover:bg-slate-50"
               }`}
             >
-              <span className="truncate pr-4">{opt.name}</span>
-              <input
-                type="checkbox"
+              <FieldLabel
+                htmlFor={checkboxId}
+                className="truncate pr-4 text-xs font-semibold cursor-pointer text-slate-850"
+              >
+                {opt.name}
+              </FieldLabel>
+              <Checkbox
+                id={checkboxId}
                 checked={isSelected}
                 onChange={() => toggleSelect(type, opt.id)}
-                className="size-4 rounded border-slate-350 text-brand focus:ring-0 cursor-pointer"
+                className="cursor-pointer"
               />
-            </label>
+            </Field>
           );
         })}
-      </div>
+      </FieldGroup>
     );
   };
 
@@ -201,7 +209,7 @@ export function ConnectionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[440px] w-full rounded-2xl bg-white border border-slate-200/60 shadow-xl font-sans p-6">
         <DialogHeader className="space-y-1 pb-4 border-b border-slate-100">
-          <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <DialogTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
             <Link2 className="size-5 text-brand" />
             <span>Connect Resources</span>
           </DialogTitle>
@@ -227,7 +235,7 @@ export function ConnectionDialog({
               <button
                 key={tab}
                 onClick={() => setActiveSubTab(tab)}
-                className={`flex-1 pb-2 text-xs font-bold border-b-2 flex items-center justify-center cursor-pointer transition-colors ${
+                className={`flex-1 pb-2 text-xs font-semibold border-b-2 flex items-center justify-center cursor-pointer transition-colors ${
                   isActive
                     ? "border-brand text-brand"
                     : "border-transparent text-slate-500 hover:text-slate-750"
@@ -253,23 +261,23 @@ export function ConnectionDialog({
         {errorMsg && <p className="text-xs font-semibold text-red-650 pt-2">{errorMsg}</p>}
 
         <div className="pt-4 border-t border-slate-100 flex gap-2 justify-end select-none">
-          <Button
+          <button
             type="button"
-            variant="ghost"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="h-10 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+            className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
             onClick={handleSave}
             disabled={isSubmitting || isLoadingData}
-            className="h-10 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer min-w-[90px]"
+            className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60 min-w-[90px]"
           >
-            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : "Save Changes"}
-          </Button>
+            {isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
+            Save Changes
+          </button>
         </div>
       </DialogContent>
     </Dialog>

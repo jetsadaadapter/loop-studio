@@ -106,6 +106,8 @@ Behavior บังคับ:
 - ใส่ `"use client"` เฉพาะเมื่อจำเป็นต้องใช้ state/effect/browser API
 - ต้องมี loading/empty/error state สำหรับหน้าที่ดึงข้อมูล
 - ข้อกำหนดเรื่อง Typography (ข้อห้ามเด็ดขาด): ทุกการสร้างองค์ประกอบบนหน้า UI (รวมถึง ข้อความ, ตัวเลข, สถิติ, ป้ายกำกับ, ปุ่ม, ID, และ metadata) จะต้องใช้คลาส `font-sans` เท่านั้น ห้ามใช้ `font-mono` บนหน้า UI ทั่วไปโดยเด็ดขาด ยกเว้นกรณีเฉพาะ เช่น กล่องแสดงโค้ดดิบ (Code Blocks), หน้าต่างแสดงผล JSON ล็อก หรือ syntax editor
+- ข้อกำหนดเรื่องตาราง (Table Reuse & Styling Rules): ตารางข้อมูลทั้งหมดภายในระบบต้องเรียกใช้งาน Component ร่วมจาก `src/components/ui/table.tsx` (`TableContainer`, `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`) เสมอ ห้ามทำการเขียน CSS ทับสีหรือน้ำหนักตัวอักษรของ Header (`TableHead`) แบบ inline หรือ custom classes (เช่น `font-bold text-slate-650`) ให้ปล่อยให้แสดงผลตามสไตล์เริ่มต้น และน้ำหนักตัวอักษรในแถวข้อมูล (Rows) จะต้องอิงตามมาตรฐานของหน้า User Management: ชื่อหลักใช้ `font-semibold`, ข้อมูลรายละเอียดรองใช้ font weight ปกติ (ไม่มี `font-medium` หรือ `font-bold`), ปุ่มควบคุมในคอลัมน์ใช้ `font-semibold` และป้ายสถานะ/สถิติสำคัญใช้ `font-bold`
+- ข้อกำหนดเรื่องปุ่มค้นหาและคัดกรองข้อมูล (Standardized Toolbar & Filters): ทุกหน้าจอแสดงผลข้อมูลตารางที่จะต้องมีระบบค้นหาและกรองข้อมูล (Filters) จะต้องเรียกใช้งาน `ManagerToolbar` (จาก `@/components/manager-toolbar`) ร่วมกันเสมอ เพื่อความเป็นระเบียบและสม่ำเสมอของดีไซน์ (ห้ามทำการเขียนกล่องค้นหาหรือ select dropdown ขึ้นเองด้วยแท็ก HTML ดิบ) โดยที่ตัว Toolbar จะต้องห่อหุ้ม `ManageSearchInput` และ `ManageFilterSelect` เสมอ และควรส่งปุ่มอัปเดตข้อมูล `ManageRefreshButton` เข้าไปใน prop `trailing` เพื่อให้ผู้ใช้งานสามารถกด Refresh ตารางข้อมูลได้
 
 
 ### App Cover Asset Guideline

@@ -1,9 +1,16 @@
-"use client";
-
 import { User, Edit3, Coins, Zap } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { Button } from "@/components/ui/button";
+import {
+  TableContainer,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 
 interface UserTableProps {
   users: UserProfile[];
@@ -64,13 +71,13 @@ function UserTableSkeletonRows() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={`skeleton-user-row-${i}`} className="animate-pulse">
+        <TableRow key={`skeleton-user-row-${i}`} className="animate-pulse">
           {/* # */}
-          <td className="p-3 px-4 hidden xs:table-cell">
+          <TableCell className="px-4 hidden xs:table-cell">
             <div className="h-4 w-4 bg-slate-100 rounded" />
-          </td>
+          </TableCell>
           {/* User Profile */}
-          <td className="p-3">
+          <TableCell>
             <div className="flex items-center gap-3">
               <div className="size-8 rounded-full bg-slate-100 shrink-0" />
               <div className="space-y-1.5 min-w-0 flex-1">
@@ -84,36 +91,36 @@ function UserTableSkeletonRows() {
                 </div>
               </div>
             </div>
-          </td>
+          </TableCell>
           {/* Department / Position */}
-          <td className="p-3 hidden md:table-cell">
+          <TableCell className="hidden md:table-cell">
             <div className="space-y-1.5">
               <div className="h-3.5 w-28 bg-slate-100 rounded" />
               <div className="h-2.5 w-20 bg-slate-100 rounded" />
             </div>
-          </td>
+          </TableCell>
           {/* Security Roles */}
-          <td className="p-3 hidden md:table-cell">
+          <TableCell className="hidden md:table-cell">
             <div className="flex gap-1.5">
               <div className="h-5 w-16 bg-slate-100 rounded-full" />
               <div className="h-5 w-14 bg-slate-100 rounded-full" />
             </div>
-          </td>
+          </TableCell>
           {/* Credits */}
-          <td className="p-3 hidden md:table-cell">
+          <TableCell className="hidden md:table-cell">
             <div className="h-4 w-12 bg-slate-100 rounded-full" />
-          </td>
+          </TableCell>
           {/* Last Updated */}
-          <td className="p-3 hidden md:table-cell">
+          <TableCell className="hidden md:table-cell">
             <div className="h-3.5 w-20 bg-slate-100 rounded" />
-          </td>
+          </TableCell>
           {/* Actions */}
-          <td className="p-3 px-4 text-right">
+          <TableCell className="px-4 text-right">
             <div className="flex justify-end pr-1">
               <div className="h-7 w-7 bg-slate-100 rounded-sm" />
             </div>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       ))}
     </>
   );
@@ -128,37 +135,37 @@ export function UserTable({
   onAdjustCredits,
 }: UserTableProps) {
   return (
-    <div className="relative w-full overflow-x-auto border border-slate-200 rounded-sm bg-white shadow-3xs">
-      <table className="w-full caption-bottom text-xs min-w-full md:min-w-4xl">
-        <thead className="[&_tr]:border-b bg-slate-50/50">
-          <tr className="border-b transition-colors hover:bg-transparent">
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 px-4 hidden xs:table-cell">
+    <TableContainer>
+      <Table className="min-w-full md:min-w-4xl">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="px-4 hidden xs:table-cell">
               #
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3">
+            </TableHead>
+            <TableHead>
               User Profile
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
               Department / Position
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
               Security Roles
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
               Credits
-            </th>
-            <th className="text-foreground h-10 text-left align-middle font-semibold whitespace-nowrap p-3 hidden md:table-cell">
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
               Last Updated
-            </th>
-            <th className="text-foreground h-10 text-right align-middle font-semibold whitespace-nowrap p-3 px-4"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+            </TableHead>
+            <TableHead className="px-4 text-right"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {isLoading ? (
             <UserTableSkeletonRows />
           ) : loadError ? (
-            <tr>
-              <td colSpan={7} className="p-8 text-center">
+            <TableRow>
+              <TableCell colSpan={7} className="p-8 text-center">
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-sm text-slate-500">{loadError}</p>
                   <Button
@@ -170,11 +177,11 @@ export function UserTable({
                     Retry
                   </Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : users.length === 0 ? (
-            <tr>
-              <td colSpan={7} className="py-16 text-center select-none">
+            <TableRow>
+              <TableCell colSpan={7} className="py-16 text-center select-none">
                 <div className="flex flex-col items-center gap-4">
                   <div className="flex size-12 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-400">
                     <User className="size-6" />
@@ -188,21 +195,20 @@ export function UserTable({
                     </p>
                   </div>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             users.map((user, index) => (
-              <tr
+              <TableRow
                 key={user.empid}
-                className="hover:bg-slate-50/50 transition-colors border-b last:border-0"
               >
                 {/* # */}
-                <td className="p-3 px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
+                <TableCell className="px-4 align-middle whitespace-nowrap text-xs font-semibold text-slate-400 hidden xs:table-cell">
                   {index + 1}
-                </td>
+                </TableCell>
 
                 {/* Profile Card */}
-                <td className="p-3 align-middle">
+                <TableCell>
                   <div className="flex items-center gap-3">
                     <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold shadow-3xs ${getAvatarBgColor(user.empid)}`}>
                       {getInitials(user.firstName, user.lastName)}
@@ -248,20 +254,20 @@ export function UserTable({
                       </div>
                     </div>
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Dept / Pos */}
-                <td className="p-3 align-middle hidden md:table-cell">
+                <TableCell className="hidden md:table-cell">
                   <span className="text-xs font-semibold text-slate-700 block leading-tight">
                     {user.department}
                   </span>
                   <span className="text-[10px] text-slate-400 block mt-0.5 leading-none">
                     {user.position}
                   </span>
-                </td>
+                </TableCell>
 
                 {/* Roles */}
-                <td className="p-3 align-middle hidden md:table-cell">
+                <TableCell className="hidden md:table-cell">
                   <div className="flex flex-wrap gap-1">
                     {user.roles && user.roles.length > 0 ? (
                       user.roles.map((role) => (
@@ -276,10 +282,10 @@ export function UserTable({
                       <span className="text-slate-400 italic">No Roles</span>
                     )}
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Credits */}
-                <td className="p-3 align-middle whitespace-nowrap hidden md:table-cell">
+                <TableCell className="whitespace-nowrap hidden md:table-cell">
                   {user.credits !== undefined ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/70 px-2 py-0.5 text-[10px] font-bold text-amber-700">
                       <Zap className="size-2.5 shrink-0" />
@@ -288,15 +294,15 @@ export function UserTable({
                   ) : (
                     <span className="text-slate-400 text-xs">—</span>
                   )}
-                </td>
+                </TableCell>
 
                 {/* Updated */}
-                <td className="p-3 align-middle whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
+                <TableCell className="whitespace-nowrap text-xs text-slate-500 hidden md:table-cell">
                   {formatDate(user.updatedAt)}
-                </td>
+                </TableCell>
 
                 {/* Actions */}
-                <td className="p-3 px-4 align-middle whitespace-nowrap text-right">
+                <TableCell className="px-4 whitespace-nowrap text-right">
                   <div className="flex justify-end">
                     <ManagerActionsDropdown
                       triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
@@ -314,12 +320,12 @@ export function UserTable({
                       ]}
                     />
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       {/* Footer count */}
       {!isLoading && users.length > 0 && (
@@ -329,6 +335,6 @@ export function UserTable({
           </span>
         </div>
       )}
-    </div>
+    </TableContainer>
   );
 }

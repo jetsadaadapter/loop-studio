@@ -295,22 +295,23 @@ export async function deleteProject(
 export async function topUpProjectCredits(
     id: string,
     amount: number,
+    description: string = "Top-up credits",
     init?: ApiFetchOptions,
     userContext?: { userId?: string; userName?: string; userAvatar?: string },
-): Promise<{ success: boolean; data: ProjectItem }> {
+): Promise<{ success: boolean; data?: ProjectItem }> {
     try {
-        const url = buildUrl(`/projects/${id}/topup`);
-        const response = await apiFetch<{ success: boolean; data: ProjectItem; fallback?: boolean }>(url, {
+        const url = buildUrl(`/projects/${id}/credits/adjust`);
+        const response = await apiFetch<{ success: boolean; data?: ProjectItem; fallback?: boolean }>(url, {
             method: "POST",
-            body: JSON.stringify({ amount }),
+            body: JSON.stringify({ amount, description }),
             silentErrors: true,
             ...init,
         });
         if (response.fallback) {
             throw new ApiError(404, "Projects topup endpoint not implemented on upstream", url);
         }
-        logActivity("topped up credits", `${amount.toLocaleString()} credits`, response.data.name, "low", userContext);
-        return { success: true, data: mergeSingleConnection(response.data) };
+        logActivity("topped up credits", `${amount.toLocaleString()} credits`, response.data?.name || `Project (${id})`, "low", userContext);
+        return { success: true, data: response.data ? mergeSingleConnection(response.data) : undefined };
     } catch {
         const all = getLocalProjects();
         let updatedItem: ProjectItem | undefined;
