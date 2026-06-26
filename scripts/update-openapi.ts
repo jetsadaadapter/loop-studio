@@ -1,11 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { getManageApps } from "@/core/services/apps.service";
-import type { ManageAppApiItem } from "@/core/interfaces/apps.interface";
-import type { ToolParam, ToolScript } from "@/core/interfaces/tools.interface";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-export const dynamic = "force-dynamic";
+interface ToolParam {
+  key: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+  defaultValue?: string | null;
+  placeholder?: string | null;
+  sortOrder: number;
+}
+
+interface ToolScript {
+  plugin: string;
+  label?: string | null;
+  sortOrder: number;
+}
+
+interface ManageAppApiItem {
+  id: string;
+  name: string;
+  appTool?: {
+    tool: {
+      id: string;
+      description?: string | null;
+      params?: ToolParam[];
+      scripts?: ToolScript[];
+    };
+  } | null;
+}
 
 function paramToJsonSchemaType(type: string): string {
   switch (type) {
@@ -167,28 +191,37 @@ function buildToolPaths(toolId: string, toolName: string, params: ToolParam[], s
   return paths;
 }
 
-export async function GET(request: NextRequest) {
+async function run() {
+  const token = process.argv[2] || process.env.ZT_TOKEN;
+  if (!token) {
+    console.error("❌ Error: Missing ZT_TOKEN. Provide it as an argument or environment variable.");
+    console.error("Usage: npm run update-spec <your_zt_token>");
+    console.error("   or: ZT_TOKEN=<your_zt_token> npm run update-spec");
+    process.exit(1);
+  }
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_STORE_API_BASE_URL || "https://library-api.adapterdigital.com/api";
+  const url = `${apiBaseUrl.endsWith("/") ? apiBaseUrl.slice(0, -1) : apiBaseUrl}/manage/apps?page=1&limit=200`;
+
+  console.log(`📡 Fetching apps from: ${url}`);
   try {
-    let token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-    if (!token) {
-      token = request.cookies.get("zt_token")?.value;
+    if (!res.ok) {
+      throw new Error(`HTTP Error ${res.status} ${res.statusText}`);
     }
 
-    if (!token) {
-      const { searchParams } = new URL(request.url);
-      token = searchParams.get("token") || searchParams.get("zt_token") || undefined;
-    }
-
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const appsPage = await getManageApps({ page: 1, limit: 200 }, { headers });
-    const apps: ManageAppApiItem[] = appsPage.data ?? [];
-
+    const body = (await res.json()) as { data: ManageAppApiItem[] };
+    const apps = body.data ?? [];
     const toolApps = apps.filter((app) => app.appTool?.tool);
+
+    console.log(`✓ Retrieved ${apps.length} apps (${toolApps.length} tools)`);
+
     const allPaths: Record<string, Record<string, unknown>> = {};
     const tags: Array<{ name: string; description: string }> = [];
 
@@ -346,15 +379,13 @@ export async function GET(request: NextRequest) {
       tags,
     };
 
-    return NextResponse.json(spec, {
-      headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
-    });
+    const targetFile = path.join(process.cwd(), "public/docs/openapi.json");
+    fs.writeFileSync(targetFile, JSON.stringify(spec, null, 2), "utf8");
+    console.log(`💾 Successfully updated static OpenAPI spec at: ${targetFile}`);
   } catch (error) {
-    console.error("[OpenAPI Spec] Failed to generate dynamic spec, falling back to static:", error);
-    const filePath = path.join(process.cwd(), "public/docs/openapi-static.json");
-    const raw = await fs.readFile(filePath, "utf-8");
-    return NextResponse.json(JSON.parse(raw), {
-      headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" },
-    });
+    console.error("❌ Failed to update OpenAPI spec:", error);
+    process.exit(1);
   }
 }
+
+run();
