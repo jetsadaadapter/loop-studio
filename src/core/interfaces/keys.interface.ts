@@ -1,3 +1,5 @@
+import type { ProjectItem } from "@/core/interfaces/projects.interface";
+
 export interface ManageApiKeyItem {
     id: string;
     appId: string;
@@ -5,6 +7,8 @@ export interface ManageApiKeyItem {
     ownerId: string;
     isActive: boolean;
     webhookUrl?: string;
+    projectId?: string | null;
+    project?: ProjectItem | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -13,6 +17,7 @@ export interface ManageApiKeyPayload {
     name?: string;
     webhookUrl?: string;
     isActive?: boolean;
+    projectId?: string | null;
 }
 
 export interface ManageApiKeyListResponse {

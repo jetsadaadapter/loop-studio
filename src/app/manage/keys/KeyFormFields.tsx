@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ManageApiKeySchema } from "@/core/validators/keys.validator";
 import React from "react";
 
@@ -17,6 +24,7 @@ export type ApiKeyFormFieldsDraft = {
   name: string;
   webhookUrl: string;
   isActive: boolean;
+  projectId: string;
 };
 
 export function validateApiKeyForm(
@@ -26,6 +34,7 @@ export function validateApiKeyForm(
     name: value.name,
     webhookUrl: value.webhookUrl,
     isActive: value.isActive,
+    projectId: value.projectId || null,
   });
   if (result.success) return {};
 
@@ -41,6 +50,7 @@ export function validateApiKeyForm(
 export interface KeyFormFieldsProps {
   draft: ApiKeyFormFieldsDraft;
   fieldErrors?: Record<string, string>;
+  projects?: { id: string; name: string }[];
   onChange: (
     field: keyof ApiKeyFormFieldsDraft,
     value: string | boolean,
@@ -50,6 +60,7 @@ export interface KeyFormFieldsProps {
 export function KeyFormFields({
   draft,
   fieldErrors = {},
+  projects = [],
   onChange,
 }: KeyFormFieldsProps) {
   return (
@@ -72,6 +83,41 @@ export function KeyFormFields({
             </FieldDescription>
             <FieldError
               errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []}
+            />
+          </Field>
+        </div>
+
+        {/* Connected Project */}
+        <div className="col-span-12">
+          <Field>
+            <FieldLabel>
+              Connected Project
+            </FieldLabel>
+            <Select
+              value={draft.projectId || "none"}
+              onValueChange={(val) => onChange("projectId", (val === "none" || !val) ? "" : val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select project (Optional)">
+                  {projects?.find((p) => p.id === draft.projectId)?.name || "Not connected"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectItem value="none">
+                  <span className="text-xs text-slate-400 font-sans">Not connected</span>
+                </SelectItem>
+                {projects?.map((proj) => (
+                  <SelectItem key={proj.id} value={proj.id}>
+                    <span className="text-xs font-sans">{proj.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldDescription>
+              Optionally connect this key to an existing project for tracking.
+            </FieldDescription>
+            <FieldError
+              errors={fieldErrors.projectId ? [{ message: fieldErrors.projectId }] : []}
             />
           </Field>
         </div>

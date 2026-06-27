@@ -7,6 +7,7 @@ import type {
     ManageApiKeyCreatedData,
 } from "@/core/interfaces/keys.interface";
 import { apiFetch, buildUrl, type ApiFetchOptions } from "@/core/services/api";
+import type { ProjectItem } from "@/core/interfaces/projects.interface";
 
 const LOCAL_STORAGE_KEY = "adt_manage_api_keys";
 
@@ -53,6 +54,28 @@ function saveLocalKeys(keys: ManageApiKeyItem[]) {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(keys));
 }
 
+function getLocalProjectsList(): ProjectItem[] {
+    if (typeof window === "undefined") return [];
+    const raw = localStorage.getItem("adt_manage_projects");
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw) as ProjectItem[];
+    } catch {
+        return [];
+    }
+}
+
+function mergeProjectsToKeys(keysList: ManageApiKeyItem[]): ManageApiKeyItem[] {
+    const projects = getLocalProjectsList();
+    return keysList.map((key) => {
+        const proj = key.projectId ? projects.find((p) => p.id === key.projectId) : null;
+        return {
+            ...key,
+            project: proj || null,
+        };
+    });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Manage API Keys Service
 // ─────────────────────────────────────────────────────────────────────────────
@@ -88,7 +111,7 @@ export async function getManageApiKeysResponse(
         return {
             success: true,
             message: "Keys fetched from local fallback",
-            data: pagedKeys,
+            data: mergeProjectsToKeys(pagedKeys),
             meta: {
                 total: allKeys.length,
                 page,
@@ -100,7 +123,7 @@ export async function getManageApiKeysResponse(
 }
 
 export async function createManageApiKey(
-    payload: { name: string },
+    payload: { name: string; projectId?: string | null },
     init?: ApiFetchOptions,
 ): Promise<ManageApiKeyCreatedData> {
     try {
@@ -116,6 +139,9 @@ export async function createManageApiKey(
         }
         return response.data as ManageApiKeyCreatedData;
     } catch (error) {
+        if (error instanceof ApiError && error.status === 403) {
+            throw error;
+        }
         console.warn("[Keys Service] createManageApiKey failed, using local fallback:", error);
         
         const randomHex = Array.from({ length: 48 }, () =>
@@ -134,10 +160,15 @@ export async function createManageApiKey(
             createdAt,
         };
 
+        const projects = getLocalProjectsList();
+        const proj = payload.projectId ? projects.find((p) => p.id === payload.projectId) : null;
+
         const newItem: ManageApiKeyItem = {
             id: Math.random().toString(36).substring(2),
             appId,
             name: payload.name,
+            projectId: payload.projectId || null,
+            project: proj || null,
             ownerId: "6E88D7AA-54F2-4CE7-99FA-AB6D97920E0B",
             isActive: true,
             webhookUrl: "",
@@ -170,16 +201,28 @@ export async function updateManageApiKey(
         }
         return response.data as ManageApiKeyItem[] | ManageApiKeyItem;
     } catch (error) {
+        if (error instanceof ApiError && error.status === 403) {
+            throw error;
+        }
         console.warn("[Keys Service] updateManageApiKey failed, using local fallback:", error);
         
+        const projects = getLocalProjectsList();
         const all = getLocalKeys();
         const nextKeys = all.map((item) => {
             if (item.appId === appId) {
+                const name = payload.name !== undefined ? payload.name : item.name;
+                const webhookUrl = payload.webhookUrl !== undefined ? payload.webhookUrl : item.webhookUrl;
+                const isActive = payload.isActive !== undefined ? payload.isActive : item.isActive;
+                const projectId = payload.projectId !== undefined ? payload.projectId : item.projectId;
+                const proj = projectId ? projects.find((p) => p.id === projectId) : null;
+
                 return {
                     ...item,
-                    name: payload.name !== undefined ? payload.name : item.name,
-                    webhookUrl: payload.webhookUrl !== undefined ? payload.webhookUrl : item.webhookUrl,
-                    isActive: payload.isActive !== undefined ? payload.isActive : item.isActive,
+                    name,
+                    webhookUrl,
+                    isActive,
+                    projectId,
+                    project: proj || null,
                     updatedAt: new Date().toISOString(),
                 };
             }

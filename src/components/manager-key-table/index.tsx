@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ManagerActionsDropdown } from "../manager-actions-dropdown";
+import type { ProjectItem } from "@/core/interfaces/projects.interface";
 
 const CopyableAppIdBadge = ({ appId }: { appId: string }) => {
   const [copied, setCopied] = useState(false);
@@ -47,12 +48,15 @@ export interface ApiKeyRecord {
   ownerId: string;
   isActive: boolean;
   webhookUrl?: string;
+  projectId?: string | null;
+  project?: ProjectItem | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ManagerKeyTableProps {
   keys: ApiKeyRecord[];
+  projects?: { id: string; name: string }[];
   isLoading: boolean;
   isSubmitting: boolean;
   deletingId: string | null;
@@ -106,6 +110,7 @@ export function ManagerKeyTable({
   onRetry,
   onAdd,
   onClearFilters,
+  projects = [],
 }: ManagerKeyTableProps) {
   if (isLoading) {
     return (
@@ -175,6 +180,7 @@ export function ManagerKeyTable({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-300">
       {keys.map((row) => {
         const displayUrl = getDisplayUrl(row.webhookUrl);
+        const connectedProject = row.project || projects.find((p) => p.id === row.projectId);
         return (
           <div
             key={row.id}
@@ -246,8 +252,13 @@ export function ManagerKeyTable({
                   : `Authorized API client for secure programmatic access and integration.`}
               </p>
               
-              <div className="mt-2.5 flex items-center gap-2">
+              <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                 <CopyableAppIdBadge appId={row.appId} />
+                {connectedProject && (
+                  <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 font-sans">
+                    Project: {connectedProject.name}
+                  </span>
+                )}
               </div>
             </div>
 

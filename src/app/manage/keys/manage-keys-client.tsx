@@ -14,6 +14,11 @@ import { KeyFormFields, validateApiKeyForm, type ApiKeyFormFieldsDraft } from ".
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { InstructionPreviewDialog } from "./instruction-preview-dialog";
 import { toast } from "sonner";
+import { getProjectsResponse } from "@/core/services/projects.service";
+import { getUserProfile } from "@/core/services/users.service";
+import type { UserProfile } from "@/core/interfaces/auth.interface";
+import type { ProjectItem } from "@/core/interfaces/projects.interface";
+import { ApiError } from "@/core/services/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -29,6 +34,7 @@ const EMPTY_KEY: ApiKeyFormFieldsDraft = {
   name: "",
   webhookUrl: "",
   isActive: true,
+  projectId: "",
 };
 
 export function ManageKeysClient() {
@@ -54,6 +60,15 @@ export function ManageKeysClient() {
   const [copiedAppId, setCopiedAppId] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [projectsList, setProjectsList] = useState<ProjectItem[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    getUserProfile().then(setUserProfile).catch(() => {});
+    getProjectsResponse(1, 100)
+      .then((res) => setProjectsList(res.data ?? []))
+      .catch(() => {});
+  }, []);
 
   const loadKeys = useCallback(async (options?: { silent?: boolean }) => {
     if (options?.silent) setIsRefreshing(true);
@@ -153,6 +168,12 @@ export function ManageKeysClient() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const errors = validateApiKeyForm(draft);
+    if (draft.projectId) {
+      const selectedProj = projectsList.find((p) => p.id === draft.projectId);
+      if (selectedProj && userProfile && selectedProj.userId !== userProfile.empid) {
+        errors.projectId = "You do not own this project. Only the project owner can connect it.";
+      }
+    }
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -165,6 +186,7 @@ export function ManageKeysClient() {
           name: draft.name,
           webhookUrl: draft.webhookUrl,
           isActive: draft.isActive,
+          projectId: draft.projectId || null,
         });
         
         if (Array.isArray(updatedResult)) {
@@ -186,6 +208,7 @@ export function ManageKeysClient() {
       } else {
         const created = await createManageApiKey({
           name: draft.name,
+          projectId: draft.projectId || null,
         });
         
         const newItem: ApiKeyRecord = {
@@ -195,6 +218,7 @@ export function ManageKeysClient() {
           ownerId: "",
           isActive: true,
           webhookUrl: "",
+          projectId: draft.projectId || null,
           createdAt: created.createdAt,
           updatedAt: created.createdAt,
         };
@@ -206,8 +230,18 @@ export function ManageKeysClient() {
         toast.success("API key generated.");
         setMode(null);
       }
-    } catch {
-      toast.error("Failed to save API key.");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        const details = error.details as Record<string, unknown> | null | undefined;
+        const backendMsg = (details?.message as string) || "You do not own this project.";
+        setFieldErrors((prev) => ({
+          ...prev,
+          projectId: backendMsg,
+        }));
+        toast.error(backendMsg);
+      } else {
+        toast.error("Failed to save API key.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -296,6 +330,7 @@ export function ManageKeysClient() {
       <div className="space-y-6 mt-6">
         <ManagerKeyTable
           keys={isLoading ? [] : visibleKeys}
+          projects={projectsList}
           isLoading={isLoading}
           isSubmitting={isSubmitting}
           deletingId={deletingId}
@@ -311,6 +346,7 @@ export function ManageKeysClient() {
                 name: matched.name,
                 webhookUrl: matched.webhookUrl || "",
                 isActive: matched.isActive,
+                projectId: matched.projectId || "",
               });
               setFieldErrors({});
             }
@@ -381,6 +417,7 @@ export function ManageKeysClient() {
             <KeyFormFields
               draft={draft}
               fieldErrors={fieldErrors}
+              projects={projectsList}
               onChange={handleDraftChange}
             />
           </ManagerForm>

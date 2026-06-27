@@ -12,6 +12,7 @@ export const ManageApiKeySchema = z.object({
     .or(z.literal(""))
     .optional(),
   isActive: z.boolean().optional(),
+  projectId: z.string().nullable().optional(),
 });
 
 export type ManageApiKeyPayloadInput = z.infer<typeof ManageApiKeySchema>;
