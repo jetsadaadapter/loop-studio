@@ -72,7 +72,7 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
               type="button"
               onClick={() => setMode("deduct")}
               className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                mode === "deduct" ? "bg-rose-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+                mode === "deduct" ? "bg-brand text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
               <Minus className="size-3.5" /> Deduct Credits
@@ -85,7 +85,7 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
               Amount <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold ${mode === "add" ? "text-emerald-600" : "text-rose-500"}`}>
+              <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold ${mode === "add" ? "text-emerald-600" : "text-brand"}`}>
                 {mode === "add" ? "+" : "−"}
               </span>
               <input
@@ -158,7 +158,7 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
           {/* Preview */}
           {isValid && (
             <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border text-xs font-medium ${
-              mode === "add" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"
+              mode === "add" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"
             }`}>
               <Coins className="size-3.5 shrink-0" />
               <span>
@@ -186,7 +186,7 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
               type="submit"
               disabled={isSubmitting || (touched && !isValid)}
               className={`flex-1 h-9 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm ${
-                mode === "add" ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "bg-rose-500 hover:bg-rose-600 shadow-rose-500/20"
+                mode === "add" ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "bg-brand hover:bg-brand-strong shadow-brand/20"
               }`}
             >
               {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : null}

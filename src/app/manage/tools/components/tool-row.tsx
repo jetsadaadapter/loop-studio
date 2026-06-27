@@ -285,7 +285,7 @@ export function ToolRow({ tool, onEdit, onDelete, onToggleActive, onDuplicate, i
               >
                 <Switch
                   checked={tool.isActive}
-                  className="pointer-events-none data-[checked]:bg-emerald-500"
+                  className="pointer-events-none"
                   tabIndex={-1}
                 />
               </button>

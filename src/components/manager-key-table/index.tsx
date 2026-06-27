@@ -275,7 +275,7 @@ export function ManagerKeyTable({
                   checked={row.isActive}
                   disabled={isSubmitting || deletingId !== null}
                   onCheckedChange={() => onToggleStatus(row.appId)}
-                  className="cursor-pointer data-[checked]:bg-emerald-500"
+                  className="cursor-pointer"
                 />
               </div>
             </div>
