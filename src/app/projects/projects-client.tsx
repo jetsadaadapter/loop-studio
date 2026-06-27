@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, startTransition, useRef, useMemo } from "react";
-import { Plus, LayoutDashboard, Layers, Activity } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LayoutDashboard, Layers, Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/toast-provider";
 import { ManagerShell } from "@/components/manager-shell";
@@ -79,6 +78,17 @@ export function ProjectsClient() {
       }
     };
   }, []);
+
+  // Users map: userId (empid) -> { name, avatar } for resolving project owner names on cards
+  const usersMap = useMemo<Record<string, { name: string; avatar?: string }>>(() => {
+    if (!userContext?.userId || !userContext?.userName) return {};
+    return {
+      [userContext.userId]: {
+        name: userContext.userName,
+        avatar: userContext.userAvatar,
+      },
+    };
+  }, [userContext]);
 
   // Client-side filtering & pagination for Projects
   const filteredProjects = useMemo(() => {
@@ -267,15 +277,6 @@ export function ProjectsClient() {
     <ManagerShell
       title="Projects Dashboard"
       description="Monitor active projects, resources connections, and activity streams."
-      actions={
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="h-9 px-4 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer flex items-center gap-1.5"
-        >
-          <Plus className="size-4" />
-          Create Project
-        </Button>
-      }
     >
       <div className="space-y-6">
         {/* Navigation Tabs */}
@@ -335,9 +336,12 @@ export function ProjectsClient() {
             }}
             onConnectClick={setSelectedConnectProject}
             onDeleteClick={setProjectToDelete}
+            onCreateClick={() => setIsCreateOpen(true)}
             onRefresh={() => reloadData({ silent: true })}
             isRefreshing={isRefreshing}
             lastUpdatedAt={lastUpdatedAt}
+            userContext={userContext}
+            usersMap={usersMap}
           />
         )}
 

@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
-import { Coins, Sparkles, LayoutGrid, KeyRound, Link2, Edit3, Trash2, Clock, Loader2 } from "lucide-react";
+import { Coins, Link2, Edit3, Trash2, Clock, Folder, ListTodo, Plus } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import { ManagerToolbar } from "@/components/manager-toolbar";
-import { ManagerDataTable } from "@/components/manager-data-table";
 import { ManagerPagination } from "@/components/manager-pagination";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
-import type { ManagerTableColumn } from "@/components/manager-data-table/types";
+import { Button } from "@/components/ui/button";
 import type { ProjectItem } from "@/core/interfaces/projects.interface";
 
 interface ProjectsTabProps {
@@ -22,9 +21,12 @@ interface ProjectsTabProps {
   onRenameClick: (project: ProjectItem) => void;
   onConnectClick: (project: ProjectItem) => void;
   onDeleteClick: (project: ProjectItem) => void;
+  onCreateClick?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
   lastUpdatedAt?: Date | null;
+  userContext?: { userId?: string; userName?: string; userAvatar?: string };
+  usersMap?: Record<string, { name: string; avatar?: string }>;
 }
 
 export function ProjectsTab({
@@ -41,9 +43,12 @@ export function ProjectsTab({
   onRenameClick,
   onConnectClick,
   onDeleteClick,
+  onCreateClick,
   onRefresh,
   isRefreshing,
   lastUpdatedAt,
+  userContext,
+  usersMap,
 }: ProjectsTabProps) {
   const [sortBy, setSortBy] = useState<string>("name-asc");
 
@@ -69,7 +74,6 @@ export function ProjectsTab({
     });
   }, [projects, sortBy]);
 
-
   const SORT_OPTIONS = [
     { value: "name-asc", label: "Name A-Z" },
     { value: "name-desc", label: "Name Z-A" },
@@ -78,105 +82,24 @@ export function ProjectsTab({
     { value: "credits-asc", label: "Credits Low-High" },
   ];
 
-  const columns: Array<ManagerTableColumn<ProjectItem>> = [
-    {
-      key: "name",
-      header: "Project Name",
-      render: (row) => (
-        <div className="flex flex-col gap-0.5 select-text">
-          <span className="font-semibold text-slate-800 text-sm select-all">{row.name}</span>
-          <span className="text-[9px] font-sans font-semibold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all w-fit uppercase tracking-wider">
-            #{row.id.slice(0, 8)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "credits",
-      header: "Credits",
-      className: "w-28",
-      render: (row) => (
-        <div className="flex items-center gap-1.5 text-slate-700 font-semibold select-none text-sm">
-          <Coins className="size-4 text-amber-500" />
-          <span>{row.credits.toLocaleString()}</span>
-        </div>
-      ),
-    },
-    {
-      key: "connections",
-      header: "Connected Assets",
-      className: "hidden md:table-cell w-48 select-none",
-      render: (row) => (
-        <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
-          <span className="flex items-center gap-0.5" title="Connected Apps">
-            <LayoutGrid className="size-3 text-slate-400" />
-            {row.connectedAppIds?.length ?? 0}
-          </span>
-          <span className="flex items-center gap-0.5" title="Connected Tools">
-            <Sparkles className="size-3 text-slate-400" />
-            {row.connectedToolIds?.length ?? 0}
-          </span>
-          <span className="flex items-center gap-0.5" title="Connected API Keys">
-            <KeyRound className="size-3 text-slate-400" />
-            {row.connectedApiKeyIds?.length ?? 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "createdAt",
-      header: "Created At",
-      className: "hidden lg:table-cell w-36",
-      render: (row) => (
-        <span className="text-xs text-slate-500 select-none">
-          {new Date(row.createdAt).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
-        </span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      className: "w-20 text-right",
-      render: (row) => (
-        <div className="flex justify-end select-none">
-          <ManagerActionsDropdown
-            triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
-            actions={[
-              {
-                label: "Connect",
-                icon: Link2,
-                onClick: () => onConnectClick(row),
-              },
-              {
-                label: "Top-up",
-                icon: Coins,
-                onClick: () => onTopUpClick(row),
-              },
-              {
-                label: "Rename",
-                icon: Edit3,
-                onClick: () => onRenameClick(row),
-              },
-              {
-                label: "Delete",
-                icon: Trash2,
-                onClick: () => onDeleteClick(row),
-                variant: "destructive",
-                showSeparatorBefore: true,
-              },
-            ]}
-          />
-        </div>
-      ),
-    },
-  ];
+  const getIconColor = (name: string) => {
+    const colors = [
+      "bg-indigo-100 text-indigo-600 border-indigo-200/60",
+      "bg-violet-100 text-violet-600 border-violet-200/60",
+      "bg-emerald-100 text-emerald-600 border-emerald-200/60",
+      "bg-amber-100 text-amber-600 border-amber-200/60",
+      "bg-rose-100 text-rose-600 border-rose-200/60",
+      "bg-sky-100 text-sky-600 border-sky-200/60",
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-5 animate-fade-in font-sans">
       <ManagerToolbar
         searchValue={searchQuery}
         onSearchChange={onSearchChange}
@@ -193,112 +116,179 @@ export function ProjectsTab({
         ]}
         onResetFilters={() => setSortBy("name-asc")}
         trailing={
-          onRefresh && (
-            <ManageRefreshButton
-              lastUpdatedAt={lastUpdatedAt ?? null}
-              isLoading={isLoading}
-              isRefreshing={isRefreshing ?? isLoading}
-              onRefresh={onRefresh}
-              title="Refresh Projects"
-            />
-          )
+          <div className="flex items-center gap-3">
+            {onRefresh && (
+              <ManageRefreshButton
+                lastUpdatedAt={lastUpdatedAt ?? null}
+                isLoading={isLoading}
+                isRefreshing={isRefreshing ?? isLoading}
+                onRefresh={onRefresh}
+                title="Refresh Projects"
+              />
+            )}
+            {onCreateClick && (
+              <Button
+                onClick={onCreateClick}
+                className="h-9 px-4 text-xs font-bold bg-brand text-white shadow-sm hover:bg-brand-strong cursor-pointer flex items-center gap-1.5 shrink-0"
+              >
+                <Plus className="size-4" />
+                Create Project
+              </Button>
+            )}
+          </div>
         }
       />
 
-      {/* Desktop view */}
-      <div className="hidden md:block">
-        <ManagerDataTable
-          rows={sortedProjects}
-          getRowId={(row) => row.id}
-          columns={columns}
-          isLoading={isLoading}
-          emptyText="No projects found. Create your first project to get started!"
-        />
-      </div>
-
-      {/* Mobile view */}
-      <div className="block md:hidden space-y-3">
+      {/* Responsive Grid layout */}
+      <div className="w-full">
         {isLoading ? (
-          <div className="bg-white rounded-2xl border border-slate-200/60 py-12 text-center text-slate-450 shadow-3xs select-none">
-            <Loader2 className="size-5 animate-spin mx-auto text-slate-400" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: pageSize }).map((_, idx) => (
+              <div key={`skeleton-${idx}`} className="bg-white rounded-2xl border border-slate-200/60 p-5 space-y-4 shadow-3xs animate-pulse min-h-[220px]">
+                <div className="flex items-center justify-between">
+                  <div className="size-8 bg-slate-100 rounded-lg" />
+                  <div className="w-16 h-5 bg-slate-100 rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  <div className="w-3/4 h-5 bg-slate-100 rounded" />
+                  <div className="w-1/2 h-3.5 bg-slate-100 rounded" />
+                </div>
+                <div className="space-y-2.5 pt-4 border-t border-slate-100">
+                  <div className="w-full h-3 bg-slate-100 rounded" />
+                  <div className="w-2/3 h-3 bg-slate-100 rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : sortedProjects.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center select-none shadow-3xs">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-8 text-center select-none shadow-3xs py-16">
+            <Folder className="size-8 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-700 font-semibold text-sm">No projects found</p>
             <p className="text-slate-400 text-xs mt-1">Create your first project to get started!</p>
           </div>
         ) : (
-          sortedProjects.map((row) => (
-            <div key={row.id} className="bg-white rounded-xl border border-slate-200/60 p-4 space-y-2.5 shadow-3xs select-text">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="font-semibold text-slate-800 text-sm truncate select-all">{row.name}</span>
-                  <span className="text-[9px] font-sans font-semibold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all w-fit uppercase tracking-wider">
-                    #{row.id.slice(0, 8)}
-                  </span>
-                </div>
-                <div className="flex justify-end select-none shrink-0">
-                  <ManagerActionsDropdown
-                    triggerClassName="flex size-7 items-center justify-center rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-0 shadow-none bg-transparent p-0"
-                    actions={[
-                      {
-                        label: "Connect",
-                        icon: Link2,
-                        onClick: () => onConnectClick(row),
-                      },
-                      {
-                        label: "Top-up",
-                        icon: Coins,
-                        onClick: () => onTopUpClick(row),
-                      },
-                      {
-                        label: "Rename",
-                        icon: Edit3,
-                        onClick: () => onRenameClick(row),
-                      },
-                      {
-                        label: "Delete",
-                        icon: Trash2,
-                        onClick: () => onDeleteClick(row),
-                        variant: "destructive",
-                        showSeparatorBefore: true,
-                      },
-                    ]}
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedProjects.map((row) => {
+              const totalConnections = (row.connectedAppIds?.length ?? 0) + (row.connectedToolIds?.length ?? 0) + (row.connectedApiKeyIds?.length ?? 0);
+              const progress = Math.min(100, totalConnections > 0 ? 40 + totalConnections * 20 : 0);
+              const isActive = row.credits > 0;
 
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-                  <Coins className="size-4 text-amber-500" />
-                  <span>{row.credits.toLocaleString()} credits</span>
-                </div>
-                <span className="text-slate-400 select-none text-[11px] flex items-center gap-1">
-                  <Clock className="size-3 text-slate-350" />
-                  {new Date(row.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
+              return (
+                <div
+                  key={row.id}
+                  className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-3xs flex flex-col gap-3 hover:shadow-sm hover:border-slate-300 transition-all duration-200 select-text"
+                >
+                  {/* Top Row: Folder Icon & Status Badge + Actions */}
+                  <div className="flex items-start justify-between select-none">
+                    <div className={`p-1.5 rounded-lg border ${getIconColor(row.name)}`}>
+                      <Folder className="size-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isActive ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold bg-emerald-50/70 text-emerald-700 border border-emerald-100/60 flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold bg-slate-50 text-slate-450 border border-slate-200 flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-slate-400" />
+                          Inactive
+                        </span>
+                      )}
+                      <ManagerActionsDropdown
+                        triggerClassName="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/60 bg-transparent p-0 shadow-3xs"
+                        actions={[
+                          {
+                            label: "Connect",
+                            icon: Link2,
+                            onClick: () => onConnectClick(row),
+                          },
+                          {
+                            label: "Top-up",
+                            icon: Coins,
+                            onClick: () => onTopUpClick(row),
+                          },
+                          {
+                            label: "Rename",
+                            icon: Edit3,
+                            onClick: () => onRenameClick(row),
+                          },
+                          {
+                            label: "Delete",
+                            icon: Trash2,
+                            onClick: () => onDeleteClick(row),
+                            variant: "destructive",
+                            showSeparatorBefore: true,
+                          },
+                        ]}
+                      />
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-3 pt-2.5 border-t border-slate-100 text-[10px] font-semibold text-slate-450 select-none">
-                <span className="flex items-center gap-0.5" title="Connected Apps">
-                  <LayoutGrid className="size-3 text-slate-400" />
-                  App: {row.connectedAppIds?.length ?? 0}
-                </span>
-                <span className="flex items-center gap-0.5" title="Connected Tools">
-                  <Sparkles className="size-3 text-slate-400" />
-                  Tool: {row.connectedToolIds?.length ?? 0}
-                </span>
-                <span className="flex items-center gap-0.5" title="Connected API Keys">
-                  <KeyRound className="size-3 text-slate-400" />
-                  Key: {row.connectedApiKeyIds?.length ?? 0}
-                </span>
-              </div>
-            </div>
-          ))
+                  <div className="space-y-0">
+                    <h3 className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight select-all">
+                      {row.name}
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-medium select-all font-sans mt-0.5">
+                      {row.id.slice(0, 12).toUpperCase()}
+                    </p>
+                  </div>
+
+                  {/* Credits + Date */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md">
+                      <Coins className="size-3 text-amber-500 shrink-0" />
+                      <span className="text-[11px] font-bold text-amber-700 font-sans">{row.credits.toLocaleString()}</span>
+                      <span className="text-[10px] text-amber-400 font-medium font-sans">cr</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-slate-400 select-none">
+                      <Clock className="size-3 shrink-0" />
+                      <span>
+                        {new Date(row.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bottom: Progress + Connections */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 select-none">
+                    <div className="flex items-center gap-1.5">
+                      <div className="relative size-5 shrink-0">
+                        <svg className="size-full -rotate-90" viewBox="0 0 36 36">
+                          <circle
+                            className="text-slate-100 stroke-current"
+                            strokeWidth="3.5"
+                            fill="none"
+                            cx="18"
+                            cy="18"
+                            r="16"
+                          />
+                          <circle
+                            className="text-brand stroke-current transition-all duration-500"
+                            strokeDasharray={`${progress}, 100`}
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            fill="none"
+                            cx="18"
+                            cy="18"
+                            r="16"
+                          />
+                        </svg>
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-700">{progress}%</span>
+                    </div>
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+                      <ListTodo className="size-3.5 text-slate-400 shrink-0" />
+                      <span>{totalConnections} Connected</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

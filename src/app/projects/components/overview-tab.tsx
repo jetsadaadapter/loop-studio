@@ -149,12 +149,7 @@ export function OverviewTab({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.slice(0, 3).map((proj, pIdx) => {
-            // Derive real values from actual project data
             const totalConnections = (proj.connectedAppIds?.length ?? 0) + (proj.connectedToolIds?.length ?? 0) + (proj.connectedApiKeyIds?.length ?? 0);
-            // Progress represents credit allocation activity: more connections = more active
-            const progress = Math.min(95, totalConnections > 0 ? 40 + totalConnections * 15 : 10);
-            // Priority derived from credit level
-            const priority = proj.credits === 0 ? "urgent" : proj.credits < 200 ? "medium" : proj.credits < 1000 ? "in progress" : "low";
             const updatedDate = new Date(proj.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
             return (
@@ -169,8 +164,8 @@ export function OverviewTab({
                       <Clock className="size-3" />
                       Updated {updatedDate}
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-sans font-bold capitalize select-none ${getPriorityBadgeClass(priority)}`}>
-                      {priority}
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-sans font-bold bg-amber-100 text-amber-700 border border-amber-200/50 select-none">
+                      {proj.credits.toLocaleString()} cr
                     </span>
                   </div>
 
@@ -181,44 +176,29 @@ export function OverviewTab({
                       ? ` · ${totalConnections} connected resource${totalConnections !== 1 ? "s" : ""}`
                       : " · No connected resources yet"}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-1.5 select-none">
-                    <span className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200/40 text-[9px] font-sans font-bold text-slate-450">
-                      {proj.credits.toLocaleString()} cr
-                    </span>
-                    {proj.connectedAppIds?.length ? (
-                      <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100/50 text-[9px] font-sans font-bold text-blue-500">
-                        {proj.connectedAppIds.length} App{proj.connectedAppIds.length !== 1 ? "s" : ""}
-                      </span>
-                    ) : null}
-                    {proj.connectedToolIds?.length ? (
-                      <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100/50 text-[9px] font-sans font-bold text-violet-500">
-                        {proj.connectedToolIds.length} Tool{proj.connectedToolIds.length !== 1 ? "s" : ""}
-                      </span>
-                    ) : null}
-                    {proj.connectedApiKeyIds?.length ? (
-                      <span className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100/50 text-[9px] font-sans font-bold text-emerald-500">
-                        {proj.connectedApiKeyIds.length} Key{proj.connectedApiKeyIds.length !== 1 ? "s" : ""}
-                      </span>
-                    ) : null}
-                  </div>
+                  {(proj.connectedAppIds?.length || proj.connectedToolIds?.length || proj.connectedApiKeyIds?.length) ? (
+                    <div className="mt-3 flex flex-wrap gap-1.5 select-none">
+                      {proj.connectedAppIds?.length ? (
+                        <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100/50 text-[9px] font-sans font-bold text-blue-500">
+                          {proj.connectedAppIds.length} App{proj.connectedAppIds.length !== 1 ? "s" : ""}
+                        </span>
+                      ) : null}
+                      {proj.connectedToolIds?.length ? (
+                        <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100/50 text-[9px] font-sans font-bold text-violet-500">
+                          {proj.connectedToolIds.length} Tool{proj.connectedToolIds.length !== 1 ? "s" : ""}
+                        </span>
+                      ) : null}
+                      {proj.connectedApiKeyIds?.length ? (
+                        <span className="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100/50 text-[9px] font-sans font-bold text-emerald-500">
+                          {proj.connectedApiKeyIds.length} Key{proj.connectedApiKeyIds.length !== 1 ? "s" : ""}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 space-y-4">
-                  {/* Progress bar */}
-                  <div>
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-450 mb-1">
-                      <span>Asset Coverage</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-brand rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Connected Asset Metrics */}
+                {/* Footer: Connected Asset Metrics + Actions */}
+                <div className="mt-4 pt-3 border-t border-slate-100">
                   <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400 select-none">
                     <div className="flex gap-2">
                       <span className="flex items-center gap-0.5">
