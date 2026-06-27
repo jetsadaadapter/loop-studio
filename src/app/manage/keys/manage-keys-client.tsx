@@ -169,9 +169,14 @@ export function ManageKeysClient() {
     event.preventDefault();
     const errors = validateApiKeyForm(draft);
     if (draft.projectId) {
-      const selectedProj = projectsList.find((p) => p.id === draft.projectId);
-      if (selectedProj && userProfile && selectedProj.userId !== userProfile.empid) {
-        errors.projectId = "You do not own this project. Only the project owner can connect it.";
+      const matchedOriginal = mode === "edit" ? keys.find(k => k.appId === draft.appId) : null;
+      const isProjectChanged = !matchedOriginal || matchedOriginal.projectId !== draft.projectId;
+
+      if (isProjectChanged) {
+        const selectedProj = projectsList.find((p) => p.id === draft.projectId);
+        if (selectedProj && userProfile && selectedProj.userId !== userProfile.empid) {
+          errors.projectId = "You do not own this project. Only the project owner can connect it.";
+        }
       }
     }
     if (Object.keys(errors).length > 0) {

@@ -10,6 +10,7 @@ import {
   Copy,
   Check,
   ExternalLink,
+  Layers,
 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ManagerActionsDropdown } from "../manager-actions-dropdown";
@@ -254,9 +255,10 @@ export function ManagerKeyTable({
               
               <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                 <CopyableAppIdBadge appId={row.appId} />
-                {connectedProject && (
-                  <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 font-sans">
-                    Project: {connectedProject.name}
+                 {connectedProject && (
+                  <span className="inline-flex items-center gap-1 rounded bg-indigo-50/50 border border-indigo-100/60 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-600 font-sans shadow-3xs transition-colors hover:bg-indigo-50">
+                    <Layers className="size-2.5 text-indigo-500 shrink-0" />
+                    <span>Project: {connectedProject.name}</span>
                   </span>
                 )}
               </div>
@@ -268,12 +270,12 @@ export function ManagerKeyTable({
                 {row.webhookUrl ? "Webhook Channel" : "API Access Client"}
               </span>
               <div className="flex items-center">
-                <Switch
+                 <Switch
                   id={`key-toggle-${row.appId}`}
                   checked={row.isActive}
                   disabled={isSubmitting || deletingId !== null}
                   onCheckedChange={() => onToggleStatus(row.appId)}
-                  className="cursor-pointer"
+                  className="cursor-pointer data-[checked]:bg-emerald-500"
                 />
               </div>
             </div>

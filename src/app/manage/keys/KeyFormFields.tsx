@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ManagerFormSection } from "@/components/manager-form-section";
 import {
   Field,
@@ -93,26 +94,39 @@ export function KeyFormFields({
             <FieldLabel>
               Connected Project
             </FieldLabel>
-            <Select
-              value={draft.projectId || "none"}
-              onValueChange={(val) => onChange("projectId", (val === "none" || !val) ? "" : val)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select project (Optional)">
-                  {projects?.find((p) => p.id === draft.projectId)?.name || "Not connected"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent align="start">
-                <SelectItem value="none">
-                  <span className="text-xs text-slate-400 font-sans">Not connected</span>
-                </SelectItem>
-                {projects?.map((proj) => (
-                  <SelectItem key={proj.id} value={proj.id}>
-                    <span className="text-xs font-sans">{proj.name}</span>
+            <div className="flex gap-2 items-center">
+              <Select
+                value={draft.projectId || "none"}
+                onValueChange={(val) => onChange("projectId", (val === "none" || !val) ? "" : val)}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select project (Optional)">
+                    {projects?.find((p) => p.id === draft.projectId)?.name || "Not connected"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent align="start">
+                  <SelectItem value="none">
+                    <span className="text-xs text-slate-400 font-sans">Not connected</span>
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {projects?.map((proj) => (
+                    <SelectItem key={proj.id} value={proj.id}>
+                      <span className="text-xs font-sans">{proj.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {draft.projectId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onChange("projectId", "")}
+                  className="shrink-0 text-xs text-red-500 hover:text-red-700 hover:bg-red-55/40 border-red-200 hover:border-red-300 font-sans h-8 px-2.5 rounded-md"
+                >
+                  Disconnect
+                </Button>
+              )}
+            </div>
             <FieldDescription>
               Optionally connect this key to an existing project for tracking.
             </FieldDescription>
