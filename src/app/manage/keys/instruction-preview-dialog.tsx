@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 
 interface InstructionPreviewDialogProps {
   open: boolean;

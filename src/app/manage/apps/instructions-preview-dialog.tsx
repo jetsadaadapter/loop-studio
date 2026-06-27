@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Copy, Download, BookOpen } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 import {
   Dialog,
   DialogContent,

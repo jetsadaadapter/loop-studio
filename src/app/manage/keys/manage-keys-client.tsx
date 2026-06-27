@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { KeyFormFields, validateApiKeyForm, type ApiKeyFormFieldsDraft } from "./KeyFormFields";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { InstructionPreviewDialog } from "./instruction-preview-dialog";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 import { getProjectsResponse } from "@/core/services/projects.service";
 import { getUserProfile } from "@/core/services/users.service";
 import type { UserProfile } from "@/core/interfaces/auth.interface";

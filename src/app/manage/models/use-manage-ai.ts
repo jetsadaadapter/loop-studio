@@ -9,7 +9,7 @@ import {
   useState,
   startTransition,
 } from "react";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 import { ApiError } from "@/core/services/api";
 import {
   createManageAiModel,
@@ -462,7 +462,7 @@ export function useManageAi() {
     toast.promise(setDefaultPromise(), {
       loading: "Updating default model...",
       success: "Default model updated.",
-      error: (err) => err instanceof Error ? err.message : "Failed to set default model.",
+      error: (err: unknown) => err instanceof Error ? err.message : "Failed to set default model.",
     });
   }
 
@@ -487,7 +487,7 @@ export function useManageAi() {
     toast.promise(deletePromise(), {
       loading: "Deleting AI model...",
       success: "AI model deleted.",
-      error: (err) => err instanceof Error ? err.message : "Failed to delete model.",
+      error: (err: unknown) => err instanceof Error ? err.message : "Failed to delete model.",
     });
   }
 

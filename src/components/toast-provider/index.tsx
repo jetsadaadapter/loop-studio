@@ -7,7 +7,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 
 type ToastTone = "success" | "error" | "info";
 
@@ -24,7 +24,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     } else if (tone === "error") {
       toast.error(message);
     } else {
-      toast(message);
+      toast.info(message);
     }
   }, []);
 

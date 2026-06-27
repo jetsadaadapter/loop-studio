@@ -7,7 +7,7 @@ import { getManageTool } from "@/core/services/manage-tools.service";
 import { getManageApiKeysResponse } from "@/core/services/keys.service";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toast } from "sonner";
+import { customToast as toast } from "@/components/ui/sonner";
 import {
   Dialog,
   DialogContent,
