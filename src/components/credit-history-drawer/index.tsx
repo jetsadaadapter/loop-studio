@@ -2,18 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Coins, X, RefreshCw,
-  TrendingDown, TrendingUp, Layers,
+  Coins, X, RefreshCw, Download,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getCreditHistory } from "@/core/services/users.service";
 import type { CreditTransaction } from "@/core/services/users.service";
 import {
   MONTHS,
-  fmtDayLabel,
-  isSameDay,
+  FILTER_TABS,
+  getAvailableMonths,
+  filterAndSortTransactions,
+  groupTransactionsByDay,
+  getHeaderStyles,
 } from "./utils";
 import { TxRow } from "./tx-row";
+import { exportTransactions } from "./export-utils";
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -46,61 +55,31 @@ export function CreditHistoryDrawer({ open, onOpenChange, currentBalance, usedTo
   }, [open]);
 
   // Available months derived from data
-  const availableMonths = useMemo(() => {
-    const set = new Set<number>();
-    items.forEach((tx) => set.add(new Date(tx.createdAt).getMonth()));
-    return Array.from(set).sort((a, b) => a - b);
-  }, [items]);
+  const availableMonths = useMemo(() => getAvailableMonths(items), [items]);
 
   // Filter + sort items
-  const filtered = useMemo(() => {
-    return items
-      .filter((tx) => {
-        if (filter === "charges") return tx.amount < 0;
-        if (filter === "refunds") return tx.amount > 0;
-        return true;
-      })
-      .filter((tx) => {
-        if (selectedMonth === null) return true;
-        return new Date(tx.createdAt).getMonth() === selectedMonth;
-      })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [items, filter, selectedMonth]);
+  const filtered = useMemo(() => filterAndSortTransactions(items, filter, selectedMonth), [items, filter, selectedMonth]);
 
   // Group by day
-  const grouped = useMemo(() => {
-    const groups: { label: string; txs: CreditTransaction[] }[] = [];
-    filtered.forEach((tx) => {
-      const last = groups[groups.length - 1];
-      if (last && isSameDay(tx.createdAt, last.txs[0].createdAt)) {
-        last.txs.push(tx);
-      } else {
-        groups.push({ label: fmtDayLabel(tx.createdAt), txs: [tx] });
-      }
-    });
-    return groups;
-  }, [filtered]);
+  const grouped = useMemo(() => groupTransactionsByDay(filtered), [filtered]);
 
-  const total = currentBalance ?? 0;
-  const budget = total + usedTotal;
-  const remainingPct = budget > 0 ? Math.floor((total / budget) * 100) : 100;
-  const spentPct = 100 - remainingPct;
+  const handleExportXLSX = () => {
+    exportTransactions(filtered, "xlsx");
+  };
 
-  const isDepleted = total === 0;
-  const isLow = !isDepleted && remainingPct <= 20;
+  const handleExportCSV = () => {
+    exportTransactions(filtered, "csv");
+  };
 
-  const headerBgClass = isDepleted
-    ? "bg-rose-50/60 dark:bg-rose-950/15 backdrop-blur-md border-b border-rose-100 dark:border-rose-900/20"
-    : isLow
-      ? "bg-gradient-to-br from-rose-500/8 via-rose-500/2 to-orange-500/6 dark:from-rose-500/15 dark:via-rose-500/5 dark:to-orange-500/10 backdrop-blur-md border-b border-rose-100/80 dark:border-rose-950/40"
-      : "bg-gradient-to-br from-orange-500/6 via-amber-500/2 to-yellow-500/6 dark:from-orange-500/12 dark:via-amber-500/4 dark:to-yellow-500/8 backdrop-blur-md border-b border-amber-100/70 dark:border-amber-950/30";
-
-  const accentColorClass = isDepleted || isLow
-    ? "text-rose-500 dark:text-rose-400"
-    : "text-[#c20019] dark:text-rose-500";
+  const { total, budget, spentPct, headerBgClass, accentColorClass } = getHeaderStyles(currentBalance, usedTotal);
 
   const chargesCount = items.filter((t) => t.amount < 0).length;
   const refundsCount = items.filter((t) => t.amount > 0).length;
+  const tabCounts = {
+    all: items.length,
+    charges: chargesCount,
+    refunds: refundsCount,
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -115,13 +94,44 @@ export function CreditHistoryDrawer({ open, onOpenChange, currentBalance, usedTo
                 Credit History
               </SheetTitle>
             </SheetHeader>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="flex size-6 items-center justify-center rounded-full bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
-            >
-              <X className="size-3.5" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {filtered.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <button
+                        type="button"
+                        className="flex h-6 items-center gap-1 rounded bg-white/60 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800 px-2 text-[10px] font-bold text-slate-700 dark:text-slate-350 border border-slate-200/50 dark:border-slate-700/50 transition-colors cursor-pointer"
+                      />
+                    }
+                  >
+                    <Download className="size-2.5" />
+                    Export
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40 z-50">
+                    <DropdownMenuItem
+                      onClick={handleExportXLSX}
+                      className="py-1.5 text-[11px] cursor-pointer"
+                    >
+                      Export to Excel (.xlsx)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleExportCSV}
+                      className="py-1.5 text-[11px] cursor-pointer"
+                    >
+                      Export to CSV (.csv)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="flex size-6 items-center justify-center rounded-full bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Gauge + Stats row */}
@@ -184,11 +194,7 @@ export function CreditHistoryDrawer({ open, onOpenChange, currentBalance, usedTo
         {/* ── Filter Tabs ── */}
         <div className="shrink-0 px-4 pt-3 pb-1.5">
           <div className="flex gap-1.5">
-            {([
-              { key: "all",     label: "All",     icon: Layers,       count: items.length },
-              { key: "charges", label: "Charges", icon: TrendingDown, count: chargesCount },
-              { key: "refunds", label: "Refunds", icon: TrendingUp,   count: refundsCount },
-            ] as const).map(({ key, label, icon: Icon, count }) => (
+            {FILTER_TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 type="button"
@@ -206,7 +212,7 @@ export function CreditHistoryDrawer({ open, onOpenChange, currentBalance, usedTo
                 <Icon className="size-3" />
                 {label}
                 <span className={`text-[9px] rounded-full px-1 ${filter === key ? "bg-white/20" : "bg-slate-100 text-slate-400"}`}>
-                  {count}
+                  {tabCounts[key]}
                 </span>
               </button>
             ))}
