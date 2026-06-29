@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Download, BookOpen, Box, X } from "lucide-react";
+import { Check, Copy, Download, BookOpen, Box } from "lucide-react";
 import { downloadPostmanCollection } from "./postman-generator";
 import { getManageTool } from "@/core/services/manage-tools.service";
 import { getManageApiKeysResponse } from "@/core/services/keys.service";
@@ -112,20 +112,10 @@ export function IntegrationPreviewDialog({
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-hidden p-0 rounded-2xl border border-slate-200/60 shadow-lg font-sans flex flex-col">
         <div className="bg-linear-to-r from-slate-50 via-white to-emerald-50/50 px-5 py-4 border-b border-slate-200">
           <DialogHeader className="mb-0 space-y-3">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2 font-sans">
-                <BookOpen className="size-5 text-brand" />
-                Integration Preview
-              </DialogTitle>
-              <button
-                type="button"
-                onClick={() => onOpenChange(false)}
-                className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+            <DialogTitle className="text-base font-semibold text-slate-900 flex items-center gap-2 font-sans">
+              <BookOpen className="size-5 text-brand" />
+              Integration Preview
+            </DialogTitle>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="inline-flex items-center rounded-md border border-slate-200 bg-white p-1 shadow-xs">
                 <Button
