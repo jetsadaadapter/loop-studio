@@ -74,7 +74,9 @@ type MenuSection = {
 };
 
 function isActivePath(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  // /dashboard redirects to /manage — mark it active when on /manage too
+  const effectiveHref = href === "/dashboard" ? "/manage" : href;
+  return pathname === effectiveHref || pathname.startsWith(`${effectiveHref}/`);
 }
 
 function ManageSidebarFooter() {
@@ -540,8 +542,11 @@ export function ManageSidebarNav() {
         );
         const activeMenus = checkedItems.filter((m): m is NonNullable<typeof m> => m !== null);
 
-        const resolveHref = (path: string) =>
-          path === "/manage/dashboard" ? "/manage" : path === "/keys" ? "/manage/keys" : path;
+        const resolveHref = (p: string) => {
+          if (p === "/manage/dashboard") return "/manage";
+          if (p === "/keys") return "/manage/keys";
+          return p;
+        };
 
         // Safe icon resolver to map custom names (e.g. ToolCase) and prevent runtime crashes
         const getMenuIcon = (name: string) => {

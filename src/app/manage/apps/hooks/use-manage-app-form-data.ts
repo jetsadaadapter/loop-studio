@@ -25,6 +25,7 @@ import { useTagsAndCategories } from "./use-tags-and-categories";
 import { getManageTool } from "@/core/services/manage-tools.service";
 import { generateIntegrationGuide } from "../integration-guide-generator";
 import { getManageApiKeysResponse } from "@/core/services/keys.service";
+import { getUserProfile } from "@/core/services/users.service";
 
 export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
   const router = useRouter();
@@ -222,8 +223,18 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
         pushDialogToast("App created successfully.", "success");
       }
 
+      let isAuthorizedToLink = false;
+      try {
+        const profile = await getUserProfile();
+        isAuthorizedToLink = (profile.roles ?? []).some(
+          (r) => r === "admin" || r === "system-admin"
+        );
+      } catch {
+        // Default to false if user details are unreachable
+      }
+
       // Auto-attach tool when linkType=internal and ctaLink points to a tool
-      if (savedAppId && draft.linkType === "internal" && draft.ctaLink?.startsWith("/tool/")) {
+      if (isAuthorizedToLink && savedAppId && draft.linkType === "internal" && draft.ctaLink?.startsWith("/tool/")) {
         const toolId = draft.ctaLink.replace("/tool/", "").trim();
         if (toolId) {
           try {
@@ -238,7 +249,7 @@ export function useManageAppFormData(mode: "create" | "edit", appId?: string) {
       }
 
       // Auto-detach when linkType changed away from internal
-      if (mode === "edit" && appId && draft.linkType !== "internal") {
+      if (isAuthorizedToLink && mode === "edit" && appId && draft.linkType !== "internal") {
         try {
           // Fetch current app to get appTool id if any
           const pages = await getManageApps({ page: 1, limit: 1000 });

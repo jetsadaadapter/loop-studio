@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { createPortal } from "react-dom";
 import { getManageTools } from "@/core/services/manage-tools.service";
 import type { ManageToolApiItem } from "@/core/interfaces/tool";
+import { getManageApps } from "@/core/services/apps.service";
+import { getUserProfile } from "@/core/services/users.service";
 import {
   ExternalLink,
   Folder,
@@ -196,13 +198,99 @@ export function ManagerAppCard({
   const pickerRef = useRef<HTMLDivElement>(null);
   const [pickerRect, setPickerRect] = useState<DOMRect | null>(null);
 
+  async function loadFallbackToolsFromApps() {
+    try {
+      const appsPage = await getManageApps({ page: 1, limit: 1000 });
+      const appsList = appsPage.data ?? [];
+      const extractedTools: ManageToolApiItem[] = [];
+      const seenToolIds = new Set<string>();
+
+      for (const app of appsList) {
+        if (app.appTool && app.appTool.tool && app.appTool.toolId) {
+          const toolId = app.appTool.toolId;
+          if (!seenToolIds.has(toolId)) {
+            seenToolIds.add(toolId);
+            extractedTools.push({
+              id: toolId,
+              name: app.appTool.tool.name,
+              description: app.appTool.tool.description ?? "",
+              isActive: app.appTool.tool.isActive,
+              creditCost: 0,
+              userId: app.appTool.tool.userId ?? "",
+              params: (app.appTool.tool.params ?? []).map(p => ({
+                id: p.id,
+                toolId: p.toolId,
+                key: p.key,
+                label: p.label,
+                type: p.type,
+                defaultValue: p.defaultValue,
+                transform: p.transform,
+                placeholder: p.placeholder,
+                options: p.options,
+                required: p.required,
+                sortOrder: p.sortOrder,
+                config: p.config ?? null,
+              })),
+              scripts: (app.appTool.tool.scripts ?? []).map(s => ({
+                id: s.id,
+                toolId: s.toolId,
+                plugin: s.plugin,
+                config: s.config ?? {},
+                label: s.label,
+                description: s.description,
+                sortOrder: s.sortOrder,
+                creditCost: s.creditCost ?? null,
+              })),
+              sortOrder: app.appTool.sortOrder ?? 0,
+              createdAt: app.appTool.createdAt ?? "",
+              updatedAt: app.appTool.tool.updatedAt ?? "",
+            });
+          }
+        }
+      }
+      setTools(extractedTools.filter((t) => t.isActive));
+    } catch {
+      setTools([]);
+    }
+  }
+
   useEffect(() => {
     if (!showToolPicker) return;
-    setToolsLoading(true);
-    getManageTools()
-      .then((data) => setTools(data.filter((t) => t.isActive)))
-      .catch(() => setTools([]))
-      .finally(() => setToolsLoading(false));
+    let cancelled = false;
+
+    async function init() {
+      Promise.resolve().then(() => {
+        setToolsLoading(true);
+      });
+      try {
+        const profile = await getUserProfile();
+        if (cancelled) return;
+        const hasAccess = (profile.roles ?? []).some(
+          (r) => r === "admin" || r === "system-admin"
+        );
+        if (!hasAccess) {
+          await loadFallbackToolsFromApps();
+          return;
+        }
+        const data = await getManageTools();
+        if (!cancelled) setTools(data.filter((t) => t.isActive));
+      } catch {
+        if (!cancelled) {
+          await loadFallbackToolsFromApps();
+        }
+      } finally {
+        if (!cancelled) {
+          Promise.resolve().then(() => {
+            setToolsLoading(false);
+          });
+        }
+      }
+    }
+
+    void init();
+    return () => {
+      cancelled = true;
+    };
   }, [showToolPicker]);
 
   useEffect(() => {

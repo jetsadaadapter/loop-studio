@@ -26,7 +26,7 @@ export function ManageRouteGuard({ children }: { children: ReactNode }) {
         if (cancelled) return;
 
         // Base paths that are always public / allowed
-        const alwaysAllowed = ["/manage", "/", "/projects", "/docs"];
+        const alwaysAllowed = ["/manage", "/", "/dashboard", "/projects", "/docs"];
         if (alwaysAllowed.includes(pathname)) {
           setChecking(false);
           return;
@@ -34,7 +34,10 @@ export function ManageRouteGuard({ children }: { children: ReactNode }) {
 
         // Check if the current pathname starts with any of the allowed menu paths
         const isAllowed = menus.some((m) => {
-          const resolvePath = m.path === "/keys" ? "/manage/keys" : m.path;
+          const resolvePath =
+            m.path === "/keys" ? "/manage/keys"
+            : m.path === "/manage/dashboard" ? "/manage"
+            : m.path;
           return pathname === resolvePath || pathname.startsWith(resolvePath + "/");
         });
 
