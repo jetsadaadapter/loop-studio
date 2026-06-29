@@ -190,19 +190,49 @@ function pickLatestIsoDate(values: Array<string | null | undefined>): string | n
 }
 
 export async function getManageDashboardStats(
+    permissions?: {
+        hasApps?: boolean;
+        hasModels?: boolean;
+        hasBanners?: boolean;
+    },
     init?: RequestInit,
 ): Promise<ManageDashboardStats> {
     // We import getManageAiModels and getManageBanners dynamically to avoid circular dependencies if any
     const { getManageAiModelsResponse } = await import("@/core/services/models.service");
     const { getManageBanners } = await import("@/core/services/banners.service");
 
+    const hasApps = permissions?.hasApps ?? true;
+    const hasModels = permissions?.hasModels ?? true;
+    const hasBanners = permissions?.hasBanners ?? true;
+
     const [appsPage, aiFirstPage, bannerResponse] = await Promise.all([
-        getManageApps({ page: 1, limit: 1000 }, init),
-        getManageAiModelsResponse(1, 200, init),
-        getManageBanners({ page: 1, limit: 200 }, init).catch(() => ({
-            data: [],
-            meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
-        })),
+        hasApps
+            ? getManageApps({ page: 1, limit: 1000 }, init).catch(() => ({
+                data: [],
+                meta: { page: 1, limit: 1000, total: 0, totalPages: 1 },
+            }))
+            : Promise.resolve({
+                data: [],
+                meta: { page: 1, limit: 1000, total: 0, totalPages: 1 },
+            }),
+        hasModels
+            ? getManageAiModelsResponse(1, 200, init).catch(() => ({
+                data: [],
+                meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
+            }))
+            : Promise.resolve({
+                data: [],
+                meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
+            }),
+        hasBanners
+            ? getManageBanners({ page: 1, limit: 200 }, init).catch(() => ({
+                data: [],
+                meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
+            }))
+            : Promise.resolve({
+                data: [],
+                meta: { page: 1, limit: 200, total: 0, totalPages: 1 },
+            }),
     ]);
 
     const apps = appsPage.data ?? [];
@@ -210,7 +240,11 @@ export async function getManageDashboardStats(
     const totalPages = aiFirstPage.meta?.totalPages ?? 1;
 
     for (let page = 2; page <= totalPages; page += 1) {
-        const response = await getManageAiModelsResponse(page, 200, init);
+        if (!hasModels) break;
+        const response = await getManageAiModelsResponse(page, 200, init).catch(() => ({
+            data: [],
+            meta: { page, limit: 200, total: 0, totalPages: 1 },
+        }));
         aiModels.push(...(response.data ?? []));
     }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, startTransition, useRef, useMemo } from "react";
-import { LayoutDashboard, Layers, Activity } from "lucide-react";
+import { LayoutDashboard, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/toast-provider";
 import { ManagerShell } from "@/components/manager-shell";
@@ -10,27 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 
 import type { ProjectItem } from "@/core/interfaces/projects.interface";
-import type { ProjectActivity } from "@/core/services/projects-mock-data";
 import {
   getProjectsResponse,
   createProject,
   updateProject,
   deleteProject,
-  getActivities,
   topUpProjectCredits,
 } from "@/core/services/projects.service";
 import { getUserProfile } from "@/core/services/users.service";
 
 import { OverviewTab } from "./components/overview-tab";
 import { ProjectsTab } from "./components/projects-tab";
-import { ActivityTab } from "./components/activity-tab";
-import { ConnectionDialog } from "./components/connection-dialog";
 import { ProjectTopUpDialog } from "./components/project-topup-dialog";
 
 export function ProjectsClient() {
   const { pushToast } = useToast();
-  const [activeTab, setActiveTab] = useState<"overview" | "projects" | "activity">("overview");
-  const [now] = useState(() => Date.now());
+  const [activeTab, setActiveTab] = useState<"overview" | "projects">("overview");
 
   // User context for activity logging
   const [userContext, setUserContext] = useState<{ userId?: string; userName?: string; userAvatar?: string } | undefined>(undefined);
@@ -47,7 +42,6 @@ export function ProjectsClient() {
 
   // Data States
   const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [activities, setActivities] = useState<ProjectActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -101,11 +95,6 @@ export function ProjectsClient() {
   }, [projects, searchQuery]);
 
 
-  // Pagination for Activities
-  const [totalActivities, setTotalActivities] = useState(0);
-  const [activitiesPage, setActivitiesPage] = useState(1);
-  const [activitiesPageSize, setActivitiesPageSize] = useState(10);
-
   // Modal States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -115,20 +104,23 @@ export function ProjectsClient() {
   const [renameTouched, setRenameTouched] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<ProjectItem | null>(null);
   const [selectedTopUpProject, setSelectedTopUpProject] = useState<ProjectItem | null>(null);
-  const [selectedConnectProject, setSelectedConnectProject] = useState<ProjectItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset touched states when modals open
   useEffect(() => {
     if (isCreateOpen) {
-      setNewProjectName("");
-      setCreateTouched(false);
+      Promise.resolve().then(() => {
+        setNewProjectName("");
+        setCreateTouched(false);
+      });
     }
   }, [isCreateOpen]);
 
   useEffect(() => {
     if (renameProject) {
-      setRenameTouched(false);
+      Promise.resolve().then(() => {
+        setRenameTouched(false);
+      });
     }
   }, [renameProject]);
 
@@ -160,31 +152,18 @@ export function ProjectsClient() {
     }
   }, [projectsPage, projectsPageSize, pushToast]);
 
-  // Load Activities
-  const fetchActivities = useCallback(async () => {
-    try {
-      const res = await getActivities(activitiesPage, activitiesPageSize);
-      if (res.success && res.data) {
-        setActivities(res.data);
-        setTotalActivities(res.total);
-      }
-    } catch {
-      pushToast("Failed to load activities.", "error");
-    }
-  }, [activitiesPage, activitiesPageSize, pushToast]);
-
   // Combined fetch
   const reloadData = useCallback(async (options?: { silent?: boolean }) => {
     const isSilent = options?.silent ?? true;
     if (isSilent) setIsRefreshing(true);
     else setIsLoading(true);
     try {
-      await Promise.all([fetchProjects({ silent: isSilent }), fetchActivities()]);
+      await fetchProjects({ silent: isSilent });
     } finally {
       if (isSilent) setIsRefreshing(false);
       else setIsLoading(false);
     }
-  }, [fetchProjects, fetchActivities]);
+  }, [fetchProjects]);
 
   const isProjectsInitialMount = useRef(true);
 
@@ -203,22 +182,6 @@ export function ProjectsClient() {
     });
   }, [fetchProjects, projectsPage, projectsPageSize]);
 
-  const isActivitiesInitialMount = useRef(true);
-
-  // Activities loader & reaction effect: initial load and pagination reaction
-  useEffect(() => {
-    if (isActivitiesInitialMount.current) {
-      isActivitiesInitialMount.current = false;
-      startTransition(() => {
-        void fetchActivities();
-      });
-      return;
-    }
-
-    startTransition(() => {
-      void fetchActivities();
-    });
-  }, [fetchActivities, activitiesPage, activitiesPageSize]);
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,13 +247,12 @@ export function ProjectsClient() {
           {[
             { id: "overview", label: "Overview", icon: LayoutDashboard },
             { id: "projects", label: "Projects List", icon: Layers },
-            { id: "activity", label: "Activity Log", icon: Activity },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as "overview" | "projects" | "activity")}
+                onClick={() => setActiveTab(tab.id as "overview" | "projects")}
                 className={`pb-2.5 px-4 text-xs font-bold border-b-2 flex items-center cursor-pointer transition-colors ${
                   isActive
                     ? "border-brand text-brand"
@@ -308,10 +270,7 @@ export function ProjectsClient() {
         {activeTab === "overview" && (
           <OverviewTab
             projects={projects}
-            activities={activities}
             onTopUpClick={setSelectedTopUpProject}
-            onConnectClick={setSelectedConnectProject}
-            now={now}
           />
         )}
 
@@ -334,7 +293,6 @@ export function ProjectsClient() {
               setRenameProject(p);
               setRenameValue(p.name);
             }}
-            onConnectClick={setSelectedConnectProject}
             onDeleteClick={setProjectToDelete}
             onCreateClick={() => setIsCreateOpen(true)}
             onRefresh={() => reloadData({ silent: true })}
@@ -342,22 +300,6 @@ export function ProjectsClient() {
             lastUpdatedAt={lastUpdatedAt}
             userContext={userContext}
             usersMap={usersMap}
-          />
-        )}
-
-        {activeTab === "activity" && (
-          <ActivityTab
-            activities={activities}
-            totalActivities={totalActivities}
-            currentPage={activitiesPage}
-            pageSize={activitiesPageSize}
-            onPageChange={setActivitiesPage}
-            onPageSizeChange={(size) => {
-              setActivitiesPageSize(size);
-              setActivitiesPage(1);
-            }}
-            isLoading={isLoading}
-            now={now}
           />
         )}
       </div>
@@ -473,17 +415,6 @@ export function ProjectsClient() {
           reloadData();
         }}
         onTopUp={(id, amount, description) => topUpProjectCredits(id, amount, description, undefined, userContext)}
-      />
-
-      <ConnectionDialog
-        project={selectedConnectProject}
-        open={!!selectedConnectProject}
-        onOpenChange={(open) => !open && setSelectedConnectProject(null)}
-        onSuccess={() => {
-          pushToast("Resource connections updated successfully.", "success");
-          reloadData();
-        }}
-        userContext={userContext}
       />
     </ManagerShell>
   );

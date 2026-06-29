@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ManageSidebarNav } from "@/components/manage-sidebar-nav";
 import { ManageTopbar } from "@/components/manage-topbar";
 import { ManageFooter } from "@/components/manage-footer";
+import { ManageRouteGuard } from "./route-guard";
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,7 +22,9 @@ export default function ManageLayout({ children }: { children: ReactNode }) {
             <ManageTopbar />
           </div>
         </header>
-        <main className="flex-1 w-full p-3 sm:p-4">{children}</main>
+        <main className="flex-1 w-full p-3 sm:p-4">
+          <ManageRouteGuard>{children}</ManageRouteGuard>
+        </main>
         <ManageFooter />
       </SidebarInset>
     </SidebarProvider>

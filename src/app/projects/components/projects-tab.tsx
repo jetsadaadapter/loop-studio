@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Coins, Link2, Edit3, Trash2, Clock, Folder, ListTodo, Plus } from "lucide-react";
+import { Coins, Edit3, Trash2, Clock, Folder, Plus } from "lucide-react";
 import { ManagerActionsDropdown } from "@/components/manager-actions-dropdown";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManagerPagination } from "@/components/manager-pagination";
@@ -19,7 +19,6 @@ interface ProjectsTabProps {
   onPageSizeChange: (size: number) => void;
   onTopUpClick: (project: ProjectItem) => void;
   onRenameClick: (project: ProjectItem) => void;
-  onConnectClick: (project: ProjectItem) => void;
   onDeleteClick: (project: ProjectItem) => void;
   onCreateClick?: () => void;
   onRefresh?: () => void;
@@ -41,7 +40,6 @@ export function ProjectsTab({
   onPageSizeChange,
   onTopUpClick,
   onRenameClick,
-  onConnectClick,
   onDeleteClick,
   onCreateClick,
   onRefresh,
@@ -169,60 +167,38 @@ export function ProjectsTab({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedProjects.map((row) => {
-              const totalConnections = (row.connectedAppIds?.length ?? 0) + (row.connectedToolIds?.length ?? 0) + (row.connectedApiKeyIds?.length ?? 0);
-              const progress = Math.min(100, totalConnections > 0 ? 40 + totalConnections * 20 : 0);
-              const isActive = row.credits > 0;
-
               return (
                 <div
                   key={row.id}
                   className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-3xs flex flex-col gap-3 hover:shadow-sm hover:border-slate-300 transition-all duration-200 select-text"
                 >
-                  {/* Top Row: Folder Icon & Status Badge + Actions */}
+                  {/* Top Row: Folder Icon + Actions */}
                   <div className="flex items-start justify-between select-none">
                     <div className={`p-1.5 rounded-lg border ${getIconColor(row.name)}`}>
                       <Folder className="size-4" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      {isActive ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold bg-emerald-50/70 text-emerald-700 border border-emerald-100/60 flex items-center gap-1">
-                          <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold bg-slate-50 text-slate-450 border border-slate-200 flex items-center gap-1">
-                          <span className="size-1.5 rounded-full bg-slate-400" />
-                          Inactive
-                        </span>
-                      )}
-                      <ManagerActionsDropdown
-                        triggerClassName="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/60 bg-transparent p-0 shadow-3xs"
-                        actions={[
-                          {
-                            label: "Connect",
-                            icon: Link2,
-                            onClick: () => onConnectClick(row),
-                          },
-                          {
-                            label: "Top-up",
-                            icon: Coins,
-                            onClick: () => onTopUpClick(row),
-                          },
-                          {
-                            label: "Rename",
-                            icon: Edit3,
-                            onClick: () => onRenameClick(row),
-                          },
-                          {
-                            label: "Delete",
-                            icon: Trash2,
-                            onClick: () => onDeleteClick(row),
-                            variant: "destructive",
-                            showSeparatorBefore: true,
-                          },
-                        ]}
-                      />
-                    </div>
+                    <ManagerActionsDropdown
+                      triggerClassName="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/60 bg-transparent p-0 shadow-3xs"
+                      actions={[
+                        {
+                          label: "Top-up",
+                          icon: Coins,
+                          onClick: () => onTopUpClick(row),
+                        },
+                        {
+                          label: "Rename",
+                          icon: Edit3,
+                          onClick: () => onRenameClick(row),
+                        },
+                        {
+                          label: "Delete",
+                          icon: Trash2,
+                          onClick: () => onDeleteClick(row),
+                          variant: "destructive",
+                          showSeparatorBefore: true,
+                        },
+                      ]}
+                    />
                   </div>
 
                   <div className="space-y-0">
@@ -251,39 +227,6 @@ export function ProjectsTab({
                         })}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Bottom: Progress + Connections */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 select-none">
-                    <div className="flex items-center gap-1.5">
-                      <div className="relative size-5 shrink-0">
-                        <svg className="size-full -rotate-90" viewBox="0 0 36 36">
-                          <circle
-                            className="text-slate-100 stroke-current"
-                            strokeWidth="3.5"
-                            fill="none"
-                            cx="18"
-                            cy="18"
-                            r="16"
-                          />
-                          <circle
-                            className="text-brand stroke-current transition-all duration-500"
-                            strokeDasharray={`${progress}, 100`}
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                            fill="none"
-                            cx="18"
-                            cy="18"
-                            r="16"
-                          />
-                        </svg>
-                      </div>
-                      <span className="text-[11px] font-bold text-slate-700">{progress}%</span>
-                    </div>
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-                      <ListTodo className="size-3.5 text-slate-400 shrink-0" />
-                      <span>{totalConnections} Connected</span>
-                    </span>
                   </div>
                 </div>
               );

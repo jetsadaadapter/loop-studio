@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const TOKEN_COOKIE_KEY = "zt_token";
 
 const UPSTREAM_BASE_URL =
@@ -64,86 +66,7 @@ async function proxyToLibraryApi(
     const { path } = await context.params;
     const pathStr = path.join("/");
 
-    if (pathStr === "access/menus") {
-        return NextResponse.json({
-            success: true,
-            message: "Menus fetched successfully",
-            data: [
-                {
-                    name: "Dashboard",
-                    path: "/",
-                    icon: "LayoutDashboard",
-                    type: "main"
-                },
-                {
-                    name: "Projects",
-                    path: "/projects",
-                    icon: "Layers",
-                    type: "main"
-                },
-                {
-                    name: "API Keys",
-                    path: "/keys",
-                    icon: "KeySquare",
-                    type: "developer"
-                },
-                {
-                    name: "API Reference",
-                    path: "/docs",
-                    icon: "BookOpen",
-                    type: "developer"
-                },
-                {
-                    name: "Models",
-                    path: "/manage/models",
-                    icon: "Bot",
-                    type: "manage"
-                },
-                {
-                    name: "Prompts",
-                    path: "/manage/prompts",
-                    icon: "SquareTerminal",
-                    type: "manage"
-                },
-                {
-                    name: "Apps",
-                    path: "/manage/apps",
-                    icon: "LayoutGrid",
-                    type: "manage"
-                },
-                {
-                    name: "Banners",
-                    path: "/manage/banners",
-                    icon: "LayoutList",
-                    type: "manage"
-                },
-                {
-                    name: "Categories",
-                    path: "/manage/categories",
-                    icon: "FolderClosed",
-                    type: "manage"
-                },
-                {
-                    name: "Tags",
-                    path: "/manage/tags",
-                    icon: "Tag",
-                    type: "manage"
-                },
-                {
-                    name: "Tools",
-                    path: "/manage/tools",
-                    icon: "ToolCase",
-                    type: "manage"
-                },
-                {
-                    name: "Users",
-                    path: "/manage/users",
-                    icon: "Users",
-                    type: "manage"
-                }
-            ]
-        });
-    }
+
 
     const { primaryUrl, fallbackUrl } = getPrimaryAndFallbackUrls(path, req.nextUrl.search);
 
