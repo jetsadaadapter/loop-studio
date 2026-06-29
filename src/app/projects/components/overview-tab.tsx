@@ -18,9 +18,10 @@ import type { ProjectItem } from "@/core/interfaces/projects.interface";
 interface OverviewTabProps {
   projects: ProjectItem[];
   onTopUpClick: (project: ProjectItem) => void;
+  canTopUp?: boolean;
 }
 
-export function OverviewTab({ projects, onTopUpClick }: OverviewTabProps) {
+export function OverviewTab({ projects, onTopUpClick, canTopUp = false }: OverviewTabProps) {
   // Aggregate stats — all computed from real project data
   const activeProjectsCount = projects.length;
   const totalCreditsAllocated = projects.reduce((sum, p) => sum + p.credits, 0);
@@ -92,7 +93,7 @@ export function OverviewTab({ projects, onTopUpClick }: OverviewTabProps) {
   return (
     <div className="space-y-8 animate-fade-in font-sans">
       {/* ─── Header Stats Grid ─── */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${visibleStats.length <= 2 ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${visibleStats.length <= 2 ? "lg:grid-cols-2 max-w-2xl" : "lg:grid-cols-4"}`}>
         {visibleStats.map((stat, idx) => (
           <div
             key={stat.title}
@@ -137,7 +138,7 @@ export function OverviewTab({ projects, onTopUpClick }: OverviewTabProps) {
               return (
                 <div
                   key={proj.id}
-                  className="group rounded-2xl border border-slate-200/60 bg-white p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 motion-stagger-item flex flex-col min-h-[170px]"
+                  className="group rounded-2xl border border-slate-200/60 bg-white p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-slate-300/60 motion-stagger-item flex flex-col"
                   style={{ "--stagger-delay": `${600 + pIdx * 100}ms` } as React.CSSProperties}
                 >
                   {/* Top row */}
@@ -168,37 +169,44 @@ export function OverviewTab({ projects, onTopUpClick }: OverviewTabProps) {
                     </p>
                   </div>
 
-                  {/* Footer row */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium">
-                      {(proj.connectedAppIds?.length ?? 0) > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Sparkles className="size-2.5 text-brand" />
-                          {proj.connectedAppIds!.length} app{proj.connectedAppIds!.length !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                      {(proj.connectedToolIds?.length ?? 0) > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Zap className="size-2.5 text-indigo-500" />
-                          {proj.connectedToolIds!.length} tool{proj.connectedToolIds!.length !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                      {(proj.connectedApiKeyIds?.length ?? 0) > 0 && (
-                        <span className="flex items-center gap-1">
-                          <KeyRound className="size-2.5 text-emerald-500" />
-                          {proj.connectedApiKeyIds!.length} key{proj.connectedApiKeyIds!.length !== 1 ? "s" : ""}
-                        </span>
+                  {/* Footer row — only shown when there is actionable content */}
+                  {(canTopUp ||
+                    (proj.connectedAppIds?.length ?? 0) > 0 ||
+                    (proj.connectedToolIds?.length ?? 0) > 0 ||
+                    (proj.connectedApiKeyIds?.length ?? 0) > 0) && (
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium">
+                        {(proj.connectedAppIds?.length ?? 0) > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Sparkles className="size-2.5 text-brand" />
+                            {proj.connectedAppIds!.length} app{proj.connectedAppIds!.length !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {(proj.connectedToolIds?.length ?? 0) > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Zap className="size-2.5 text-indigo-500" />
+                            {proj.connectedToolIds!.length} tool{proj.connectedToolIds!.length !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {(proj.connectedApiKeyIds?.length ?? 0) > 0 && (
+                          <span className="flex items-center gap-1">
+                            <KeyRound className="size-2.5 text-emerald-500" />
+                            {proj.connectedApiKeyIds!.length} key{proj.connectedApiKeyIds!.length !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                      {canTopUp && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => onTopUpClick(proj)}
+                          className="h-6 px-2.5 text-[10px] font-semibold text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all duration-200"
+                        >
+                          Top-up
+                        </Button>
                       )}
                     </div>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={() => onTopUpClick(proj)}
-                      className="h-6 px-2.5 text-[10px] font-semibold text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all duration-200"
-                    >
-                      Top-up
-                    </Button>
-                  </div>
+                  )}
                 </div>
               );
             })}

@@ -29,6 +29,7 @@ export function ProjectsClient() {
 
   // User context for activity logging
   const [userContext, setUserContext] = useState<{ userId?: string; userName?: string; userAvatar?: string } | undefined>(undefined);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   useEffect(() => {
     getUserProfile().then((p) => {
       const fullName = `${p.firstName} ${p.lastName}`.trim();
@@ -37,8 +38,12 @@ export function ProjectsClient() {
         userName: fullName || p.email,
         userAvatar: p.image ?? undefined,
       });
-    }).catch(() => { /* silently skip - context still works without avatar */ });
+      setUserRoles(p.roles ?? []);
+    }).catch(() => { /* silently skip */ });
   }, []);
+
+  // Only admin / system-admin may top-up credits
+  const canTopUp = userRoles.some((r) => r === "admin" || r === "system-admin");
 
   // Data States
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -271,6 +276,7 @@ export function ProjectsClient() {
           <OverviewTab
             projects={projects}
             onTopUpClick={setSelectedTopUpProject}
+            canTopUp={canTopUp}
           />
         )}
 
@@ -300,6 +306,7 @@ export function ProjectsClient() {
             lastUpdatedAt={lastUpdatedAt}
             userContext={userContext}
             usersMap={usersMap}
+            canTopUp={canTopUp}
           />
         )}
       </div>
@@ -406,16 +413,18 @@ export function ProjectsClient() {
         />
       )}
 
-      <ProjectTopUpDialog
-        project={selectedTopUpProject}
-        open={!!selectedTopUpProject}
-        onOpenChange={(open) => !open && setSelectedTopUpProject(null)}
-        onSuccess={() => {
-          pushToast("Credits topped up successfully.", "success");
-          reloadData();
-        }}
-        onTopUp={(id, amount, description) => topUpProjectCredits(id, amount, description, undefined, userContext)}
-      />
+      {canTopUp && (
+        <ProjectTopUpDialog
+          project={selectedTopUpProject}
+          open={!!selectedTopUpProject}
+          onOpenChange={(open) => !open && setSelectedTopUpProject(null)}
+          onSuccess={() => {
+            pushToast("Credits topped up successfully.", "success");
+            reloadData();
+          }}
+          onTopUp={(id, amount, description) => topUpProjectCredits(id, amount, description, undefined, userContext)}
+        />
+      )}
     </ManagerShell>
   );
 }

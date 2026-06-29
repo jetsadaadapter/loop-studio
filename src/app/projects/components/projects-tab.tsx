@@ -26,6 +26,7 @@ interface ProjectsTabProps {
   lastUpdatedAt?: Date | null;
   userContext?: { userId?: string; userName?: string; userAvatar?: string };
   usersMap?: Record<string, { name: string; avatar?: string }>;
+  canTopUp?: boolean;
 }
 
 export function ProjectsTab({
@@ -47,6 +48,7 @@ export function ProjectsTab({
   lastUpdatedAt,
   userContext,
   usersMap,
+  canTopUp = false,
 }: ProjectsTabProps) {
   const [sortBy, setSortBy] = useState<string>("name-asc");
 
@@ -180,11 +182,11 @@ export function ProjectsTab({
                     <ManagerActionsDropdown
                       triggerClassName="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200/60 bg-transparent p-0 shadow-3xs"
                       actions={[
-                        {
+                        ...(canTopUp ? [{
                           label: "Top-up",
                           icon: Coins,
                           onClick: () => onTopUpClick(row),
-                        },
+                        }] : []),
                         {
                           label: "Rename",
                           icon: Edit3,
@@ -194,7 +196,7 @@ export function ProjectsTab({
                           label: "Delete",
                           icon: Trash2,
                           onClick: () => onDeleteClick(row),
-                          variant: "destructive",
+                          variant: "destructive" as const,
                           showSeparatorBefore: true,
                         },
                       ]}
