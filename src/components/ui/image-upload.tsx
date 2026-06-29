@@ -19,6 +19,7 @@ interface ImageUploadProps {
   acceptedMimeTypes?: string[];
   expectedWidth?: number;
   expectedHeight?: number;
+  exactDimensions?: boolean;
 }
 
 export function ImageUpload({
@@ -35,6 +36,7 @@ export function ImageUpload({
   acceptedMimeTypes = ["image/png", "image/jpeg", "image/webp"],
   expectedWidth,
   expectedHeight,
+  exactDimensions = false,
 }: ImageUploadProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -110,8 +112,12 @@ export function ImageUpload({
         const objectUrl = URL.createObjectURL(file);
         img.onload = () => {
           URL.revokeObjectURL(objectUrl);
-          const widthMatch = !expectedWidth || img.width === expectedWidth;
-          const heightMatch = !expectedHeight || img.height === expectedHeight;
+          const widthMatch = exactDimensions
+            ? (!expectedWidth || img.width === expectedWidth)
+            : (!expectedWidth || img.width >= expectedWidth);
+          const heightMatch = exactDimensions
+            ? (!expectedHeight || img.height === expectedHeight)
+            : (!expectedHeight || img.height >= expectedHeight);
           resolve(widthMatch && heightMatch);
         };
         img.onerror = () => {
@@ -125,7 +131,8 @@ export function ImageUpload({
         const dimensions = [];
         if (expectedWidth) dimensions.push(`width ${expectedWidth}px`);
         if (expectedHeight) dimensions.push(`height ${expectedHeight}px`);
-        const message = `Image dimensions must be exactly ${dimensions.join(" and ")}.`;
+        const comparisonText = exactDimensions ? "exactly" : "at least";
+        const message = `Image dimensions must be ${comparisonText} ${dimensions.join(" and ")}.`;
         onError?.(message);
         e.target.value = "";
         return;
