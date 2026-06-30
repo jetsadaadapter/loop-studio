@@ -22,7 +22,7 @@ export function mapOverviewItem(item: Record<string, any>): Record<string, any> 
   if (!hasSocialFields) {
     const result: Record<string, any> = {};
     for (const [k, v] of Object.entries(item)) {
-      if (v !== null && v !== undefined && typeof v !== "object") {
+      if (v !== null && v !== undefined) {
         result[k] = v;
       }
     }
@@ -99,6 +99,68 @@ export function getProcessedItems(
   });
 }
 
+/**
+ * Recursively flattens an object or array into a single-level object.
+ * Nested keys become dot-separated (e.g. "user.address.city").
+ * Array elements become bracket-indexed (e.g. "tags[0]", "users[0].name").
+ * Arrays of primitives are joined by a comma for easier readability.
+ */
+export function flattenObject(obj: any, prefix = ''): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  if (obj === null || obj === undefined) {
+    if (prefix) result[prefix] = "";
+    return result;
+  }
+
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) {
+      if (prefix) result[prefix] = "";
+      return result;
+    }
+    const isPrimitiveArray = obj.every(item => typeof item !== 'object' || item === null);
+    if (isPrimitiveArray) {
+      if (prefix) {
+        result[prefix] = obj.filter(x => x !== null && x !== undefined).join(', ');
+      }
+    } else {
+      obj.forEach((item, index) => {
+        const itemKey = prefix ? `${prefix}[${index}]` : `[${index}]`;
+        if (typeof item === 'object' && item !== null) {
+          Object.assign(result, flattenObject(item, itemKey));
+        } else {
+          result[itemKey] = item;
+        }
+      });
+    }
+  } else if (typeof obj === 'object') {
+    if (obj instanceof Date) {
+      if (prefix) result[prefix] = obj.toISOString();
+    } else if (Object.keys(obj).length === 0) {
+       if (prefix) result[prefix] = "";
+    } else {
+      for (const key in obj) {
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+        const newKey = prefix ? `${prefix}.${key}` : key;
+        const val = obj[key];
+        if (typeof val === 'object' && val !== null) {
+          Object.assign(result, flattenObject(val, newKey));
+        } else {
+          result[newKey] = val;
+        }
+      }
+    }
+  } else {
+    if (prefix) {
+      result[prefix] = obj;
+    } else {
+      result["value"] = obj;
+    }
+  }
+
+  return result;
+}
+
 export function formatDataset(
   processedItems: Record<string, any>[],
   format: ExportFormat,
@@ -117,6 +179,13 @@ export function formatDataset(
     return "";
   }
 
+  let itemsToFormat = processedItems;
+  // Flatten objects and nested arrays for tabular formats (CSV, Excel, HTML)
+  // to ensure they show up correctly for analysis in other statistical programs.
+  if (format === "csv" || format === "excel" || format === "html") {
+    itemsToFormat = processedItems.map(item => flattenObject(item));
+  }
+
   switch (format) {
     case "json":
       return JSON.stringify(processedItems, null, 2);
@@ -125,10 +194,10 @@ export function formatDataset(
       return processedItems.map((item) => JSON.stringify(item)).join("\n");
 
     case "csv": {
-      const headers = Array.from(new Set(processedItems.flatMap((item) => Object.keys(item))));
+      const headers = Array.from(new Set(itemsToFormat.flatMap((item) => Object.keys(item))));
       const csvRows = [
         headers.join(delimiter),
-        ...processedItems.map((item) =>
+        ...itemsToFormat.map((item) =>
           headers
             .map((header) => {
               const val = item[header];
@@ -177,7 +246,7 @@ export function formatDataset(
     }
 
     case "html": {
-      const headers = Array.from(new Set(processedItems.flatMap((item) => Object.keys(item))));
+      const headers = Array.from(new Set(itemsToFormat.flatMap((item) => Object.keys(item))));
       let html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>\n`;
       html += `  table { border-collapse: collapse; width: 100%; font-family: sans-serif; }\n`;
       html += `  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n`;
@@ -188,7 +257,7 @@ export function formatDataset(
         html += `      <th>${h}</th>\n`;
       });
       html += `    </tr>\n  </thead>\n  <tbody>\n`;
-      processedItems.forEach((item) => {
+      itemsToFormat.forEach((item) => {
         html += "    <tr>\n";
         headers.forEach((h) => {
           const val = item[h];
@@ -208,10 +277,10 @@ export function formatDataset(
 
     case "excel": {
       // Excel-compatible CSV format with UTF-8 BOM to prevent Excel mismatch warning and display Thai characters correctly
-      const headers = Array.from(new Set(processedItems.flatMap((item) => Object.keys(item))));
+      const headers = Array.from(new Set(itemsToFormat.flatMap((item) => Object.keys(item))));
       const csvRows = [
         headers.join(","),
-        ...processedItems.map((item) =>
+        ...itemsToFormat.map((item) =>
           headers
             .map((header) => {
               const val = item[header];

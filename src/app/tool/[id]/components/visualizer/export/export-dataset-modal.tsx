@@ -11,7 +11,8 @@ import {
   getProcessedItems,
   formatDataset,
   getFileExtension,
-  exportMimeTypes
+  exportMimeTypes,
+  flattenObject
 } from "./export-utils";
 import { ExportFieldSelector } from "./export-field-selector";
 import { ExportFormatGrid } from "./export-format-grid";
@@ -100,7 +101,8 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
 
       if (config.format === "excel") {
         const XLSX = await import("xlsx");
-        const worksheet = XLSX.utils.json_to_sheet(processed);
+        const flattened = processed.map(item => flattenObject(item));
+        const worksheet = XLSX.utils.json_to_sheet(flattened);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Dataset");
         const rawBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
