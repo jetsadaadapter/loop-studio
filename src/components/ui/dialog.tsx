@@ -19,6 +19,7 @@ interface DialogProps {
 
 interface DialogContentProps {
   className?: string;
+  hideCloseButton?: boolean;
   children: ReactNode;
 }
 
@@ -55,7 +56,7 @@ function Dialog({ open = false, onOpenChange, children }: DialogProps) {
   );
 }
 
-function DialogContent({ className, children }: DialogContentProps) {
+function DialogContent({ className, hideCloseButton, children }: DialogContentProps) {
   const context = useContext(DialogContext);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -97,14 +98,16 @@ function DialogContent({ className, children }: DialogContentProps) {
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={() => context.onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 cursor-pointer text-slate-400 hover:text-slate-650 focus:outline-none"
-        >
-          <X className="size-4" />
-          <span className="sr-only">Close</span>
-        </button>
+        {!hideCloseButton && (
+          <button
+            type="button"
+            onClick={() => context.onOpenChange(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 cursor-pointer text-slate-400 hover:text-slate-650 focus:outline-none"
+          >
+            <X className="size-4" />
+            <span className="sr-only">Close</span>
+          </button>
+        )}
         {children}
       </div>
     </div>

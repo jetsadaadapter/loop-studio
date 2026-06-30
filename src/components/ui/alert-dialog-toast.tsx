@@ -67,7 +67,7 @@ export function AlertDialogToastProvider({
             open={true}
             onOpenChange={() => handleClose(dialog.id)}
           >
-            <DialogContent className="bg-white data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 border border-slate-200/80 grid max-w-[calc(100%-2rem)] gap-0 rounded-2xl p-0 text-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-[340px] data-open:zoom-in-95 data-closed:zoom-out-95 duration-300 shadow-2xl overflow-hidden">
+            <DialogContent hideCloseButton className="bg-white data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 border border-slate-200/80 grid max-w-[calc(100%-2rem)] gap-0 rounded-2xl p-0 text-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-[340px] data-open:zoom-in-95 data-closed:zoom-out-95 duration-300 shadow-2xl overflow-hidden">
               {isCreditError ? (
                 /* ── Credit-specific error ── */
                 <div className="flex flex-col select-none">

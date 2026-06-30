@@ -431,7 +431,7 @@ export function ManageKeysClient() {
 
       {/* Copy Generated API Key Modal */}
       <Dialog open={!!createdKeyData} onOpenChange={(open) => { if (!open) { setCreatedKeyData(null); setShowKey(false); } }}>
-        <DialogContent className="max-w-[460px] w-full rounded-3xl bg-white p-0 overflow-hidden border-0 shadow-2xl select-none">
+        <DialogContent hideCloseButton className="max-w-[460px] w-full rounded-3xl bg-white p-0 overflow-hidden border-0 shadow-2xl select-none">
 
           {/* Header gradient band */}
           <div className="relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 px-8 pt-8 pb-10">

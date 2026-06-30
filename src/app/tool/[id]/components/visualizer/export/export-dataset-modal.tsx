@@ -26,7 +26,7 @@ interface ExportDatasetModalProps {
 
 export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetModalProps) {
   const { pushToast } = useToast();
-  
+
   const defaultConfig: ExportConfig = {
     view: "overview",
     format: "json",
@@ -43,7 +43,7 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
   // Reset config every time the modal opens so stale fields from a previous job don't bleed in
   useEffect(() => {
     if (open) setConfig(defaultConfig);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Detect Social Media Analyst result ({posts, metrics, segments, comments, insights})
@@ -104,8 +104,8 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Dataset");
         const rawBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-        const blob = new Blob([rawBuffer], { 
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+        const blob = new Blob([rawBuffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -142,8 +142,8 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[620px] bg-white border border-slate-200 shadow-2xl rounded-xl p-0 overflow-hidden flex flex-col text-slate-805 focus:outline-none">
-        
+      <DialogContent hideCloseButton className="max-w-[620px] bg-white border border-slate-200 shadow-2xl rounded-xl p-0 overflow-hidden flex flex-col text-slate-805 focus:outline-none">
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
           <h3 className="font-bold text-base text-slate-800 flex items-center gap-1.5">
@@ -159,7 +159,7 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
 
         {/* Content Area */}
         <div className="p-6 space-y-5.5 overflow-y-auto max-h-[70vh] text-xs font-semibold text-slate-650 select-none">
-          
+
           {/* View Toggle */}
           <div>
             <label className="block text-slate-800 font-bold text-xs uppercase tracking-wide mb-2.5">View</label>
@@ -180,16 +180,16 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
               </button>
             </div>
             <p className="text-[11px] font-medium text-slate-400 mt-1 leading-normal">
-              {config.view === "overview" 
-                ? "Overview mode exports high-level summarized fields (Media, URL, Text, Likes, Comments, Shares)." 
+              {config.view === "overview"
+                ? "Overview mode exports high-level summarized fields (Media, URL, Text, Likes, Comments, Shares)."
                 : "All fields mode exports every column generated in this run. Some fields can be customized below."}
             </p>
           </div>
 
           {/* Formats Grid with correct vertical spacing (space-y-3 inside component) */}
-          <ExportFormatGrid 
-            format={config.format} 
-            onChange={(fmt) => setConfig(prev => ({ ...prev, format: fmt }))} 
+          <ExportFormatGrid
+            format={config.format}
+            onChange={(fmt) => setConfig(prev => ({ ...prev, format: fmt }))}
           />
 
           {/* Fields Selection (Only for All fields) */}
@@ -213,9 +213,9 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
           )}
 
           {/* Expandable Advanced Options */}
-          <ExportAdvancedOptions 
-            config={config} 
-            onChange={(updated) => setConfig(updated)} 
+          <ExportAdvancedOptions
+            config={config}
+            onChange={(updated) => setConfig(updated)}
           />
 
         </div>
