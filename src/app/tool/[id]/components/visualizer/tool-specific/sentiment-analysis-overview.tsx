@@ -21,21 +21,21 @@ const SENTIMENT_CONFIG: Record<
   string,
   { label: string; bg: string; text: string; bar: string; dot: string }
 > = {
-  Positive: {
+  positive: {
     label: "Positive",
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     bar: "bg-emerald-500",
     dot: "bg-emerald-500",
   },
-  Neutral: {
+  neutral: {
     label: "Neutral",
     bg: "bg-amber-50",
     text: "text-amber-700",
     bar: "bg-amber-400",
     dot: "bg-amber-400",
   },
-  Negative: {
+  negative: {
     label: "Negative",
     bg: "bg-rose-50",
     text: "text-rose-700",
@@ -45,20 +45,37 @@ const SENTIMENT_CONFIG: Record<
 };
 
 function toSentimentItem(raw: Record<string, unknown>): SentimentItem {
+  const analysis = raw.analysis as Record<string, unknown> | undefined;
+  
+  const idValue = typeof raw.id === "string" ? raw.id : String(raw.id ?? analysis?.id ?? "");
+  const sentimentValue = typeof raw.sentiment === "string" 
+    ? raw.sentiment 
+    : typeof analysis?.sentiment === "string" 
+      ? analysis.sentiment 
+      : "";
+  const confidenceScoreValue = typeof raw.confidenceScore === "number" 
+    ? raw.confidenceScore 
+    : typeof analysis?.confidenceScore === "number" 
+      ? analysis.confidenceScore 
+      : 0;
+  const briefReasonValue = typeof raw.briefReason === "string" 
+    ? raw.briefReason 
+    : typeof analysis?.briefReason === "string" 
+      ? analysis.briefReason 
+      : "";
+
   return {
-    id: typeof raw.id === "string" ? raw.id : String(raw.id ?? ""),
-    sentiment:
-      typeof raw.sentiment === "string" ? raw.sentiment : "",
-    confidenceScore:
-      typeof raw.confidenceScore === "number" ? raw.confidenceScore : 0,
-    briefReason:
-      typeof raw.briefReason === "string" ? raw.briefReason : "",
+    id: idValue,
+    sentiment: sentimentValue,
+    confidenceScore: confidenceScoreValue,
+    briefReason: briefReasonValue,
   };
 }
 
 function getSentimentConfig(sentiment: string) {
+  const normalized = (sentiment || "").toLowerCase();
   return (
-    SENTIMENT_CONFIG[sentiment] ?? {
+    SENTIMENT_CONFIG[normalized] ?? {
       label: sentiment,
       bg: "bg-slate-50",
       text: "text-slate-600",
@@ -76,12 +93,12 @@ function SentimentSummaryBar({
   itemCount: number;
 }) {
   const counts = items.reduce<Record<string, number>>((acc, item) => {
-    const s = item.sentiment || "Unknown";
+    const s = (item.sentiment || "Unknown").toLowerCase();
     acc[s] = (acc[s] ?? 0) + 1;
     return acc;
   }, {});
 
-  const sentimentOrder = ["Positive", "Neutral", "Negative"];
+  const sentimentOrder = ["positive", "neutral", "negative"];
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5 space-y-4">

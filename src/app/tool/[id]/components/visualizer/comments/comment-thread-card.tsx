@@ -21,6 +21,7 @@ export interface CommentItem {
   threadingDepth?: number;
   comments?: CommentItem[];
   error?: string;
+  analysis?: Record<string, unknown>;
 }
 
 interface CommentBodyProps {
@@ -87,6 +88,18 @@ function CommentBody({ item, isReply = false }: CommentBodyProps) {
             <span className="text-[10.5px] text-slate-400 font-medium whitespace-nowrap">
               {formatDate(item.date)}
             </span>
+            {!!item.analysis?.sentiment && (
+              <span className={cn(
+                  "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border",
+                  String(item.analysis.sentiment).toLowerCase() === "positive"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                    : String(item.analysis.sentiment).toLowerCase() === "negative"
+                      ? "bg-rose-50 text-rose-700 border-rose-200/60"
+                      : "bg-slate-50 text-slate-600 border-slate-200/60",
+                )}>
+                 {String(item.analysis.sentiment)}
+              </span>
+            )}
           </div>
         </div>
 

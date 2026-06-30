@@ -101,13 +101,17 @@ export function TabOutput({ job }: TabOutputProps) {
     ((actualResult as Record<string, unknown>).items as unknown[]).length > 0 &&
     ((actualResult as Record<string, unknown>).items as unknown[]).every((item) => {
       const raw = item as Record<string, unknown>;
-      return typeof raw.sentiment === "string" && typeof raw.confidenceScore === "number";
+      const analysis = raw.analysis as Record<string, unknown> | undefined;
+      return (
+        typeof raw.sentiment === "string" ||
+        typeof analysis?.sentiment === "string" ||
+        ("error" in raw && typeof raw.error === "string") ||
+        (analysis && "error" in analysis && typeof analysis.error === "string")
+      );
     })
   );
 
-  const items = isSentimentAnalysisResult
-    ? ((actualResult as Record<string, unknown>).items as unknown as ScrapedJobItem[])
-    : isCommentScraper
+  const items = isCommentScraper
     ? (rawItems
         .map((item) => normalizeCommentItem(item as Record<string, unknown>))
         .filter((item) => {

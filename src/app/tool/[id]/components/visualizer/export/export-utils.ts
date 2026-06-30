@@ -52,10 +52,17 @@ export function mapOverviewItem(item: Record<string, any>): Record<string, any> 
     shares = item.shares.toLocaleString();
   }
 
+  const sentiment = item.sentiment || item.analysis?.sentiment || "";
+  const summary = item.summary || item.analysis?.summary || "";
+  const keywords = item.keywords || item.analysis?.keywords || "";
+
   return {
     media,
     url,
     text,
+    sentiment,
+    summary,
+    keywords,
     likes,
     comments,
     shares,
@@ -83,7 +90,7 @@ export function getProcessedItems(
   // 2. Globally collect keys and filter out empty/internal ones
   const allUniqueKeys = Array.from(
     new Set(mappedItems.flatMap((item) => Object.keys(item)))
-  ).filter((k) => k !== "analysis");
+  );
 
   const validKeys = allUniqueKeys.filter((k) => {
     if (["sourceIndex", "sourceKey", "sourceKeyValue"].includes(k)) return false;

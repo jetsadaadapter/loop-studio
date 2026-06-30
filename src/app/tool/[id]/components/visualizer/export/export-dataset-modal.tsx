@@ -60,16 +60,6 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
     Array.isArray((actualResult as Record<string, unknown>).posts)
   );
 
-  // For results with a flat items array (e.g. sentiment analysis: {itemCount, items:[...]})
-  const isFlatItemsResult = Boolean(
-    !isSocialAnalystResult &&
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    Array.isArray((job.result as Record<string, unknown>).items) &&
-    ((job.result as Record<string, unknown>).items as unknown[]).length > 0
-  );
-
   // Build export items — flatten social analyst sections into rows with _section label
   const items = (() => {
     if (isSocialAnalystResult) {
@@ -86,9 +76,6 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
       }
       return rows;
     }
-    if (isFlatItemsResult) {
-      return (job.result as Record<string, unknown>).items as Record<string, unknown>[];
-    }
     return getMergedGeminiItems(job) as Record<string, unknown>[];
   })();
 
@@ -97,7 +84,6 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
   const allKeys = Array.from(
     new Set(items.flatMap((item) => Object.keys(item as Record<string, unknown>)))
   ).filter((k) => {
-    if (k === "analysis") return false;
     if (["sourceIndex", "sourceKey", "sourceKeyValue"].includes(k)) return false;
     
     // Only include if at least one item has a meaningful value

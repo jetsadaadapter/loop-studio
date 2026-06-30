@@ -1259,7 +1259,7 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
         // 1.5) Fallback for error items by index:
         // If the gemini item at prevIndex is an error (i.e. has 'error' key) and is not yet used, match it.
         const candidateError = geminiItems[prevIndex];
-        if (candidateError && !usedGeminiIndexes.has(prevIndex)) {
+        if (candidateError && typeof candidateError === "object" && !usedGeminiIndexes.has(prevIndex)) {
             if ("error" in candidateError || (candidateError.analysis && typeof candidateError.analysis === "object" && "error" in (candidateError.analysis as Record<string, unknown>))) {
                 usedGeminiIndexes.add(prevIndex);
                 return candidateError;
