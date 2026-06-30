@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Terminal, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
+import { cn } from "@/lib/utils";
 import { getJobStatus, getItemCount } from "../../../tool-job-utils";
 import { normalizeStartUrls } from "../../../start-urls-utils";
 
@@ -149,30 +150,29 @@ export function TabLog({ job }: TabLogProps) {
           <Terminal className="size-3.5 text-indigo-650" />
           <span>System Console Logs</span>
         </div>
-
-        <Button
-          onClick={handleCopy}
-          size="sm"
-          variant="ghost"
-          className="h-7 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md text-[11px] font-semibold px-2.5 gap-1 active:scale-95 transition-all cursor-pointer shadow-xs"
-        >
-          {copied ? (
-            <>
-              <Check className="size-3 text-emerald-500" />
-              <span className="text-emerald-600">Copied Logs</span>
-            </>
-          ) : (
-            <>
-              <Copy className="size-3 text-slate-400" />
-              <span>Copy Logs</span>
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Log Box */}
-      <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3 shadow-xs">
-        <pre className="font-sans text-[11px] leading-relaxed text-slate-600 select-text">
+      <div className="flex-1 relative rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden flex flex-col">
+        <button
+          onClick={handleCopy}
+          className={cn(
+            "absolute top-2.5 right-2.5 flex items-center justify-center size-6 transition-all active:scale-90 cursor-pointer bg-white/80 backdrop-blur-sm rounded-sm z-10",
+            copied
+              ? "text-emerald-600"
+              : "text-slate-400 hover:text-slate-600"
+          )}
+          title="Copy logs"
+          type="button"
+        >
+          {copied ? (
+            <Check className="size-3.5 text-emerald-600" />
+          ) : (
+            <Copy className="size-3.5" />
+          )}
+        </button>
+        <div className="flex-1 overflow-auto p-3">
+          <pre className="font-sans text-[11px] leading-relaxed text-slate-600 select-text pr-10">
           {logs.map((line, i) => {
             const isError = line.includes("ERROR:");
             const isSuccess = line.includes("SUCCESS:");
@@ -201,6 +201,7 @@ export function TabLog({ job }: TabLogProps) {
             );
           })}
         </pre>
+        </div>
       </div>
     </div>
   );

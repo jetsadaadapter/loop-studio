@@ -4,6 +4,8 @@ import * as React from "react";
 import { useState, useMemo } from "react";
 import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { cn } from "@/lib/utils";
 
 interface ExecutionSummarySectionProps {
@@ -529,6 +531,8 @@ export function ExecutionSummarySection({
           ) : (
             <div className="rounded-xl border border-slate-200/60 bg-white p-4 sm:p-5 shadow-xs text-xs text-slate-700 leading-relaxed font-normal font-sans">
               <Markdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
                 components={{
                   h1: ({ children, ...props }) => (
                     <h1
@@ -601,6 +605,38 @@ export function ExecutionSummarySection({
                     >
                       {children}
                     </blockquote>
+                  ),
+                  table: ({ children, ...props }) => (
+                    <div className="overflow-x-auto my-4 rounded-xl border border-slate-200/60 shadow-xs">
+                      <table className="w-full text-left border-collapse font-sans text-xs" {...props}>
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  thead: ({ children, ...props }) => (
+                    <thead className="bg-slate-50 border-b border-slate-200/60 text-slate-800" {...props}>
+                      {children}
+                    </thead>
+                  ),
+                  tbody: ({ children, ...props }) => (
+                    <tbody className="divide-y divide-slate-100/80 bg-white" {...props}>
+                      {children}
+                    </tbody>
+                  ),
+                  tr: ({ children, ...props }) => (
+                    <tr className="hover:bg-slate-50/50 transition-colors" {...props}>
+                      {children}
+                    </tr>
+                  ),
+                  th: ({ children, ...props }) => (
+                    <th className="px-4 py-3 font-semibold align-middle whitespace-nowrap" {...props}>
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children, ...props }) => (
+                    <td className="px-4 py-3 align-top leading-relaxed text-slate-700" {...props}>
+                      {children}
+                    </td>
                   ),
                   code: ({
                     className,

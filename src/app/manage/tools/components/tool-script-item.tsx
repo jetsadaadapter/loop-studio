@@ -424,7 +424,7 @@ export function ToolScriptItem({
               <Input
                 type="number"
                 min="0"
-                placeholder="Free (null)"
+                placeholder="Default (null)"
                 value={script.creditCost !== null && script.creditCost !== undefined ? script.creditCost : ""}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -496,8 +496,8 @@ export function ToolScriptItem({
                       updateConfig(nextConfig);
                     }}
                     className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${promptMode === "customize"
-                        ? "bg-white text-slate-800 shadow-2xs"
-                        : "text-slate-400 hover:text-slate-750"
+                      ? "bg-white text-slate-800 shadow-2xs"
+                      : "text-slate-400 hover:text-slate-750"
                       }`}
                   >
                     Customize Prompt
@@ -526,8 +526,8 @@ export function ToolScriptItem({
                       updateConfig(nextConfig);
                     }}
                     className={`h-6 px-2.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${promptMode === "central"
-                        ? "bg-white text-slate-800 shadow-2xs"
-                        : "text-slate-400 hover:text-slate-750"
+                      ? "bg-white text-slate-800 shadow-2xs"
+                      : "text-slate-400 hover:text-slate-750"
                       }`}
                   >
                     Central Prompt
@@ -669,8 +669,8 @@ export function ToolScriptItem({
                       setEditMode("visual");
                     }}
                     className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${editMode === "visual"
-                        ? "bg-white text-slate-800 shadow-2xs"
-                        : "text-slate-400 hover:text-slate-750"
+                      ? "bg-white text-slate-800 shadow-2xs"
+                      : "text-slate-400 hover:text-slate-750"
                       }`}
                   >
                     Visual Builder
@@ -683,8 +683,8 @@ export function ToolScriptItem({
                       setEditMode("raw");
                     }}
                     className={`h-5 px-2 text-[9px] font-bold rounded-md transition-all ${editMode === "raw"
-                        ? "bg-white text-slate-800 shadow-2xs"
-                        : "text-slate-400 hover:text-slate-750"
+                      ? "bg-white text-slate-800 shadow-2xs"
+                      : "text-slate-400 hover:text-slate-750"
                       }`}
                   >
                     Raw JSON

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink, ImageOff } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import {
   getAnalysisDisplayPresetForJob,
@@ -23,6 +24,9 @@ type JobResultItemProps = {
 };
 
 export function JobResultItem({ item, idx, job }: JobResultItemProps) {
+  const [profilePicError, setProfilePicError] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
+
   const schemaHintKeys = getSchemaHintKeysFromJob(job);
   const analysisDisplayPreset = getAnalysisDisplayPresetForJob(job);
   const itemText = typeof item.text === "string" ? item.text : "";
@@ -204,7 +208,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
       {/* 1. Header Area: Social Media Profile Info */}
       <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100">
         <div className="flex items-center gap-3">
-          {profilePic ? (
+          {profilePic && !profilePicError ? (
             <div className="relative size-10 rounded-full overflow-hidden border border-slate-200 shadow-sm shrink-0">
               <Image
                 src={profilePic}
@@ -212,9 +216,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
                 fill
                 unoptimized
                 className="object-cover"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = "none";
-                }}
+                onError={() => setProfilePicError(true)}
               />
             </div>
           ) : (
@@ -262,7 +264,7 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
         </div>
 
         {/* 3. Media Picture / Video Thumbnail */}
-        {thumbnail && (
+        {thumbnail && !thumbnailError && (
           <div className="relative -mx-6 overflow-hidden border-y border-slate-100/80 shadow-xs h-80 bg-slate-50 group">
             <Image
               src={thumbnail}
@@ -271,10 +273,18 @@ export function JobResultItem({ item, idx, job }: JobResultItemProps) {
               unoptimized
               sizes="(max-width: 768px) 100vw, 600px"
               className="object-cover"
-              onError={(e) => {
-                (e.target as HTMLElement).parentElement!.style.display = "none";
-              }}
+              onError={() => setThumbnailError(true)}
             />
+          </div>
+        )}
+        {thumbnail && thumbnailError && (
+          <div className="relative -mx-6 overflow-hidden border-y border-slate-100/80 shadow-xs h-80 bg-slate-50 flex items-center justify-center group cursor-default">
+            <ImageOff className="size-10 text-slate-300 group-hover:opacity-10 transition-opacity duration-300" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-slate-100/50 backdrop-blur-sm transition-all duration-300">
+              <span className="text-slate-500 font-bold text-sm bg-white/80 px-4 py-2 rounded-full shadow-sm">
+                Image Expired or Unavailable
+              </span>
+            </div>
           </div>
         )}
 

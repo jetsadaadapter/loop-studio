@@ -75,9 +75,25 @@ export function useManageTools() {
     setIsSubmitting(true);
     try {
       const created = await createManageTool(payload);
-      setTools((prev) => [created, ...prev]);
+      
+      // Inject default parameters for new tools
+      await upsertManageToolParams(created.id, [
+        {
+          key: "outputFormat",
+          label: "Output Format",
+          type: "select",
+          required: true,
+          options: ["text/plain", "application/json"],
+          defaultValue: "text/plain",
+          sortOrder: 1,
+        }
+      ]);
+
+      const fresh = await getManageTool(created.id);
+      
+      setTools((prev) => [fresh, ...prev]);
       setFormMode(null);
-      pushToast(`"${created.name}" created.`, "success");
+      pushToast(`"${fresh.name}" created.`, "success");
     } catch {
       pushToast("Failed to create tool.", "error");
     } finally {

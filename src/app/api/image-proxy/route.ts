@@ -57,10 +57,17 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { message: `Failed to fetch image: ${response.statusText}` },
-        { status: response.status }
-      );
+      // Return 204 No Content. 
+      // This achieves two things:
+      // 1. Prevents red console errors in the browser (since 204 is a success code).
+      // 2. Causes the browser's <img> tag to fire the `onerror` event (since there's no valid image data).
+      // This allows our React components (like job-result-item) to cleanly handle the fallback UI.
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          "Cache-Control": "public, max-age=3600",
+        },
+      });
     }
 
     const contentType = response.headers.get("content-type") || "image/jpeg";

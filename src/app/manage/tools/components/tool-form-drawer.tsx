@@ -277,7 +277,7 @@ function ToolFormInner({
 
           <div className="space-y-1.5">
             <Label htmlFor="tf-credit-cost" className="text-sm font-medium text-slate-700">
-              Credit Cost <span className="text-slate-400 font-normal text-xs">(per run)</span>
+              Credit Cost <span className="text-slate-400 font-normal text-xs">(tool usage based)</span>
             </Label>
             <Input
               id="tf-credit-cost"

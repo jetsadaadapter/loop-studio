@@ -22,7 +22,7 @@ export function getProxiedUrl(src?: string | null): string {
       const needsProxy = PROXY_PATTERNS.some((pattern) => pattern.test(hostname));
 
       if (needsProxy) {
-        return `/api/image-proxy?url=${encodeURIComponent(trimmed)}`;
+        return `/api/image-proxy?url=${encodeURIComponent(trimmed)}&v=2`;
       }
     } catch {
       // Return original URL if parsing fails

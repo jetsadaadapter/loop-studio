@@ -1137,9 +1137,16 @@ export const getMergedGeminiItems = (job: ToolJob): ScrapedJobItem[] => {
             } else if (!("items" in job.result)) {
                 geminiItems = [job.result as Record<string, unknown>];
             }
+        } else if (typeof job.result === "string") {
+            geminiItems = [{ summary: job.result }];
         }
     }
-    const hasFlatResult = !!(job.result && typeof job.result === "object" && !Array.isArray(job.result) && !("items" in job.result));
+    const hasFlatResult = !!(
+        job.result && (
+            (typeof job.result === "object" && !Array.isArray(job.result) && !("items" in job.result)) ||
+            typeof job.result === "string"
+        )
+    );
 
     const wrapResult = (job.config as Record<string, unknown> | undefined)?.wrapResult === true;
     const isAggregate = (job.config as Record<string, unknown> | undefined)?.mode === "aggregate";
