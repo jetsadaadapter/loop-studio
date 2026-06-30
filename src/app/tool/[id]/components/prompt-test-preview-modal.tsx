@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ToolTestPromptResult } from "@/core/interfaces/tools.interface";
 import { normalizeStartUrls } from "../start-urls-utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface PromptTestPreviewModalProps {
   testResult: ToolTestPromptResult;
@@ -215,8 +216,8 @@ export function PromptTestPreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-3xl max-h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/60">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full max-w-3xl rounded-2xl border border-slate-200/60 bg-white p-0 shadow-2xl focus:outline-none flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 px-6 sm:px-7 py-4 border-b border-slate-100/60 bg-linear-to-r from-slate-50/80 to-white">
           <div className="flex items-center gap-3">
@@ -354,7 +355,7 @@ export function PromptTestPreviewModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

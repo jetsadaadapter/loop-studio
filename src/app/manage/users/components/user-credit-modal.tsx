@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Coins, Loader2, Minus, Plus, X } from "lucide-react";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface UserCreditModalProps {
   user: UserProfile;
@@ -35,9 +36,8 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <div className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-900/10">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full max-w-sm rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -194,7 +194,7 @@ export function UserCreditModal({ user, isSubmitting, submitError, onSubmit, onC
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

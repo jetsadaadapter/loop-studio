@@ -6,6 +6,7 @@ import { ManageCategorySchema } from "@/core/validators/categories.validator";
 import type { ManageCategoryFormValues } from "@/core/validators/categories.validator";
 import type { CategoryInfo } from "@/core/interfaces/categories.interface";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import styles from "./category-form-modal.module.css";
 import {
   Field,
@@ -64,16 +65,8 @@ export function CategoryFormModal({
   const isEdit = mode === "edit";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal panel */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-900/10">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full max-w-md rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
@@ -149,7 +142,7 @@ export function CategoryFormModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

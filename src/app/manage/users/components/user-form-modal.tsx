@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, User, Loader2, Copy, Check } from "lucide-react";
+import { Loader2, X, User, Copy, Check } from "lucide-react";
 import { ManageUserSchema } from "@/core/validators/users.validator";
 import type { ManageUserFormValues } from "@/core/validators/users.validator";
 import { Role } from "@/core/interfaces/auth.interface";
 import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Field,
   FieldLabel,
@@ -92,16 +93,8 @@ export function UserFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Panel */}
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-slate-200/60 bg-white shadow-xl shadow-slate-900/10 overflow-hidden">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full max-w-lg rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 overflow-hidden focus:outline-none">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50/50">
           <div className="flex items-center gap-2.5">
@@ -257,7 +250,7 @@ export function UserFormModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

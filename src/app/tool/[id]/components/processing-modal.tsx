@@ -3,7 +3,24 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Loader2, Database, Cpu, BrainCircuit, BarChart3, Terminal, ShieldAlert, AlertTriangle, X } from "lucide-react";
+import {
+  X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Play,
+  Settings2,
+  Database,
+  Sparkles,
+  Bot,
+  Cpu,
+  BrainCircuit,
+  BarChart3,
+  Terminal,
+  ShieldAlert,
+  AlertTriangle,
+} from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { ToolRunGrouped } from "@/core/interfaces/tools.interface";
 import { getJobStatus } from "../tool-job-utils";
 import { getPluginConfig } from "../plugin-config";
@@ -189,8 +206,8 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
     : [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-6 bg-black/60 backdrop-blur-md">
-      <div className="relative w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
+    <Dialog open={open} onOpenChange={(open) => !open && onOpenChange(false)}>
+      <DialogContent hideCloseButton className="w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-2xl p-0 overflow-hidden focus:outline-none">
         {/* Top gradient accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-brand via-indigo-500 to-violet-500" />
 
@@ -348,7 +365,7 @@ export function ProcessingModal({ open, onOpenChange, toolName, isJobComplete, a
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
