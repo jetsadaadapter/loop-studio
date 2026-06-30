@@ -76,36 +76,40 @@ export function TabOutput({ job }: TabOutputProps) {
     )
   );
 
+  const actualResult = (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object')
+    ? job.result[0]
+    : job.result;
+
   const isPreProcessResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    ("preview" in job.result || "config" in job.result)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    ("preview" in actualResult || "config" in actualResult)
   );
 
   const isSocialAnalystResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    "posts" in job.result &&
-    Array.isArray((job.result as Record<string, unknown>).posts)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    "posts" in actualResult &&
+    Array.isArray((actualResult as Record<string, unknown>).posts)
   );
 
   const isSentimentAnalysisResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    "items" in job.result &&
-    Array.isArray((job.result as Record<string, unknown>).items) &&
-    ((job.result as Record<string, unknown>).items as unknown[]).length > 0 &&
-    ((job.result as Record<string, unknown>).items as unknown[]).every((item) => {
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    "items" in actualResult &&
+    Array.isArray((actualResult as Record<string, unknown>).items) &&
+    ((actualResult as Record<string, unknown>).items as unknown[]).length > 0 &&
+    ((actualResult as Record<string, unknown>).items as unknown[]).every((item) => {
       const raw = item as Record<string, unknown>;
       return typeof raw.sentiment === "string" && typeof raw.confidenceScore === "number";
     })
   );
 
   const items = isSentimentAnalysisResult
-    ? ((job.result as Record<string, unknown>).items as unknown as ScrapedJobItem[])
+    ? ((actualResult as Record<string, unknown>).items as unknown as ScrapedJobItem[])
     : isCommentScraper
     ? (rawItems
         .map((item) => normalizeCommentItem(item as Record<string, unknown>))
@@ -137,13 +141,13 @@ export function TabOutput({ job }: TabOutputProps) {
     : null;
 
   const isDynamicLayoutResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    "items" in job.result &&
-    Array.isArray((job.result as Record<string, unknown>).items) &&
-    ((job.result as Record<string, unknown>).items as unknown[]).length > 0 &&
-    ((job.result as Record<string, unknown>).items as unknown[]).every((item) => {
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    "items" in actualResult &&
+    Array.isArray((actualResult as Record<string, unknown>).items) &&
+    ((actualResult as Record<string, unknown>).items as unknown[]).length > 0 &&
+    ((actualResult as Record<string, unknown>).items as unknown[]).every((item) => {
       const raw = item as Record<string, unknown>;
       return (
         raw !== null &&
@@ -155,14 +159,14 @@ export function TabOutput({ job }: TabOutputProps) {
   );
 
   const isPurchaseIntentAnalysisResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    "purchase_intent_analysis" in job.result &&
-    job.result.purchase_intent_analysis &&
-    typeof job.result.purchase_intent_analysis === "object" &&
-    "sections" in (job.result.purchase_intent_analysis as Record<string, unknown>) &&
-    Array.isArray((job.result.purchase_intent_analysis as Record<string, unknown>).sections)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    "purchase_intent_analysis" in actualResult &&
+    actualResult.purchase_intent_analysis &&
+    typeof actualResult.purchase_intent_analysis === "object" &&
+    "sections" in (actualResult.purchase_intent_analysis as Record<string, unknown>) &&
+    Array.isArray((actualResult.purchase_intent_analysis as Record<string, unknown>).sections)
   );
 
   const isStructuredReportResult = Boolean(
@@ -268,13 +272,13 @@ export function TabOutput({ job }: TabOutputProps) {
 
   // Raw result-only items fallback
   const resultOnlyItems = (() => {
-    if (!job.result) return [];
-    if (Array.isArray(job.result)) return job.result as unknown as ScrapedJobItem[];
-    if (typeof job.result === "object") {
-      if (Array.isArray((job.result as Record<string, unknown>).items)) {
-        return (job.result as Record<string, unknown>).items as unknown as ScrapedJobItem[];
+    if (!actualResult) return [];
+    if (Array.isArray(actualResult)) return actualResult as unknown as ScrapedJobItem[];
+    if (typeof actualResult === "object") {
+      if (Array.isArray((actualResult as Record<string, unknown>).items)) {
+        return (actualResult as Record<string, unknown>).items as unknown as ScrapedJobItem[];
       }
-      return [job.result] as unknown as ScrapedJobItem[];
+      return [actualResult] as unknown as ScrapedJobItem[];
     }
     return [];
   })();
@@ -284,7 +288,7 @@ export function TabOutput({ job }: TabOutputProps) {
   const allFieldsItems = (() => {
     if (isSocialAnalystResult) {
       // Flatten all social analyst sections into rows with a _section label
-      const r = job.result as Record<string, unknown>;
+      const r = actualResult as Record<string, unknown>;
       const sections: string[] = ["posts", "metrics", "segments", "comments", "insights"];
       const rows: ScrapedJobItem[] = [];
       for (const sec of sections) {
@@ -298,7 +302,7 @@ export function TabOutput({ job }: TabOutputProps) {
       return rows;
     }
     if (isSentimentAnalysisResult) {
-      return resultOnlyItems; // already job.result.items — all columns intact
+      return resultOnlyItems; // already actualResult.items — all columns intact
     }
     if (isCommentScraper) {
       return resultOnlyItems.map((item) =>
@@ -322,6 +326,11 @@ export function TabOutput({ job }: TabOutputProps) {
   };
 
   const allFieldsKeys = getAllKeys(allFieldsItems, schemaHintKeys);
+
+  const hasStandardOverviewKeys = items.some(item => {
+    const r = item as Record<string, unknown>;
+    return r.media !== undefined || r.url !== undefined || r.text !== undefined || r.sentiment !== undefined || r.summary !== undefined || r.facebookUrl !== undefined || r.profilePicture !== undefined;
+  });
 
   const tabOverviewLabel = (() => {
     if (isPreProcessResult) return "ตั้งค่า (Overview)";
@@ -483,6 +492,12 @@ export function TabOutput({ job }: TabOutputProps) {
             />
           ) : structuredObjectData ? (
             <StructuredObjectSummary data={structuredObjectData} />
+          ) : !hasStandardOverviewKeys && items.length > 0 && !isAnalysisOverview && !isCommentScraper && !isExportCommentsJob && !isExportCommentsFetchJob ? (
+            <AllFieldsTable
+              paginatedItems={paginatedAllFieldsItems}
+              allKeys={allFieldsKeys}
+              startIndex={startIndex}
+            />
           ) : (
             <TabOutputOverview
               items={items}

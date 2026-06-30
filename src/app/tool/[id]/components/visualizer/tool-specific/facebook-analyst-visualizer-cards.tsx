@@ -84,11 +84,11 @@ export function PostsTab({ posts, helpers }: { posts: Post[]; helpers: CardHelpe
 
 // ─── Metrics Tab ──────────────────────────────────────────────────────────────
 export function MetricsTab({ metrics, helpers }: { metrics: Metric[]; helpers: CardHelpers }) {
-  const { darkMode, getPostName, getMetricColor, getMetricBg, formatMetricValue } = helpers;
+  const { darkMode, getPostName, getMetricColor, getMetricBg, formatMetricValue, getDisplayPct } = helpers;
   return (
     <div className="space-y-2">
       {metrics.map((metric, idx) => {
-        const pct = metric.metric_type === 'percentage' ? metric.metric_value * 100 : null;
+        const pct = metric.metric_type === 'percentage' ? getDisplayPct(metric.metric_value) : null;
         return (
           <div
             key={`${metric.post_id}-${metric.metric_key}`}

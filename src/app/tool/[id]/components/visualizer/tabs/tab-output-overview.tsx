@@ -94,20 +94,24 @@ export function TabOutputOverview({
     }
   }, [job.result, jobId]);
 
+  const actualResult = (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object')
+    ? job.result[0]
+    : job.result;
+
   const isPreProcessResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    ("preview" in job.result || "config" in job.result)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    ("preview" in actualResult || "config" in actualResult)
   );
 
   // Check if this is a Social Media Analyst result (posts-based analysis)
   const isSocialAnalystResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    "posts" in job.result &&
-    Array.isArray((job.result as Record<string, unknown>).posts)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    "posts" in actualResult &&
+    Array.isArray((actualResult as Record<string, unknown>).posts)
   );
 
   if (isSocialAnalystResult) {

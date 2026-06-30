@@ -36,19 +36,23 @@ interface SocialAnalystVisualizerProps {
 
 function extractSocialAnalystData(job: ToolJob): SocialAnalystPayload | null {
   try {
-    if (!job.result || typeof job.result !== 'object') return null;
-    const result = job.result as Record<string, unknown>;
-    if (!result.posts || !Array.isArray(result.posts)) return null;
+    let result = job.result;
+    if (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object') {
+      result = job.result[0];
+    }
+    if (!result || typeof result !== 'object') return null;
+    const record = result as Record<string, unknown>;
+    if (!record.posts || !Array.isArray(record.posts)) return null;
     return {
-      task_id: (result.task_id as string) || job.jobId || job.id || job._id || 'unknown',
-      task_intent: (result.task_intent as string) || 'unknown',
-      posts_analyzed: (result.posts_analyzed as number) || 0,
-      generated_at: (result.generated_at as string) || new Date().toISOString(),
-      posts: (result.posts as Post[]) || [],
-      metrics: (result.metrics as Metric[]) || [],
-      segments: (result.segments as Segment[]) || [],
-      comments: (result.comments as Comment[]) || [],
-      insights: (result.insights as Insight[]) || []
+      task_id: (record.task_id as string) || job.jobId || job.id || job._id || 'unknown',
+      task_intent: (record.task_intent as string) || 'unknown',
+      posts_analyzed: (record.posts_analyzed as number) || 0,
+      generated_at: (record.generated_at as string) || new Date().toISOString(),
+      posts: (record.posts as Post[]) || [],
+      metrics: (record.metrics as Metric[]) || [],
+      segments: (record.segments as Segment[]) || [],
+      comments: (record.comments as Comment[]) || [],
+      insights: (record.insights as Insight[]) || []
     };
   } catch (error) {
     console.error('Failed to extract Social Analyst data:', error);
@@ -109,12 +113,39 @@ export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps)
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   const getSentimentIcon = (sentiment: string) => { const n = sentiment.toLowerCase(); if (n === 'positive') return Smile; if (n === 'negative') return Frown; return Meh; };
   const getSentimentColor = (sentiment: string) => { const n = sentiment.toLowerCase(); if (n === 'positive') return darkMode ? 'text-emerald-300 bg-emerald-500/15' : 'text-emerald-700 bg-emerald-50'; if (n === 'negative') return darkMode ? 'text-rose-300 bg-rose-500/15' : 'text-rose-700 bg-rose-50'; return darkMode ? 'text-slate-300 bg-slate-700/50' : 'text-slate-600 bg-slate-100'; };
-  const getMetricColor = (value: number, metricType: string) => { if (metricType === 'count') return darkMode ? 'text-blue-300' : 'text-blue-600'; const pct = metricType === 'percentage' ? value * 100 : value; if (pct >= 70) return darkMode ? 'text-emerald-300' : 'text-emerald-600'; if (pct >= 40) return darkMode ? 'text-amber-300' : 'text-amber-600'; return darkMode ? 'text-rose-300' : 'text-rose-600'; };
-  const getMetricBg = (value: number, metricType: string) => { if (metricType === 'count') return darkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'; const pct = metricType === 'percentage' ? value * 100 : value; if (pct >= 70) return darkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-100'; if (pct >= 40) return darkMode ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-100'; return darkMode ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-100'; };
-  const formatMetricValue = (value: number, metricType: string) => { if (metricType === 'percentage') return `${Math.round(value * 100)}%`; if (Number.isInteger(value)) return String(value); return value.toLocaleString(undefined, { maximumFractionDigits: 2 }); };
+  const getDisplayPct = (value: number) => {
+    if (value > 1 || value < -1 || value === 0) return value;
+    return value * 100;
+  };
+
+  const getMetricColor = (value: number, metricType: string) => { 
+    if (metricType === 'count') return darkMode ? 'text-blue-300' : 'text-blue-600'; 
+    const pct = metricType === 'percentage' ? getDisplayPct(value) : value; 
+    if (pct >= 70) return darkMode ? 'text-emerald-300' : 'text-emerald-600'; 
+    if (pct >= 40) return darkMode ? 'text-amber-300' : 'text-amber-600'; 
+    return darkMode ? 'text-rose-300' : 'text-rose-600'; 
+  };
+  
+  const getMetricBg = (value: number, metricType: string) => { 
+    if (metricType === 'count') return darkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'; 
+    const pct = metricType === 'percentage' ? getDisplayPct(value) : value; 
+    if (pct >= 70) return darkMode ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-100'; 
+    if (pct >= 40) return darkMode ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-100'; 
+    return darkMode ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-100'; 
+  };
+  
+  const formatMetricValue = (value: number, metricType: string) => { 
+    if (metricType === 'percentage') {
+      const pct = getDisplayPct(value);
+      return `${Number.isInteger(pct) ? pct : Number(pct).toFixed(1)}%`;
+    }
+    if (Number.isInteger(value)) return String(value); 
+    return value.toLocaleString(undefined, { maximumFractionDigits: 2 }); 
+  };
+
   const getPostName = (postId: string) => data.posts.find(p => p.post_id === postId)?.page_name || 'Unknown';
 
-  const helpers = { darkMode, getPostName, getSentimentIcon, getSentimentColor, getMetricColor, getMetricBg, formatMetricValue, resolvePostUrl, selectedTagFilter };
+  const helpers = { darkMode, getPostName, getSentimentIcon, getSentimentColor, getDisplayPct, getMetricColor, getMetricBg, formatMetricValue, resolvePostUrl, selectedTagFilter };
 
   const tabs = [
     { id: 'posts' as const, label: 'Posts', icon: FileText, count: data.posts.length },

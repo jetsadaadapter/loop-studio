@@ -59,6 +59,7 @@ export interface CardHelpers {
   getPostName: (postId: string) => string;
   getSentimentIcon: (sentiment: string) => React.ComponentType<{ className?: string }>;
   getSentimentColor: (sentiment: string) => string;
+  getDisplayPct: (value: number) => number;
   getMetricColor: (value: number, metricType: string) => string;
   getMetricBg: (value: number, metricType: string) => string;
   formatMetricValue: (value: number, metricType: string) => string;

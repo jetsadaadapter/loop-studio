@@ -75,28 +75,75 @@ export function getProcessedItems(
   
   const slicedItems = items.slice(start, end);
 
-  return slicedItems.map((item) => {
-    if (config.view === "overview") {
-      return mapOverviewItem(item);
-    }
+  // 1. Map items based on the view
+  const mappedItems = config.view === "overview" 
+    ? slicedItems.map((item) => mapOverviewItem(item))
+    : slicedItems;
 
-    // "All fields" view: apply whitelists/blacklists
-    const keys = Object.keys(item).filter((k) => k !== "analysis"); // Filter out heavy analysis objects
+  // 2. Globally collect keys and filter out empty/internal ones
+  const allUniqueKeys = Array.from(
+    new Set(mappedItems.flatMap((item) => Object.keys(item)))
+  ).filter((k) => k !== "analysis");
+
+  const validKeys = allUniqueKeys.filter((k) => {
+    if (["sourceIndex", "sourceKey", "sourceKeyValue"].includes(k)) return false;
+    const hasValue = mappedItems.some(item => {
+       const val = item[k];
+       if (Array.isArray(val) && val.length === 0) return false;
+       return val !== null && val !== undefined && val !== "";
+    });
+    return hasValue;
+  });
+
+  // 3. Apply field selections and construct final items
+  return mappedItems.map((item) => {
+    let activeKeys = validKeys;
     
-    let activeKeys = keys;
-    if (config.selectedFields.length > 0) {
-      activeKeys = keys.filter((k) => config.selectedFields.includes(k));
-    }
-    if (config.omittedFields.length > 0) {
-      activeKeys = activeKeys.filter((k) => !config.omittedFields.includes(k));
+    // Only apply manual field selections in "All fields" mode
+    if (config.view !== "overview") {
+      if (config.selectedFields.length > 0) {
+        activeKeys = validKeys.filter((k) => config.selectedFields.includes(k));
+      }
+      if (config.omittedFields.length > 0) {
+        activeKeys = activeKeys.filter((k) => !config.omittedFields.includes(k));
+      }
     }
 
     const filteredItem: Record<string, any> = {};
     activeKeys.forEach((k) => {
-      filteredItem[k] = item[k];
+      // Ensure we don't output undefined values to avoid empty columns
+      if (item[k] !== undefined) {
+        filteredItem[k] = item[k];
+      }
     });
     return filteredItem;
   });
+}
+
+/**
+ * Formats an array of objects into a human-readable text list for Excel/CSV cells.
+ * Example:
+ * [Item 1]
+ * • key: value
+ *
+ * [Item 2]
+ * • key: value
+ */
+function formatArrayOfObjectsToText(arr: any[]): string {
+  return arr.map((item, index) => {
+    if (typeof item !== 'object' || item === null) {
+      return `[Item ${index + 1}]\n• value: ${item}`;
+    }
+    let text = `[Item ${index + 1}]\n`;
+    for (const [key, val] of Object.entries(item)) {
+      if (typeof val === 'object' && val !== null) {
+        text += `• ${key}: ${JSON.stringify(val)}\n`;
+      } else {
+        text += `• ${key}: ${val}\n`;
+      }
+    }
+    return text.trim();
+  }).join('\n\n');
 }
 
 /**
@@ -124,14 +171,14 @@ export function flattenObject(obj: any, prefix = ''): Record<string, any> {
         result[prefix] = obj.filter(x => x !== null && x !== undefined).join(', ');
       }
     } else {
-      obj.forEach((item, index) => {
-        const itemKey = prefix ? `${prefix}[${index}]` : `[${index}]`;
-        if (typeof item === 'object' && item !== null) {
-          Object.assign(result, flattenObject(item, itemKey));
-        } else {
-          result[itemKey] = item;
-        }
-      });
+      // Instead of expanding object arrays into separate columns (e.g. comments[0].text, comments[1].text),
+      // format them as a readable text list so it stays within a single column, making the table much more readable.
+      const formattedList = formatArrayOfObjectsToText(obj);
+      if (prefix) {
+        result[prefix] = formattedList;
+      } else {
+        result["value"] = formattedList;
+      }
     }
   } else if (typeof obj === 'object') {
     if (obj instanceof Date) {

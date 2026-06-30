@@ -47,12 +47,17 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Extract actual result in case it is wrapped in an array by Gemini
+  const actualResult = (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object')
+    ? job.result[0]
+    : job.result;
+
   // Detect Social Media Analyst result ({posts, metrics, segments, comments, insights})
   const isSocialAnalystResult = Boolean(
-    job.result &&
-    typeof job.result === "object" &&
-    !Array.isArray(job.result) &&
-    Array.isArray((job.result as Record<string, unknown>).posts)
+    actualResult &&
+    typeof actualResult === "object" &&
+    !Array.isArray(actualResult) &&
+    Array.isArray((actualResult as Record<string, unknown>).posts)
   );
 
   // For results with a flat items array (e.g. sentiment analysis: {itemCount, items:[...]})
@@ -91,7 +96,19 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
 
   const allKeys = Array.from(
     new Set(items.flatMap((item) => Object.keys(item as Record<string, unknown>)))
-  ).filter((k) => k !== "analysis");
+  ).filter((k) => {
+    if (k === "analysis") return false;
+    if (["sourceIndex", "sourceKey", "sourceKeyValue"].includes(k)) return false;
+    
+    // Only include if at least one item has a meaningful value
+    const hasValue = items.some(item => {
+       const val = (item as Record<string, unknown>)[k];
+       // Check if it's an array and empty
+       if (Array.isArray(val) && val.length === 0) return false;
+       return val !== null && val !== undefined && val !== "";
+    });
+    return hasValue;
+  });
 
 
 
