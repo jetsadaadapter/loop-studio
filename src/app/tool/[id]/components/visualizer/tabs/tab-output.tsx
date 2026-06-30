@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Table2, FileCode } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
@@ -20,6 +20,7 @@ import {
   isCommentScraperItem,
   normalizeCommentItem,
   detectStructuredObjectSummary,
+  tryRepairAndParseJson,
 } from "./tab-output-helpers";
 import { ExecutionSummarySection } from "../overview/execution-summary-section";
 import { StructuredObjectSummary } from "../overview/structured-object-summary";
@@ -87,13 +88,9 @@ export function TabOutput({ job }: TabOutputProps) {
     ("preview" in actualResult || "config" in actualResult)
   );
 
-  const isSocialAnalystResult = Boolean(
-    actualResult &&
-    typeof actualResult === "object" &&
-    !Array.isArray(actualResult) &&
-    "posts" in actualResult &&
-    Array.isArray((actualResult as Record<string, unknown>).posts)
-  );
+  // Note: we can't fully evaluate isSocialAnalystResult until structuredObjectData is available.
+  // But we need isSocialAnalystResult for allFieldsItems. We will evaluate it properly after.
+  // For now, let's keep it here but we'll re-evaluate it after structuredObjectData.
 
   const isSentimentAnalysisResult = Boolean(
     actualResult &&
@@ -136,9 +133,27 @@ export function TabOutput({ job }: TabOutputProps) {
     uniqueSummaryTabLabels,
   } = parseSingleTextSummary(items);
 
-  const structuredObjectData = !isSingleTextSummary
+  let structuredObjectData = !isSingleTextSummary
     ? detectStructuredObjectSummary(items)
     : null;
+
+  if (isSingleTextSummary && singleTextValue && !structuredObjectData) {
+    const parsed = tryRepairAndParseJson(singleTextValue);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      structuredObjectData = parsed;
+    }
+  }
+
+  const isSocialAnalystResult = Boolean(
+    (actualResult &&
+      typeof actualResult === "object" &&
+      !Array.isArray(actualResult) &&
+      "posts" in actualResult &&
+      Array.isArray((actualResult as Record<string, unknown>).posts)) ||
+    (structuredObjectData &&
+      "posts" in structuredObjectData &&
+      Array.isArray(structuredObjectData.posts))
+  );
 
   const isDynamicLayoutResult = Boolean(
     actualResult &&
@@ -179,11 +194,30 @@ export function TabOutput({ job }: TabOutputProps) {
     Array.isArray((job.result as Record<string, unknown>).section_rows)
   );
 
+  const isBrandPreferenceAnalysisResult = Boolean(
+    (actualResult &&
+      typeof actualResult === "object" &&
+      !Array.isArray(actualResult) &&
+      "task_intent" in actualResult &&
+      (actualResult as Record<string, unknown>).task_intent === "brand_preference_and_interest_analysis" &&
+      "metrics" in actualResult &&
+      "segments" in actualResult) ||
+    (structuredObjectData &&
+      "task_intent" in structuredObjectData &&
+      structuredObjectData.task_intent === "brand_preference_and_interest_analysis" &&
+      "metrics" in structuredObjectData &&
+      "segments" in structuredObjectData)
+  );
+
+  const brandPreferenceData = (isBrandPreferenceAnalysisResult && structuredObjectData && "task_intent" in structuredObjectData && structuredObjectData.task_intent === "brand_preference_and_interest_analysis")
+    ? structuredObjectData
+    : actualResult;
+
   const dynamicSchemaDeclarations = getFunctionDeclarationsFromJob(job);
   const isDynamicSchemaResult = dynamicSchemaDeclarations.length > 0 && items.length > 0;
 
-  const showDashboardTab = isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult;
-  const defaultTab = (isDynamicLayoutResult || isPurchaseIntentAnalysisResult) ? "dashboard" : "overview";
+  const showDashboardTab = isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isDynamicSchemaResult || isStructuredReportResult || isBrandPreferenceAnalysisResult;
+  const defaultTab = (isDynamicLayoutResult || isPurchaseIntentAnalysisResult || isBrandPreferenceAnalysisResult) ? "dashboard" : "overview";
 
   const jobId = job.jobId || job.id || job._id || "";
   const [prevJobId, setPrevJobId] = useState(jobId);
@@ -272,15 +306,19 @@ export function TabOutput({ job }: TabOutputProps) {
 
   // Raw result-only items fallback
   const resultOnlyItems = (() => {
-    if (!actualResult) return [];
-    if (Array.isArray(actualResult)) return actualResult as unknown as ScrapedJobItem[];
-    if (typeof actualResult === "object") {
-      if (Array.isArray((actualResult as Record<string, unknown>).items)) {
-        return (actualResult as Record<string, unknown>).items as unknown as ScrapedJobItem[];
+    const dataToUse = structuredObjectData || actualResult;
+    if (!dataToUse) return [];
+    if (Array.isArray(dataToUse)) return dataToUse as unknown as ScrapedJobItem[];
+    if (typeof dataToUse === "object") {
+      if (Array.isArray((dataToUse as Record<string, unknown>).items)) {
+        return (dataToUse as Record<string, unknown>).items as unknown as ScrapedJobItem[];
       }
-      return [actualResult] as unknown as ScrapedJobItem[];
+      return [dataToUse] as unknown as ScrapedJobItem[];
     }
-    return [];
+    if (typeof dataToUse === "string") {
+      return [{ Output: dataToUse }] as unknown as ScrapedJobItem[];
+    }
+    return [dataToUse] as unknown as ScrapedJobItem[];
   })();
 
   // All Fields Tab pulls data from result only.
@@ -288,7 +326,7 @@ export function TabOutput({ job }: TabOutputProps) {
   const allFieldsItems = (() => {
     if (isSocialAnalystResult) {
       // Flatten all social analyst sections into rows with a _section label
-      const r = actualResult as Record<string, unknown>;
+      const r = (structuredObjectData || actualResult) as Record<string, unknown>;
       const sections: string[] = ["posts", "metrics", "segments", "comments", "insights"];
       const rows: ScrapedJobItem[] = [];
       for (const sec of sections) {
@@ -356,6 +394,14 @@ export function TabOutput({ job }: TabOutputProps) {
     return "ตารางข้อมูล (All Fields)";
   })();
 
+  const showAllFieldsTab = true;
+
+  useEffect(() => {
+    if (!showAllFieldsTab && innerTab === "all") {
+      setInnerTab("overview");
+    }
+  }, [showAllFieldsTab, innerTab, setInnerTab]);
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
       {/* Visualizer Controls Bar */}
@@ -386,54 +432,58 @@ export function TabOutput({ job }: TabOutputProps) {
               {tabDashboardLabel}
             </button>
           )}
-          <button
-            onClick={() => setInnerTab("all")}
-            className={cn(
-              "px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
-              innerTab === "all"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
-            )}
-          >
-            {tabAllFieldsLabel}
-          </button>
+          {showAllFieldsTab && (
+            <button
+              onClick={() => setInnerTab("all")}
+              className={cn(
+                "px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer",
+                innerTab === "all"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/50",
+              )}
+            >
+              {tabAllFieldsLabel}
+            </button>
+          )}
         </div>
 
         {/* View Toggles (Right) */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
-            <button
-              onClick={() => setViewMode("table")}
-              className={cn(
-                "p-2 rounded-lg transition-all duration-200 cursor-pointer",
-                viewMode === "table"
-                  ? "bg-white text-brand shadow-sm"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
-              )}
-              title="Table view"
-            >
-              <Table2 className="size-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("json")}
-              className={cn(
-                "p-2 rounded-lg transition-all duration-200 cursor-pointer",
-                viewMode === "json"
-                  ? "bg-white text-brand shadow-sm"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
-              )}
-              title="JSON view"
-            >
-              <FileCode className="size-4" />
-            </button>
+        {showAllFieldsTab && (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-slate-50/80 rounded-xl p-1 border border-slate-200/50">
+              <button
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-200 cursor-pointer",
+                  viewMode === "table"
+                    ? "bg-white text-brand shadow-sm"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
+                )}
+                title="Table view"
+              >
+                <Table2 className="size-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("json")}
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-200 cursor-pointer",
+                  viewMode === "json"
+                    ? "bg-white text-brand shadow-sm"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-white/50",
+                )}
+                title="JSON view"
+              >
+                <FileCode className="size-4" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto min-h-0">
         {viewMode === "json" ? (
-          <TabJsonView items={job.result} />
+          <TabJsonView items={isSingleTextSummary && structuredObjectData ? [structuredObjectData] : job.result} />
         ) : innerTab === "dashboard" ? (
           <DynamicLayoutVisualizer
             items={
@@ -447,19 +497,29 @@ export function TabOutput({ job }: TabOutputProps) {
                       confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดสัญญาณและการจำแนกเจตนา",
                     }
                   ] as unknown as DynamicUIItem[])
-                : isDynamicSchemaResult || isStructuredReportResult
-                  ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
-                  : (job.result &&
-                    typeof job.result === "object" &&
-                    !Array.isArray(job.result) &&
-                    "items" in job.result &&
-                    Array.isArray((job.result as Record<string, unknown>).items)
-                      ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
-                      : [])
+                  : isBrandPreferenceAnalysisResult
+                    ? ([
+                        {
+                          task_intent: "วิเคราะห์ความชอบแบรนด์และความสนใจ (Brand Preference)",
+                          task_description: "วิเคราะห์สัดส่วนความคิดเห็นแบ่งตามความสนใจและแบรนด์ที่ชื่นชอบจากผู้บริโภค",
+                          sections: transformBrandPreferenceToDynamicLayoutSections(brandPreferenceData),
+                          overall_sentiment_focus: "mixed",
+                          confidence_note: "สกัดข้อมูลโดยวิเคราะห์คีย์เวิร์ดและแบ่ง Segment",
+                        }
+                      ] as unknown as DynamicUIItem[])
+                    : isDynamicSchemaResult || isStructuredReportResult
+                      ? generateDynamicLayoutFromSchema(job, items as unknown as Record<string, unknown>[])
+                      : (job.result &&
+                        typeof job.result === "object" &&
+                        !Array.isArray(job.result) &&
+                        "items" in job.result &&
+                        Array.isArray((job.result as Record<string, unknown>).items)
+                          ? ((job.result as Record<string, unknown>).items as unknown as DynamicUIItem[])
+                          : [])
             }
           />
         ) : innerTab === "overview" ? (
-          isPreProcessResult ? (
+          (isPreProcessResult || isSocialAnalystResult) ? (
             <TabOutputOverview
               items={items}
               paginatedItems={paginatedItems}
@@ -474,6 +534,7 @@ export function TabOutput({ job }: TabOutputProps) {
               isExportCommentsJob={isExportCommentsJob}
               isExportCommentsFetchJob={isExportCommentsFetchJob}
               job={job}
+              structuredObjectData={structuredObjectData}
             />
           ) : isSentimentAnalysisResult ? (
             <SentimentAnalysisOverview
@@ -513,6 +574,7 @@ export function TabOutput({ job }: TabOutputProps) {
               isExportCommentsJob={isExportCommentsJob}
               isExportCommentsFetchJob={isExportCommentsFetchJob}
               job={job}
+              structuredObjectData={structuredObjectData}
             />
           )
         ) : (
@@ -539,4 +601,77 @@ export function TabOutput({ job }: TabOutputProps) {
       )}
     </div>
   );
+}
+
+// Helper to transform Brand Preference result into DynamicUIItem sections
+function transformBrandPreferenceToDynamicLayoutSections(result: any) {
+  const sections: any[] = [];
+  const formatKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  if (Array.isArray(result.metrics) && result.metrics.length > 0) {
+    sections.push({
+      section_id: "metrics",
+      section_title: "สัดส่วนความสนใจ (Metrics)",
+      section_type: "scorecard",
+      data: result.metrics.map((m: any) => ({
+        label: formatKey(m.metric_key || ""),
+        value: typeof m.metric_value === "number" && m.metric_type === "percentage" ? `${m.metric_value}%` : m.metric_value
+      }))
+    });
+  }
+
+  if (Array.isArray(result.segments) && result.segments.length > 0) {
+    const userInterest = result.segments.filter((s: any) => s.segment_type === "user_interest");
+    const brandPref = result.segments.filter((s: any) => s.segment_type === "brand_preference");
+
+    if (userInterest.length > 0) {
+      sections.push({
+        section_id: "segment_user_interest",
+        section_title: "ความสนใจของผู้ใช้ (User Interest)",
+        section_type: "pie_chart",
+        data: userInterest.map((s: any) => ({
+          label: formatKey(s.segment_key || ""),
+          value: s.count,
+          percent: s.percent
+        }))
+      });
+    }
+
+    if (brandPref.length > 0) {
+      sections.push({
+        section_id: "segment_brand_preference",
+        section_title: "แบรนด์ที่ได้รับความนิยม (Brand Preference)",
+        section_type: "bar_chart",
+        data: brandPref.map((s: any) => ({
+          label: formatKey(s.segment_key || ""),
+          value: s.count
+        }))
+      });
+    }
+  }
+
+  if (Array.isArray(result.insights) && result.insights.length > 0) {
+    sections.push({
+      section_id: "insights",
+      section_title: "ข้อมูลเชิงลึก (Insights)",
+      section_type: "list",
+      data: result.insights.map((i: any) => ({
+        comment: i.insight_text
+      }))
+    });
+  }
+
+  if (Array.isArray(result.comments) && result.comments.length > 0) {
+    sections.push({
+      section_id: "comments",
+      section_title: "ความคิดเห็นที่น่าสนใจ (Comments)",
+      section_type: "list",
+      data: result.comments.map((c: any) => ({
+        comment: c.comment_text,
+        keywords_mentioned: c.tags ? c.tags.split(",") : []
+      }))
+    });
+  }
+
+  return sections;
 }

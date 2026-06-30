@@ -31,6 +31,7 @@ interface TabOutputOverviewProps {
   isExportCommentsJob: boolean;
   isExportCommentsFetchJob: boolean;
   job: ToolJob;
+  structuredObjectData?: Record<string, unknown> | null;
 }
 
 export function TabOutputOverview({
@@ -47,6 +48,7 @@ export function TabOutputOverview({
   isExportCommentsJob,
   isExportCommentsFetchJob,
   job,
+  structuredObjectData,
 }: TabOutputOverviewProps) {
   const jobId = job.jobId || job.id || job._id || "";
 
@@ -107,15 +109,22 @@ export function TabOutputOverview({
 
   // Check if this is a Social Media Analyst result (posts-based analysis)
   const isSocialAnalystResult = Boolean(
-    actualResult &&
-    typeof actualResult === "object" &&
-    !Array.isArray(actualResult) &&
-    "posts" in actualResult &&
-    Array.isArray((actualResult as Record<string, unknown>).posts)
+    (actualResult &&
+      typeof actualResult === "object" &&
+      !Array.isArray(actualResult) &&
+      "posts" in actualResult &&
+      Array.isArray((actualResult as Record<string, unknown>).posts)) ||
+    (structuredObjectData &&
+      "posts" in structuredObjectData &&
+      Array.isArray(structuredObjectData.posts))
   );
 
+  const socialAnalystData = (isSocialAnalystResult && structuredObjectData && "posts" in structuredObjectData)
+    ? structuredObjectData
+    : actualResult;
+
   if (isSocialAnalystResult) {
-    return <FacebookAnalystVisualizer job={job} />;
+    return <FacebookAnalystVisualizer job={job} parsedData={socialAnalystData as Record<string, unknown>} />;
   }
 
   if (isPreProcessResult) {

@@ -449,7 +449,7 @@ export function detectStructuredObjectSummary(
   return null;
 }
 
-function tryRepairAndParseJson(text: string): Record<string, unknown> | null {
+export function tryRepairAndParseJson(text: string): Record<string, unknown> | null {
   const trimmed = text.trim();
   if (!trimmed.includes("{")) return null;
 

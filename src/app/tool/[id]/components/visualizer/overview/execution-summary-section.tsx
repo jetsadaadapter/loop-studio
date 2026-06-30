@@ -183,13 +183,23 @@ function cleanTitle(title: string): string {
   return title.replace(/\s*\(\d+\.?\d*%[^)]*\)\s*/, "").trim();
 }
 
-function renderItemValue(v: unknown): string {
-  if (v === null || v === undefined) return "";
+function renderItemValue(v: unknown): React.ReactNode {
+  if (v === null || v === undefined) return null;
   if (typeof v === "string") return v;
   if (typeof v === "number" || typeof v === "boolean") return String(v);
   if (typeof v === "object" && v !== null) {
     if (Array.isArray(v)) {
-      return v.map(renderItemValue).filter(Boolean).join(", ");
+      const arr = v.map(renderItemValue).filter(Boolean);
+      return (
+        <span className="flex flex-wrap gap-2">
+          {arr.map((el, i) => (
+            <span key={i}>
+              {el}
+              {i < arr.length - 1 ? ", " : ""}
+            </span>
+          ))}
+        </span>
+      );
     }
     const obj = v as Record<string, unknown>;
     if (obj.section_title && typeof obj.section_title === "string") {
@@ -201,12 +211,19 @@ function renderItemValue(v: unknown): string {
     if (obj.name && typeof obj.name === "string") {
       return obj.name;
     }
-    const entries = Object.entries(obj)
-      .filter(([k]) => !k.startsWith("_"))
-      .map(([k, val]) => `${k}: ${renderItemValue(val)}`)
-      .filter(Boolean);
-    if (entries.length > 0 && entries.length <= 3) {
-      return entries.join("; ");
+    const entries = Object.entries(obj).filter(([k]) => !k.startsWith("_"));
+    if (entries.length > 0) {
+      return (
+        <span className="inline-flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          {entries.map(([k, val], i) => (
+            <span key={k} className="inline-flex items-baseline whitespace-normal break-words">
+              <strong className="font-semibold text-slate-700 mr-1">{formatTabLabel(k)}:</strong>
+              <span className="text-slate-600">{renderItemValue(val)}</span>
+              {i < entries.length - 1 && <span className="text-slate-300 ml-3 shrink-0">•</span>}
+            </span>
+          ))}
+        </span>
+      );
     }
   }
   return String(v);

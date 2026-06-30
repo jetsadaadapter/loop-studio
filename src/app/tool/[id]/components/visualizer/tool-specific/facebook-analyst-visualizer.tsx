@@ -32,12 +32,15 @@ import type {
 
 interface SocialAnalystVisualizerProps {
   job: ToolJob;
+  parsedData?: Record<string, unknown>;
 }
 
-function extractSocialAnalystData(job: ToolJob): SocialAnalystPayload | null {
+function extractSocialAnalystData(job: ToolJob, parsedData?: Record<string, unknown>): SocialAnalystPayload | null {
   try {
-    let result = job.result;
-    if (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object') {
+    let result: unknown = job.result;
+    if (parsedData) {
+      result = parsedData;
+    } else if (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object') {
       result = job.result[0];
     }
     if (!result || typeof result !== 'object') return null;
@@ -60,8 +63,8 @@ function extractSocialAnalystData(job: ToolJob): SocialAnalystPayload | null {
   }
 }
 
-export function FacebookAnalystVisualizer({ job }: SocialAnalystVisualizerProps) {
-  const data = useMemo(() => extractSocialAnalystData(job), [job]);
+export function FacebookAnalystVisualizer({ job, parsedData }: SocialAnalystVisualizerProps) {
+  const data = useMemo(() => extractSocialAnalystData(job, parsedData), [job, parsedData]);
   const startUrls = useMemo(() => normalizeStartUrls(job.input?.startUrls), [job.input?.startUrls]);
 
   const [darkMode, setDarkMode] = useState(false);
