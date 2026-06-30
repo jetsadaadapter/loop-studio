@@ -1,14 +1,18 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ManageSearchInput } from "@/components/ui/manage-search-input";
+import { useMemo } from "react";
+import { ManagerToolbar } from "@/components/manager-toolbar";
+import type { ManagerFilter } from "@/components/manager-toolbar/types";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { ManageCreateButton } from "@/components/ui/manage-create-button";
 
 interface ToolSearchFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
+  sortFilter: string;
+  onSortFilterChange: (value: string) => void;
   lastUpdatedAt: Date | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -16,21 +20,58 @@ interface ToolSearchFiltersProps {
   onCreateTool: () => void;
 }
 
-export function ToolSearchFilters({ search, onSearchChange, lastUpdatedAt, isLoading, isRefreshing, onRefresh, onCreateTool }: ToolSearchFiltersProps) {
+export function ToolSearchFilters({ 
+  search, 
+  onSearchChange, 
+  statusFilter,
+  onStatusFilterChange,
+  sortFilter,
+  onSortFilterChange,
+  lastUpdatedAt, 
+  isLoading, 
+  isRefreshing, 
+  onRefresh, 
+  onCreateTool 
+}: ToolSearchFiltersProps) {
+  const filters: ManagerFilter[] = useMemo(() => [
+    {
+      key: "status",
+      label: "Status",
+      value: statusFilter,
+      onChange: onStatusFilterChange,
+      options: [
+        { value: "all", label: "All Status" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+    {
+      key: "sort",
+      label: "Sort By",
+      value: sortFilter,
+      onChange: onSortFilterChange,
+      options: [
+        { value: "updated-desc", label: "Newest First" },
+        { value: "updated-asc", label: "Oldest First" },
+        { value: "name-asc", label: "Name (A-Z)" },
+        { value: "name-desc", label: "Name (Z-A)" },
+        { value: "created-desc", label: "Recently Added" },
+      ],
+    },
+  ], [statusFilter, onStatusFilterChange, sortFilter, onSortFilterChange]);
+
   return (
-    <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none">
-      <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
-        <ManageSearchInput value={search} onChange={onSearchChange} placeholder="Search tools by name or description…" />
-        {search && (
-          <Button type="button" variant="ghost" size="icon" onClick={() => onSearchChange("")} className="size-8 rounded-sm border border-slate-200 hover:bg-slate-50 cursor-pointer text-slate-500 shadow-3xs flex items-center justify-center shrink-0" title="Reset Filters">
-            <SlidersHorizontal className="size-4" />
-          </Button>
-        )}
-      </div>
-      <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0 select-none">
-        <ManageRefreshButton lastUpdatedAt={lastUpdatedAt} isLoading={isLoading} isRefreshing={isRefreshing} onRefresh={onRefresh} title="Refresh Tools" />
-        <ManageCreateButton onClick={onCreateTool}>New Tool</ManageCreateButton>
-      </div>
-    </div>
+    <ManagerToolbar
+      searchValue={search}
+      onSearchChange={onSearchChange}
+      searchPlaceholder="Search tools by name or description…"
+      filters={filters}
+      trailing={
+        <>
+          <ManageRefreshButton lastUpdatedAt={lastUpdatedAt} isLoading={isLoading} isRefreshing={isRefreshing} onRefresh={onRefresh} title="Refresh Tools" />
+          <ManageCreateButton onClick={onCreateTool}>New Tool</ManageCreateButton>
+        </>
+      }
+    />
   );
 }

@@ -23,6 +23,10 @@ export function ManageToolsClient() {
     lastUpdatedAt,
     search,
     setSearch,
+    statusFilter,
+    setStatusFilter,
+    sortFilter,
+    setSortFilter,
     formMode,
     setFormMode,
     editTarget,
@@ -65,6 +69,10 @@ export function ManageToolsClient() {
       <ToolSearchFilters
         search={search}
         onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        sortFilter={sortFilter}
+        onSortFilterChange={setSortFilter}
         lastUpdatedAt={lastUpdatedAt}
         isLoading={isLoading}
         isRefreshing={isRefreshing}

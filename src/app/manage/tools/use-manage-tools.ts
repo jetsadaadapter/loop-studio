@@ -32,6 +32,8 @@ export function useManageTools() {
   const [loadError, setLoadError] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortFilter, setSortFilter] = useState("updated-desc");
 
   // CRUD state
   const [formMode, setFormMode] = useState<ToolFormMode | null>(null);
@@ -242,12 +244,40 @@ export function useManageTools() {
   }, [pushToast]);
 
   const filteredTools = useMemo(() => {
+    let result = tools;
+
+    if (statusFilter === "active") {
+      result = result.filter((t) => t.isActive);
+    } else if (statusFilter === "inactive") {
+      result = result.filter((t) => !t.isActive);
+    }
+
     const term = search.trim().toLowerCase();
-    if (!term) return tools;
-    return tools.filter(
-      (t) => t.name.toLowerCase().includes(term) || (t.description ?? "").toLowerCase().includes(term),
-    );
-  }, [tools, search]);
+    if (term) {
+      result = result.filter(
+        (t) => t.name.toLowerCase().includes(term) || (t.description ?? "").toLowerCase().includes(term),
+      );
+    }
+
+    if (sortFilter !== "default") {
+      result = [...result].sort((a, b) => {
+        if (sortFilter === "name-asc") {
+          return a.name.localeCompare(b.name);
+        } else if (sortFilter === "name-desc") {
+          return b.name.localeCompare(a.name);
+        } else if (sortFilter === "updated-desc") {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        } else if (sortFilter === "updated-asc") {
+          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        } else if (sortFilter === "created-desc") {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return 0;
+      });
+    }
+    
+    return result;
+  }, [tools, search, statusFilter, sortFilter]);
 
   const emptyVariant = useMemo(() => {
     return (loadError ? "error" : tools.length === 0 ? "empty" : "no-results") as "error" | "empty" | "no-results";
@@ -276,6 +306,10 @@ export function useManageTools() {
     lastUpdatedAt,
     search,
     setSearch,
+    statusFilter,
+    setStatusFilter,
+    sortFilter,
+    setSortFilter,
     formMode,
     setFormMode,
     editTarget,
