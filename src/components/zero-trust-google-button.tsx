@@ -62,8 +62,17 @@ export function ZeroTrustGoogleButton() {
 
       const renderedButton = container.querySelector("button");
       if (renderedButton instanceof HTMLButtonElement) {
-        renderedButton.style.width = "100%";
-        renderedButton.style.justifyContent = "center";
+        Object.assign(renderedButton.style, {
+          width: "100%",
+          justifyContent: "center",
+          height: "48px",
+          borderRadius: "12px",
+          borderColor: "#e2e8f0",
+          fontFamily: "inherit",
+          fontWeight: "600",
+          letterSpacing: "0.01em",
+          transition: "box-shadow .2s, border-color .2s, transform .15s",
+        });
       }
     } catch (err) {
       console.error("ZeroTrust initialization error:", err);
