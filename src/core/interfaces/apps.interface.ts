@@ -47,8 +47,6 @@ export type GetAppsParams = {
 
 export type GetAppsResponse = Paginated<LibraryAppsGroupItem>;
 
-export type ManageAppTagRef = string | { id?: string; tagId?: string; name?: string };
-
 export type ManageAppApiItem = Omit<LibraryAppApiItem, "imageUrl"> & {
     userId?: string;
     imageUrl?: string;
@@ -77,10 +75,6 @@ export type ManageAppPayload = {
     badgeLabel: string;
     tags: string[];
 };
-
-export type ManageAppListResponse =
-    | ManageApiEnvelope<ManageAppApiItem[]>
-    | GetAppsResponse;
 
 export type ManageAppMutationResponse = ManageApiEnvelope<ManageAppApiItem>;
 

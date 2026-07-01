@@ -10,5 +10,3 @@ export const AIModelSchema = z.object({
   isActive: z.boolean().default(true),
   isDefault: z.boolean().default(false),
 });
-
-export type AIModelPayload = z.infer<typeof AIModelSchema>;

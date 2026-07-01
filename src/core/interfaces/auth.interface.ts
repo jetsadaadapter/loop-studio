@@ -7,14 +7,6 @@ export enum Role {
 
 export type UserRole = "system-admin" | "admin" | "developer" | "user" | "viewer";
 
-export interface AuthUser {
-    id: string;
-    email: string;
-    role: UserRole;
-    name?: string;
-    image?: string;
-}
-
 export interface UserProfile {
     empid: string;
     email: string;

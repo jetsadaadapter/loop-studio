@@ -3,7 +3,6 @@ import type {
     GetAppsResponse,
     LibraryAppApiItem,
     ManageAppApiItem,
-    ManageAppListResponse,
     ManageAppMutationResponse,
     ManageAppPayload,
 } from "@/core/interfaces/apps.interface";
@@ -73,20 +72,6 @@ export async function getRelatedApps(
 // ─────────────────────────────────────────────────────────────────────────────
 // Manage Apps
 // ─────────────────────────────────────────────────────────────────────────────
-
-export function normalizeManageAppsList(payload: ManageAppListResponse): ManageAppApiItem[] {
-    const maybeData = (payload as { data?: unknown }).data;
-
-    if (
-        Array.isArray(maybeData) &&
-        (maybeData.length === 0 || (typeof maybeData[0] === "object" && maybeData[0] !== null && "name" in maybeData[0]))
-    ) {
-        return maybeData as ManageAppApiItem[];
-    }
-
-    const grouped = payload as GetAppsResponse;
-    return grouped.data.flatMap((group) => group.items as ManageAppApiItem[]);
-}
 
 export async function getManageApps(
     params: { page?: number; limit?: number } = {},

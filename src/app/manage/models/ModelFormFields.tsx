@@ -34,7 +34,7 @@ export interface ModelFormFieldsDraft {
   isDefault: boolean;
 }
 
-export interface ModelFormFieldsProps {
+interface ModelFormFieldsProps {
   draft: ModelFormFieldsDraft;
   fieldErrors?: Record<string, string>;
   onChange: (

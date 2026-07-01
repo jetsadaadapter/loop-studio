@@ -23,7 +23,7 @@ export function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-export function fmtDayLabel(iso: string) {
+function fmtDayLabel(iso: string) {
   const d = new Date(iso);
   const now = new Date();
   const yesterday = new Date(now);
@@ -33,7 +33,7 @@ export function fmtDayLabel(iso: string) {
   return d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "short" });
 }
 
-export function isSameDay(a: string, b: string) {
+function isSameDay(a: string, b: string) {
   const da = new Date(a), db = new Date(b);
   return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
 }

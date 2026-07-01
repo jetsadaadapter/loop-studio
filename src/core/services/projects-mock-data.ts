@@ -47,7 +47,3 @@ export const MOCK_PROJECTS: ProjectItem[] = [
         connectedApiKeyIds: ["782cd4a1-b12a-4a29-87a2-bb8f4c12d46a"]
     }
 ];
-
-// Activity log is populated entirely from real user actions (create, rename, delete, top-up).
-// It starts empty and grows as users interact with the Projects dashboard.
-export const MOCK_ACTIVITIES: ProjectActivity[] = [];

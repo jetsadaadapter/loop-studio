@@ -55,7 +55,7 @@ export interface ApiKeyRecord {
   updatedAt: string;
 }
 
-export interface ManagerKeyTableProps {
+interface ManagerKeyTableProps {
   keys: ApiKeyRecord[];
   projects?: { id: string; name: string }[];
   isLoading: boolean;

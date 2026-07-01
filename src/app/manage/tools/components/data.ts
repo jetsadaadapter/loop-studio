@@ -45,15 +45,6 @@ export const PARAM_TYPE_BADGE: Record<string, string> = {
 
 // ── Derived display helpers ───────────────────────────────────────────────────
 
-export function getShortId(id: string): string {
-  return `#${id.slice(-8).toLowerCase()}`;
-}
-
-export function formatUpdatedAt(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
-
 export function getSortedScripts(tool: ManageToolApiItem) {
   return [...tool.scripts].sort((a, b) => a.sortOrder - b.sortOrder);
 }

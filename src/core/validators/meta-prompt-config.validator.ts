@@ -135,7 +135,7 @@ const ConfigSchema = z.object({
 });
 
 // Main Meta-Prompt Config Schema
-export const MetaPromptConfigSchema = z.object({
+const MetaPromptConfigSchema = z.object({
   preview: PreviewSchema,
   input: InputSchema,
   config: ConfigSchema,
@@ -143,14 +143,12 @@ export const MetaPromptConfigSchema = z.object({
 });
 
 // Type inference
-export type MetaPromptConfig = z.infer<typeof MetaPromptConfigSchema>;
-export type BlueprintSection = z.infer<typeof BlueprintSectionSchema>;
-export type FunctionDeclaration = z.infer<typeof FunctionDeclarationSchema>;
+type MetaPromptConfig = z.infer<typeof MetaPromptConfigSchema>;
 
 /**
  * Validates Meta-Prompt Config with detailed error reporting
  */
-export function validateMetaPromptConfig(
+function validateMetaPromptConfig(
   data: unknown
 ): { success: true; data: MetaPromptConfig } | { success: false; errors: string[] } {
   const result = MetaPromptConfigSchema.safeParse(data);
@@ -171,7 +169,7 @@ export function validateMetaPromptConfig(
  * Cross-validates that blueprint.sections[].labels keys match
  * config.tools.function_declarations[].parameters.properties keys
  */
-export function validateLabelPropertyAlignment(
+function validateLabelPropertyAlignment(
   config: MetaPromptConfig
 ): { valid: true } | { valid: false; errors: string[] } {
   const errors: string[] = [];

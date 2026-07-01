@@ -1,14 +1,13 @@
 import type { AppLinkType } from "@/core/interfaces/apps.interface";
 
 export const DEFAULT_PAGE_SIZE = 12;
-export const PAGE_SIZE_OPTIONS = [6, 9, 12, 18] as const;
 export const SORT_OPTIONS = ["newest", "name-asc", "name-desc", "sort-asc"] as const;
 
 export type SortValue = (typeof SORT_OPTIONS)[number];
 export type StatusFilterValue = "all" | "active" | "inactive";
 export type TypeFilterValue = "all" | AppLinkType;
 
-export type ManageAppsListQueryState = {
+type ManageAppsListQueryState = {
     q: string;
     category: string;
     status: StatusFilterValue;

@@ -18,5 +18,3 @@ export const ManageBannerSchema = z.object({
   message: "End date must be after start date.",
   path: ["endsAt"],
 });
-
-export type ManageBannerPayload = z.infer<typeof ManageBannerSchema>;

@@ -25,7 +25,23 @@ When these files diverge, update both in the same change.
 
 
 
-## 2. Current App Model (Must Match Code)
+## 2. Repository Analysis Policy (Mandatory Pre-Analysis)
+
+Always use Graphify before reading source files directly.
+
+Priority order when investigating this codebase:
+
+1. **Graphify knowledge graph** — `graphify-out/graph.json` / `graphify-out/GRAPH_REPORT.md`. If `graphify-out/graph.json` does not exist yet, run `/graphify` to build it first. If it exists, query it with `/graphify query "<question>"` before opening any source file.
+2. **Repository documents** — `CLAUDE.md`, `AGENTS.md`, `DESIGN.md`, `README.md`, `docs/`.
+3. **Source code** — only as a last resort, and only the specific files identified as relevant by steps 1–2.
+
+Rules:
+
+- Never recursively scan the entire repository unless the user explicitly requests it, or the Graphify graph lacks sufficient information to answer the question.
+- Open only the minimum set of files required to complete the task.
+- This keeps token usage low and agent behavior consistent across sessions — important for a project this size (hundreds of files, worked on by multiple AI agents/tools).
+
+## 3. Current App Model (Must Match Code)
 
 - Main app routes:
   - `/apps`
@@ -38,7 +54,7 @@ When these files diverge, update both in the same change.
 - Route protection and CSP are enforced in `src/proxy.ts`
 - Primary authentication flow is Zero Trust login script + callback + `zt_token` cookie
 
-## 3. Auth and Security Guardrails
+## 4. Auth and Security Guardrails
 
 - Do not weaken CSP or remove nonce-based CSP flow unless explicitly requested
 - Keep `zt_token` cookie flow intact for login/callback/logout paths
@@ -47,7 +63,7 @@ When these files diverge, update both in the same change.
   - Update `next.config.ts` (`images.remotePatterns` if image host)
   - Update trusted CSP sources in `src/proxy.ts`
 
-## 4. Code Change Rules
+## 5. Code Change Rules
 
 **AI/LLM Token & Context Guardrails (Strict Efficiency Rules):**
 
@@ -89,18 +105,19 @@ When these files diverge, update both in the same change.
 
 Before writing code on any new task, follow this sequence:
 
-1. Always read `.antigravityrules`, `.antigravity/standard.md`, `.antigravity/best-practices.md`, and `DESIGN.md` in the project root to ensure compliance with the repository architecture, UX rules, and design tokens.
-2. Do not jump into code immediately.
-3. Analyze requirements first.
-4. List files that will be created/updated.
-5. Break work into small verifiable steps.
-6. Before editing, state which files will change and how.
-7. After editing, summarize what changed.
-8. Do not remove existing code unless necessary.
-9. Keep code readable, beginner-friendly, and easy to maintain.
-10. Always account for security, maintainability, and best practices.
+1. Follow the Repository Analysis Policy (Section 2): query Graphify first, then repository docs, and only then source files.
+2. Read `.antigravityrules`, `.antigravity/standard.md`, `.antigravity/best-practices.md`, and `DESIGN.md` in the project root to ensure compliance with the repository architecture, UX rules, and design tokens.
+3. Do not jump into code immediately.
+4. Analyze requirements first.
+5. List files that will be created/updated.
+6. Break work into small verifiable steps.
+7. Before editing, state which files will change and how.
+8. After editing, summarize what changed.
+9. Do not remove existing code unless necessary.
+10. Keep code readable, beginner-friendly, and easy to maintain.
+11. Always account for security, maintainability, and best practices.
 
-## 5. Documentation Sync Policy
+## 6. Documentation Sync Policy
 
 If code changes affect behavior or setup, update these files together:
 
@@ -108,7 +125,7 @@ If code changes affect behavior or setup, update these files together:
 2. `.github/project-guidlines.md` (engineering standards)
 3. `AGENTS.md` (agent execution constraints)
 
-## 6. Pre-merge Checks
+## 7. Pre-merge Checks
 
 Before finishing a substantial change:
 

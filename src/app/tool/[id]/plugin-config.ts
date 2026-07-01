@@ -8,7 +8,7 @@
  * Add new plugins here to keep all UI labels consistent.
  */
 
-export interface PluginDisplayConfig {
+interface PluginDisplayConfig {
   /** Short label used in history top-level card & run sidebar step cards */
   cardTitle: string;
   /** Label used inside Pipeline Steps / timeline view */
@@ -19,7 +19,7 @@ export interface PluginDisplayConfig {
   iconAnimate?: boolean;
 }
 
-export const PLUGIN_DISPLAY_CONFIG: Record<string, PluginDisplayConfig> = {
+const PLUGIN_DISPLAY_CONFIG: Record<string, PluginDisplayConfig> = {
   apify: {
     cardTitle: "Apify Scraper",
     stepTitle: "Apify Scraper Engine",
@@ -35,7 +35,7 @@ export const PLUGIN_DISPLAY_CONFIG: Record<string, PluginDisplayConfig> = {
 };
 
 /** Fallback config when plugin key is not found */
-export const DEFAULT_PLUGIN_CONFIG: PluginDisplayConfig = {
+const DEFAULT_PLUGIN_CONFIG: PluginDisplayConfig = {
   cardTitle: "Automation Run",
   stepTitle: "Automation Stage",
   iconSrc: null,

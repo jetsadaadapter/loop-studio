@@ -36,10 +36,6 @@ export type LibrarySection = {
     items: LibraryApp[];
 };
 
-export type LibraryAppsResponse = {
-    sections: LibrarySection[];
-};
-
 // ------------------------------------------------------------
 // 3) UI config data (tabs + status filter chips)
 // ------------------------------------------------------------
@@ -89,7 +85,7 @@ function stableHash(seed: string): number {
     return hash;
 }
 
-export function getStableIconBg(seed: string): string {
+function getStableIconBg(seed: string): string {
     const safeSeed = normalizeText(seed, "app");
     const dayOfWeek = new Date().getDay(); // 0 (Sun) – 6 (Sat)
     const index = (stableHash(safeSeed) + dayOfWeek) % ICON_BG_PRESETS.length;
@@ -139,7 +135,3 @@ export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySec
     console.log(`[LibraryApps] ✓ Mapped to ${sections.length} sections with ${totalApps} total apps`);
     return sections;
 }
-
-export const libraryAppsResponse: LibraryAppsResponse = {
-    sections: [],
-};

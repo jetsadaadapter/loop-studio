@@ -66,5 +66,3 @@ export const ManageAppSchema = z.object({
   message: "CTA link is required.",
   path: ["ctaLink"],
 });
-
-export type ManageAppPayloadInput = z.infer<typeof ManageAppSchema>;

@@ -170,4 +170,5 @@ graph TD
 
 - Contributor/developer rules: `.github/project-guidlines.md`
 - Agent execution rules: `AGENTS.md`
+- **Repository analysis policy**: AI agents must query the Graphify knowledge graph (`graphify-out/`) before reading source files — see "Repository Analysis Policy" in `AGENTS.md` / `.github/project-guidlines.md`.
 - Component naming/structure standard: `src/components/COMPONENTS.md`

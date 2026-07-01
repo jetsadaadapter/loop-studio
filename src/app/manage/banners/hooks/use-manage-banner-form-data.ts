@@ -16,7 +16,7 @@ import { getAppItemId } from "@/core/interfaces/apps.interface";
 import type { ManageAppApiItem } from "@/core/interfaces/apps.interface";
 import { ManageBannerSchema } from "@/core/validators/banners.validator";
 
-export type BannerRecord = {
+type BannerRecord = {
   id: string;
   title: string;
   subtitle: string;

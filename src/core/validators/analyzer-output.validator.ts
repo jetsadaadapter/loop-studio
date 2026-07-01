@@ -82,7 +82,7 @@ const InsightSchema = z.object({
 });
 
 // Main Analyzer Output Schema
-export const AnalyzerOutputSchema = z.object({
+const AnalyzerOutputSchema = z.object({
   meta: MetaSchema,
   summary: SummarySchema,
   section_meta: z.array(SectionMetaSchema).min(1, "Must have at least 1 section_meta"),
@@ -92,15 +92,12 @@ export const AnalyzerOutputSchema = z.object({
 });
 
 // Type inference
-export type AnalyzerOutput = z.infer<typeof AnalyzerOutputSchema>;
-export type SectionRow = z.infer<typeof SectionRowSchema>;
-export type Highlight = z.infer<typeof HighlightSchema>;
-export type Insight = z.infer<typeof InsightSchema>;
+type AnalyzerOutput = z.infer<typeof AnalyzerOutputSchema>;
 
 /**
  * Validates Analyzer Output with detailed error reporting
  */
-export function validateAnalyzerOutput(
+function validateAnalyzerOutput(
   data: unknown
 ): { success: true; data: AnalyzerOutput } | { success: false; errors: string[] } {
   const result = AnalyzerOutputSchema.safeParse(data);
@@ -121,7 +118,7 @@ export function validateAnalyzerOutput(
  * Cross-validates that section_rows[].section_id references
  * valid section_meta[].section_id
  */
-export function validateSectionRowReferences(
+function validateSectionRowReferences(
   output: AnalyzerOutput
 ): { valid: true } | { valid: false; errors: string[] } {
   const errors: string[] = [];
@@ -149,7 +146,7 @@ export function validateSectionRowReferences(
  * Validates that arrays-inside-arrays are not present
  * (RULE 5: Arrays-inside-arrays FORBIDDEN)
  */
-export function validateNoNestedArrays(
+function validateNoNestedArrays(
   data: unknown,
   path = "root"
 ): { valid: true } | { valid: false; errors: string[] } {
@@ -209,27 +206,4 @@ export function validateAnalyzerOutputFull(data: unknown): {
   }
 
   return { success: true, data: schemaValidation.data };
-}
-
-/**
- * Utility: Extract errors from LLM output that may be wrapped in markdown
- */
-export function extractJsonFromLLMOutput(rawOutput: string): unknown {
-  // Remove markdown code fences
-  let cleaned = rawOutput.trim();
-
-  if (cleaned.startsWith("```json")) {
-    cleaned = cleaned.replace(/^```json\s*/, "").replace(/```\s*$/, "");
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```\s*/, "").replace(/```\s*$/, "");
-  }
-
-  // Remove BOM and zero-width characters
-  cleaned = cleaned.replace(/^﻿/, "").replace(/[​-‍﻿]/g, "");
-
-  try {
-    return JSON.parse(cleaned);
-  } catch (error) {
-    throw new Error(`Failed to parse JSON from LLM output: ${(error as Error).message}`);
-  }
 }

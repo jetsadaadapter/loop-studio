@@ -1,47 +1,5 @@
 import type { ToolJob, ToolRunGrouped } from "@/core/interfaces/tools.interface";
 
-export interface PreviousResultsItem {
-    facebookUrl?: string;
-    permalink_url?: string;
-    url?: string;
-    [key: string]: unknown;
-}
-
-export interface PreviousResults {
-    resultId?: string;
-    actorId?: string;
-    runId?: string;
-    itemCount?: number;
-    items?: PreviousResultsItem[];
-}
-
-export interface StartUrlItem {
-    url?: string;
-    [key: string]: unknown;
-}
-
-export interface ExtendedToolJobResult {
-    itemCount: number;
-    items: Array<{
-        sourceIndex: number;
-        sourceKey: string;
-        sourceKeyValue: string;
-        analysis: Record<string, unknown>;
-        [key: string]: unknown;
-    }>;
-    config?: Record<string, unknown> | string;
-    prompt?: string;
-    actorId?: string;
-}
-
-export interface ExtendedToolJob extends Omit<ToolJob, 'result'> {
-    result: ExtendedToolJobResult;
-    model?: string;
-    itemKey?: string;
-    prompt?: string;
-    actorId?: string;
-}
-
 export type JobStatus = string;
 
 export interface AnalysisResult {
@@ -263,7 +221,7 @@ export interface AnalysisDisplayPreset {
     blockDescriptionOverrides?: Partial<Record<AnalysisDisplayBlock["id"], string>>;
 }
 
-export interface DynamicAnalysisValidationResult {
+interface DynamicAnalysisValidationResult {
     isValid: boolean;
     inferredKind: "unknown" | "politicianSentiment" | "generic";
     issues: string[];
@@ -341,7 +299,7 @@ export const hasIntentAnalysisPayload = (analysis?: AnalysisResult | null): bool
     );
 };
 
-export const normalizeIntentClassification = (analysis?: AnalysisResult | null): IntentClassification => {
+const normalizeIntentClassification = (analysis?: AnalysisResult | null): IntentClassification => {
     const classification = String(analysis?.classification || "").trim().toLowerCase();
 
     if (analysis?.purchase_intent_signal === true) return "Interested";
@@ -547,7 +505,7 @@ export const getSchemaHintKeysFromJob = (job: ToolJob): string[] => {
         .filter((token, index, arr) => arr.indexOf(token) === index);
 };
 
-export const getAnalysisDisplayEntries = (
+const getAnalysisDisplayEntries = (
     analysis?: AnalysisResult | null,
     preferredKeys: string[] = [],
     skipBlockList = false,
@@ -726,7 +684,7 @@ export const getAnalysisDisplayBlocks = (
     }));
 };
 
-export const validateDynamicAnalysisPayload = (
+const validateDynamicAnalysisPayload = (
     analysis: unknown,
 ): DynamicAnalysisValidationResult => {
     if (!analysis || typeof analysis !== "object") {
@@ -1414,7 +1372,7 @@ export const groupMetricsByPostId = (
     }, {} as Record<string, Array<AnalysisDisplayEntry & { field?: string }>>);
 };
 
-export interface BuyIntentAnalysis {
+interface BuyIntentAnalysis {
     value: number;
     color: 'emerald' | 'amber' | 'orange' | 'slate';
     entry?: AnalysisDisplayEntry;

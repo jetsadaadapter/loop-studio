@@ -1,7 +1,7 @@
 import type { ToolJob } from "@/core/interfaces/tools.interface";
 import type { DynamicUIItem, DynamicUISection } from "@/components/dynamic-layout-visualizer/types";
 
-export interface FunctionProperty {
+interface FunctionProperty {
   type: string;
   description?: string;
   enum?: string[];
@@ -13,7 +13,7 @@ export interface FunctionProperty {
   required?: string[];
 }
 
-export interface FunctionDeclaration {
+interface FunctionDeclaration {
   name: string;
   description?: string;
   parameters?: {
@@ -121,7 +121,7 @@ export function getFunctionDeclarationsFromJob(job: ToolJob): FunctionDeclaratio
 /**
  * Safely resolves a property value from a job item by trying nested namespaces or direct keys.
  */
-export function getPropertyValue(
+function getPropertyValue(
   item: Record<string, unknown> | undefined | null,
   propName: string,
   functionName: string

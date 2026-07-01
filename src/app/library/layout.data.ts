@@ -1,6 +1,6 @@
 import { LEGAL_LINKS, CONTACT_LINKS } from "@/lib/legal-links";
 
-export type FooterLinkItem = {
+type FooterLinkItem = {
     label: string;
     href: string;
 };

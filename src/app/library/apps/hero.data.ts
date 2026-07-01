@@ -1,7 +1,7 @@
 import { getAppItemId } from "@/core/interfaces/apps.interface";
 import type { LibraryBannerItem } from "@/core/interfaces/banners.interface";
 
-export type HeroMood = "cool" | "warm" | "neutral" | "premium";
+type HeroMood = "cool" | "warm" | "neutral" | "premium";
 
 export type HeroTheme =
     | "teal"
@@ -60,7 +60,7 @@ export type HeroSlide = {
     actionUrl: string;
 };
 
-export type HeroBannerResponse = {
+type HeroBannerResponse = {
     sectionId: string;
     sectionTitle: string;
     items: HeroSlide[];
@@ -117,7 +117,7 @@ function getStableThemePreset(seed: string, mood: HeroMood): HeroTheme {
     return presets[hash % presets.length];
 }
 
-export function mapBannerTheme(item: LibraryBannerItem): HeroTheme {
+function mapBannerTheme(item: LibraryBannerItem): HeroTheme {
     const mood = getMoodFromBanner(item);
     const bannerId = item.bannerId || item.id || "banner";
     const appId = getAppItemId(item.app);

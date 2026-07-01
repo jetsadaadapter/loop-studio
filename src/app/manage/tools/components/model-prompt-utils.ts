@@ -32,7 +32,7 @@ export function syncPromptModelReferences(
   return normalizedPrompt;
 }
 
-export interface NestedConfig {
+interface NestedConfig {
   promptId?: string;
   prompt?: {
     name?: string;

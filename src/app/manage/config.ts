@@ -1,27 +1,27 @@
 import { type ManageMenuItem } from "@/core/interfaces/menus.interface";
 
-export type Locale = "th" | "en";
+type Locale = "th" | "en";
 
-export const DEFAULT_LOCALE: Locale = "th";
+const DEFAULT_LOCALE: Locale = "th";
 
-export type LocalizedText = {
+type LocalizedText = {
     th: string;
     en: string;
 };
 
-export type ManageRouteMeta = {
+type ManageRouteMeta = {
     href: string;
     title: LocalizedText;
     subtitle: LocalizedText;
     crumb: LocalizedText;
 };
 
-export type ManageBreadcrumbItem = {
+type ManageBreadcrumbItem = {
     label: string;
     href?: string;
 };
 
-export type ManageFutureNavItem = {
+type ManageFutureNavItem = {
     label: LocalizedText;
 };
 

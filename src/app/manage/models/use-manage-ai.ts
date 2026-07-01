@@ -38,7 +38,7 @@ export type ModelRecord = {
   updatedAt: string;
 };
 
-export const EMPTY_MODEL: ModelRecord = {
+const EMPTY_MODEL: ModelRecord = {
   id: "",
   modelSlug: "",
   name: "",
@@ -49,7 +49,7 @@ export const EMPTY_MODEL: ModelRecord = {
   updatedAt: "",
 };
 
-export function mapApiModel(item: ManageAiModelApiItem): ModelRecord {
+function mapApiModel(item: ManageAiModelApiItem): ModelRecord {
   return {
     id: item.id,
     modelSlug: item.modelSlug,
@@ -62,7 +62,7 @@ export function mapApiModel(item: ManageAiModelApiItem): ModelRecord {
   };
 }
 
-export function mapModelPayload(model: ModelRecord): ManageAiModelPayload {
+function mapModelPayload(model: ModelRecord): ManageAiModelPayload {
   return {
     modelSlug: model.modelSlug.trim(),
     name: model.name.trim(),
@@ -72,7 +72,7 @@ export function mapModelPayload(model: ModelRecord): ManageAiModelPayload {
   };
 }
 
-export function parseApiFieldErrors(error: unknown): Record<string, string> {
+function parseApiFieldErrors(error: unknown): Record<string, string> {
   if (!(error instanceof ApiError) || !error.details) return {};
 
   const details = error.details as {

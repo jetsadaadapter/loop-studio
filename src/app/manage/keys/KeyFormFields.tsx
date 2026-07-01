@@ -48,7 +48,7 @@ export function validateApiKeyForm(
   return errors;
 }
 
-export interface KeyFormFieldsProps {
+interface KeyFormFieldsProps {
   draft: ApiKeyFormFieldsDraft;
   fieldErrors?: Record<string, string>;
   projects?: { id: string; name: string }[];

@@ -1,6 +1,6 @@
 import type { ScrapedJobItem } from "../../../tool-job-utils";
 
-export const summaryCandidateKeys = [
+const summaryCandidateKeys = [
   "text",
   "summary",
   "message",
@@ -10,7 +10,7 @@ export const summaryCandidateKeys = [
   "response",
 ];
 
-export const excludedKeys = [
+const excludedKeys = [
   "sourceIndex",
   "sourceKey",
   "sourceKeyValue",
@@ -31,7 +31,7 @@ export const excludedKeys = [
   ...summaryCandidateKeys,
 ];
 
-export function extractLabelFromText(text: string, fallback: string): string {
+function extractLabelFromText(text: string, fallback: string): string {
   // 1. Try to find markdown headings (e.g. ### English Summary, # Thai)
   const headingMatch = text.match(/^\s*(?:#+\s*|\*\*|\*)\s*([^:\n\*\#]+?)(?::\s*|\*\*|\*|\n|$)/);
   if (headingMatch) {
@@ -147,7 +147,7 @@ export function parseSingleTextSummary(items: ScrapedJobItem[]) {
   };
 }
 
-export function isLongTextKey(key: string) {
+function isLongTextKey(key: string) {
   const normalized = key.toLowerCase();
   return (
     normalized === "text" ||
@@ -161,7 +161,7 @@ export function isLongTextKey(key: string) {
   );
 }
 
-export function isUrlKey(key: string) {
+function isUrlKey(key: string) {
   const normalized = key.toLowerCase();
   return (
     normalized === "url" ||
@@ -173,7 +173,7 @@ export function isUrlKey(key: string) {
   );
 }
 
-export function isCompactMetaKey(key: string) {
+function isCompactMetaKey(key: string) {
   const normalized = key.toLowerCase();
   return (
     normalized === "classification" ||

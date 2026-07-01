@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, ExternalLink, TrendingUp, Info } from "lucide-react";
+import { MessageSquare, ExternalLink, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -216,6 +216,3 @@ export function SegmentsTab({
     </TooltipProvider>
   );
 }
-
-// Re-export TrendingUp so the main file's import chain works cleanly
-export { TrendingUp };

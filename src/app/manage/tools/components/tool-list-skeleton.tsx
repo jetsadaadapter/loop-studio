@@ -1,6 +1,6 @@
 // ── Tool row skeleton — mirrors the exact card layout of ToolRow ───────────────
 
-export function ToolRowSkeleton() {
+function ToolRowSkeleton() {
   return (
     <div className="animate-pulse rounded-2xl border border-slate-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-5.5 flex flex-col justify-between h-[230px] overflow-hidden">
       <div>

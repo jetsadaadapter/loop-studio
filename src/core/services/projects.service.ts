@@ -48,11 +48,6 @@ function getLocalConnections(): Record<string, ProjectConnections> {
     }
 }
 
-function saveLocalConnections(connections: Record<string, ProjectConnections>) {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(LOCAL_STORAGE_CONNECTIONS_KEY, JSON.stringify(connections));
-}
-
 function mergeConnections(projects: ProjectItem[]): ProjectItem[] {
     const connMap = getLocalConnections();
     return projects.map((p) => ({
@@ -101,7 +96,7 @@ function saveLocalActivities(activities: ProjectActivity[]) {
     localStorage.setItem(LOCAL_STORAGE_ACTIVITIES_KEY, JSON.stringify(activities));
 }
 
-export function logActivity(
+function logActivity(
     action: string,
     targetName: string,
     projectName: string,
@@ -336,75 +331,4 @@ export async function topUpProjectCredits(
         logActivity("topped up credits", `${amount.toLocaleString()} credits`, updatedItem.name, "low", userContext);
         return { success: true, data: updatedItem };
     }
-}
-
-export async function updateProjectConnections(
-    id: string,
-    appIds: string[],
-    toolIds: string[],
-    apiKeyIds: string[],
-    init?: ApiFetchOptions,
-    userContext?: { userId?: string; userName?: string; userAvatar?: string }
-): Promise<ProjectItem> {
-    const connMap = getLocalConnections();
-    connMap[id] = {
-        connectedAppIds: appIds,
-        connectedToolIds: toolIds,
-        connectedApiKeyIds: apiKeyIds,
-    };
-    saveLocalConnections(connMap);
-
-    try {
-        const url = buildUrl(`/projects/${id}/connections`);
-        const response = await apiFetch<{ success: boolean; data: ProjectItem; fallback?: boolean }>(url, {
-            method: "POST",
-            body: JSON.stringify({ appIds, toolIds, apiKeyIds }),
-            silentErrors: true,
-            ...init,
-        });
-        if (response.fallback) {
-            throw new ApiError(404, "Projects connection endpoint not implemented", url);
-        }
-        logActivity("updated assets connections for", response.data.name, response.data.name, "in progress", userContext);
-        return mergeSingleConnection(response.data);
-    } catch {
-        const all = getLocalProjects();
-        let updatedItem: ProjectItem | undefined;
-
-        const nextProjects = all.map((item) => {
-            if (item.id === id) {
-                updatedItem = {
-                    ...item,
-                    connectedAppIds: appIds,
-                    connectedToolIds: toolIds,
-                    connectedApiKeyIds: apiKeyIds,
-                    updatedAt: new Date().toISOString()
-                };
-                return updatedItem;
-            }
-            return item;
-        });
-
-        if (!updatedItem) {
-            throw new Error("Project not found");
-        }
-
-        saveLocalProjects(nextProjects);
-        logActivity("updated assets connections for", updatedItem.name, updatedItem.name, "in progress", userContext);
-        return updatedItem;
-    }
-}
-
-export async function getActivities(
-    page: number,
-    limit: number
-): Promise<{ success: boolean; data: ProjectActivity[]; total: number }> {
-    const list = getLocalActivities();
-    const start = (page - 1) * limit;
-    const paged = list.slice(start, start + limit);
-    return {
-        success: true,
-        data: paged,
-        total: list.length
-    };
 }

@@ -54,23 +54,6 @@ export async function getManageToolParams(toolId: string, init?: RequestInit): P
     return response.data;
 }
 
-export async function addManageToolParam(toolId: string, payload: ToolParamPayload): Promise<ToolParam> {
-    const url = buildUrl(`/manage/tools/${toolId}/params`);
-    const response = await apiFetch<{ success: boolean; message: string; data: ToolParam }>(url, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
-    return response.data;
-}
-
-export async function updateManageToolParam(paramId: string, payload: ToolParamPayload): Promise<ToolParam> {
-    const url = buildUrl(`/manage/tools/params/${paramId}`);
-    const response = await apiFetch<{ success: boolean; message: string; data: ToolParam }>(url, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-    });
-    return response.data;
-}
 export async function deleteManageToolParam(paramId: string): Promise<void> {
     const url = buildUrl(`/manage/tools/params/${paramId}`);
     await apiFetch<{ success: boolean; message: string }>(url, {
@@ -90,15 +73,6 @@ export async function upsertManageToolParams(toolId: string, payload: ToolParamP
 export async function getManageToolScripts(toolId: string, init?: RequestInit): Promise<ToolScript[]> {
     const url = buildUrl(`/manage/tools/${toolId}/scripts`);
     const response = await apiFetch<{ success: boolean; message: string; data: ToolScript[] }>(url, init);
-    return response.data;
-}
-
-export async function upsertManageToolScripts(toolId: string, payload: Partial<ToolScript>[]): Promise<ToolScript[]> {
-    const url = buildUrl(`/manage/tools/${toolId}/scripts`);
-    const response = await apiFetch<{ success: boolean; message: string; data: ToolScript[] }>(url, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-    });
     return response.data;
 }
 
@@ -127,7 +101,7 @@ export async function createManageToolScript(toolId: string, payload: Partial<To
     return response.data;
 }
 
-export interface PluginListItem {
+interface PluginListItem {
     name: string;
     description: string;
 }

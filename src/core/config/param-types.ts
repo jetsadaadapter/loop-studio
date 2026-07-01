@@ -1,6 +1,6 @@
 import { ParamType } from "../interfaces/tools.interface";
 
-export interface ParamTypeFieldConfig {
+interface ParamTypeFieldConfig {
   type: ParamType;
   label: string;
   hasPlaceholder: boolean;

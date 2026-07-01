@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export type DropdownActionItem = {
+type DropdownActionItem = {
   label: string;
   icon: LucideIcon;
   onClick: (e: React.MouseEvent) => void;

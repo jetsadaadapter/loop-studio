@@ -80,7 +80,7 @@ function buildUrl(path: string): PostmanRequest["url"] {
   };
 }
 
-export function generatePostmanCollection(
+function generatePostmanCollection(
   toolId: string,
   appName: string,
   params: ToolParam[] = [],

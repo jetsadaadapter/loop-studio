@@ -26,8 +26,6 @@ export type AppRecord = {
   tags: string[];
 };
 
-export const DEFAULT_IMAGE_PREVIEW_ID = "01KPT44CNPSK9J86V2SZHVJ3V6";
-
 export const EMPTY_FORM: AppRecord = {
   id: "",
   name: "",
@@ -92,7 +90,7 @@ export function mapRecordToPayload(record: AppRecord): ManageAppPayload {
   };
 }
 
-export function hasChanged(nextValue: string, previousValue: string): boolean {
+function hasChanged(nextValue: string, previousValue: string): boolean {
   const next = nextValue.trim();
   const prev = previousValue.trim();
   return Boolean(next) && Boolean(prev) && next !== prev;

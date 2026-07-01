@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-export const TAG_PALETTES = [
+const TAG_PALETTES = [
   {
     bg: "bg-indigo-50/70",
     text: "text-indigo-700",
@@ -46,7 +46,7 @@ export const TAG_PALETTES = [
   },
 ];
 
-export const getTagColors = (tag: string) => {
+const getTagColors = (tag: string) => {
   let hash = 0;
   for (let i = 0; i < tag.length; i++) {
     hash = tag.charCodeAt(i) + ((hash << 5) - hash);
@@ -81,23 +81,6 @@ export const formatDate = (dateStr?: string) => {
     return dateStr;
   }
 };
-
-export function mockTranslate(text?: string): string {
-  if (!text) return "";
-  const cleanText = text.trim();
-  if (cleanText.includes("Lorem ipsum dolor sit amet")) {
-    return "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ออร์นาเร เลคตัส ซิท อาเมท เอส พลาเซรัต อิน เอเกสตาส เอรัต อิมเปอร์เดียต เทลลัส อินทิเกอร์ ฟิวกิแอต สเกเลอริสเก้ วา...";
-  }
-  if (cleanText.includes("Duis aute irure dolor")) {
-    return "ไม่มีใครรักความเจ็บปวดด้วยตัวมันเอง หรือต้องการจะมีมัน หรือไล่ตามมัน เพียงเพราะว่ามันคือความเจ็บปวด...";
-  }
-  const isThai = /[\u0e00-\u0e7f]/.test(text);
-  if (isThai) {
-    return "This is a mock English translation of the comment. The system is displaying simulated translated text.";
-  } else {
-    return "นี่คือข้อความแปลภาษาไทยแบบจำลองของความคิดเห็นนี้ ระบบกำลังแสดงผลข้อความแปลจำลอง";
-  }
-}
 
 export const renderCommentText = (text?: string) => {
   if (!text) return null;

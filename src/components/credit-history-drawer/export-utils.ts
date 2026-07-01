@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import type { CreditTransaction } from "@/core/services/users.service";
 import { TYPE_CONFIG, FALLBACK_CFG } from "./utils";
 
-export function fmtDateTime(iso: string) {
+function fmtDateTime(iso: string) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
   const pad = (n: number) => String(n).padStart(2, "0");

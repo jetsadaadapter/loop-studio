@@ -12,7 +12,23 @@
 - NextAuth.js 4 (มี route รองรับ)
 - Zero Trust Google login script flow (production flow ที่ใช้งานจริง)
 
-## 2. โครงสร้างระบบ
+## 2. Repository Analysis Policy (บังคับก่อนวิเคราะห์)
+
+ก่อนอ่าน source code โดยตรง ต้องใช้ Graphify ก่อนเสมอ
+
+ลำดับความสำคัญเมื่อต้องวิเคราะห์ codebase นี้:
+
+1. **Graphify knowledge graph** — `graphify-out/graph.json` / `graphify-out/GRAPH_REPORT.md` ถ้ายังไม่มี ให้รัน `/graphify` เพื่อสร้างก่อน ถ้ามีอยู่แล้ว ให้ query ด้วย `/graphify query "<คำถาม>"` ก่อนเปิดไฟล์ source ใด ๆ
+2. **เอกสารของ repository** — `CLAUDE.md`, `AGENTS.md`, `DESIGN.md`, `README.md`, `docs/`
+3. **Source code** — เปิดเป็นทางเลือกสุดท้ายเท่านั้น และเปิดเฉพาะไฟล์ที่ระบุว่าเกี่ยวข้องจากขั้นตอนที่ 1-2
+
+ข้อบังคับ:
+
+- ห้าม scan ทั้ง repository แบบ recursive เว้นแต่ผู้ใช้ร้องขอโดยตรง หรือ Graphify graph ไม่มีข้อมูลเพียงพอจะตอบคำถามนั้น
+- เปิดเฉพาะไฟล์จำนวนน้อยที่สุดที่จำเป็นต่องานนั้น ๆ
+- แนวทางนี้ช่วยลด token usage และทำให้พฤติกรรมของ AI agent สม่ำเสมอในทุก session — สำคัญมากสำหรับโปรเจกต์ขนาดนี้ (หลายร้อยไฟล์ และมี AI หลายตัวทำงานร่วมกัน)
+
+## 3. โครงสร้างระบบ
 
 ```text
 src/
@@ -34,7 +50,7 @@ src/
 - Validate external input ที่ boundary ก่อนเข้า domain เสมอ
 - ใช้ `z.infer` จาก schema เป็นหลัก ไม่ duplicate type แบบ manual
 
-## 3. Auth และ Routing Policy (Current Implementation)
+## 4. Auth และ Routing Policy (Current Implementation)
 
 Flow ปัจจุบัน:
 
@@ -59,7 +75,7 @@ Behavior บังคับ:
 
 - NextAuth route (`/api/auth/[...nextauth]`) ยังมีไว้รองรับ แต่ login UI หลักใช้ Zero Trust flow
 
-## 4. Security Baseline
+## 5. Security Baseline
 
 ทุก change ที่แตะ auth/network/security ต้องคงหลักต่อไปนี้:
 
@@ -68,7 +84,7 @@ Behavior บังคับ:
 - Cookie auth ต้องเป็น `httpOnly` และ `secure` ใน production
 - หากเพิ่ม external host (API/image/script) ต้องอัปเดต allowlist ให้ครบทั้ง CSP และ `next.config.ts`
 
-## 5. Data Validation Standard
+## 6. Data Validation Standard
 
 หลักการ:
 
@@ -83,7 +99,7 @@ Behavior บังคับ:
 - ใส่ `.max()` ให้ข้อความ, array และ nested object ที่รับจากภายนอก
 - เมื่อเกิด `ZodError` ให้แปลงเป็นข้อความปลอดภัยต่อผู้ใช้ ห้าม leak raw payload
 
-## 6. Environment Variables
+## 7. Environment Variables
 
 กำหนดไว้ใน `.env.example` เป็น baseline ขั้นต่ำ:
 
@@ -99,7 +115,7 @@ Behavior บังคับ:
 - `NEXT_PUBLIC_ZT_CALLBACK_PATH`
 - `NEXT_PUBLIC_ZT_DEBUG_CALLBACK`
 
-## 7. UI และ Frontend Rules
+## 8. UI และ Frontend Rules
 
 - ใช้ฟอนต์ local Sukhumvit Set จาก `src/app/fonts/sukhumvit-set`
 - ใช้ Server Components เป็น default
@@ -125,7 +141,7 @@ Behavior บังคับ:
   - เมื่อแอปพลิเคชันไม่มีรูปภาพ Screenshot ให้**นำเส้นคั่นด้านบน (`border-t`) ออก** และปรับระยะห่างด้านบนเป็น `pt-0`
   - ให้กำหนดความห่างด้านล่างของ About Section เป็น `pb-8` เสมอ เพื่อให้มั่นใจว่าป้าย Tag (เช่น MCP) มีระยะห่างที่พอเหมาะเหนือเซกชันถัดไป (เช่น Instructions) และไม่ดูชิดกับเส้นคั่นมากเกินไป
 
-## 8. Coding Rules for Contributors and AI Agents
+## 9. Coding Rules for Contributors and AI Agents
 
 - ตั้งชื่อไฟล์ตาม convention:
   - Validators: `[name].validator.ts`
@@ -141,15 +157,16 @@ Behavior บังคับ:
 
 ก่อนเริ่มเขียนโค้ดทุกครั้ง ให้ทำตามลำดับนี้:
 
-1. อย่าเพิ่งเขียนโค้ดทันที
-2. วิเคราะห์ requirement ให้ชัดก่อนลงมือ
-3. ระบุไฟล์ที่จะสร้าง/แก้ไขให้ครบ
-4. แบ่งงานเป็น step เล็ก ๆ ที่ทำและตรวจสอบได้
-5. ก่อนแก้โค้ด ให้บอกว่าไฟล์ไหนจะเปลี่ยนและเปลี่ยนอะไร
-6. หลังแก้โค้ด ให้สรุปสิ่งที่แก้ไปอย่างกระชับ
-7. ห้ามลบโค้ดเดิมโดยไม่จำเป็น
-8. เขียนโค้ดให้อ่านง่าย เหมาะกับผู้เริ่มต้น และดูแลง่าย
-9. คำนึงถึง security, maintainability และ best practices เสมอ
+1. ทำตาม Repository Analysis Policy (ข้อ 2): query Graphify ก่อน แล้วจึงดูเอกสารของ repository และเปิด source code เป็นลำดับสุดท้าย
+2. อย่าเพิ่งเขียนโค้ดทันที
+3. วิเคราะห์ requirement ให้ชัดก่อนลงมือ
+4. ระบุไฟล์ที่จะสร้าง/แก้ไขให้ครบ
+5. แบ่งงานเป็น step เล็ก ๆ ที่ทำและตรวจสอบได้
+6. ก่อนแก้โค้ด ให้บอกว่าไฟล์ไหนจะเปลี่ยนและเปลี่ยนอะไร
+7. หลังแก้โค้ด ให้สรุปสิ่งที่แก้ไปอย่างกระชับ
+8. ห้ามลบโค้ดเดิมโดยไม่จำเป็น
+9. เขียนโค้ดให้อ่านง่าย เหมาะกับผู้เริ่มต้น และดูแลง่าย
+10. คำนึงถึง security, maintainability และ best practices เสมอ
 
 ### Component Structure Standard (New Components)
 
@@ -170,7 +187,7 @@ src/components/<component-name>/
 - CSS module ใช้ชื่อ `styles.module.css`
 - import ให้เรียกผ่าน path ของโฟลเดอร์ เช่น `@/components/library-guided-cta-block`
 
-## 9. Delivery Checklist
+## 10. Delivery Checklist
 
 ก่อน merge ให้ตรวจอย่างน้อย:
 
@@ -180,17 +197,17 @@ src/components/<component-name>/
 4. ไม่มี hard-coded secrets ใน source
 5. หากเพิ่มโดเมนภายนอก อัปเดตทั้ง image config และ CSP allowlist ครบ
 
-## 10. Manage UX Standard (Universal)
+## 11. Manage UX Standard (Universal)
 
 ใช้กับเมนู `Manage > App` และ `AI` ทั้งหมด เพื่อให้ user เรียนรู้ครั้งเดียวและใช้ได้ทุก manager
 
-### 10.1 Information Architecture
+### 11.1 Information Architecture
 
 - หน้า list ทุก manager ต้องมี: search, filter, sort, quick actions
 - หน้า edit/create ต้องเป็น single-screen form และ save จุดเดียว
 - หลัง save ต้องกลับ list พร้อมแสดง success toast และ highlight row ล่าสุด
 
-### 10.2 Manage > App API Contract Rules
+### 11.2 Manage > App API Contract Rules
 
 - List: `GET /manage/apps`
 - Create: `POST /manage/apps`
@@ -205,7 +222,7 @@ src/components/<component-name>/
 - selected row state
 - cache key
 
-### 10.3 Form UX Rules (App)
+### 11.3 Form UX Rules (App)
 
 ฟอร์มต้องแบ่ง 4 blocks:
 
@@ -214,7 +231,7 @@ src/components/<component-name>/
 3. Action (`linkType`, `ctaLabel`, `ctaLink`)
 4. Content (`description`, `instructions`, `tags[]`)
 
-#### 10.3.1 Character Limits & Validation:
+#### 11.3.1 Character Limits & Validation:
 - **App Name**: ต้องอยู่ระหว่าง 3 ถึง 50 ตัวอักษร
 - **Description**: ต้องอยู่ระหว่าง 10 ถึง 500 ตัวอักษร
 - **CTA Label**: ต้องยาวไม่เกิน 30 ตัวอักษร (เฉพาะกรณี `linkType !== "instruction"`)
@@ -224,12 +241,12 @@ src/components/<component-name>/
   - `instruction`: ว่างได้
   - **Tool Link Typo Checking**: หากกรอกลิงก์ประเภท Tool (เช่น ขึ้นต้นด้วย `/to`) จะต้องอยู่ในรูปแบบ `/tool/[toolId]` หรือ `/tools/[toolId]` โดยห้ามกรอกเป็น Slug (ห้ามมีขีดกลาง `-`) และตัว ID (Dynamic Tool ID) ต้องยาวอย่างน้อย 8 ตัวอักษรขึ้นไป
 
-#### 10.3.2 Form Spacing & Warning Displays:
+#### 11.3.2 Form Spacing & Warning Displays:
 - **Field Description (Helper Label)**: ทุกฟิลด์ที่มีเงื่อนไขจำกัดความยาว (Name, Description, CTA Label, CTA Link) ต้องแสดงคำอธิบายช่วยกรอก (Helper Label) เสมอ
 - **Clean UI Principle**: **เมื่อฟิลด์ใดแสดง Error (สีกรอบหรือสีแดง) ให้ซ่อน Helper Label ทันที** เพื่อความสะอาดตาในการใช้งานและไม่เกิดความซ้ำซ้อนของข้อมูลบนหน้าจอ
 - **Validation Responsiveness**: ฟิลด์อย่าง `ctaLink` ต้องบังคับอัปเดตสถานะ `touched` และเรียก `revalidateField` ทันทีเมื่อเกิดการเปลี่ยนแปลง (`onChange`) เพื่อแก้ไขและป้องกันสถานะ UI ตกหล่นจาก React state race conditions
 
-### 10.4 AI Model Manager UX Rules
+### 11.4 AI Model Manager UX Rules
 
 ทุก model record ต้องมีอย่างน้อย:
 
@@ -247,7 +264,7 @@ interaction ขั้นต่ำ:
 2. test prompt inline ได้ก่อน save
 3. แสดง `updatedAt` และ `updatedBy` ทุกครั้งเพื่อ auditability
 
-### 10.5 Safety and Confirmation
+### 11.5 Safety and Confirmation
 
 - delete ใช้ 2-step confirmation
 - unsaved changes ต้องมี guard ก่อนออกจากหน้า

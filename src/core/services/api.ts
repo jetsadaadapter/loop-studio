@@ -62,7 +62,7 @@ function readBrowserCookie(name: string): string | null {
     return null;
 }
 
-export async function getAuthToken(): Promise<string | null> {
+async function getAuthToken(): Promise<string | null> {
     if (typeof window !== "undefined" && BASE_URL?.startsWith("/api/library")) {
         return null;
     }

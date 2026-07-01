@@ -38,7 +38,7 @@ export function CreditHistoryDrawer({ open, onOpenChange, currentBalance, usedTo
   const [items, setItems] = useState<CreditTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<"all" | "charges" | "refunds">("all");
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth()); // 0-11
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null); // default to "All" months
   const monthBarRef = useRef<HTMLDivElement>(null);
 
   // Load all transactions (up to 200) once drawer opens

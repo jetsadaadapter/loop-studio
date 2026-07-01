@@ -1,54 +1,7 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { ManageToolApiItem, ToolParam } from "@/core/interfaces/tool";
 import { ToolRow } from "./tool-row";
-
-// ── SummaryBar Component ─────────────────────────────────────────────────────────
-
-interface SummaryBarProps {
-  total: number;
-  filtered: number;
-  isRefreshing: boolean;
-  lastUpdatedAt: Date | null;
-  onRefresh: () => void;
-}
-
-export function SummaryBar({
-  total,
-  filtered,
-  isRefreshing,
-  lastUpdatedAt,
-  onRefresh,
-}: SummaryBarProps) {
-  const label = total === filtered
-    ? `${total} ${total === 1 ? "tool" : "tools"}`
-    : `${filtered} of ${total} ${total === 1 ? "tool" : "tools"}`;
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/40 bg-slate-50/40 px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold tracking-wide text-slate-600">{label}</span>
-        {lastUpdatedAt && (
-          <span className="hidden text-[10px] font-medium text-slate-400 sm:inline">
-            · updated {lastUpdatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-          </span>
-        )}
-      </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isRefreshing}
-        onClick={onRefresh}
-        className="h-7 gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition-colors"
-      >
-        <RefreshCw className={`size-3 ${isRefreshing ? "animate-spin" : ""}`} />
-        {isRefreshing ? "Refreshing…" : "Refresh"}
-      </Button>
-    </div>
-  );
-}
 
 // ── ToolList Component ───────────────────────────────────────────────────────────
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 export const ChangelogCategorySchema = z.enum(["MCP", "Platform", "Tool"]);
 export type ChangelogCategory = z.infer<typeof ChangelogCategorySchema>;
 
-export const ChangelogItemSchema = z.object({
+const ChangelogItemSchema = z.object({
   id: z.string(),
   version: z.string(),
   date: z.string(), // YYYY-MM-DD
@@ -13,12 +13,12 @@ export const ChangelogItemSchema = z.object({
   description: z.string(),
   changes: z.array(z.string()),
 });
-export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
+type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 
-export const ChangelogDataSchema = z.array(ChangelogItemSchema);
+const ChangelogDataSchema = z.array(ChangelogItemSchema);
 
 // Static changelog entries
-export const changelogsData: ChangelogItem[] = [
+const changelogsData: ChangelogItem[] = [
   {
     id: "ch-1",
     version: "v1.2.0",

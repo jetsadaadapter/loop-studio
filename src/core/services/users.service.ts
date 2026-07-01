@@ -4,7 +4,7 @@ import type {
 } from "@/core/interfaces/auth.interface";
 import { apiFetch, buildUrl } from "@/core/services/api";
 
-export interface ManageUserListResponse {
+interface ManageUserListResponse {
     success: boolean;
     message?: string;
     data: UserProfile[];
@@ -16,7 +16,7 @@ export interface ManageUserListResponse {
     };
 }
 
-export interface UpdateUserPayload {
+interface UpdateUserPayload {
     empid: string;
     firstName: string;
     lastName: string;
@@ -63,7 +63,7 @@ export async function updateManageUser(
     return response.data;
 }
 
-export interface CreditBalance {
+interface CreditBalance {
     credits: number;
 }
 
@@ -78,7 +78,7 @@ export interface CreditTransaction {
     createdAt: string;
 }
 
-export interface CreditHistoryResponse {
+interface CreditHistoryResponse {
     success: boolean;
     data: CreditTransaction[];
     total: number;

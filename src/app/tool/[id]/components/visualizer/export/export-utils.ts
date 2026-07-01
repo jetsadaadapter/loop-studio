@@ -15,7 +15,7 @@ export interface ExportConfig {
   csvDelimiter: string;
 }
 
-export function mapOverviewItem(item: Record<string, any>): Record<string, any> {
+function mapOverviewItem(item: Record<string, any>): Record<string, any> {
   const hasSocialFields = item.url || item.facebookUrl || item.text || item.message || item.caption || item.likes !== undefined || item.shares !== undefined;
 
   // For items without social/post fields (e.g. sentiment analysis results), return all scalar fields directly
