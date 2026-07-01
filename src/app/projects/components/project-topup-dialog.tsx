@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, startTransition } from "react";
-import { Coins, Loader2, Wallet, Building2, ArrowRight } from "lucide-react";
+import { Coins, Loader2, Wallet, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import {
@@ -146,9 +146,7 @@ export function ProjectTopUpDialog({
                 <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Your Balance</p>
               </div>
 
-              <div className="flex items-center justify-center size-9 rounded-full bg-brand text-white shadow-md shadow-brand/30 shrink-0">
-                <ArrowRight className="size-4" />
-              </div>
+              <div className="w-px h-10 bg-brand/10 shrink-0" />
 
               <div className="flex-1 text-center">
                 <div className="inline-flex items-center justify-center size-8 rounded-full bg-brand/10 text-brand mb-1.5">
