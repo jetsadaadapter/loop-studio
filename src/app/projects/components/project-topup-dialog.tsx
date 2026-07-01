@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, startTransition } from "react";
-import { Coins, Loader2 } from "lucide-react";
+import { Coins, Loader2, Wallet, Building2, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import {
@@ -124,27 +124,42 @@ export function ProjectTopUpDialog({
         </DialogHeader>
 
         <form onSubmit={handleTopUpSubmit} className="space-y-4 pt-4">
-          <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-4 flex items-center justify-between select-none">
-            <div className="flex-1 text-center">
-              {isLoadingCredits ? (
-                <div className="flex justify-center items-center h-8">
-                  <Loader2 className="size-4 animate-spin text-slate-400" />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-red-50/60 border border-brand/10 shadow-sm p-4 select-none">
+            <div className="absolute -right-8 -top-8 size-28 rounded-full bg-brand/10 blur-2xl pointer-events-none" />
+            <div className="absolute -left-8 -bottom-8 size-24 rounded-full bg-brand/5 blur-2xl pointer-events-none" />
+
+            <div className="relative flex items-center justify-between gap-2">
+              <div className="flex-1 text-center">
+                <div className="inline-flex items-center justify-center size-8 rounded-full bg-slate-200/70 text-slate-500 mb-1.5">
+                  <Wallet className="size-4" />
                 </div>
-              ) : (
-                <p className="text-xl font-bold text-slate-800 font-sans">
-                  {userCredits !== null ? userCredits.toLocaleString() : "--"}
-                  <span className="text-xs font-semibold text-slate-400 ml-1">cr</span>
+                {isLoadingCredits ? (
+                  <div className="flex justify-center items-center h-9">
+                    <Loader2 className="size-4 animate-spin text-slate-400" />
+                  </div>
+                ) : (
+                  <p className="text-2xl font-extrabold text-slate-800 font-sans tracking-tight">
+                    {userCredits !== null ? userCredits.toLocaleString() : "--"}
+                    <span className="text-xs font-semibold text-slate-400 ml-1">cr</span>
+                  </p>
+                )}
+                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Your Balance</p>
+              </div>
+
+              <div className="flex items-center justify-center size-9 rounded-full bg-brand text-white shadow-md shadow-brand/30 shrink-0">
+                <ArrowRight className="size-4" />
+              </div>
+
+              <div className="flex-1 text-center">
+                <div className="inline-flex items-center justify-center size-8 rounded-full bg-brand/10 text-brand mb-1.5">
+                  <Building2 className="size-4" />
+                </div>
+                <p className="text-2xl font-extrabold text-brand font-sans tracking-tight">
+                  {project.credits.toLocaleString()}
+                  <span className="text-xs font-semibold text-brand/50 ml-1">cr</span>
                 </p>
-              )}
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Your Balance</p>
-            </div>
-            <div className="w-px h-8 bg-slate-200" />
-            <div className="flex-1 text-center">
-              <p className="text-xl font-bold text-slate-800 font-sans">
-                {project.credits.toLocaleString()}
-                <span className="text-xs font-semibold text-slate-400 ml-1">cr</span>
-              </p>
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Project Balance</p>
+                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Project Balance</p>
+              </div>
             </div>
           </div>
 
