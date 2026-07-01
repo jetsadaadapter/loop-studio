@@ -30,11 +30,9 @@ const TRUSTED_IMG_SRCS = [
     "'self'",
     "data:",
     "blob:",
-    "https://library-api.adapterdigital.com",
+    "https://*.adapterdigital.com",
     "https://*.googleusercontent.com",
-    "https://*.ggpht.com",
     "https://*.google.com",
-    "https://*.gstatic.com",
     "https://images.unsplash.com",
     "https://source.unsplash.com",
     "https://ui-avatars.com",
@@ -77,6 +75,7 @@ function buildCsp(nonce: string): string {
         "base-uri": "'self'",
         "object-src": "'none'",
         "upgrade-insecure-requests": "",
+        "report-uri": "/api/csp-violation-report",
     };
 
     return Object.entries(directives)
