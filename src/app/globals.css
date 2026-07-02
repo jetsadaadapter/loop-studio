@@ -5,14 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --breakpoint-xs: 480px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
+    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
     sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading:
-    var(--font-sukhumvit), var(--font-inter), system-ui, -apple-system,
+    var(--font-geist), var(--font-sukhumvit), system-ui, -apple-system,
     sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -28,10 +29,12 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -73,6 +76,18 @@
   --color-dark-garnet-700: #e33c30;
   --color-dark-garnet-800: #ec7d75;
   --color-dark-garnet-900: #f6beba;
+
+  --color-red-50: #fff5f6;
+  --color-red-100: #ffe5e8;
+  --color-red-200: #ffcbd1;
+  --color-red-300: #ffa1ad;
+  --color-red-400: #ff4d64;
+  --color-red-500: #c20019;
+  --color-red-600: #c20019;
+  --color-red-700: #a30015;
+  --color-red-800: #800010;
+  --color-red-900: #5c000c;
+  --color-red-950: #330006;
 }
 
 :root {
@@ -82,7 +97,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #c20019;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -90,8 +105,11 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #c20019;
+  --destructive-foreground: oklch(0.985 0 0);
   --brand: #c20019;
+  --brand-strong: #a30015;
+  --brand-rgb: 194 0 25;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -138,16 +156,19 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: #c20019;
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: #c20019;
+  --destructive-foreground: oklch(0.985 0 0);
   --brand: #c20019;
+  --brand-strong: #a30015;
+  --brand-rgb: 194 0 25;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -172,28 +193,212 @@
   }
   body {
     @apply bg-background text-foreground;
+    max-width: 100%;
+    overflow-x: clip;
   }
   html {
     @apply font-sans;
-    overflow-x: hidden;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  /* For Thai content, prioritize Sukhumvit Set */
+  html:lang(th) {
+    --font-sans:
+      var(--font-sukhumvit), var(--font-geist), system-ui, -apple-system,
+      sans-serif;
   }
 }
 
 @layer utilities {
   @keyframes blob-float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(0, 0) scale(1);
     }
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
+    25% {
+      transform: translate(40px, -60px) scale(1.12);
     }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
+    50% {
+      transform: translate(-25px, 30px) scale(0.88);
+    }
+    75% {
+      transform: translate(20px, 50px) scale(1.06);
+    }
+  }
+
+  @keyframes blob-float-reverse {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    25% {
+      transform: translate(-35px, 55px) scale(0.92);
+    }
+    50% {
+      transform: translate(28px, -40px) scale(1.1);
+    }
+    75% {
+      transform: translate(-15px, -20px) scale(0.95);
     }
   }
 
   .animate-blob {
-    animation: blob-float 15s infinite ease-in-out;
+    animation: blob-float 18s infinite ease-in-out;
+  }
+
+  .animate-blob-reverse {
+    animation: blob-float-reverse 22s infinite ease-in-out;
+  }
+
+  @keyframes about-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .about-section-enter {
+    opacity: 0;
+    transform: translateY(32px);
+    transition:
+      opacity 680ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .about-section-enter.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Animated Page Title (mask-wipe reveal) ──────────────────────── */
+  @keyframes about-pt-line-draw {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  .about-pt-line {
+    transform-origin: left center;
+    animation: about-pt-line-draw 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+  }
+
+  /* Brand-colored bar that sweeps in (0→45%) pauses (45→55%) then sweeps out (55→100%) */
+  @keyframes about-pt-mask-sweep {
+    0% {
+      transform: translateX(-101%);
+    }
+    45% {
+      transform: translateX(0%);
+    }
+    55% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(101%);
+    }
+  }
+
+  .about-pt-mask {
+    animation: about-pt-mask-sweep 1s cubic-bezier(0.76, 0, 0.24, 1) 0.25s both;
+  }
+
+  /* Title clips in from the left, timed to sync with mask bar exit (starts ~0.8s) */
+  @keyframes about-pt-title-clip {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0% 0 0);
+    }
+  }
+
+  .about-pt-title {
+    animation: about-pt-title-clip 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+  }
+
+  /* Subtitle fades up after title completes */
+  @keyframes about-pt-sub-appear {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .about-pt-sub {
+    animation: about-pt-sub-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.4s both;
+  }
+
+  .about-bubble-1 {
+    width: 520px;
+    height: 520px;
+    top: -4%;
+    left: -14%;
+    background: rgb(var(--brand-rgb) / 0.065);
+    animation-delay: 0s;
+    animation-duration: 20s;
+  }
+
+  .about-bubble-2 {
+    width: 400px;
+    height: 400px;
+    top: 18%;
+    right: -10%;
+    background: rgba(105, 20, 14, 0.07);
+    animation-delay: 4s;
+    animation-duration: 26s;
+  }
+
+  .about-bubble-3 {
+    width: 300px;
+    height: 300px;
+    top: 48%;
+    left: 2%;
+    background: rgba(227, 60, 48, 0.055);
+    animation-delay: 8s;
+    animation-duration: 18s;
+  }
+
+  .about-bubble-4 {
+    width: 460px;
+    height: 460px;
+    top: 65%;
+    right: -6%;
+    background: rgb(var(--brand-rgb) / 0.05);
+    animation-delay: 2s;
+    animation-duration: 22s;
+  }
+
+  .about-bubble-5 {
+    width: 220px;
+    height: 220px;
+    top: 38%;
+    left: 38%;
+    background: rgba(210, 128, 135, 0.06);
+    animation-delay: 6s;
+    animation-duration: 15s;
+  }
+
+  .about-bubble-6 {
+    width: 360px;
+    height: 360px;
+    bottom: 4%;
+    left: 12%;
+    background: rgba(124, 43, 50, 0.06);
+    animation-delay: 10s;
+    animation-duration: 28s;
   }
 
   @keyframes cinematic-enter {
@@ -210,7 +415,7 @@
   @keyframes fade-rise {
     0% {
       opacity: 0;
-      transform: translateY(22px);
+      transform: translateY(32px);
     }
     100% {
       opacity: 1;
@@ -223,23 +428,28 @@
   }
 
   .motion-enter-1 {
-    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    animation-delay: 120ms;
+    animation: fade-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 100ms;
   }
 
   .motion-enter-2 {
-    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    animation-delay: 220ms;
+    animation: fade-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 250ms;
   }
 
   .motion-enter-3 {
-    animation: fade-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    animation-delay: 320ms;
+    animation: fade-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 400ms;
+  }
+
+  .motion-stagger-item {
+    animation: fade-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--stagger-delay, 100ms);
   }
 
   .page-hero-title {
     font-family: var(--font-heading);
-    font-size: clamp(1.5rem, 3.8vw, 2.625rem);
+    font-size: clamp(1.25rem, 4vw, 2.625rem);
     line-height: 1.08;
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -247,14 +457,14 @@
 
   .page-section-title {
     font-family: var(--font-heading);
-    font-size: clamp(1.125rem, 1.9vw, 1.375rem);
+    font-size: clamp(1rem, 2.2vw, 1.375rem);
     line-height: 1.25;
     font-weight: 600;
     letter-spacing: -0.012em;
   }
 
   .page-body-copy {
-    font-size: clamp(0.9375rem, 1.05vw, 1rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
     line-height: 1.65;
     font-weight: 400;
     overflow-wrap: anywhere;
@@ -264,7 +474,8 @@
     .motion-hero-enter,
     .motion-enter-1,
     .motion-enter-2,
-    .motion-enter-3 {
+    .motion-enter-3,
+    .motion-stagger-item {
       animation: none;
     }
   }

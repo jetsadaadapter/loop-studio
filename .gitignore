@@ -1,8 +1,8 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# -------------------------------------------------------
+# Dependencies
+# -------------------------------------------------------
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,21 +10,79 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# -------------------------------------------------------
+# Testing
+# -------------------------------------------------------
+coverage/
 
-# next.js
-/.next/
-/out/
+# -------------------------------------------------------
+# Next.js
+# -------------------------------------------------------
+.next/
+out/
 
-# production
-/build
+# -------------------------------------------------------
+# Build
+# -------------------------------------------------------
+build/
+dist/
 
-# misc
+# -------------------------------------------------------
+# TypeScript
+# -------------------------------------------------------
+*.tsbuildinfo
+
+# ❌ ไม่ต้อง ignore
+# next-env.d.ts
+
+# -------------------------------------------------------
+# Environment
+# -------------------------------------------------------
+.env
+.env.local
+.env.development
+.env.production
+.env.test.local
+
+# ถ้าต้องการแชร์ตัวอย่าง Environment
+!.env.example
+
+# -------------------------------------------------------
+# Vercel
+# -------------------------------------------------------
+.vercel/
+
+# -------------------------------------------------------
+# Graphify
+# -------------------------------------------------------
+graphify-out/
+.graphify/
+
+# -------------------------------------------------------
+# Cache
+# -------------------------------------------------------
+.cache/
+tmp/
+.temp/
+
+# -------------------------------------------------------
+# Logs
+# -------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -------------------------------------------------------
+# macOS
+# -------------------------------------------------------
 .DS_Store
-*.pem
 
-# security — private keys & certificates
+# -------------------------------------------------------
+# Certificates / Security
+# -------------------------------------------------------
+*.pem
 *.key
 *.cert
 *.crt
@@ -33,26 +91,38 @@
 *.p8
 *.jks
 
-# ai / ide tool configs (personal, not project-wide)
-.qodo/
-.cursor/
+# -------------------------------------------------------
+# IDE / Editor (Personal)
+# -------------------------------------------------------
 .idea/
+.qodo/
 
-# internal project docs (not for public repo)
-.github/
+# ถ้าใช้ Cursor ร่วมกันทั้งทีม ไม่ควร ignore ทั้งโฟลเดอร์
+.cursor/cache/
+.cursor/history/
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# -------------------------------------------------------
+# Claude Code (เฉพาะไฟล์ส่วนตัว)
+# -------------------------------------------------------
+.claude/cache/
+.claude/history/
+.claude/logs/
 
-# env files (can opt-in for committing if needed)
-.env*
+# -------------------------------------------------------
+# Antigravity
+# -------------------------------------------------------
+.antigravity/cache/
 
-# vercel
-.vercel
+# -------------------------------------------------------
+# Temporary files
+# -------------------------------------------------------
+*.bak
+*.orig
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# -------------------------------------------------------
+# Playwright (keep committed baselines under *-snapshots/)
+# -------------------------------------------------------
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

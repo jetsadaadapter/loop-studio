@@ -5,9 +5,13 @@ import {
   type CategoryKey,
   type RankedApp,
 } from "@/components/app-category-ranking";
-import { getAppStatus, slugifyAppName } from "@/app/library/apps/data";
-import { getApps, ApiError } from "@/core/services/library.service";
-import type { LibraryAppApiItem } from "@/core/interfaces/library.interface";
+import { getAppStatus } from "@/app/library/apps/data";
+import { getApps } from "@/core/services/apps.service";
+import { ApiError } from "@/core/services/api";
+import {
+  getAppItemId,
+  type LibraryAppApiItem,
+} from "@/core/interfaces/apps.interface";
 
 type RankedAction = Pick<RankedApp, "actionType" | "actionUrl">;
 
@@ -18,9 +22,7 @@ function normalizeInternalPath(path: string): string {
 }
 
 function mapAction(item: LibraryAppApiItem): RankedAction {
-  const derivedSlug = item.ctaLink?.startsWith("/apps/")
-    ? item.ctaLink.replace(/^\/apps\//, "")
-    : slugifyAppName(item.name);
+  const appDetailPath = `/apps/${getAppItemId(item)}`;
 
   const actionType =
     item.linkType === "external"
@@ -33,10 +35,12 @@ function mapAction(item: LibraryAppApiItem): RankedAction {
     actionType === "linkout"
       ? (item.ctaLink ?? "https://library-api.adapterdigital.com")
       : actionType === "instruction"
-        ? `/apps/${derivedSlug}`
+        ? appDetailPath
         : item.ctaLink
-          ? normalizeInternalPath(item.ctaLink)
-          : `/apps/${derivedSlug}`;
+          ? item.ctaLink.startsWith("/apps/")
+            ? appDetailPath
+            : normalizeInternalPath(item.ctaLink)
+          : appDetailPath;
 
   return { actionType, actionUrl };
 }
@@ -48,10 +52,13 @@ function mapToRankedApps(items: LibraryAppApiItem[]): RankedApp[] {
       const action = mapAction(item);
 
       return {
-        id: item.appId,
+        id: getAppItemId(item),
         rank: index + 1,
         name: item.name,
-        category: item.category,
+        category:
+          typeof item.category === "string"
+            ? item.category
+            : item.category?.name || "",
         meta: getAppStatus(item),
         imageUrl: item.imageUrl || item.iconUrl || "",
         actionType: action.actionType,

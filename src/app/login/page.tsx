@@ -2,53 +2,77 @@
 
 import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
+import { LoginMobileIntro } from "@/components/login-mobile-intro";
 
-export default function LoginPage() {
+/** Hollow square "handle" node for the design-tool guide frame. */
+function GuideNode({ className }: { className: string }) {
   return (
-    <div className="relative flex min-h-svh items-center justify-center overflow-hidden bg-[#F8F9FA] px-6 py-12 md:p-10">
-      {/* Premium Background Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] h-[70%] w-[70%] rounded-full bg-rich-mahogany-600/5 blur-[80px] animate-blob" />
-        <div className="absolute top-[20%] -right-[10%] h-[60%] w-[60%] rounded-full bg-dark-garnet-600/5 blur-[80px] animate-blob [animation-delay:2s]" />
-        <div className="absolute -bottom-[10%] left-[20%] h-[50%] w-[50%] rounded-full bg-rich-mahogany-500/5 blur-[60px] animate-blob [animation-delay:4s]" />
-
-        {/* Sublte Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.2]"
-          style={{
-            backgroundImage: `radial-gradient(#CBD5E1 1px, transparent 1px)`,
-            backgroundSize: '32px 32px'
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 flex w-full max-w-[400px] flex-col gap-8">
-        <div className="flex flex-col items-center gap-2">
-          <div className="mb-0">
-            <Image
-              src="/images/logo/logo-black-110x30.png"
-              alt="Adapter Digital Group"
-              width={160}
-              height={48}
-              className="h-10 w-auto sm:h-12"
-              priority
-            />
-          </div>
-          {/* <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            Adapter Library
-          </h1>
-          <p className="text-sm text-neutral-500">
-            Internal application repository
-          </p> */}
-        </div>
-
-        <LoginForm />
-      </div>
-
-      <p className="absolute bottom-6 left-0 right-0 z-10 text-center text-xs text-neutral-400">
-        &copy; {new Date().getFullYear()} Adapter Digital Group. All rights reserved.
-      </p>
-    </div>
+    <span
+      className={`absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-[4px] border border-slate-300 bg-white shadow-sm ${className}`}
+    />
   );
 }
 
+export default function LoginPage() {
+  return (
+    <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-brand/[0.10] via-brand/[0.03] to-white px-5 py-16 sm:px-6 md:p-10">
+      {/* Ambient background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-[20%] -left-[5%] h-[55%] w-[60%] rounded-full bg-brand/[0.10] blur-[140px]" />
+
+        {/* Design-tool guide frame (vertical + horizontal lines) */}
+        <div className="absolute inset-0 hidden sm:block">
+          {/* Vertical guides */}
+          <div className="absolute inset-y-0 left-[30%] w-px bg-slate-300/50" />
+          <div className="absolute inset-y-0 left-[70%] w-px bg-slate-300/50" />
+          {/* Horizontal guide near the top */}
+          <div className="absolute left-0 right-0 top-[12%] h-px bg-slate-300/50" />
+
+          {/* Handle nodes at intersections + bottom ends */}
+          <GuideNode className="left-[30%] top-[12%]" />
+          <GuideNode className="left-[70%] top-[12%]" />
+          <GuideNode className="left-[30%] top-[90%]" />
+          <GuideNode className="left-[70%] top-[90%]" />
+        </div>
+      </div>
+
+      <div className="relative z-10 flex w-full max-w-[420px] flex-col items-center gap-7">
+        {/* App icon badge */}
+        <div className="motion-hero-enter flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-brand/25 ring-1 ring-black/5">
+          <Image
+            src="/images/logo/logo-app-1200x1200.svg"
+            alt="Adapter"
+            width={48}
+            height={48}
+            className="size-full"
+            priority
+          />
+        </div>
+
+        {/* Heading + subtitle above the card */}
+        <div className="motion-enter-1 flex flex-col items-center gap-1.5 text-center">
+          <h1 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg">
+            Adapter Library Access
+          </h1>
+          <p className="max-w-[320px] text-xs leading-relaxed text-slate-500 sm:text-sm">
+            Authenticate to access the internal library of MCPs, tools, and
+            platforms
+          </p>
+        </div>
+
+        {/* Stacked login card */}
+        <div className="motion-enter-2 w-full">
+          <LoginForm />
+        </div>
+      </div>
+
+      <p className="motion-enter-3 absolute inset-x-0 bottom-6 z-10 px-6 text-center text-xs text-slate-400">
+        &copy; {new Date().getFullYear()} Adapter Digital Group. All rights
+        reserved.
+      </p>
+
+      {/* Mobile-only onboarding hero — slides away to reveal the login */}
+      <LoginMobileIntro />
+    </div>
+  );
+}

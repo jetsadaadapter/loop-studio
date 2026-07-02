@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
+import { ToastProvider } from "@/components/toast-provider";
+import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
+import { NotificationProvider } from "@/components/notification-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const sukhumvitSet = localFont({
@@ -41,9 +46,32 @@ const sukhumvitSet = localFont({
   ],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const geist = localFont({
+  variable: "--font-geist",
+  display: "swap",
+  src: [
+    {
+      path: "../../public/fonts/Geist/static/Geist-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Geist/static/Geist-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    // เพิ่มน้ำหนักอื่นๆ ตามที่มีใน static
+  ],
 });
 
 const geistMono = Geist_Mono({
@@ -67,24 +95,41 @@ export default async function RootLayout({
 
   return (
     <html
-      lang="th"
-      className={`${sukhumvitSet.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
+      lang="en"
+      className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://library-api.adapterdigital.com" />
-        <link rel="preconnect" href="https://auth.adapterinternal.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://auth.adapterinternal.com"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://library-api.adapterdigital.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://library-api.adapterdigital.com"
+        />
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+        <TooltipProvider>
+          <NotificationProvider>
+            <AlertDialogToastProvider>
+              <ToastProvider>
+                <main className="flex-1 flex flex-col">{children}</main>
+              </ToastProvider>
+            </AlertDialogToastProvider>
+          </NotificationProvider>
+        </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );
 }
-

@@ -1,13 +1,28 @@
-/**
- * Auth-related contracts.
- * Extend as roles/permissions are defined via Centralized MCP Auth token.
- */
-export type UserRole = "admin" | "user" | "viewer";
+export enum Role {
+    SystemAdmin = 'system-admin',
+    Admin = 'admin',
+    Developer = 'developer',
+    User = 'user'
+}
 
-export interface AuthUser {
-    id: string;
+export type UserRole = "system-admin" | "admin" | "developer" | "user" | "viewer";
+
+export interface UserProfile {
+    empid: string;
     email: string;
-    role: UserRole;
-    name?: string;
-    image?: string;
+    firstName: string;
+    lastName: string;
+    image?: string | null;
+    department: string;
+    position: string;
+    roles: UserRole[];
+    credits: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserProfileResponse {
+    success: boolean;
+    message?: string;
+    data: UserProfile;
 }

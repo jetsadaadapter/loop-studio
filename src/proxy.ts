@@ -5,6 +5,11 @@ const PUBLIC_PATHS = [
     "/login",
     "/callback",
     "/api/auth",
+    "/docs/openapi.json",
+    // Dev-only component gallery used by Playwright visual-regression tests.
+    // Never public in production: the entry is only added when not prod, and the
+    // page itself also calls notFound() under NODE_ENV === "production".
+    ...(process.env.NODE_ENV !== "production" ? ["/dev"] : []),
 ];
 
 // Static asset patterns — skip middleware entirely
@@ -20,17 +25,25 @@ const TRUSTED_CONNECT_SRCS = [
     "'self'",
     "https://auth.adapterinternal.com",
     "https://library-api.adapterdigital.com",
+    // Scalar API Reference — registry, search, and proxy endpoints
+    "https://api.scalar.com",
+    "https://proxy.scalar.com",
 ].join(" ");
 
 const TRUSTED_IMG_SRCS = [
     "'self'",
     "data:",
-    "https://library-api.adapterdigital.com",
-    "https://play-lh.googleusercontent.com",
+    "blob:",
+    "https://*.adapterdigital.com",
+    "https://*.googleusercontent.com",
+    "https://*.google.com",
     "https://images.unsplash.com",
     "https://source.unsplash.com",
     "https://ui-avatars.com",
     "https://placehold.co",
+    "https://*.fbcdn.net",
+    "https://*.facebook.com",
+    "https://*.akamaihd.net",
 ].join(" ");
 
 /**
@@ -55,17 +68,18 @@ function buildCsp(nonce: string): string {
     ].join(" ");
 
     const directives: Record<string, string> = {
-        "default-src":               "'self'",
-        "script-src":                scriptSrc,
-        "style-src":                 "'self' 'unsafe-inline'",
-        "img-src":                   TRUSTED_IMG_SRCS,
-        "font-src":                  "'self'",
-        "connect-src":               TRUSTED_CONNECT_SRCS,
-        "frame-ancestors":           "'none'",
-        "form-action":               "'self'",
-        "base-uri":                  "'self'",
-        "object-src":                "'none'",
+        "default-src": "'self'",
+        "script-src": scriptSrc,
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": TRUSTED_IMG_SRCS,
+        "font-src": "'self' https://fonts.scalar.com https://fonts.gstatic.com",
+        "connect-src": TRUSTED_CONNECT_SRCS,
+        "frame-ancestors": "'none'",
+        "form-action": "'self'",
+        "base-uri": "'self'",
+        "object-src": "'none'",
         "upgrade-insecure-requests": "",
+        "report-uri": "/api/csp-violation-report",
     };
 
     return Object.entries(directives)

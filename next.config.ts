@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/keys",
+        destination: "/manage/keys",
+        permanent: true,
+      },
+      {
         source: "/library/apps",
         destination: "/apps",
         permanent: true,
@@ -12,6 +17,28 @@ const nextConfig: NextConfig = {
         source: "/library/apps/:slug",
         destination: "/apps/:slug",
         permanent: true,
+      },
+      {
+        source: "/manage/ai",
+        destination: "/manage/models",
+        permanent: true,
+      },
+      {
+        source: "/manage/ai/:path*",
+        destination: "/manage/models/:path*",
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/tools/:id/runs/:runId",
+        destination: "/tool/:id/runs/:runId",
+      },
+      {
+        source: "/tools/:id",
+        destination: "/tool/:id",
       },
     ];
   },
@@ -41,7 +68,19 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "play-lh.googleusercontent.com",
+        hostname: "*.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.ggpht.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.google.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.gstatic.com",
       },
       {
         protocol: "https",
@@ -62,6 +101,33 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "library-api.adapterdigital.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fbcdn.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.facebook.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.akamaihd.net",
+      },
+      {
+        protocol: "https",
+        hostname: "library-api.adapterdigital.com",
+        pathname: "/api/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "library.adapterdigital.com",
+        pathname: "/api/images/**",
+      },
+    ],
+    localPatterns: [
+      {
+        pathname: "/images/**",
       },
     ],
   },

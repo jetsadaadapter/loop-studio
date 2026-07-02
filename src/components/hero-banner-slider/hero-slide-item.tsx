@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type HeroSlide, type HeroTheme } from "@/app/library/apps/hero.data";
+import { isValidActionLink, getAppBadgeClass } from "@/lib/utils";
 import styles from "./styles.module.css";
 
 const cardThemeClass: Record<HeroTheme, string> = {
@@ -55,6 +56,8 @@ export function HeroSlideItem({
   isPriority,
   isSingleSlide,
 }: HeroSlideItemProps) {
+  const isLinkValid = isValidActionLink(slide.actionUrl);
+
   return (
     <article
       className={`relative overflow-hidden rounded-2xl border border-slate-200 ${cardThemeClass[slide.theme]} ${
@@ -65,7 +68,7 @@ export function HeroSlideItem({
     >
       <div className="relative aspect-648/364">
         {slide.badge ? (
-          <span className="absolute left-4 top-4 z-20 rounded-xl bg-white/85 px-3 py-1 text-sm font-medium text-slate-800">
+          <span className={`absolute left-4 top-4 z-20 rounded-xl px-3 py-1 text-sm font-medium ${getAppBadgeClass(slide.badge)}`}>
             {slide.badge}
           </span>
         ) : null}
@@ -79,6 +82,7 @@ export function HeroSlideItem({
           priority={isPriority}
           fetchPriority={isPriority ? "high" : undefined}
           loading={isPriority ? "eager" : "lazy"}
+          unoptimized
         />
 
         <div
@@ -101,6 +105,7 @@ export function HeroSlideItem({
                 alt={`${slide.appName} icon`}
                 fill
                 className="object-cover"
+                unoptimized
               />
             </div>
           </div>
@@ -127,14 +132,23 @@ export function HeroSlideItem({
         </div>
 
         <div className="text-right">
-          <Link
-            href={slide.actionUrl}
-            target={slide.actionType === "linkout" ? "_blank" : undefined}
-            rel={slide.actionType === "linkout" ? "noreferrer" : undefined}
-            className="inline-flex h-8 items-center justify-center rounded-sm bg-white/22 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm transition hover:bg-white/30"
-          >
-            {slide.ctaLabel}
-          </Link>
+          {isLinkValid ? (
+            <Link
+              href={slide.actionUrl}
+              target={slide.actionType === "linkout" ? "_blank" : undefined}
+              rel={slide.actionType === "linkout" ? "noreferrer" : undefined}
+              className="inline-flex h-8 items-center justify-center rounded-sm bg-white/22 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm transition hover:bg-white/30"
+            >
+              {slide.ctaLabel}
+            </Link>
+          ) : (
+            <button
+              disabled
+              className="inline-flex h-8 items-center justify-center rounded-sm bg-white/10 px-3 text-sm font-medium whitespace-nowrap backdrop-blur-sm opacity-50 cursor-not-allowed"
+            >
+              Not Available
+            </button>
+          )}
         </div>
       </div>
     </article>

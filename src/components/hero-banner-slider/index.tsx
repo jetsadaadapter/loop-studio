@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { getBanners } from "@/core/services/library.service";
+import { getBanners } from "@/core/services/banners.service";
 import {
   heroBannerMock,
   mapBannerToHeroSlide,
@@ -35,16 +35,32 @@ export function HeroBannerSlider({ initialSlides }: HeroBannerSliderProps) {
 
     try {
       const response = await getBanners();
-      const mapped = response.data.map(mapBannerToHeroSlide);
+      console.log("[BannerSlider] getBanners response:", response);
+      const mapped = response.data
+        .map((item, idx) => {
+          try {
+            return mapBannerToHeroSlide(item);
+          } catch (err) {
+            console.error(
+              `[BannerSlider] mapBannerToHeroSlide error at index ${idx}:`,
+              err,
+              item,
+            );
+            return null;
+          }
+        })
+        .filter(Boolean) as HeroSlide[];
+      console.log("[BannerSlider] mapped slides:", mapped);
 
       if (mapped.length > 0) {
         setHeroSlides(mapped);
       } else {
         setHeroSlides(FALLBACK_HERO_SLIDES);
       }
-    } catch {
+    } catch (err) {
       setHasError(true);
       setHeroSlides(FALLBACK_HERO_SLIDES);
+      console.error("[BannerSlider] fetchBanners error:", err);
     } finally {
       setIsLoading(false);
     }

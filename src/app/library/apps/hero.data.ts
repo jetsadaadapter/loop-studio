@@ -1,6 +1,7 @@
-import type { LibraryBannerItem } from "@/core/interfaces/library.interface";
+import { getAppItemId } from "@/core/interfaces/apps.interface";
+import type { LibraryBannerItem } from "@/core/interfaces/banners.interface";
 
-export type HeroMood = "cool" | "warm" | "neutral" | "premium";
+type HeroMood = "cool" | "warm" | "neutral" | "premium";
 
 export type HeroTheme =
     | "teal"
@@ -59,7 +60,7 @@ export type HeroSlide = {
     actionUrl: string;
 };
 
-export type HeroBannerResponse = {
+type HeroBannerResponse = {
     sectionId: string;
     sectionTitle: string;
     items: HeroSlide[];
@@ -76,7 +77,12 @@ function getStableHash(seed: string): number {
 }
 
 function getMoodFromBanner(item: LibraryBannerItem): HeroMood {
-    const category = item.app.category.toLowerCase();
+    let category: string = "";
+    if (typeof item.app.category === "string") {
+        category = item.app.category.toLowerCase();
+    } else if (item.app.category && typeof item.app.category === "object" && "name" in item.app.category) {
+        category = String(item.app.category.name).toLowerCase();
+    }
     const tags = item.app.tags.map((tag) => tag.name.toLowerCase());
 
     if (
@@ -111,11 +117,13 @@ function getStableThemePreset(seed: string, mood: HeroMood): HeroTheme {
     return presets[hash % presets.length];
 }
 
-export function mapBannerTheme(item: LibraryBannerItem): HeroTheme {
+function mapBannerTheme(item: LibraryBannerItem): HeroTheme {
     const mood = getMoodFromBanner(item);
+    const bannerId = item.bannerId || item.id || "banner";
+    const appId = getAppItemId(item.app);
 
     return getStableThemePreset(
-        `${item.bannerId}:${item.appId}:${item.app.category}`,
+        `${bannerId}:${appId}:${item.app.category}`,
         mood,
     );
 }
@@ -142,11 +150,13 @@ function normalizeText(value: unknown, fallback = ""): string {
 
 export function mapBannerToHeroSlide(item: LibraryBannerItem): HeroSlide {
     const safeAppName = normalizeText(item.app.name, "Unknown app");
+    const safeAppId = normalizeText(getAppItemId(item.app), "app");
+    const appDetailPath = `/apps/${safeAppId}`;
     const derivedSlug = item.app.ctaLink?.startsWith("/apps/")
         ? item.app.ctaLink.replace(/^\/apps\//, "")
         : slugifyAppName(safeAppName);
     const safeAppSlug = derivedSlug || "app";
-    const safeHeroId = normalizeText(item.bannerId, `${normalizeText(item.appId, "app")}:${safeAppSlug}`);
+    const safeHeroId = normalizeText(item.bannerId, `${safeAppId}:${safeAppSlug}`);
 
     const actionType =
         item.app.linkType === "external"
@@ -159,13 +169,15 @@ export function mapBannerToHeroSlide(item: LibraryBannerItem): HeroSlide {
         actionType === "linkout"
             ? item.app.ctaLink ?? "https://library-api.adapterdigital.com"
             : actionType === "instruction"
-                ? `/apps/${safeAppSlug}`
+                ? appDetailPath
                 : item.app.ctaLink
-                    ? normalizeInternalPath(item.app.ctaLink)
-                    : `/apps/${safeAppSlug}`;
+                    ? item.app.ctaLink.startsWith("/apps/")
+                        ? appDetailPath
+                        : normalizeInternalPath(item.app.ctaLink)
+                    : appDetailPath;
 
     return {
-        appId: normalizeText(item.appId, safeHeroId),
+        appId: safeAppId,
         appSlug: safeAppSlug,
         appName: safeAppName,
         appIconUrl: item.app.iconUrl,
@@ -206,7 +218,7 @@ export const heroBannerMock: HeroBannerResponse = {
             toolTags: ["Multi-Channel", "Orchestration", "Analytics"],
             ctaLabel: "Open app",
             actionType: "internal",
-            actionUrl: "/apps/adapter-campaign",
+            actionUrl: "/apps/app_007",
         },
         {
             // Reference: Workflow Hub (app_008) from Platform section
@@ -225,7 +237,7 @@ export const heroBannerMock: HeroBannerResponse = {
             toolTags: ["Visual Builder", "Automation", "Integration"],
             ctaLabel: "View detail",
             actionType: "internal",
-            actionUrl: "/apps/adapter-workflow-hub",
+            actionUrl: "/apps/app_008",
         },
         {
             // Reference: Comment Loader (app_013) from Tool section
@@ -246,7 +258,7 @@ export const heroBannerMock: HeroBannerResponse = {
             toolTags: ["Data Import", "Comment Analysis", "Platform Support"],
             ctaLabel: "View detail",
             actionType: "internal",
-            actionUrl: "/apps/comment-loader",
+            actionUrl: "/apps/app_013",
         },
     ],
 };

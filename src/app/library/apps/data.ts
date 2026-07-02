@@ -1,25 +1,26 @@
-import type { GetAppsResponse, LibraryAppApiItem } from "@/core/interfaces/library.interface";
+import {
+    getAppItemId,
+    type GetAppsResponse,
+    type LibraryAppApiItem,
+} from "@/core/interfaces/apps.interface";
 
 // ------------------------------------------------------------
 // 1) Domain keys used by tab/status controls on the store page
 // ------------------------------------------------------------
 export type MainTabKey = "mcp" | "platform" | "tool";
-export type StatusFilterKey =
+export type BadgeFilterKey =
     | "all"
-    | "production ready"
-    | "in rollout"
-    | "beta"
-    | "planned"
-    | "new";
+    | "new"
+    | "trending"
+    | "hot"
+    | "coming soon";
 
 // ------------------------------------------------------------
-// 2) Data schema for API-style response (id + slug)
+// 2) Data schema for API-style response (id-first)
 // ------------------------------------------------------------
-// id: stable identifier for systems/database relations
-// slug: human-readable identifier for URLs or client-side routing
+// id: stable identifier used for routing and system references
 export type LibraryApp = {
     id: string;
-    slug: string;
     name: string;
     category: string;
     status: string;
@@ -35,10 +36,6 @@ export type LibrarySection = {
     items: LibraryApp[];
 };
 
-export type LibraryAppsResponse = {
-    sections: LibrarySection[];
-};
-
 // ------------------------------------------------------------
 // 3) UI config data (tabs + status filter chips)
 // ------------------------------------------------------------
@@ -49,13 +46,12 @@ export const mainTabs: Array<{ key: MainTabKey; label: string }> = [
     { key: "tool", label: "Tool" },
 ];
 
-export const statusFilters: Array<{ key: StatusFilterKey; label: string }> = [
+export const badgeFilters: Array<{ key: BadgeFilterKey; label: string }> = [
     { key: "all", label: "All" },
-    { key: "production ready", label: "Production ready" },
-    { key: "in rollout", label: "In rollout" },
-    { key: "beta", label: "Beta" },
-    { key: "planned", label: "Planned" },
     { key: "new", label: "New" },
+    { key: "trending", label: "Trending" },
+    { key: "hot", label: "Hot" },
+    { key: "coming soon", label: "Coming Soon" },
 ];
 
 const ICON_BG_PRESETS = [
@@ -70,11 +66,6 @@ const ICON_BG_PRESETS = [
     "bg-slate-700",
 ] as const;
 
-function toTitleCase(value: string): string {
-    if (!value) return value;
-    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}
-
 function toSectionLabel(value: string): string {
     const normalized = normalizeText(value, "Tool");
     return normalized.toUpperCase();
@@ -86,14 +77,6 @@ function normalizeText(value: unknown, fallback = ""): string {
     return normalized || fallback;
 }
 
-export function slugifyAppName(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-}
-
 function stableHash(seed: string): number {
     let hash = 0;
     for (let index = 0; index < seed.length; index += 1) {
@@ -102,24 +85,23 @@ function stableHash(seed: string): number {
     return hash;
 }
 
-export function getStableIconBg(seed: string): string {
+function getStableIconBg(seed: string): string {
     const safeSeed = normalizeText(seed, "app");
-    return ICON_BG_PRESETS[stableHash(safeSeed) % ICON_BG_PRESETS.length];
+    const dayOfWeek = new Date().getDay(); // 0 (Sun) – 6 (Sat)
+    const index = (stableHash(safeSeed) + dayOfWeek) % ICON_BG_PRESETS.length;
+    return ICON_BG_PRESETS[index];
 }
 
 export function getAppStatus(app: LibraryAppApiItem): string {
-    if (app.badgeLabel?.toLowerCase() === "new") return "New";
     return app.isActive ? "Production ready" : "Planned";
 }
 
-function mapApiApp(item: LibraryAppApiItem, sectionId: string, index: number): LibraryApp {
+function mapApiApp(item: LibraryAppApiItem, sectionId: string): LibraryApp {
     const name = normalizeText(item.name, "Unknown app");
-    const slug = slugifyAppName(name) || `${sectionId}-app-${index + 1}`;
-    const id = normalizeText(item.appId, `${sectionId}:${slug}`);
+    const id = normalizeText(getAppItemId(item), `${sectionId}:${name.toLowerCase().replace(/\s+/g, "-")}`);
 
     return {
         id,
-        slug,
         name,
         category: normalizeText(item.category, "Tool"),
         status: getAppStatus(item),
@@ -143,8 +125,8 @@ export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySec
             title: toSectionLabel(groupBlock.group),
             items: [...(groupBlock.items ?? [])]
                 .sort((left, right) => left.sortOrder - right.sortOrder)
-                .map((item, index) =>
-                    mapApiApp(item, sectionId, index),
+                .map((item) =>
+                    mapApiApp(item, sectionId),
                 ),
         };
     });
@@ -153,7 +135,3 @@ export function mapAppsResponseToSections(response: GetAppsResponse): LibrarySec
     console.log(`[LibraryApps] ✓ Mapped to ${sections.length} sections with ${totalApps} total apps`);
     return sections;
 }
-
-export const libraryAppsResponse: LibraryAppsResponse = {
-    sections: [],
-};

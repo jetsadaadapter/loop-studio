@@ -5,7 +5,8 @@ import {
   LIBRARY_BLOCK_PRESETS,
 } from "@/components/library-page-blocks";
 import { LibraryAppsClient } from "@/app/library/apps/library-apps-client";
-import { getApps, ApiError } from "@/core/services/library.service";
+import { getApps } from "@/core/services/apps.service";
+import { ApiError } from "@/core/services/api";
 import {
   mapAppsResponseToSections,
   type LibrarySection,

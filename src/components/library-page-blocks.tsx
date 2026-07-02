@@ -15,7 +15,7 @@ import { LibraryGuidedCtaBlock } from "@/components/library-guided-cta-block";
 
 // ─── Block registry ──────────────────────────────────────────────────────────
 
-export type LibraryPageBlock =
+type LibraryPageBlock =
   | "hero-banner"
   | "category-ranking"
   | "integration-showcase"

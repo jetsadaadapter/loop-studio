@@ -1,16 +1,20 @@
 import Link from "next/link";
-import { slugifyAppName } from "@/app/library/apps/data";
 import { AppIcon } from "@/components/app-icon";
-import type { LibraryAppApiItem } from "@/core/interfaces/library.interface";
+import {
+  getAppItemId,
+  type LibraryAppApiItem,
+} from "@/core/interfaces/apps.interface";
 
 type RelatedAppListItemProps = {
   item: LibraryAppApiItem;
 };
 
 export function RelatedAppListItem({ item }: RelatedAppListItemProps) {
+  const appId = getAppItemId(item);
+
   return (
     <Link
-      href={`/apps/${slugifyAppName(item.name)}`}
+      href={`/apps/${appId}`}
       className="flex items-start gap-3 rounded-2xl p-1.5 transition hover:bg-slate-100/80"
     >
       <AppIcon
@@ -29,7 +33,9 @@ export function RelatedAppListItem({ item }: RelatedAppListItemProps) {
           {item.name}
         </p>
         <p className="mt-0.5 truncate text-xs text-slate-500">
-          {item.category}
+          {typeof item.category === "string"
+            ? item.category
+            : item.category?.name || ""}
         </p>
       </div>
     </Link>
