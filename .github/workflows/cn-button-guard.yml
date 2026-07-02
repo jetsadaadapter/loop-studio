@@ -1,23 +1,15 @@
 name: cn / Button guard
 
-# Fires only when the highest-blast-radius UI files change. cn() (src/lib/utils.ts)
-# feeds every Button variant and ~48 UI modules; the shared primitives under
-# src/components/ui/** are imported everywhere. A change here must not silently
-# alter class output or button rendering, so we run the unit safety net plus the
-# Button visual-regression baseline before the PR can merge.
+# Runs on EVERY pull request so the required `guard` context always reports.
+# The expensive unit/visual jobs are gated to PRs that actually touch the
+# high-blast-radius files (cn() feeds every Button variant + ~48 UI modules).
+# This avoids the classic required-check deadlock: a path-filtered workflow
+# that never triggers leaves a required check "Expected" forever and blocks
+# unrelated PRs from merging.
 on:
-  pull_request:
-    paths:
-      - "src/lib/utils.ts"
-      - "src/components/ui/**"
-      - "tests/visual/**"
-      - "playwright.config.ts"
-      - "vitest.config.ts"
-      - "vitest.setup.ts"
-      - ".github/workflows/cn-button-guard.yml"
+  pull_request: {}
   workflow_dispatch: {}
 
-# A newer push to the same PR cancels the in-flight run.
 concurrency:
   group: cn-button-guard-${{ github.ref }}
   cancel-in-progress: true
@@ -26,28 +18,54 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect guarded changes
+    runs-on: ubuntu-latest
+    outputs:
+      guarded: ${{ steps.filter.outputs.guarded }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        name: Did this PR touch guarded paths?
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          # workflow_dispatch has no PR SHAs — treat as guarded so a manual run does real work.
+          if [ -z "$base" ] || [ -z "$head" ]; then
+            echo "guarded=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "$base" "$head" | grep -qE '^(src/lib/utils\.ts|src/components/ui/|tests/visual/|playwright\.config\.ts|vitest\.config\.ts|vitest\.setup\.ts|\.github/workflows/cn-button-guard\.yml)'; then
+            echo "guarded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "guarded=false" >> "$GITHUB_OUTPUT"
+          fi
+
   unit:
     name: Unit safety net (cn + Button + utils)
+    needs: changes
+    if: needs.changes.outputs.guarded == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           # >=22: several @scalar/* deps require Node 22 (EBADENGINE on 20), and
-          # the committed package-lock.json is resolved under Node 22 / npm 11.
+          # the committed package-lock.json is resolved under Node 22 / npm 10.
           node-version: "22.x"
           cache: "npm"
-
       - name: Install dependencies
         run: npm ci
-
       - name: Run Vitest suite
         run: npm test
 
   visual:
     name: Visual regression (Button gallery)
+    needs: changes
+    if: needs.changes.outputs.guarded == 'true'
     runs-on: ubuntu-latest
     # Same image used to generate the *-chromium-linux.png baselines, so font
     # rendering and the bundled Chromium match the committed screenshots exactly.
@@ -55,20 +73,13 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.61.1-noble
     env:
-      # playwright.config.ts already reads CI to disable reuseExistingServer and
-      # enable forbidOnly; GitHub sets CI=true automatically, but we make it explicit.
       CI: "true"
     steps:
       - uses: actions/checkout@v4
-
       - name: Install dependencies
         run: npm ci
-
       - name: Run Button gallery visual regression
-        # webServer in playwright.config.ts boots `npm run dev` (NODE_ENV=development),
-        # which is required because /dev/component-gallery is gated to non-production.
         run: npx playwright test tests/visual/
-
       - name: Upload diff report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -79,3 +90,26 @@ jobs:
             test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  # Single always-reporting context to require in branch protection. Passes when
+  # the guarded jobs succeeded OR were skipped (PR didn't touch guarded paths);
+  # fails only when a guarded job actually failed or was cancelled.
+  guard:
+    name: guard
+    needs: [changes, unit, visual]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate guarded job results
+        run: |
+          echo "changes=${{ needs.changes.result }} guarded=${{ needs.changes.outputs.guarded }}"
+          echo "unit=${{ needs.unit.result }} visual=${{ needs.visual.result }}"
+          if [ "${{ needs.changes.result }}" != "success" ]; then
+            echo "::error::change-detection job did not succeed"; exit 1
+          fi
+          for r in "${{ needs.unit.result }}" "${{ needs.visual.result }}"; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::a guarded job failed or was cancelled"; exit 1
+            fi
+          done
+          echo "guard OK"
