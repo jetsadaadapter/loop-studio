@@ -212,7 +212,7 @@ export default function ManageOverviewPage() {
             hasAccessToModels={hasAccessToModels}
           />
         ) : (
-          <div className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-brand/15 via-rose-100 to-amber-50 p-6">
+          <div className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-brand/15 via-rose-100 to-amber-50 p-6 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.22)]">
             <p className="text-sm font-semibold text-slate-800">
               Your Credit Balance
             </p>

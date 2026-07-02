@@ -80,7 +80,7 @@ export function OverviewStatCards({
           {cards.map(({ label, pct: value, sub, icon: Icon, gradient }) => (
             <div
               key={label}
-              className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} p-6`}
+              className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} p-6 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.22)]`}
             >
               <div className="flex items-start justify-between">
                 <p className="max-w-[8rem] text-sm font-semibold leading-snug text-slate-800">

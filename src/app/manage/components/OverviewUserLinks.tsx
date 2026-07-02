@@ -45,7 +45,7 @@ export function OverviewUserLinks() {
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {LINKS.map(({ href, title, desc, icon: Icon, chip }) => (
         <Link key={href} href={href} className="group block outline-none">
-          <div className="flex h-full flex-col gap-2.5 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+          <div className="flex h-full flex-col gap-2.5 rounded-2xl bg-white p-4 ring-1 ring-slate-100 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-18px_rgba(15,23,42,0.24)]">
             <div className="flex items-center justify-between">
               <span className={`flex size-9 items-center justify-center rounded-xl ${chip}`}>
                 <Icon className="size-4" />
