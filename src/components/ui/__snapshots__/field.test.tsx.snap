@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Field > matches the default snapshot 1`] = `
+<div
+  class="group/field flex w-full gap-2 data-[invalid=true]:text-destructive flex-col *:w-full [&>.sr-only]:w-auto"
+  data-orientation="vertical"
+  data-slot="field"
+  role="group"
+>
+  x
+</div>
+`;
+
+exports[`FieldError > matches the multi-error list snapshot 1`] = `
+<div
+  class="text-xs leading-normal font-normal text-destructive"
+  data-slot="field-error"
+  role="alert"
+>
+  <ul
+    class="ml-4 flex list-disc flex-col gap-1"
+  >
+    <li>
+      A
+    </li>
+    <li>
+      B
+    </li>
+  </ul>
+</div>
+`;
