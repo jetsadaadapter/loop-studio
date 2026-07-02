@@ -118,3 +118,11 @@ pnpm-debug.log*
 # -------------------------------------------------------
 *.bak
 *.orig
+
+# -------------------------------------------------------
+# Playwright (keep committed baselines under *-snapshots/)
+# -------------------------------------------------------
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

@@ -6,6 +6,10 @@ const PUBLIC_PATHS = [
     "/callback",
     "/api/auth",
     "/docs/openapi.json",
+    // Dev-only component gallery used by Playwright visual-regression tests.
+    // Never public in production: the entry is only added when not prod, and the
+    // page itself also calls notFound() under NODE_ENV === "production".
+    ...(process.env.NODE_ENV !== "production" ? ["/dev"] : []),
 ];
 
 // Static asset patterns — skip middleware entirely
