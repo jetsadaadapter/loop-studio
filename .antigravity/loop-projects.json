@@ -9,7 +9,7 @@
         "id": "task-1783102216867",
         "projectId": "app-store-default",
         "name": "add dark theme",
-        "status": "pending",
+        "status": "failed",
         "currentStage": "OBSERVE",
         "targetFiles": [
           "src/page"
@@ -76,6 +76,25 @@
             "senderName": "Somsri (Developer)",
             "content": "สวัสดีค่ะ! ยินดีต้อนรับเข้าสู่งาน 'add dark theme' ค่ะ ตอนนี้เป้าหมายหลักคือไฟล์ `src/page` ท่านต้องการปรับแต่งหน้าเพจหรือแก้ไขธีมสีส่วนใด สามารถบอกความต้องการเพื่อให้ฉันช่วยเขียนและเช็คผลงานให้ได้เลยค่ะ!",
             "timestamp": "2026-07-04T08:56:15.000Z"
+          },
+          {
+            "id": "msg-u-1783229246111",
+            "role": "user",
+            "senderName": "User",
+            "content": "สวัสดี",
+            "timestamp": "2026-07-05T05:27:26.111Z"
+          },
+          {
+            "id": "msg-a-1783229246111",
+            "role": "assistant",
+            "senderName": "Somsri (Developer)",
+            "content": "สวัสดีค่ะ! ฉันพร้อมแล้วค่ะสำหรับการปรับปรุงโปรเจกต์ \"add dark theme\"\n\nโปรดบอกความต้องการของคุณได้เลยค่ะ ว่าต้องการให้ฉันเพิ่มธีมมืด (dark theme) อย่างไร หรือแก้ไขปรับปรุงส่วนใดในไฟล์ `src/page` ค่ะ?",
+            "timestamp": "2026-07-05T05:27:26.111Z",
+            "tokensUsed": {
+              "input": 427,
+              "output": 60,
+              "cost": 0.0003935
+            }
           }
         ],
         "activities": [
@@ -134,18 +153,68 @@
             "action": "command_execution",
             "message": "Action lint finished with exit code 1",
             "timestamp": "2026-07-04T09:07:09.800Z"
+          },
+          {
+            "id": "act-1783189098445",
+            "taskId": "task-1783102216867",
+            "stage": "OBSERVE",
+            "action": "command_execution",
+            "message": "Action vitest finished with exit code 0",
+            "timestamp": "2026-07-04T18:18:18.445Z"
+          },
+          {
+            "id": "act-1783189122953",
+            "taskId": "task-1783102216867",
+            "stage": "OBSERVE",
+            "action": "command_execution",
+            "message": "Action playwright finished with exit code 0",
+            "timestamp": "2026-07-04T18:18:42.953Z"
+          },
+          {
+            "id": "act-1783189139558",
+            "taskId": "task-1783102216867",
+            "stage": "AUTOMATE",
+            "action": "command_execution",
+            "message": "Action lint finished with exit code 0",
+            "timestamp": "2026-07-04T18:18:59.558Z"
+          },
+          {
+            "id": "act-1783189155473",
+            "taskId": "task-1783102216867",
+            "stage": "AUTOMATE",
+            "action": "command_execution",
+            "message": "Action build finished with exit code 1",
+            "timestamp": "2026-07-04T18:19:15.473Z"
+          },
+          {
+            "id": "act-1783189188421",
+            "taskId": "task-1783102216867",
+            "stage": "AUTOMATE",
+            "action": "command_execution",
+            "message": "Action build finished with exit code 1",
+            "timestamp": "2026-07-04T18:19:48.421Z"
+          },
+          {
+            "id": "act-chat-1783229246111",
+            "taskId": "task-1783102216867",
+            "agentId": "agent-somsri",
+            "agentName": "Somsri (Developer)",
+            "stage": "BUILD",
+            "action": "chat_edit",
+            "message": "Replied in chat",
+            "timestamp": "2026-07-05T05:27:26.111Z"
           }
         ],
         "tokensUsed": {
-          "input": 0,
-          "output": 0,
-          "cost": 0
+          "input": 427,
+          "output": 60,
+          "cost": 0.0003935
         },
         "createdAt": "2026-07-03T18:10:16.867Z",
-        "updatedAt": "2026-07-04T15:13:25.593Z",
+        "updatedAt": "2026-07-05T05:27:26.111Z",
         "kanbanColumn": "backlog",
         "storyPoints": 1,
-        "testRunner": "vitest",
+        "testRunner": "playwright",
         "sprintId": null
       }
     ],
