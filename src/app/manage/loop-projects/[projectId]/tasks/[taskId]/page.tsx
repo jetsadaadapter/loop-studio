@@ -129,6 +129,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                 currentStage={task.currentStage}
                 activeStage={activeStage}
                 onSelectStage={setActiveStage}
+                status={task.status}
             />
 
             {/* Dual Pane Workspace */}

@@ -3,12 +3,13 @@
 import React from "react";
 import { Check, ClipboardList, Code, CheckSquare, ShieldCheck, Eye, GraduationCap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { TaskStage } from "@/core/interfaces/loop-projects.interface";
+import type { TaskStage, TaskStatus } from "@/core/interfaces/loop-projects.interface";
 
 interface TimelineStagesProps {
     currentStage: TaskStage;
     activeStage: TaskStage;
     onSelectStage: (stage: TaskStage) => void;
+    status?: TaskStatus;
 }
 
 const STAGES: { stage: TaskStage; label: string; icon: LucideIcon }[] = [
@@ -20,17 +21,20 @@ const STAGES: { stage: TaskStage; label: string; icon: LucideIcon }[] = [
     { stage: "LEARN", label: "Learn", icon: GraduationCap },
 ];
 
-export function TimelineStages({ currentStage, activeStage, onSelectStage }: TimelineStagesProps) {
+export function TimelineStages({ currentStage, activeStage, onSelectStage, status }: TimelineStagesProps) {
     const getStageIndex = (s: TaskStage) => STAGES.findIndex(item => item.stage === s);
     const currentIndex = getStageIndex(currentStage);
+    // When the whole task loop is finished, every stage (including the final LEARN
+    // stage, which otherwise stays "Active") should render as completed.
+    const isTaskComplete = status === "completed";
 
     return (
         <div className="w-full bg-slate-50 border border-slate-200/60 rounded-xl p-4 select-none">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {STAGES.map((item, idx) => {
                     const isActive = activeStage === item.stage;
-                    const isCompleted = idx < currentIndex;
-                    const isCurrent = idx === currentIndex;
+                    const isCompleted = isTaskComplete || idx < currentIndex;
+                    const isCurrent = !isTaskComplete && idx === currentIndex;
 
                     let statusClass = "border-slate-200 bg-white text-slate-400";
                     if (isCompleted) {
