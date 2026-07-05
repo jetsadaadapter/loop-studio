@@ -12,9 +12,9 @@ Command: npm run build
 - Environments: .env.local, .env.production
 
   Creating an optimized production build ...
-✓ Compiled successfully in 7.7s
+✓ Compiled successfully in 7.9s
   Running TypeScript ...
-  Finished TypeScript in 6.2s ...
+  Finished TypeScript in 6.4s ...
   Collecting page data using 9 workers ...
   Generating static pages using 9 workers (0/35) ...
 Each child in a list should have a unique "key" prop.
@@ -35,9 +35,6 @@ Each child in a list should have a unique "key" prop.
 Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
 Each child in a list should have a unique "key" prop.
 
-Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
-Each child in a list should have a unique "key" prop.
-
 Check the top-level render call using <meta>. See https://react.dev/link/warning-keys for more information.
 Each child in a list should have a unique "key" prop.
 
@@ -49,6 +46,9 @@ Each child in a list should have a unique "key" prop.
 
 Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
 Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Each child in a list should have a unique "key" prop.
+
+Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
 Each child in a list should have a unique "key" prop.
 
 Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
@@ -77,6 +77,7 @@ Check the top-level render call using <__next_viewport_boundary__>. See https://
 Each child in a list should have a unique "key" prop.
 
 Check the top-level render call using <__next_viewport_boundary__>. See https://react.dev/link/warning-keys for more information.
+  Generating static pages using 9 workers (17/35) 
 TypeError: Cannot read properties of null (reading 'useContext')
     at ignore-listed frames {
   digest: '651637134'

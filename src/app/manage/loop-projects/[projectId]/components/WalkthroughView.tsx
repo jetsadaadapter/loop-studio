@@ -76,7 +76,7 @@ export function WalkthroughView({ projectId, tasks, onRefresh }: WalkthroughView
                 </Link>
             </div>
 
-            <TimelineStages currentStage={task.currentStage} activeStage={activeStage} onSelectStage={setActiveStage} />
+            <TimelineStages currentStage={task.currentStage} activeStage={activeStage} onSelectStage={setActiveStage} status={task.status} />
 
             <StageWorkspace
                 projectId={projectId}
