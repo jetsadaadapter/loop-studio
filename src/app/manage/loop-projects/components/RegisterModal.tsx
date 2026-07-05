@@ -132,14 +132,14 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                         <button
                             type="button"
                             onClick={onClose}
-                            className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                            className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
+                            className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
                         >
                             {loading && <Loader2 className="size-3.5 animate-spin" />}
                             {loading ? "Registering..." : "Register"}

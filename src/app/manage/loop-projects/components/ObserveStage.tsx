@@ -21,7 +21,7 @@ export function ObserveStage({ projectId, taskId, onTriggerLog, onAdvance }: Obs
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-lg bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 Code Committed/Pushed & Advance to Learn
             </button>

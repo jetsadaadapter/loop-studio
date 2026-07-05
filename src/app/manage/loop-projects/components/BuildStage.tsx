@@ -21,7 +21,7 @@ export function BuildStage({ buildPrompt, copied, onCopyPrompt, onAdvance }: Bui
 
                 <button
                     onClick={onCopyPrompt}
-                    className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-3xs"
+                    className="flex items-center gap-1 rounded-sm border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-3xs"
                 >
                     {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
                     {copied ? "Copied!" : "Copy prompt template"}
@@ -40,7 +40,7 @@ export function BuildStage({ buildPrompt, copied, onCopyPrompt, onAdvance }: Bui
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-lg bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 Code Written & Advance to Verify
             </button>

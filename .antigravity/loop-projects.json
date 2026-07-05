@@ -211,11 +211,13 @@
           "cost": 0.0003935
         },
         "createdAt": "2026-07-03T18:10:16.867Z",
-        "updatedAt": "2026-07-05T05:27:26.111Z",
+        "updatedAt": "2026-07-05T14:30:12.969Z",
         "kanbanColumn": "backlog",
         "storyPoints": 1,
         "testRunner": "playwright",
-        "sprintId": null
+        "sprintId": "sprint-1",
+        "startDate": "2026-07-06",
+        "endDate": "2026-07-06"
       }
     ],
     "createdAt": "2026-07-03T17:29:32.436Z",
@@ -731,7 +733,7 @@
           "cost": 0.030426500000000002
         },
         "createdAt": "2026-07-04T09:22:54.679Z",
-        "updatedAt": "2026-07-04T18:15:45.549Z",
+        "updatedAt": "2026-07-05T12:10:10.370Z",
         "testRunner": "vitest",
         "startDate": "",
         "endDate": "",

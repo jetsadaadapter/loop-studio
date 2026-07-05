@@ -62,7 +62,7 @@ export function LearnStage({ retroAnswers, onRetroAnswersChange, onSubmit }: Lea
 
             <button
                 type="submit"
-                className="w-full rounded-lg bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 Submit Retro & Complete Task Loop
             </button>

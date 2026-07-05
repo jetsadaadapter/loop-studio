@@ -13,7 +13,7 @@ export function AutomateStage({ onRunAction, onAdvance }: AutomateStageProps) {
         <div className="space-y-4">
             <div className="flex items-center gap-2">
                 <ShieldCheck className="size-5 text-indigo-600" />
-                <h3 className="font-semibold text-slate-800 text-sm">Stage 4 (Automate): CI Guard Simulation</h3>
+                <h3 className="font-semibold text-slate-800 text-sm">Stage 4 (Automate): CI Guard (Lint & Build)</h3>
             </div>
 
             <ul className="space-y-2 text-xs font-sans text-slate-600">
@@ -34,13 +34,13 @@ export function AutomateStage({ onRunAction, onAdvance }: AutomateStageProps) {
             <div className="flex gap-2">
                 <button
                     onClick={() => onRunAction("lint")}
-                    className="flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    className="flex-1 rounded-sm border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                     Run Lint Check
                 </button>
                 <button
                     onClick={() => onRunAction("build")}
-                    className="flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    className="flex-1 rounded-sm border border-slate-200 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                     Run Typecheck & Build
                 </button>
@@ -48,7 +48,7 @@ export function AutomateStage({ onRunAction, onAdvance }: AutomateStageProps) {
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-lg bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 CI Tests Passed & Advance to Observe
             </button>

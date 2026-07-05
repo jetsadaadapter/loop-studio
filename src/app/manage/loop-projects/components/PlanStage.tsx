@@ -50,7 +50,7 @@ export function PlanStage({ task, onAdvance }: PlanStageProps) {
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-lg bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 Approve Plan & Advance to Build
             </button>

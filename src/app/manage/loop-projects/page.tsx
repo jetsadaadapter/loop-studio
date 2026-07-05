@@ -87,14 +87,14 @@ export default function LoopProjectsDashboard() {
             />
             <button
                 onClick={() => setIsRegisterOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs"
+                className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs"
             >
                 <FolderPlus className="size-4 text-slate-500" />
                 Register Existing
             </button>
             <button
                 onClick={() => setIsBootstrapOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 <Plus className="size-4" />
                 Bootstrap Project
@@ -112,7 +112,7 @@ export default function LoopProjectsDashboard() {
                 
                 <Link
                     href="/manage/loop-projects/agents"
-                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs self-start md:self-auto"
+                    className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs self-start md:self-auto"
                 >
                     <Users className="size-4 text-indigo-600" />
                     AI Developer Team

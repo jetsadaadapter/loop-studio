@@ -2,17 +2,17 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Plus, HelpCircle, AlertTriangle } from "lucide-react";
+import { Plus, HelpCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { CreateTaskModal } from "../components/CreateTaskModal";
-import { KanbanBoard } from "../components/KanbanBoard";
-import { TimelineView } from "../components/TimelineView";
-import { SprintPlanner } from "../components/SprintPlanner";
-import { GroupedList } from "../components/GroupedList";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
-import { TaskListTable } from "./components/TaskListTable";
+import { OverviewView } from "./components/OverviewView";
+import { PlanningView } from "./components/PlanningView";
+import { TaskView } from "./components/TaskView";
+import { WalkthroughView } from "./components/WalkthroughView";
+import { SimulationView } from "./components/SimulationView";
 import type { LoopProject, LoopTask } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectWorkspaceProps {
@@ -31,17 +31,13 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const [statusFilter, setStatusFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("list");
+    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("overview");
 
+    // Optimistic local update; the view components persist edits via their own APIs.
     const handleUpdateTaskField = (taskId: string, fields: Partial<LoopTask>) => {
-        if (!project) return;
-        const updatedTasks = project.tasks.map((t) => {
-            if (t.id === taskId) {
-                return { ...t, ...fields };
-            }
-            return t;
-        });
-        setProject({ ...project, tasks: updatedTasks });
+        setProject((prev) =>
+            prev ? { ...prev, tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...fields } : t)) } : prev,
+        );
     };
 
     const loadData = async () => {
@@ -49,15 +45,11 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
         try {
             const pRes = await fetch(`/api/manage/loop-projects/${projectId}`);
             const pData = await pRes.json();
-            if (pData.success) {
-                setProject(pData.data);
-            }
+            if (pData.success) setProject(pData.data);
 
             const gRes = await fetch(`/api/manage/loop-projects/${projectId}/git-info`);
             const gData = await gRes.json();
-            if (gData.success) {
-                setGitInfo(gData.data);
-            }
+            if (gData.success) setGitInfo(gData.data);
         } catch (e) {
             console.error("Failed to load workspace data:", e);
         } finally {
@@ -77,14 +69,22 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                 <AlertTriangle className="size-8 text-red-500 mb-2" />
                 <h3 className="text-sm font-semibold text-slate-800">Project Not Found</h3>
                 <p className="text-xs text-slate-500 font-sans mt-1">This workspace path might have been unregistered or moved.</p>
-                <Link href="/manage/loop-projects" className="mt-4 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90">
+                <Link href="/manage/loop-projects" className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90">
                     Back to Dashboard
                 </Link>
             </div>
         );
     }
 
-    const tasks = project?.tasks || [];
+    if (!project) {
+        return (
+            <div className="flex h-60 items-center justify-center gap-2 text-xs text-slate-500">
+                <Loader2 className="size-4 animate-spin" /> Loading workspace...
+            </div>
+        );
+    }
+
+    const tasks = project.tasks || [];
     const totalCost = tasks.reduce((acc, t) => acc + (t.tokensUsed?.cost || 0), 0);
 
     const filteredTasks = tasks.filter((t) => {
@@ -106,23 +106,32 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                 { value: "failed", label: "Failed" },
             ],
             onChange: (val: string) => setStatusFilter(val),
-        }
+        },
     ];
 
     const toolbarTrailing = (
         <div className="flex items-center gap-2">
-            <ManageRefreshButton
-                isLoading={loading}
-                isRefreshing={loading}
-                onRefresh={loadData}
-                title="Refresh Tasks"
-            />
+            <ManageRefreshButton isLoading={loading} isRefreshing={loading} onRefresh={loadData} title="Refresh Tasks" />
             <button
                 onClick={() => setIsCreateOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
                 <Plus className="size-4" />
                 Create Task
+            </button>
+        </div>
+    );
+
+    const emptyTasks = (
+        <div className="flex flex-col h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
+            <HelpCircle className="size-8 text-slate-400 mb-2" />
+            <h3 className="text-sm font-semibold text-slate-800">No tasks yet</h3>
+            <p className="text-xs text-slate-500 font-sans mt-1 max-w-xs">Create a task to trace dependencies and let the AI team implement and verify changes.</p>
+            <button
+                onClick={() => setIsCreateOpen(true)}
+                className="mt-4 flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+            >
+                <Plus className="size-4" /> Create Task
             </button>
         </div>
     );
@@ -133,59 +142,37 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
 
             <ViewTabs viewTab={viewTab} onChange={setViewTab} />
 
-            {viewTab === "list" && (
-                <ManagerToolbar
-                    searchValue={searchValue}
-                    onSearchChange={setSearchValue}
-                    searchPlaceholder="Search tasks..."
-                    filters={filters}
-                    trailing={toolbarTrailing}
-                />
+            {viewTab === "overview" && (
+                <OverviewView projectId={projectId} project={project} tasks={tasks} gitInfo={gitInfo} />
             )}
 
-            {filteredTasks.length === 0 ? (
-                <div className="flex flex-col h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
-                    <HelpCircle className="size-8 text-slate-400 mb-2" />
-                    <h3 className="text-sm font-semibold text-slate-800">No tasks found</h3>
-                    <p className="text-xs text-slate-500 font-sans mt-1 max-w-xs">Create a new task to trace dependencies and let the AI team implement and verify changes.</p>
-                </div>
-            ) : (
+            {viewTab === "simulation" && <SimulationView projectId={projectId} />}
+
+            {viewTab === "task" && (
                 <>
-                    {viewTab === "list" && (
-                        <TaskListTable projectId={projectId} tasks={filteredTasks} />
-                    )}
-
-                    {viewTab === "kanban" && (
-                        <KanbanBoard
-                            projectId={projectId}
-                            tasks={filteredTasks}
-                            onUpdateTask={handleUpdateTaskField}
-                        />
-                    )}
-
-                    {viewTab === "timeline" && (
-                        <TimelineView
-                            projectId={projectId}
-                            tasks={filteredTasks}
-                            onUpdateTask={handleUpdateTaskField}
-                        />
-                    )}
-
-                    {viewTab === "sprint" && (
-                        <SprintPlanner
-                            projectId={projectId}
-                            tasks={filteredTasks}
-                            onUpdateTask={handleUpdateTaskField}
-                        />
-                    )}
-
-                    {viewTab === "grouped" && (
-                        <GroupedList
-                            projectId={projectId}
-                            tasks={filteredTasks}
-                        />
+                    <ManagerToolbar
+                        searchValue={searchValue}
+                        onSearchChange={setSearchValue}
+                        searchPlaceholder="Search tasks..."
+                        filters={filters}
+                        trailing={toolbarTrailing}
+                    />
+                    {filteredTasks.length === 0 ? emptyTasks : (
+                        <TaskView projectId={projectId} tasks={filteredTasks} onUpdateTask={handleUpdateTaskField} />
                     )}
                 </>
+            )}
+
+            {viewTab === "planning" && (
+                tasks.length === 0 ? emptyTasks : (
+                    <PlanningView projectId={projectId} tasks={tasks} onUpdateTask={handleUpdateTaskField} />
+                )
+            )}
+
+            {viewTab === "walkthrough" && (
+                tasks.length === 0 ? emptyTasks : (
+                    <WalkthroughView projectId={projectId} tasks={tasks} onRefresh={loadData} />
+                )
             )}
 
             <CreateTaskModal

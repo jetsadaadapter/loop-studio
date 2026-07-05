@@ -178,13 +178,13 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                                className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="h-9 cursor-pointer rounded-lg bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90"
+                                className="h-9 cursor-pointer rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90"
                             >
                                 Generate Project
                             </button>
@@ -209,7 +209,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                                     onClose();
                                     onSuccess();
                                 }}
-                                className="h-9 cursor-pointer rounded-lg bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90"
+                                className="h-9 cursor-pointer rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90"
                             >
                                 Close Console
                             </button>

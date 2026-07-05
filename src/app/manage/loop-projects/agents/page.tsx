@@ -147,7 +147,7 @@ export default function AiTeamSpace() {
                                         skills: agent.skills
                                     })}
                                     disabled={savingId === agent.id}
-                                    className="flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60 cursor-pointer"
+                                    className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60 cursor-pointer"
                                 >
                                     <Save className="size-3.5" />
                                     {savingId === agent.id ? "Saving..." : "Save Config"}

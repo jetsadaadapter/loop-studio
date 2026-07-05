@@ -83,7 +83,7 @@ export function SprintPlanner({ projectId, tasks, onUpdateTask }: SprintPlannerP
                             </Select>
                             <button
                                 onClick={() => handleSavePoints(t.id)}
-                                className="rounded-lg bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-brand/90 cursor-pointer"
+                                className="rounded-sm bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-brand/90 cursor-pointer"
                             >
                                 OK
                             </button>

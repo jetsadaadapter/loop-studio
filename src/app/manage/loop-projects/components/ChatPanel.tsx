@@ -222,7 +222,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                     <button
                         type="button"
                         onClick={cancelBridge}
-                        className="shrink-0 rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
+                        className="shrink-0 rounded-sm border border-indigo-200 bg-white px-2 py-1 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -274,7 +274,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                             type="button"
                             onClick={handleCollaborate}
                             disabled={isDisabled || !inputValue.trim()}
-                            className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
+                            className="flex items-center gap-1.5 rounded-sm border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
                             title="Start Multi-Agent Team execution loop in background"
                         >
                             <Users className="size-3.5" />
@@ -284,7 +284,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                         <button
                             type="submit"
                             disabled={isDisabled || !inputValue.trim()}
-                            className="flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
+                            className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
                         >
                             <Send className="size-3.5" />
                             {loading ? "Sending..." : "Send"}

@@ -158,7 +158,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                                 type="button"
                                 onClick={handlePush}
                                 disabled={loading}
-                                className="flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
+                                className="flex items-center gap-1 rounded-sm border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
                             >
                                 <ArrowUpCircle className="size-3.5" />
                                 Push to Remote
@@ -166,7 +166,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                             <button
                                 type="submit"
                                 disabled={loading || !commitMessage.trim()}
-                                className="flex items-center gap-1 rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
+                                className="flex items-center gap-1 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
                             >
                                 <GitCommit className="size-3.5" />
                                 Commit All

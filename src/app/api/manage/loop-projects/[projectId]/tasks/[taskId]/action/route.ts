@@ -68,9 +68,10 @@ export async function POST(
         } else if (type === "build") {
             cmd = "npm";
             args = ["run", "build"];
-        } else if (type === "deploy") {
-            cmd = "echo";
-            args = ["'[Deploy] Simulation: Running deployment script...', 'SUCCESS: Deployed to staging server!'"];
+        }
+
+        if (!cmd) {
+            return NextResponse.json({ success: false, error: `Unknown action type: ${type}` }, { status: 400 });
         }
 
         // Initialize log file

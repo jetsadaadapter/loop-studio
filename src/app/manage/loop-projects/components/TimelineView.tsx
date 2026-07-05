@@ -114,7 +114,7 @@ export function TimelineView({ projectId, tasks, onUpdateTask }: TimelineViewPro
                                         />
                                         <button
                                             onClick={() => handleSaveDates(task.id)}
-                                            className="flex items-center justify-center gap-1 rounded-lg bg-brand px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-brand/90 cursor-pointer"
+                                            className="flex items-center justify-center gap-1 rounded-sm bg-brand px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-brand/90 cursor-pointer"
                                         >
                                             <Save className="size-3" /> Save
                                         </button>

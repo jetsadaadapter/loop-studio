@@ -86,7 +86,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
         return (
             <div className="flex flex-col h-60 items-center justify-center text-center p-4">
                 <h3 className="text-sm font-semibold text-slate-800">Task Not Found</h3>
-                <Link href={`/manage/loop-projects/${projectId}`} className="mt-4 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90 transition-colors">
+                <Link href={`/manage/loop-projects/${projectId}`} className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90 transition-colors">
                     Back to Workspace
                 </Link>
             </div>
