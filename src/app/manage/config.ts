@@ -116,6 +116,15 @@ export const MANAGE_NAV_ITEMS: Array<ManageRouteMeta> = [
         },
         crumb: { th: "Users", en: "Users" },
     },
+    {
+        href: "/manage/loop-projects",
+        title: { th: "Loop DevStudio", en: "Loop DevStudio" },
+        subtitle: {
+            th: "Manage projects and tasks with AI Team",
+            en: "Manage projects and tasks with AI Team",
+        },
+        crumb: { th: "Loop DevStudio", en: "Loop DevStudio" },
+    },
 ];
 
 export const MANAGE_FUTURE_NAV_ITEMS: Array<ManageFutureNavItem> = [

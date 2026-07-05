@@ -1,0 +1,59 @@
+[Bootstrap] Starting project generation in /Users/jetsada/AdapterWorks/2026...
+[Bootstrap] Command: npx -y create-next-app@latest my-project --typescript --tailwind --eslint --app --src-dir --import-alias @/* --use-npm
+
+
+Using defaults for unprovided options:
+
+  --ts                    TypeScript (use --js for JavaScript)
+  --no-react-compiler     No React Compiler (use --react-compiler for React Compiler)
+  --agents-md             AGENTS.md (use --no-agents-md for No AGENTS.md)
+
+Creating a new Next.js app in /Users/jetsada/AdapterWorks/2026/my-project.
+
+Using npm.
+
+Initializing project with template: app-tw 
+
+
+Installing dependencies:
+- next
+- react
+- react-dom
+
+Installing devDependencies:
+- @tailwindcss/postcss
+- @types/node
+- @types/react
+- @types/react-dom
+- eslint
+- eslint-config-next
+- tailwindcss
+- typescript
+
+
+added 357 packages, and audited 358 packages in 49s
+
+146 packages are looking for funding
+  run `npm fund` for details
+
+2 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm warn allow-scripts 2 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   unrs-resolver@1.12.2 (postinstall: node postinstall.js)
+npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+
+Generating route types...
+✓ Types generated successfully
+
+Initialized a git repository.
+
+Success! Created my-project at /Users/jetsada/AdapterWorks/2026/my-project
+
+
+[Bootstrap] SUCCESS: Project created at /Users/jetsada/AdapterWorks/2026/my-project!

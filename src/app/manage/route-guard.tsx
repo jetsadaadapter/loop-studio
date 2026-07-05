@@ -3,8 +3,21 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getManageMenus } from "@/core/services/menus.service";
+import { getUserProfile } from "@/core/services/users.service";
+import type { UserRole } from "@/core/interfaces/auth.interface";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { customToast } from "@/components/ui/sonner";
+
+// Loop DevStudio can run shell/git/npm commands and write files on disk, so it is
+// gated to elevated roles rather than every authenticated manage user.
+const LOOP_STUDIO_ROLES: UserRole[] = ["system-admin", "admin", "developer"];
+
+function isLoopStudioPath(pathname: string): boolean {
+  return (
+    pathname === "/manage/loop-projects" ||
+    pathname.startsWith("/manage/loop-projects/")
+  );
+}
 
 export function ManageRouteGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -21,13 +34,37 @@ export function ManageRouteGuard({ children }: { children: ReactNode }) {
       setForbidden(false);
     });
 
+    // Loop DevStudio is role-gated (elevated roles only), not menu-driven.
+    if (isLoopStudioPath(pathname)) {
+      getUserProfile()
+        .then((profile) => {
+          if (cancelled) return;
+          const allowed = profile.roles?.some((r) => LOOP_STUDIO_ROLES.includes(r)) ?? false;
+          if (allowed) {
+            setChecking(false);
+          } else {
+            setForbidden(true);
+            customToast.error("You do not have permission to access Loop DevStudio.");
+            router.replace("/manage");
+          }
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          console.error("Loop DevStudio role check failed:", err);
+          setForbidden(true);
+          router.replace("/manage");
+        });
+      return;
+    }
+
     getManageMenus()
       .then((menus) => {
         if (cancelled) return;
 
         // Base paths that are always public / allowed
         const alwaysAllowed = ["/manage", "/", "/dashboard", "/projects", "/docs"];
-        if (alwaysAllowed.includes(pathname)) {
+        const isPublicPath = alwaysAllowed.includes(pathname);
+        if (isPublicPath) {
           setChecking(false);
           return;
         }

@@ -135,3 +135,14 @@ Before finishing a substantial change:
    - `/callback`
    - `/apps`
 3. No secrets added to repository
+
+## 8. Loop DevStudio IDE Bridge Protocol
+
+Loop DevStudio (`/manage/loop-projects`) chat has a **free, key-less mode** ("Use IDE Agent Bridge"). Instead of calling a paid LLM, the app writes the request to `.antigravity/bridge.json` and waits for an IDE coding agent (you) to fulfill it. Follow this protocol when asked to `run bridge`:
+
+1. Read `.antigravity/bridge.json`. If `status` is `"pending"`, act on it; otherwise there is nothing to do.
+2. Fulfill `prompt` (use `history` for context). Make the code changes in this repository as needed.
+3. Write your reply back into the **same file**: set `status` to `"done"` and put your message in a `response` field. To have the app render/apply code, include full file bodies as `<file_edit path="relative/path">...FULL FILE...</file_edit>` blocks inside `response`. On failure, set `status: "error"` and an `error` message.
+4. Do **not** change `id`, `taskId`, or `projectId` — the app polls by `id` and finalizes the reply into the task chat (applying any `<file_edit>` blocks). It sets `status: "consumed"` once applied.
+
+The `instructions` field inside the file restates this. The bridge is single-slot (one pending request at a time); the app times out polling after ~5 minutes but leaves the file for later fulfillment.

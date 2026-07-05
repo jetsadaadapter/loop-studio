@@ -578,11 +578,18 @@ export function ManageSidebarNav() {
             title: getLocalizedText(MANAGE_PARENT_CRUMB),
             href: firstPath === "/manage/dashboard" ? "/manage" : firstPath,
             icon: LucideIcons.Layers,
-            items: manageItems.map((m) => ({
-              title: m.name,
-              href: resolveHref(m.path),
-              icon: getMenuIcon(m.icon),
-            })),
+            items: [
+              ...manageItems.map((m) => ({
+                title: m.name,
+                href: resolveHref(m.path),
+                icon: getMenuIcon(m.icon),
+              })),
+              {
+                title: "Loop DevStudio",
+                href: "/manage/loop-projects",
+                icon: LucideIcons.Workflow,
+              }
+            ],
           });
         }
 
