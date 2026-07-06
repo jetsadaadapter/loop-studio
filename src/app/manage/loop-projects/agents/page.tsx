@@ -2,27 +2,23 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Save, Sparkles, Check } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, Check } from "lucide-react";
 import type { LoopAgent } from "@/core/interfaces/loop-projects.interface";
-import { AVAILABLE_SKILLS, AVAILABLE_MODELS } from "@/core/interfaces/loop-projects.interface";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
+import { AgentCard } from "./AgentCard";
+import { AddAgentModal } from "./AddAgentModal";
 
 export default function AiTeamSpace() {
     const [agents, setAgents] = useState<LoopAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState<string | null>(null);
     const [message, setMessage] = useState("");
+    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<LoopAgent | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    // Load Anthropic API Key from local storage
     const [apiKey, setApiKey] = useState("");
 
     const loadAgents = async () => {
@@ -75,6 +71,32 @@ export default function AiTeamSpace() {
         }
     };
 
+    const handleSave = (agent: LoopAgent) => {
+        handleUpdateAgent(agent.id, {
+            name: agent.name,
+            role: agent.role,
+            model: agent.model,
+            systemPrompt: agent.systemPrompt,
+            skills: agent.skills,
+        });
+    };
+
+    const handleDelete = async (agent: LoopAgent) => {
+        setDeletingId(agent.id);
+        try {
+            const res = await fetch(`/api/manage/loop-agents/${agent.id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setDeleteTarget(null);
+                loadAgents();
+            }
+        } catch (e) {
+            console.error("Failed to delete agent:", e);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     const handleSkillToggle = (agent: LoopAgent, skillKey: string) => {
         const isChecked = agent.skills.includes(skillKey);
         const nextSkills = isChecked
@@ -84,20 +106,29 @@ export default function AiTeamSpace() {
         setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, skills: nextSkills } : a));
     };
 
-    const handleFieldChange = (id: string, field: string, val: string) => {
+    const handleFieldChange = (id: string, field: keyof LoopAgent, val: string) => {
         setAgents(prev => prev.map(a => a.id === id ? { ...a, [field]: val } : a));
     };
 
     return (
         <div className="flex flex-col space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <Link href="/manage/loop-projects" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
-                    <ArrowLeft className="size-4" />
-                </Link>
-                <div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">AI Developer Team</h1>
-                    <p className="text-xs text-slate-500 mt-0.5">Manage models, prompt templates, and professional skills for your autonomous AI team</p>
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                    <Link href="/manage/loop-projects" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
+                        <ArrowLeft className="size-4" />
+                    </Link>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-800 tracking-tight">AI Developer Team</h1>
+                        <p className="text-xs text-slate-500 mt-0.5">Manage models, prompt templates, and professional skills for your autonomous AI team</p>
+                    </div>
                 </div>
+                <button
+                    onClick={() => setIsAddOpen(true)}
+                    className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 cursor-pointer shrink-0"
+                >
+                    <Plus className="size-3.5" />
+                    Add Agent
+                </button>
             </div>
 
             {/* API Key Configuration Card */}
@@ -134,83 +165,34 @@ export default function AiTeamSpace() {
             ) : (
                 <div className="space-y-6">
                     {agents.map((agent) => (
-                        <div key={agent.id} className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm space-y-4">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="font-semibold text-slate-800 text-sm">{agent.name}</h3>
-                                    <span className="text-xs text-slate-500">{agent.role}</span>
-                                </div>
-                                <button
-                                    onClick={() => handleUpdateAgent(agent.id, {
-                                        model: agent.model,
-                                        systemPrompt: agent.systemPrompt,
-                                        skills: agent.skills
-                                    })}
-                                    disabled={savingId === agent.id}
-                                    className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60 cursor-pointer"
-                                >
-                                    <Save className="size-3.5" />
-                                    {savingId === agent.id ? "Saving..." : "Save Config"}
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                                <div className="md:col-span-1 space-y-3">
-                                    <Field>
-                                        <FieldLabel>Model Engine</FieldLabel>
-                                        <Select
-                                            value={agent.model}
-                                            onValueChange={(val) => handleFieldChange(agent.id, "model", val || "")}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent align="start">
-                                                {AVAILABLE_MODELS.map((m) => (
-                                                    <SelectItem key={m.id} value={m.id}>
-                                                        {m.label} ({m.provider})
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </Field>
-
-                                    <Field>
-                                        <FieldLabel>Expertise Skills</FieldLabel>
-                                        <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
-                                            {AVAILABLE_SKILLS.map((skill) => {
-                                                const isChecked = agent.skills.includes(skill.key);
-                                                return (
-                                                    <label key={skill.key} className="flex items-center gap-2 cursor-pointer select-none">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isChecked}
-                                                            onChange={() => handleSkillToggle(agent, skill.key)}
-                                                            className="rounded-sm border-slate-300 text-brand focus:ring-brand/50 size-3.5"
-                                                        />
-                                                        <span className="text-xs text-slate-700">{skill.label}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    </Field>
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <Field>
-                                        <FieldLabel>System Instructions Prompt</FieldLabel>
-                                        <Textarea
-                                            rows={7}
-                                            value={agent.systemPrompt}
-                                            onChange={(e) => handleFieldChange(agent.id, "systemPrompt", e.target.value)}
-                                            className="min-h-0 leading-relaxed"
-                                        />
-                                    </Field>
-                                </div>
-                            </div>
-                        </div>
+                        <AgentCard
+                            key={agent.id}
+                            agent={agent}
+                            isSaving={savingId === agent.id}
+                            onFieldChange={handleFieldChange}
+                            onSkillToggle={handleSkillToggle}
+                            onSave={handleSave}
+                            onDeleteRequest={setDeleteTarget}
+                        />
                     ))}
                 </div>
+            )}
+
+            <AddAgentModal
+                isOpen={isAddOpen}
+                onClose={() => setIsAddOpen(false)}
+                onSuccess={loadAgents}
+            />
+
+            {deleteTarget && (
+                <ManagerDeleteConfirm
+                    itemTypeLabel="agent"
+                    itemName={deleteTarget.name}
+                    itemId={deleteTarget.id}
+                    isLoading={deletingId === deleteTarget.id}
+                    onCancel={() => setDeleteTarget(null)}
+                    onConfirm={() => handleDelete(deleteTarget)}
+                />
             )}
         </div>
     );
