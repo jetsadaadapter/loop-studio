@@ -18,7 +18,7 @@
 
 ```
 X-App-Id: app_01ktqt92zh947r0d96p09w2ssh
-X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g
+X-App-Secret: sk_live_REPLACE_WITH_YOUR_APP_SECRET
 Content-Type: application/json
 ```
 
@@ -61,7 +61,7 @@ POST {{api}}/integrations/tools/{toolId}/run
 ```bash
 curl -X POST "{{api}}/integrations/tools/01KTV6RCYVTJMVTY37M5WQRY5T/run" \
   -H "X-App-Id: app_01ktqt92zh947r0d96p09w2ssh" \
-  -H "X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g" \
+  -H "X-App-Secret: sk_live_REPLACE_WITH_YOUR_APP_SECRET" \
   -H "Content-Type: application/json" \
   -d '{
     "input": {
@@ -135,7 +135,7 @@ GET {{api}}/integrations/tools/results/{resultId}/items?page=1&limit=10
 ```bash
 curl "https://library-api.adapterdigital.com/api//integrations/tools/results/6a2aa0c4b09302eaffe658af/items?page=1&limit=10" \
   -H "X-App-Id: app_01ktqt92zh947r0d96p09w2ssh" \
-  -H "X-App-Secret: sk_live_01ktqt92zhw7mf62px4h0xq7af01ktqt92zh2x4h63cchv99pn9g"
+  -H "X-App-Secret: sk_live_REPLACE_WITH_YOUR_APP_SECRET"
 ```
 
 **Query Parameters:**
