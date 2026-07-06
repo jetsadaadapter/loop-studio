@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects, runProjectCommand } from "@/core/services/loop-projects.service";
 import type { LoopProject, ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
+import { RegisterProjectSchema, BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
 import fs from "fs";
 import path from "path";
 
@@ -22,23 +23,28 @@ export async function POST(req: Request) {
         const projects = getProjects();
 
         if (action === "register") {
-            // Register an existing project
-            if (!projectPath || !fs.existsSync(projectPath)) {
+            const parsed = RegisterProjectSchema.safeParse({ name, path: projectPath, template, previewUrl });
+            if (!parsed.success) {
+                return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
+            }
+
+            // Register an existing project — schema covers format; verify it exists on disk.
+            if (!fs.existsSync(parsed.data.path)) {
                 return NextResponse.json({ success: false, error: "Invalid project path or path does not exist" }, { status: 400 });
             }
 
-            const existingIdx = projects.findIndex((p) => p.path === projectPath);
+            const existingIdx = projects.findIndex((p) => p.path === parsed.data.path);
             if (existingIdx !== -1) {
                 return NextResponse.json({ success: false, error: "Project path already registered" }, { status: 400 });
             }
 
             const newProj: LoopProject = {
                 id: `proj-${Date.now()}`,
-                name: name || path.basename(projectPath),
-                path: projectPath,
-                template: template || "generic",
+                name: parsed.data.name,
+                path: parsed.data.path,
+                template: (parsed.data.template as ProjectTemplate) || "generic",
                 tasks: [],
-                ...(typeof previewUrl === "string" && previewUrl.trim() ? { previewUrl: previewUrl.trim() } : {}),
+                ...(parsed.data.previewUrl ? { previewUrl: parsed.data.previewUrl } : {}),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };
@@ -48,8 +54,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, data: newProj });
         } else if (action === "bootstrap") {
             // Bootstrap a new project
-            if (!projectPath) {
-                return NextResponse.json({ success: false, error: "Target directory path is required" }, { status: 400 });
+            const parsed = BootstrapProjectSchema.safeParse({ name, path: projectPath, template });
+            if (!parsed.success) {
+                return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
             }
 
             const parentDir = path.dirname(projectPath);

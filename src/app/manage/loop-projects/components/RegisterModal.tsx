@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { X, FolderInput, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
+import { RegisterProjectSchema } from "@/core/validators/loop-projects.validator";
+import { FolderPicker } from "./FolderPicker";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -38,8 +40,14 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        setLoading(true);
 
+        const check = RegisterProjectSchema.safeParse({ name, path, template, previewUrl });
+        if (!check.success) {
+            setError(check.error.issues[0].message);
+            return;
+        }
+
+        setLoading(true);
         try {
             const res = await fetch("/api/manage/loop-projects", {
                 method: "POST",
@@ -102,13 +110,17 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                         <FieldLabel>
                             Absolute Directory Path <span className="text-destructive">*</span>
                         </FieldLabel>
-                        <Input
-                            type="text"
-                            required
-                            placeholder="e.g. /Users/name/AdapterWorks/2026/my-app"
-                            value={path}
-                            onChange={(e) => setPath(e.target.value)}
-                        />
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="text"
+                                required
+                                placeholder="e.g. /Users/name/AdapterWorks/2026/my-app"
+                                value={path}
+                                onChange={(e) => setPath(e.target.value)}
+                                className="flex-1"
+                            />
+                            <FolderPicker value={path} onChange={setPath} />
+                        </div>
                     </Field>
 
                     <Field>

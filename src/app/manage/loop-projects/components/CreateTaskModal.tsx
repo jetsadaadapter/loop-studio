@@ -7,6 +7,7 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { TagInput } from "@/components/ui/tag-input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
+import { CreateTaskSchema } from "@/core/validators/loop-projects.validator";
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -105,8 +106,9 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
         e.preventDefault();
         setError("");
 
-        if (targetFiles.length === 0) {
-            setError("At least one target file is required");
+        const check = CreateTaskSchema.safeParse({ name, targetFiles });
+        if (!check.success) {
+            setError(check.error.issues[0].message);
             return;
         }
 

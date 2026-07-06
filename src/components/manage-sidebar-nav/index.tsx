@@ -514,6 +514,10 @@ export function ManageSidebarNav() {
           });
         }
 
+        // Loop DevStudio runs shell/git/npm and writes files on disk, so its menu
+        // entry is visible to super admins only (keep in sync with ManageRouteGuard).
+        const isSuperAdmin = (navProfile?.roles ?? []).includes("system-admin");
+
         if (manageItems.length > 0) {
           const firstPath = manageItems[0].path;
           nextSections.push({
@@ -526,11 +530,11 @@ export function ManageSidebarNav() {
                 href: resolveHref(m.path),
                 icon: getMenuIcon(m.icon),
               })),
-              {
+              ...(isSuperAdmin ? [{
                 title: "Loop DevStudio",
                 href: "/manage/loop-projects",
                 icon: LucideIcons.Workflow,
-              }
+              }] : []),
             ],
           });
         }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects, calculateRiskTier, getSafetyNets } from "@/core/services/loop-projects.service";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
+import { CreateTaskSchema } from "@/core/validators/loop-projects.validator";
 
 export async function GET(req: Request, context: { params: Promise<{ projectId: string }> }) {
     try {
@@ -21,11 +22,12 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
     try {
         const { projectId } = await context.params;
         const body = await req.json();
-        const { name, targetFiles } = body;
 
-        if (!name || !targetFiles || !Array.isArray(targetFiles) || targetFiles.length === 0) {
-            return NextResponse.json({ success: false, error: "Name and targetFiles are required" }, { status: 400 });
+        const parsed = CreateTaskSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
         }
+        const { name, targetFiles } = parsed.data;
 
         const projects = getProjects();
         const pIdx = projects.findIndex((p) => p.id === projectId);

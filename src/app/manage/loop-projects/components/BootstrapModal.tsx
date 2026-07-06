@@ -5,6 +5,8 @@ import { X, Rocket, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
+import { FolderPicker } from "./FolderPicker";
 import {
     Select,
     SelectContent,
@@ -37,6 +39,13 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        const check = BootstrapProjectSchema.safeParse({ name, path: pathValue, template });
+        if (!check.success) {
+            setError(check.error.issues[0].message);
+            return;
+        }
+
         setIsBootstrapping(true);
         setLogs("Initializing bootstrap process...\n");
 
@@ -147,13 +156,17 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                             <FieldLabel>
                                 Absolute Directory Path (To Create Folder) <span className="text-destructive">*</span>
                             </FieldLabel>
-                            <Input
-                                type="text"
-                                required
-                                placeholder="e.g. /Users/name/AdapterWorks/2026/next-big-thing"
-                                value={pathValue}
-                                onChange={(e) => setPathValue(e.target.value)}
-                            />
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. /Users/name/AdapterWorks/2026/next-big-thing"
+                                    value={pathValue}
+                                    onChange={(e) => setPathValue(e.target.value)}
+                                    className="flex-1"
+                                />
+                                <FolderPicker value={pathValue} onChange={setPathValue} />
+                            </div>
                         </Field>
 
                         <Field>

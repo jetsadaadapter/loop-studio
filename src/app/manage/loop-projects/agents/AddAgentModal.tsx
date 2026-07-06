@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CreateAgentSchema } from "@/core/validators/loop-projects.validator";
 import {
     Select,
     SelectContent,
@@ -58,8 +59,9 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
         e.preventDefault();
         setError("");
 
-        if (!form.name.trim() || !form.role.trim()) {
-            setError("Name and role are required");
+        const check = CreateAgentSchema.safeParse(form);
+        if (!check.success) {
+            setError(check.error.issues[0].message);
             return;
         }
 

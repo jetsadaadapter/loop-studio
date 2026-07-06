@@ -9,8 +9,8 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { customToast } from "@/components/ui/sonner";
 
 // Loop DevStudio can run shell/git/npm commands and write files on disk, so it is
-// gated to elevated roles rather than every authenticated manage user.
-const LOOP_STUDIO_ROLES: UserRole[] = ["system-admin", "admin", "developer"];
+// gated to super admins only (keep in sync with the sidebar menu visibility).
+const LOOP_STUDIO_ROLES: UserRole[] = ["system-admin"];
 
 function isLoopStudioPath(pathname: string): boolean {
   return (
