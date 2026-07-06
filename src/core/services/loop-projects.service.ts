@@ -217,7 +217,15 @@ export function runProjectCommand(
             existing.kill();
         }
 
-        const proc = spawn(command, args, { cwd: projectPath, shell: true });
+        // The parent (Next.js dev server) runs with NODE_ENV=development. If we let
+        // spawned commands inherit it, `next build` builds in dev mode and fails while
+        // prerendering /_global-error ("Cannot read properties of null (reading 'useContext')").
+        // Strip NODE_ENV so each command sets its own correct mode (build→production,
+        // dev→development), matching a clean terminal run.
+        const childEnv = { ...process.env };
+        delete (childEnv as Record<string, string | undefined>).NODE_ENV;
+
+        const proc = spawn(command, args, { cwd: projectPath, shell: true, env: childEnv });
         ACTIVE_PROCESSES.set(taskId, proc);
 
         const handleData = (chunk: Buffer) => {
