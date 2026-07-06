@@ -202,6 +202,21 @@ export async function getGitInfo(projectPath: string) {
     }
 }
 
+// Returns git-tracked, editable source files (relative paths) for the target-file
+// picker. Uses `git ls-files` so it respects .gitignore and stays fast.
+export async function listProjectFiles(projectPath: string): Promise<string[]> {
+    try {
+        const out = await executeGitCommand(projectPath, ["ls-files"]);
+        const CODE_FILE = /\.(tsx?|jsx?|mjs|cjs|css|scss|json|mdx?|html?|ya?ml)$/i;
+        return out
+            .split("\n")
+            .map((f) => f.trim())
+            .filter((f) => f && CODE_FILE.test(f));
+    } catch {
+        return [];
+    }
+}
+
 // Process Runner
 export function runProjectCommand(
     taskId: string,

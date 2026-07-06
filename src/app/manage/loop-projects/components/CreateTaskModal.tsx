@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, FileText, ListChecks, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { TagInput } from "@/components/ui/tag-input";
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -15,26 +16,51 @@ interface CreateTaskModalProps {
 
 export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: CreateTaskModalProps) {
     const [name, setName] = useState("");
-    const [filesText, setFilesText] = useState("");
+    const [targetFiles, setTargetFiles] = useState<string[]>([]);
+    const [fileOptions, setFileOptions] = useState<string[]>([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [wasOpen, setWasOpen] = useState(isOpen);
+
+    // Reset the form each time the modal transitions to open (adjust-during-render
+    // pattern — cheaper and lint-clean vs. a state-setting effect).
+    if (isOpen !== wasOpen) {
+        setWasOpen(isOpen);
+        if (isOpen) {
+            setName("");
+            setTargetFiles([]);
+            setError("");
+        }
+    }
+
+    // Load the project's real source files once the modal opens so the picker can
+    // suggest them (users can still type a path for a file that doesn't exist yet).
+    useEffect(() => {
+        if (!isOpen) return;
+        let active = true;
+        fetch(`/api/manage/loop-projects/${projectId}/files`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (active && data.success) setFileOptions(data.data as string[]);
+            })
+            .catch(() => {
+                /* picker still works with free-text entry */
+            });
+        return () => {
+            active = false;
+        };
+    }, [isOpen, projectId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        setLoading(true);
-
-        const targetFiles = filesText
-            .split(",")
-            .map((f) => f.trim())
-            .filter(Boolean);
 
         if (targetFiles.length === 0) {
             setError("At least one target file is required");
-            setLoading(false);
             return;
         }
 
+        setLoading(true);
         try {
             const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks`, {
                 method: "POST",
@@ -95,22 +121,24 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
 
                     <Field>
                         <FieldLabel>
-                            Target Files (Comma-separated) <span className="text-destructive">*</span>
+                            Target Files <span className="text-destructive">*</span>
                         </FieldLabel>
-                        <Input
-                            type="text"
-                            required
-                            placeholder="e.g. src/components/ui/button.tsx, src/components/ui/button.test.tsx"
-                            value={filesText}
-                            onChange={(e) => setFilesText(e.target.value)}
+                        <TagInput
+                            value={targetFiles}
+                            onChange={setTargetFiles}
+                            suggestions={fileOptions}
+                            placeholder="Search files… e.g. button.tsx"
                         />
-                        <FieldDescription>Relative path to project root.</FieldDescription>
+                        <FieldDescription>
+                            Type to search project files, then click to add. Press Enter to add a path
+                            that doesn&apos;t exist yet (e.g. a new test file).
+                        </FieldDescription>
                     </Field>
 
                     <div className="flex items-start gap-2 rounded-lg border border-amber-200/50 bg-amber-50/50 p-3">
                         <FileText className="mt-0.5 size-4 shrink-0 text-amber-600" />
                         <div className="text-[10px] leading-normal text-amber-800">
-                            <strong>Note on planning:</strong> The first target file will be scanned automatically to calculate imports fan-out and determine the Task Risk Tier (Red, Orange, Yellow, Green) following the playbook.
+                            <strong>Note on planning:</strong> The first file you add is scanned automatically to calculate its imports fan-out and determine the Task Risk Tier (Red, Orange, Yellow, Green) following the playbook.
                         </div>
                     </div>
 
