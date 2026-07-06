@@ -11,9 +11,22 @@ import { LogTerminal } from "@/app/manage/loop-projects/components/LogTerminal";
 import { PreviewPane } from "@/app/manage/loop-projects/components/PreviewPane";
 import { AutoPipeline } from "@/app/manage/loop-projects/components/AutoPipeline";
 import { VersionTimeline } from "@/app/manage/loop-projects/components/VersionTimeline";
+import { StudioWindow } from "@/app/manage/loop-projects/components/StudioWindow";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
+}
+
+type CheckState = "pass" | "fail" | "idle";
+
+// Read the latest auto-pipeline outcome (Phase 3) off the task's activity feed so
+// the preview pane can show "Verify ✓  Build ✓" without a second network call.
+function getPipelineStatus(task: LoopTask): { verify: CheckState; build: CheckState } {
+    const last = [...task.activities].reverse().find((a) => a.action === "auto_pipeline");
+    if (!last) return { verify: "idle", build: "idle" };
+    if (last.message.includes("passed all checks")) return { verify: "pass", build: "pass" };
+    if (last.message.includes("Unit tests")) return { verify: "fail", build: "idle" };
+    return { verify: "pass", build: "fail" };
 }
 
 export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
@@ -127,60 +140,76 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                 </div>
             </div>
 
-            {/* Stages Navigation */}
-            <TimelineStages
-                currentStage={task.currentStage}
-                activeStage={activeStage}
-                onSelectStage={setActiveStage}
-                status={task.status}
-            />
-
-            {/* Studio workspace (v0 layout): chat drives edits on the left, the app
-                previews live on the right. */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                {/* Chat — the driver — with the version timeline beneath it */}
-                <div className="lg:col-span-2 space-y-6">
-                    <ChatPanel
-                        projectId={projectId}
-                        taskId={task.id}
-                        chatHistory={task.chatHistory}
-                        onRefresh={loadData}
-                        onTriggerLog={triggerLogReload}
-                    />
-                    <VersionTimeline projectId={projectId} refreshKey={triggerCount} />
-                </div>
-
-                {/* Live preview — Preview / Code / Diff. Points at the project's own dev
-                    server when set, else the same-repo app route. */}
-                <div className="self-start lg:sticky lg:top-4 lg:col-span-3">
-                    <PreviewPane initialUrl={project?.previewUrl || "/apps"} />
-                </div>
-            </div>
-
-            {/* Auto-pipeline (Phase 3): run Verify + Automate as checkpoints and
-                advance the stage automatically instead of clicking through them. */}
-            <AutoPipeline
+            {/* Studio workspace (v0 layout): one dark window — chat + changes on the
+                left drive edits, the app previews live on the right. */}
+            <StudioWindow
                 projectId={projectId}
-                taskId={task.id}
-                onComplete={loadData}
-                onTriggerLog={triggerLogReload}
+                projectName={project?.name || task.name}
+                onPublished={loadData}
+                left={
+                    <>
+                        <ChatPanel
+                            projectId={projectId}
+                            taskId={task.id}
+                            chatHistory={task.chatHistory}
+                            onRefresh={loadData}
+                            onTriggerLog={triggerLogReload}
+                        />
+                        <VersionTimeline projectId={projectId} refreshKey={triggerCount} />
+                    </>
+                }
+                right={
+                    (() => {
+                        const { verify, build } = getPipelineStatus(task);
+                        return (
+                            <PreviewPane
+                                initialUrl={project?.previewUrl || "/apps"}
+                                verifyStatus={verify}
+                                buildStatus={build}
+                                riskTier={task.riskTier}
+                            />
+                        );
+                    })()
+                }
             />
 
-            {/* Stage controls & run logs — manual fallback / detail. */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <StageWorkspace
-                    projectId={projectId}
-                    task={task}
+            {/* Advanced controls: manual stage stepper, checkpoint runner, and run
+                logs — kept for detail work; the Studio window above covers the
+                everyday flow. */}
+            <div className="space-y-4 pt-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 font-sans">
+                    Advanced controls
+                </p>
+
+                <TimelineStages
+                    currentStage={task.currentStage}
                     activeStage={activeStage}
-                    onUpdateTask={handleUpdateTask}
+                    onSelectStage={setActiveStage}
+                    status={task.status}
+                />
+
+                <AutoPipeline
+                    projectId={projectId}
+                    taskId={task.id}
+                    onComplete={loadData}
                     onTriggerLog={triggerLogReload}
                 />
 
-                <LogTerminal
-                    projectId={projectId}
-                    taskId={task.id}
-                    triggerCount={triggerCount}
-                />
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <StageWorkspace
+                        projectId={projectId}
+                        task={task}
+                        activeStage={activeStage}
+                        onUpdateTask={handleUpdateTask}
+                        onTriggerLog={triggerLogReload}
+                    />
+
+                    <LogTerminal
+                        projectId={projectId}
+                        taskId={task.id}
+                        triggerCount={triggerCount}
+                    />
+                </div>
             </div>
         </div>
     );

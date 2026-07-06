@@ -187,42 +187,42 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
     const isDisabled = loading || collaborating;
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/30 flex flex-col h-[550px] shadow-3xs overflow-hidden">
+        <div className="flex h-[420px] flex-col overflow-hidden bg-[#0d1526]">
             {/* Header / Cost summary */}
-            <div className="bg-white border-b border-slate-200/60 p-3 shrink-0 flex items-center justify-between">
+            <div className="flex shrink-0 items-center justify-between border-b border-[#24304b] p-3">
                 <div className="flex items-center gap-1.5">
-                    <Users className="size-4 text-indigo-600" />
-                    <span className="font-semibold text-slate-800 text-xs">AI Developer Space</span>
+                    <Users className="size-4 text-indigo-400" />
+                    <span className="text-xs font-semibold text-slate-200 font-sans">AI Developer Space</span>
                 </div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                    <Coins className="size-3 text-amber-500" />
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                    <Coins className="size-3 text-amber-400" />
                     <span>${costSummary.cost.toFixed(3)} ({Math.round((costSummary.input + costSummary.output)/1000)}k tokens)</span>
                 </div>
             </div>
 
             {/* Bridge-mode notice (opt-in): requests are handed to the IDE agent */}
             {useBridge && (
-                <div className="bg-amber-50 border-b border-amber-200/50 px-3 py-2 shrink-0 flex items-start gap-1.5">
-                    <AlertCircle className="size-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <span className="text-[10px] text-amber-800 leading-normal font-sans">
-                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/manage/loop-projects/agents" className="font-semibold underline hover:text-amber-950">AI Team Manager</Link> (or a server-configured key).
+                <div className="flex shrink-0 items-start gap-1.5 border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-2">
+                    <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-400" />
+                    <span className="text-[10px] leading-normal text-amber-200/90 font-sans">
+                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/manage/loop-projects/agents" className="font-semibold underline hover:text-amber-100">AI Team Manager</Link> (or a server-configured key).
                     </span>
                 </div>
             )}
 
             {/* Pending Bridge Banner */}
             {isBridgedPending && (
-                <div className="bg-indigo-50 border-b border-indigo-200 px-3 py-2.5 shrink-0 flex items-start gap-2">
-                    <Sparkles className="size-4 text-indigo-600 shrink-0 mt-0.5 animate-pulse" />
-                    <div className="flex-1 text-[10px] text-indigo-800 leading-relaxed font-sans">
+                <div className="flex shrink-0 items-start gap-2 border-b border-indigo-400/20 bg-indigo-400/[0.06] px-3 py-2.5">
+                    <Sparkles className="size-4 shrink-0 mt-0.5 animate-pulse text-indigo-400" />
+                    <div className="flex-1 text-[10px] leading-relaxed text-indigo-200/90 font-sans">
                         <span>Bridged to your IDE agent — waiting for a reply. In your IDE, run </span>
-                        <code className="bg-indigo-100 border border-indigo-200 px-1 py-0.5 rounded-lg text-[10px] font-semibold font-sans">run bridge</code>
+                        <code className="rounded-lg border border-indigo-400/20 bg-indigo-400/10 px-1 py-0.5 text-[10px] font-semibold font-sans">run bridge</code>
                         <span> (read .antigravity/bridge.json, do the work, write the reply back). Updates here automatically.</span>
                     </div>
                     <button
                         type="button"
                         onClick={cancelBridge}
-                        className="shrink-0 rounded-sm border border-indigo-200 bg-white px-2 py-1 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
+                        className="shrink-0 cursor-pointer rounded-sm border border-indigo-400/30 px-2 py-1 text-[10px] font-semibold text-indigo-300 hover:bg-indigo-400/10"
                     >
                         Cancel
                     </button>
@@ -239,14 +239,14 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
             />
 
             {/* Input Form */}
-            <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200/60 shrink-0 space-y-2">
+            <form onSubmit={handleSend} className="shrink-0 space-y-2 border-t border-[#24304b] p-3">
                 <Textarea
                     rows={2}
                     disabled={isDisabled}
-                    placeholder={isDisabled ? "Select a mode or set API Key first..." : "e.g. Implement rounded options or fix the margin in button.tsx..."}
+                    placeholder={isDisabled ? "Select a mode or set API Key first..." : "Ask a follow-up… e.g. Implement rounded options or fix the margin in button.tsx"}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="min-h-0 rounded-lg px-3 py-2 text-xs focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0 leading-relaxed"
+                    className="min-h-0 rounded-lg border-[#24304b] bg-[#0b1322] px-3 py-2 text-xs leading-relaxed text-slate-200 placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30 focus-visible:ring-offset-0"
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
@@ -254,9 +254,9 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                         }
                     }}
                 />
-                
+
                 <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-slate-500 font-sans font-medium select-none">
+                    <label className="flex select-none items-center gap-1.5 text-[10px] font-medium text-slate-400 font-sans cursor-pointer">
                         <input
                             type="checkbox"
                             checked={useBridge}
@@ -264,7 +264,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                                 setUseBridge(e.target.checked);
                                 setIsBridgedPending(false);
                             }}
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-550 size-3"
+                            className="size-3 rounded border-slate-500 bg-transparent text-indigo-500 focus:ring-indigo-500"
                         />
                         <span>Use IDE Agent Bridge (Free)</span>
                     </label>
@@ -274,13 +274,13 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                             type="button"
                             onClick={handleCollaborate}
                             disabled={isDisabled || !inputValue.trim()}
-                            className="flex items-center gap-1.5 rounded-sm border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
+                            className="flex items-center gap-1.5 rounded-sm border border-indigo-400/30 bg-indigo-400/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-400/20 disabled:opacity-50 cursor-pointer"
                             title="Start Multi-Agent Team execution loop in background"
                         >
                             <Users className="size-3.5" />
                             {collaborating ? "Delegating..." : "Delegate"}
                         </button>
-                        
+
                         <button
                             type="submit"
                             disabled={isDisabled || !inputValue.trim()}
