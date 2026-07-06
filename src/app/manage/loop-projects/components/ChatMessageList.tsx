@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, FileText } from "lucide-react";
 import { ChatMessageContent, messageHasCode } from "./ChatMessageContent";
 import type { ChatMessage } from "@/core/interfaces/loop-projects.interface";
 
@@ -31,6 +32,31 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
                     return (
                         <div key={m.id} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
                             <span className="text-[10px] text-slate-500 font-sans mb-0.5 px-1">{m.senderName}</span>
+                            {m.attachments && m.attachments.length > 0 && (
+                                <div className={`mb-1 flex flex-wrap gap-1.5 ${isUser ? "justify-end" : "justify-start"}`}>
+                                    {m.attachments.map((a) =>
+                                        a.mimeType.startsWith("image/") ? (
+                                            <Image
+                                                key={a.id}
+                                                src={a.dataUrl}
+                                                alt={a.name}
+                                                width={96}
+                                                height={96}
+                                                unoptimized
+                                                className="size-24 rounded-lg border border-[#24304b] object-cover"
+                                            />
+                                        ) : (
+                                            <span
+                                                key={a.id}
+                                                className="flex items-center gap-1.5 rounded-lg border border-[#24304b] bg-[#141e33] px-2 py-1 text-[10px] text-slate-300 font-sans"
+                                            >
+                                                <FileText className="size-3.5 text-slate-500" />
+                                                {a.name}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+                            )}
                             <div className={`rounded-lg p-2.5 text-xs select-text leading-relaxed ${hasCode ? "w-full" : "max-w-[85%]"} ${
                                 isUser ? "bg-[#23324f] text-slate-100 rounded-tr-none" :
                                 isSystem ? "bg-[#141e33] border border-[#24304b] text-slate-400 text-[10px] rounded-none w-full" :

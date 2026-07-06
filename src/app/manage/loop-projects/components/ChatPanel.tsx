@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Users, Sparkles, AlertCircle, Coins } from "lucide-react";
+import { Send, Users, Sparkles, AlertCircle, Coins, Plus, Zap, X, FileText } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessageList } from "./ChatMessageList";
 import { resolveBridge } from "./bridge-client";
-import type { ChatMessage } from "@/core/interfaces/loop-projects.interface";
+import type { ChatMessage, ChatAttachment } from "@/core/interfaces/loop-projects.interface";
 
 interface ChatPanelProps {
     projectId: string;
@@ -14,6 +15,20 @@ interface ChatPanelProps {
     chatHistory: ChatMessage[];
     onRefresh: () => void;
     onTriggerLog: () => void;
+}
+
+function readFileAsAttachment(file: File): Promise<ChatAttachment> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+            id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            name: file.name,
+            mimeType: file.type || "application/octet-stream",
+            dataUrl: reader.result as string,
+        });
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+    });
 }
 
 export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTriggerLog }: ChatPanelProps) {
@@ -25,8 +40,31 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
     const [loading, setLoading] = useState(false);
     const [collaborating, setCollaborating] = useState(false);
     const [costSummary, setCostSummary] = useState({ input: 0, output: 0, cost: 0 });
+    const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+    const [attachMenuOpen, setAttachMenuOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const bridgeAbortRef = useRef<AbortController | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const addFiles = async (files: FileList | File[]) => {
+        const read = await Promise.all(Array.from(files).map(readFileAsAttachment));
+        setAttachments((prev) => [...prev, ...read]);
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        const imageFiles = Array.from(e.clipboardData.items)
+            .filter((item) => item.type.startsWith("image/"))
+            .map((item) => item.getAsFile())
+            .filter((f): f is File => f !== null);
+        if (imageFiles.length > 0) {
+            e.preventDefault();
+            void addFiles(imageFiles);
+        }
+    };
+
+    const removeAttachment = (id: string) => {
+        setAttachments((prev) => prev.filter((a) => a.id !== id));
+    };
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -94,18 +132,21 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
 
     const handleSend = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (!inputValue.trim() || loading || collaborating) return;
+        if ((!inputValue.trim() && attachments.length === 0) || loading || collaborating) return;
 
         const userMsg: ChatMessage = {
             id: `msg-temp-${Date.now()}`,
             role: "user",
             senderName: "User",
             content: inputValue,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            ...(attachments.length > 0 ? { attachments } : {}),
         };
+        const sentAttachments = attachments;
 
         setMessages((prev) => [...prev, userMsg]);
         setInputValue("");
+        setAttachments([]);
         setLoading(true);
         cancelBridge();
 
@@ -116,7 +157,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                     "Content-Type": "application/json",
                     "X-Anthropic-API-Key": apiKey
                 },
-                body: JSON.stringify({ message: userMsg.content, history: messages, bridge: useBridge }),
+                body: JSON.stringify({ message: userMsg.content, history: messages, bridge: useBridge, attachments: sentAttachments }),
             });
             const data = await res.json();
             if (data.success) {
@@ -238,56 +279,123 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                 endRef={messagesEndRef}
             />
 
-            {/* Input Form */}
-            <form onSubmit={handleSend} className="shrink-0 space-y-2 border-t border-[#24304b] p-3">
-                <Textarea
-                    rows={2}
-                    disabled={isDisabled}
-                    placeholder={isDisabled ? "Select a mode or set API Key first..." : "Ask a follow-up… e.g. Implement rounded options or fix the margin in button.tsx"}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="min-h-0 rounded-lg border-[#24304b] bg-[#0b1322] px-3 py-2 text-xs leading-relaxed text-slate-200 placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30 focus-visible:ring-offset-0"
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                        }
-                    }}
-                />
+            {/* Input Form — one clean row; secondary controls cluster at the right */}
+            <form onSubmit={handleSend} className="shrink-0 border-t border-[#24304b] p-3">
+                {attachments.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                        {attachments.map((a) => (
+                            <span
+                                key={a.id}
+                                className="flex items-center gap-1.5 rounded-lg border border-[#24304b] bg-[#0b1322] py-1 pl-1.5 pr-1 text-[10px] text-slate-300 font-sans"
+                            >
+                                {a.mimeType.startsWith("image/") ? (
+                                    <Image src={a.dataUrl} alt={a.name} width={18} height={18} unoptimized className="size-4.5 rounded object-cover" />
+                                ) : (
+                                    <FileText className="size-3.5 text-slate-500" />
+                                )}
+                                <span className="max-w-24 truncate">{a.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeAttachment(a.id)}
+                                    aria-label={`Remove ${a.name}`}
+                                    className="flex size-4 items-center justify-center rounded-full text-slate-500 hover:bg-white/10 hover:text-slate-200 cursor-pointer"
+                                >
+                                    <X className="size-3" />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                )}
 
-                <div className="flex items-center justify-between">
-                    <label className="flex select-none items-center gap-1.5 text-[10px] font-medium text-slate-400 font-sans cursor-pointer">
+                <div className="flex items-end gap-1.5 rounded-xl border border-[#24304b] bg-[#0b1322] px-2 py-1.5">
+                    <div className="relative shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setAttachMenuOpen((o) => !o)}
+                            aria-label="Attach files"
+                            title="Attach files"
+                            className="flex size-6 items-center justify-center rounded-md text-slate-400 hover:bg-white/10 hover:text-slate-200 cursor-pointer"
+                        >
+                            <Plus className="size-4" />
+                        </button>
+                        {attachMenuOpen && (
+                            <div className="absolute bottom-full left-0 z-10 mb-2 w-48 rounded-lg border border-[#24304b] bg-[#141e33] p-1 shadow-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        fileInputRef.current?.click();
+                                        setAttachMenuOpen(false);
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-white/10 cursor-pointer"
+                                >
+                                    <Plus className="size-3.5" />
+                                    Upload from computer
+                                </button>
+                            </div>
+                        )}
                         <input
-                            type="checkbox"
-                            checked={useBridge}
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*,.pdf,.txt,.md,.json"
+                            className="hidden"
                             onChange={(e) => {
-                                setUseBridge(e.target.checked);
+                                if (e.target.files) void addFiles(e.target.files);
+                                e.target.value = "";
+                            }}
+                        />
+                    </div>
+
+                    <Textarea
+                        rows={1}
+                        disabled={isDisabled}
+                        placeholder={isDisabled ? "Select a mode or set API Key first..." : "Ask a follow-up…"}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onPaste={handlePaste}
+                        className="min-h-0 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-xs leading-relaxed text-slate-200 shadow-none placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                    />
+
+                    {/* Secondary controls, clustered at the right corner */}
+                    <div className="flex shrink-0 items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setUseBridge((prev) => !prev);
                                 setIsBridgedPending(false);
                             }}
-                            className="size-3 rounded border-slate-500 bg-transparent text-indigo-500 focus:ring-indigo-500"
-                        />
-                        <span>Use IDE Agent Bridge (Free)</span>
-                    </label>
+                            aria-pressed={useBridge}
+                            title="Use IDE Agent Bridge (Free)"
+                            className={`flex size-7 items-center justify-center rounded-md cursor-pointer ${
+                                useBridge ? "bg-amber-400/15 text-amber-300" : "text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                            }`}
+                        >
+                            <Zap className="size-3.5" />
+                        </button>
 
-                    <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={handleCollaborate}
                             disabled={isDisabled || !inputValue.trim()}
-                            className="flex items-center gap-1.5 rounded-sm border border-indigo-400/30 bg-indigo-400/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-400/20 disabled:opacity-50 cursor-pointer"
-                            title="Start Multi-Agent Team execution loop in background"
+                            title="Delegate to the AI Agent Team (background)"
+                            className="flex size-7 items-center justify-center rounded-md text-indigo-300 hover:bg-indigo-400/15 disabled:opacity-40 cursor-pointer"
                         >
                             <Users className="size-3.5" />
-                            {collaborating ? "Delegating..." : "Delegate"}
                         </button>
 
                         <button
                             type="submit"
-                            disabled={isDisabled || !inputValue.trim()}
-                            className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
+                            disabled={isDisabled || (!inputValue.trim() && attachments.length === 0)}
+                            title="Send"
+                            className="flex size-7 items-center justify-center rounded-md bg-brand text-white hover:bg-brand/90 disabled:opacity-40 cursor-pointer shadow-sm"
                         >
                             <Send className="size-3.5" />
-                            {loading ? "Sending..." : "Send"}
                         </button>
                     </div>
                 </div>

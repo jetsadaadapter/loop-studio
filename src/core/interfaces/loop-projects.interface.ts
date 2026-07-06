@@ -70,12 +70,23 @@ export interface ProjectActivity {
     timestamp: string;
 }
 
+// A pasted/uploaded image or file attached to a chat message. Images are sent
+// to the LLM as vision content; other file types are context-only (shown as a
+// chip, not sent as an image block).
+export interface ChatAttachment {
+    id: string;
+    name: string;
+    mimeType: string;
+    dataUrl: string; // "data:<mime>;base64,<data>"
+}
+
 export interface ChatMessage {
     id: string;
     role: "user" | "assistant" | "system";
     senderName: string;
     content: string;
     timestamp: string;
+    attachments?: ChatAttachment[];
     tokensUsed?: {
         input: number;
         output: number;

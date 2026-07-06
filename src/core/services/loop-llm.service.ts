@@ -9,9 +9,25 @@ import { LOOP_LLM_MODEL } from "@/core/interfaces/loop-projects.interface";
 
 export type LlmProvider = "anthropic" | "gemini";
 
+export interface LlmTextBlock {
+    type: "text";
+    text: string;
+}
+
+export interface LlmImageBlock {
+    type: "image";
+    mediaType: string; // e.g. "image/png"
+    data: string; // base64, WITHOUT the "data:...;base64," prefix
+}
+
+// A message's content is plain text, or (for vision) an ordered list of
+// image/text blocks — images first, then the accompanying text, matching both
+// Anthropic's and Gemini's recommended ordering.
+export type LlmContent = string | (LlmTextBlock | LlmImageBlock)[];
+
 export interface LlmMessage {
     role: "user" | "assistant";
-    content: string;
+    content: LlmContent;
 }
 
 export interface LlmResult {
@@ -76,6 +92,15 @@ async function fetchWithRetry(url: string, init: RequestInit, attempts = 3): Pro
     return res as Response;
 }
 
+function toAnthropicContent(content: LlmContent) {
+    if (typeof content === "string") return content;
+    return content.map((b) =>
+        b.type === "image"
+            ? { type: "image", source: { type: "base64", media_type: b.mediaType, data: b.data } }
+            : { type: "text", text: b.text },
+    );
+}
+
 async function callAnthropic(apiKey: string, model: string, systemPrompt: string, messages: LlmMessage[], maxTokens: number): Promise<LlmResult> {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -84,7 +109,7 @@ async function callAnthropic(apiKey: string, model: string, systemPrompt: string
             model,
             max_tokens: maxTokens,
             system: systemPrompt,
-            messages: messages.map((m) => ({ role: m.role, content: m.content })),
+            messages: messages.map((m) => ({ role: m.role, content: toAnthropicContent(m.content) })),
         }),
     });
     if (!res.ok) throw new Error(`Claude API error: ${res.status} - ${await res.text()}`);
@@ -92,6 +117,13 @@ async function callAnthropic(apiKey: string, model: string, systemPrompt: string
     const input = data.usage?.input_tokens || 0;
     const output = data.usage?.output_tokens || 0;
     return { text: data.content?.[0]?.text || "", input, output, cost: costOf("anthropic", input, output), provider: "anthropic" };
+}
+
+function toGeminiParts(content: LlmContent) {
+    if (typeof content === "string") return [{ text: content }];
+    return content.map((b) =>
+        b.type === "image" ? { inlineData: { mimeType: b.mediaType, data: b.data } } : { text: b.text },
+    );
 }
 
 async function callGemini(apiKey: string, model: string, systemPrompt: string, messages: LlmMessage[], maxTokens: number): Promise<LlmResult> {
@@ -104,7 +136,7 @@ async function callGemini(apiKey: string, model: string, systemPrompt: string, m
             // Gemini uses "model" (not "assistant") for the assistant role.
             contents: messages.map((m) => ({
                 role: m.role === "assistant" ? "model" : "user",
-                parts: [{ text: m.content }],
+                parts: toGeminiParts(m.content),
             })),
             generationConfig: { maxOutputTokens: maxTokens },
         }),

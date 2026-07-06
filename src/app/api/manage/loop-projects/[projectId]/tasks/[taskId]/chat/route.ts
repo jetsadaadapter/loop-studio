@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects, applyFileEdits, writeBridgeRequest } from "@/core/services/loop-projects.service";
-import { resolveLoopLlm, callLoopLlm } from "@/core/services/loop-llm.service";
-import type { ChatMessage } from "@/core/interfaces/loop-projects.interface";
+import { resolveLoopLlm, callLoopLlm, type LlmContent, type LlmImageBlock } from "@/core/services/loop-llm.service";
+import type { ChatMessage, ChatAttachment } from "@/core/interfaces/loop-projects.interface";
 import fs from "fs";
 import path from "path";
+
+// Parses a "data:<mime>;base64,<data>" URL into its parts.
+function parseDataUrl(dataUrl: string): { mediaType: string; data: string } | null {
+    const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+    return match ? { mediaType: match[1], data: match[2] } : null;
+}
 
 export async function POST(
     req: Request,
@@ -13,6 +19,7 @@ export async function POST(
         const { projectId, taskId } = await context.params;
         const body = await req.json();
         const { message, history } = body;
+        const attachments = (body.attachments || []) as ChatAttachment[];
 
         // Resolve provider + key from header/body/server-env unless the client
         // forces the IDE bridge. Auto-detects Anthropic (sk-ant-) vs Google AI
@@ -22,7 +29,21 @@ export async function POST(
         const userKey = req.headers.get("x-anthropic-api-key") || body.apiKey;
         const llm = forceBridge ? null : resolveLoopLlm(userKey);
         if (!llm) {
-            const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "chat", prompt: message, history: history || [] });
+            // The IDE agent reads the bridge file from disk, not this HTTP response,
+            // so attachments are saved alongside it and referenced by path in the prompt.
+            let bridgePrompt = message;
+            if (attachments.length > 0) {
+                const dir = path.join(process.cwd(), ".antigravity", "attachments", `bridge-${Date.now()}`);
+                fs.mkdirSync(dir, { recursive: true });
+                const savedPaths = attachments.map((a) => {
+                    const parsed = parseDataUrl(a.dataUrl);
+                    const filePath = path.join(dir, a.name);
+                    if (parsed) fs.writeFileSync(filePath, Buffer.from(parsed.data, "base64"));
+                    return path.relative(process.cwd(), filePath);
+                });
+                bridgePrompt += `\n\nAttached files (read these with your file tool):\n${savedPaths.map((p) => `- ${p}`).join("\n")}`;
+            }
+            const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "chat", prompt: bridgePrompt, history: history || [] });
             return NextResponse.json({
                 success: true,
                 bridged: true,
@@ -89,7 +110,23 @@ Please address the user request and provide code edits if needed.`;
         while (mappedHistory.length > 0 && mappedHistory[0].role !== "user") {
             mappedHistory.shift();
         }
-        const apiMessages = [...mappedHistory, { role: "user" as const, content: message }];
+
+        // Image attachments become vision content blocks (images first, per
+        // provider guidance); non-image attachments are noted by name only —
+        // their content isn't sent, since parsing arbitrary file types is out of
+        // scope here. Past turns never resend attachments (keeps payloads small).
+        const imageBlocks: LlmImageBlock[] = attachments
+            .filter((a) => a.mimeType.startsWith("image/"))
+            .map((a) => {
+                const parsed = parseDataUrl(a.dataUrl);
+                return parsed ? { type: "image" as const, mediaType: parsed.mediaType, data: parsed.data } : null;
+            })
+            .filter((b): b is LlmImageBlock => b !== null);
+        const otherNames = attachments.filter((a) => !a.mimeType.startsWith("image/")).map((a) => a.name);
+        const messageText = otherNames.length > 0 ? `${message}\n\n[Attached files: ${otherNames.join(", ")}]` : message;
+        const userContent: LlmContent = imageBlocks.length > 0 ? [...imageBlocks, { type: "text", text: messageText }] : messageText;
+
+        const apiMessages = [...mappedHistory, { role: "user" as const, content: userContent }];
 
         // 4. Call the resolved provider (Claude or Gemini) and normalize usage.
         const result = await callLoopLlm(llm.provider, llm.apiKey, llm.model, systemPrompt, apiMessages);
@@ -117,7 +154,8 @@ Please address the user request and provide code edits if needed.`;
             role: "user",
             senderName: "User",
             content: message,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            ...(attachments.length > 0 ? { attachments } : {}),
         };
 
         const agentMsg: ChatMessage = {
