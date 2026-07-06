@@ -53,7 +53,10 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Frame-Options",
-            value: "DENY",
+            // DENY in production; SAMEORIGIN in dev so the Loop Studio preview pane
+            // can embed the app (same-origin) in an iframe. Pairs with the dev-only
+            // CSP frame-ancestors relaxation in src/proxy.ts.
+            value: process.env.NODE_ENV === "production" ? "DENY" : "SAMEORIGIN",
           },
           {
             key: "Strict-Transport-Security",

@@ -8,6 +8,7 @@ import { TimelineStages } from "@/app/manage/loop-projects/components/TimelineSt
 import { StageWorkspace } from "@/app/manage/loop-projects/components/StageWorkspace";
 import { ChatPanel } from "@/app/manage/loop-projects/components/ChatPanel";
 import { LogTerminal } from "@/app/manage/loop-projects/components/LogTerminal";
+import { PreviewPane } from "@/app/manage/loop-projects/components/PreviewPane";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -143,6 +144,9 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                         onUpdateTask={handleUpdateTask}
                         onTriggerLog={triggerLogReload}
                     />
+
+                    {/* Prototype: live app preview pane (v0-style Studio direction) */}
+                    <PreviewPane />
 
                     <LogTerminal
                         projectId={projectId}

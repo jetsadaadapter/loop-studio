@@ -74,7 +74,11 @@ function buildCsp(nonce: string): string {
         "img-src": TRUSTED_IMG_SRCS,
         "font-src": "'self' https://fonts.scalar.com https://fonts.gstatic.com",
         "connect-src": TRUSTED_CONNECT_SRCS,
-        "frame-ancestors": "'none'",
+        // Loop Studio embeds a live app preview (iframe) inside the workspace.
+        // In DEV only, allow same-origin framing plus local dev-server ports so the
+        // preview pane can render. Production stays locked to 'self'/'none'.
+        "frame-src": isProd ? "'self'" : "'self' http://localhost:* http://127.0.0.1:*",
+        "frame-ancestors": isProd ? "'none'" : "'self'",
         "form-action": "'self'",
         "base-uri": "'self'",
         "object-src": "'none'",
