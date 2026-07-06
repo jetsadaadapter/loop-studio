@@ -228,7 +228,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
     const isDisabled = loading || collaborating;
 
     return (
-        <div className="flex h-[420px] flex-col overflow-hidden bg-[#0d1526]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0d1526]">
             {/* Header / Cost summary */}
             <div className="flex shrink-0 items-center justify-between border-b border-[#24304b] p-3">
                 <div className="flex items-center gap-1.5">

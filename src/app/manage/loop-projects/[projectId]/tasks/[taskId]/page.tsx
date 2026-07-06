@@ -162,55 +162,60 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                     (() => {
                         const { verify, build } = getPipelineStatus(task);
                         return (
-                            <PreviewPane
-                                initialUrl={project?.previewUrl || "/apps"}
-                                verifyStatus={verify}
-                                buildStatus={build}
-                                riskTier={task.riskTier}
-                            />
+                            <>
+                                <PreviewPane
+                                    initialUrl={project?.previewUrl || "/apps"}
+                                    verifyStatus={verify}
+                                    buildStatus={build}
+                                    riskTier={task.riskTier}
+                                />
+
+                                {/* Advanced controls: manual stage stepper, checkpoint runner,
+                                    and run logs — proportioned like a config + history panel;
+                                    scrolls with the preview in this same column. */}
+                                <div className="space-y-4 p-4">
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 font-sans">
+                                        Advanced controls
+                                    </p>
+
+                                    <TimelineStages
+                                        currentStage={task.currentStage}
+                                        activeStage={activeStage}
+                                        onSelectStage={setActiveStage}
+                                        status={task.status}
+                                    />
+
+                                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                                        <div className="lg:col-span-2">
+                                            <AutoPipeline
+                                                projectId={projectId}
+                                                taskId={task.id}
+                                                onComplete={loadData}
+                                                onTriggerLog={triggerLogReload}
+                                            />
+                                        </div>
+                                        <div className="lg:col-span-1">
+                                            <LogTerminal
+                                                projectId={projectId}
+                                                taskId={task.id}
+                                                triggerCount={triggerCount}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <StageWorkspace
+                                        projectId={projectId}
+                                        task={task}
+                                        activeStage={activeStage}
+                                        onUpdateTask={handleUpdateTask}
+                                        onTriggerLog={triggerLogReload}
+                                    />
+                                </div>
+                            </>
                         );
                     })()
                 }
             />
-
-            {/* Advanced controls: manual stage stepper, checkpoint runner, and run
-                logs — kept for detail work; the Studio window above covers the
-                everyday flow. */}
-            <div className="space-y-4 pt-2">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 font-sans">
-                    Advanced controls
-                </p>
-
-                <TimelineStages
-                    currentStage={task.currentStage}
-                    activeStage={activeStage}
-                    onSelectStage={setActiveStage}
-                    status={task.status}
-                />
-
-                <AutoPipeline
-                    projectId={projectId}
-                    taskId={task.id}
-                    onComplete={loadData}
-                    onTriggerLog={triggerLogReload}
-                />
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <StageWorkspace
-                        projectId={projectId}
-                        task={task}
-                        activeStage={activeStage}
-                        onUpdateTask={handleUpdateTask}
-                        onTriggerLog={triggerLogReload}
-                    />
-
-                    <LogTerminal
-                        projectId={projectId}
-                        taskId={task.id}
-                        triggerCount={triggerCount}
-                    />
-                </div>
-            </div>
         </div>
     );
 }

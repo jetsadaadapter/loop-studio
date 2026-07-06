@@ -56,9 +56,9 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
     };
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-[#24304b] bg-[#0b1220] shadow-2xl shadow-black/30">
+        <div className="flex h-[calc(100vh-180px)] min-h-[640px] flex-col overflow-hidden rounded-2xl border border-[#24304b] bg-[#0b1220] shadow-2xl shadow-black/30">
             {/* Title bar */}
-            <div className="flex items-center gap-3 border-b border-[#24304b] bg-[#141e33] px-4 py-2.5">
+            <div className="flex shrink-0 items-center gap-3 border-b border-[#24304b] bg-[#141e33] px-4 py-2.5">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-200 font-sans">
                     {projectName}
                     <ChevronDown className="size-3.5 text-slate-500" />
@@ -125,12 +125,13 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
                 </div>
             </div>
 
-            {/* Body: chat+changes rail / live preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-5">
-                <div className="flex min-h-0 flex-col border-[#24304b] lg:col-span-2 lg:border-r">
+            {/* Body: chat+changes rail (full height, own scroll) / scrollable main
+                column (preview, then everything below it). */}
+            <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+                <div className="flex h-[70vh] min-h-0 shrink-0 flex-col border-[#24304b] lg:h-full lg:w-[380px] lg:border-r">
                     {left}
                 </div>
-                <div className="flex min-h-0 flex-col lg:col-span-3">{right}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50">{right}</div>
             </div>
         </div>
     );
