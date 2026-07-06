@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Tooling/runtime dir (IDE bridge scripts, logs, project data) — not app source.
+    ".antigravity/**",
   ]),
 ]);
 

@@ -597,6 +597,8 @@ function SidebarMenuSkeleton({
   const [width, setWidth] = React.useState("70%");
 
   React.useEffect(() => {
+    // Vendored shadcn code — randomizing skeleton width post-mount avoids SSR/CSR mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setWidth(`${Math.floor(Math.random() * 40) + 50}%`);
   }, []);
 

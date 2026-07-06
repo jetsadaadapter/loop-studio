@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, HelpCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -42,10 +42,11 @@ export function ExportDatasetModal({ open, onOpenChange, job }: ExportDatasetMod
   const [config, setConfig] = useState<ExportConfig>(defaultConfig);
 
   // Reset config every time the modal opens so stale fields from a previous job don't bleed in
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setConfig(defaultConfig);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }
 
   // Extract actual result in case it is wrapped in an array by Gemini
   const actualResult = (Array.isArray(job.result) && job.result.length === 1 && job.result[0] !== null && typeof job.result[0] === 'object')

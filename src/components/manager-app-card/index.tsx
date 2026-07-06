@@ -16,7 +16,6 @@ import {
   BookOpen,
   Wrench,
   CopyPlus,
-  Cpu,
   Search,
   Unlink,
   Loader2,
@@ -187,7 +186,6 @@ export function ManagerAppCard({
   onEdit,
   onDelete,
 }: ManagerAppCardProps) {
-  const [copiedLink, setCopiedLink] = useState(false);
   const [showIntegration, setShowIntegration] = useState(false);
   const [didCopyIntegration, setDidCopyIntegration] = useState(false);
   const [showToolPicker, setShowToolPicker] = useState(false);
@@ -334,17 +332,6 @@ export function ManagerAppCard({
 
   const type = TYPE_STYLES[item.linkType] ?? TYPE_STYLES.internal;
   const imageSrc = item.imageUrl?.trim() || null;
-
-  const handleCopyLink = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const url =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/apps/${item.id}`
-        : `/apps/${item.id}`;
-    void navigator.clipboard.writeText(url);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
 
   return (
     <Card className="group flex flex-col overflow-hidden p-0 border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.06)] bg-white rounded-2xl">

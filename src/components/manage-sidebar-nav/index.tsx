@@ -19,17 +19,10 @@ import { checkRouteImplemented } from "@/app/manage/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getDepartmentBadgeClass } from "@/lib/utils";
 import { getUserCredits, getCreditHistory, adjustUserCredits } from "@/core/services/users.service";
-import type { CreditTransaction } from "@/core/services/users.service";
 import { CreditHistoryDrawer } from "@/components/credit-history-drawer";
 import { UserCreditModal } from "@/app/manage/users/components/user-credit-modal";
 import { useNotifications } from "@/components/notification-provider";
 import { NotificationPanel } from "@/components/notification-panel";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   Collapsible,
   CollapsibleContent,
@@ -138,12 +131,6 @@ function ManageSidebarFooter() {
   const [usedToday, setUsedToday] = useState(0);
   const [usedTotal, setUsedTotal] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyPage, setHistoryPage] = useState(1);
-  const [historyItems, setHistoryItems] = useState<CreditTransaction[]>([]);
-  const [historyTotal, setHistoryTotal] = useState(0);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historySortAsc, setHistorySortAsc] = useState(false);
-  const HISTORY_LIMIT = 10;
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpSubmitting, setTopUpSubmitting] = useState(false);
   const [topUpError, setTopUpError] = useState("");
@@ -180,51 +167,6 @@ function ManageSidebarFooter() {
       })
       .catch(() => { });
   }, []);
-
-  useEffect(() => {
-    if (!historyOpen) return;
-    setHistoryLoading(true);
-    getCreditHistory({ page: historyPage, limit: HISTORY_LIMIT })
-      .then((res) => { setHistoryItems(res.data ?? []); setHistoryTotal(res.total ?? 0); })
-      .catch(() => { })
-      .finally(() => setHistoryLoading(false));
-  }, [historyOpen, historyPage]);
-
-  const historyTotalPages = Math.max(1, Math.ceil(historyTotal / HISTORY_LIMIT));
-  const sortedHistoryItems = historySortAsc
-    ? [...historyItems].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-    : [...historyItems].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  function txTypeBadge(type: string) {
-    const m: Record<string, string> = {
-      admin_adjust: "bg-amber-50 text-amber-600 border-amber-200/60",
-      charge: "bg-rose-50 text-rose-500 border-rose-200/60",
-      topup: "bg-emerald-50 text-emerald-600 border-emerald-200/60",
-      refund: "bg-sky-50 text-sky-600 border-sky-200/60",
-      bonus: "bg-violet-50 text-violet-600 border-violet-200/60",
-    };
-    return m[type] ?? "bg-slate-50 text-slate-500 border-slate-200/60";
-  }
-  function txIconBg(type: string) {
-    const m: Record<string, string> = {
-      admin_adjust: "bg-amber-100 text-amber-600",
-      charge: "bg-rose-100 text-rose-500",
-      topup: "bg-emerald-100 text-emerald-600",
-      refund: "bg-sky-100 text-sky-600",
-      bonus: "bg-violet-100 text-violet-600",
-    };
-    return m[type] ?? "bg-slate-100 text-slate-500";
-  }
-  function fmtTime(iso: string) {
-    return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  }
-  function fmtDayHeader(iso: string) {
-    return new Date(iso).toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  }
-  function isSameDay(a: string, b: string) {
-    const da = new Date(a), db = new Date(b);
-    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
-  }
 
   async function handleTopUpSubmit(amount: number, description: string) {
     if (!profile) return;
@@ -335,7 +277,7 @@ function ManageSidebarFooter() {
             return (
               <button
                 type="button"
-                onClick={() => { setHistoryPage(1); setHistoryOpen(true); }}
+                onClick={() => setHistoryOpen(true)}
                 className={`group mb-2 w-full rounded-xl px-3 pt-2.5 pb-2.5 transition-all duration-200 cursor-pointer text-left ${
                   isLow
                     ? "bg-gradient-to-br from-rose-600 via-rose-500 to-orange-500 shadow-[0_4px_16px_-4px_rgba(220,38,38,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(220,38,38,0.65)] hover:brightness-105"

@@ -61,6 +61,7 @@ export function ImageWithFallback({
     );
   }
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- src and display size are fully dynamic/caller-controlled via className; safe next/image sizing cannot be guaranteed
     <img
       src={proxiedSrc}
       alt={alt}

@@ -89,7 +89,7 @@ export function ManageBannersClient() {
   const { pushToast } = useToast();
   const [deleteTarget, setDeleteTarget] = useState<BannerRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string>("");
+  const [deleteError] = useState<string>("");
 
   async function handleDeleteBanner(target: BannerRecord) {
     setDeletingId(target.id);

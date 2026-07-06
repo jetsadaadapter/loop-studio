@@ -127,7 +127,7 @@ ${diagramLines}
 }
 
 // Webhook section (only for webhook-required tools)
-function buildWebhookPhase(toolId: string, lastPlugin: string): string {
+function buildWebhookPhase(toolId: string): string {
   return `---
 
 ## Phase 2b — WEBHOOK: Receive Completion Event
@@ -318,7 +318,7 @@ X-App-Secret: <your-secret>
 
 > **Flow is complete** when **all** \`jobs[n].state === "completed"\`${needsWebhook ? ` and webhook fires \`event: "run.completed"\`` : ""}.
 
-${needsWebhook ? buildWebhookPhase(toolId, lastScript?.plugin ?? "") : ""}---
+${needsWebhook ? buildWebhookPhase(toolId) : ""}---
 
 ## Step 3 — Get Results by Job ID
 

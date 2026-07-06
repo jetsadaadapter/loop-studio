@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Brain, Cpu, Server, Activity } from "lucide-react";
+import { Cpu, Server, Activity } from "lucide-react";
 
 interface ModelStatsProps {
   stats: {

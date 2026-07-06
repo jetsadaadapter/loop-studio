@@ -57,14 +57,9 @@ export function ManageTagsClient({ initialTags = [] }: ManageTagsClientProps) {
   const [isLoading, setIsLoading] = useState(initialTags.length === 0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
-
-  useEffect(() => {
-    if (initialTags.length > 0) {
-      setLastUpdatedAt(new Date());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(
+    () => (initialTags.length > 0 ? new Date() : null),
+  );
 
   // ── Filter / pagination state ──
   const [search, setSearch] = useState("");

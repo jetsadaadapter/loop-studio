@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import {
   BrainCircuit,
   Clock3,
@@ -114,7 +115,7 @@ export function PromptInputField({
           {/* Model Indicator */}
           <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold bg-slate-100 hover:bg-slate-200/80 text-slate-650 rounded-full border border-slate-200/50 transition-colors shadow-3xs cursor-default">
             {modelIconSrc ? (
-              <img src={modelIconSrc} alt={activeModel} className="size-3.5 object-contain shrink-0" />
+              <Image src={modelIconSrc} alt={activeModel} width={14} height={14} className="size-3.5 object-contain shrink-0" />
             ) : (
               <BrainCircuit className="size-3.5 text-brand" />
             )}

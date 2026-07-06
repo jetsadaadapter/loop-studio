@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { List, FileText, Sparkles, Link2, Plus, Trash2 } from "lucide-react";
+import { List, FileText, Sparkles, Link2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UrlArrayInputProps {
@@ -28,11 +28,6 @@ export function UrlArrayInput({
   const handleAdd = () => onChange([...value, ""]);
   const handleRemove = (index: number) =>
     onChange(value.filter((_, i) => i !== index));
-  const handleItemChange = (index: number, val: string) => {
-    const next = [...value];
-    next[index] = val;
-    onChange(next);
-  };
   const handleBulkSave = () => {
     onChange(
       bulkValue
@@ -237,6 +232,7 @@ export function UrlArrayInput({
                     )}
                     title={item}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- external favicon service URL not in next.config remotePatterns; domain is dynamic per chip */}
                     <img
                       src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
                       className="w-3.5 h-3.5 rounded-md shrink-0 bg-white border border-slate-100 shadow-2xs"

@@ -40,7 +40,6 @@ export function ContentSection({
   touched,
   fieldErrors,
   onChange,
-  onBlur,
   onGenerateIntegration,
   isGeneratingIntegration = false,
   isInternal = false,

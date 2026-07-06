@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { LayoutDashboard, LogOut } from "lucide-react";
-import type { UserProfile } from "@/core/interfaces/auth.interface";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LEGAL_LINKS } from "@/lib/legal-links";
 import { getDepartmentBadgeClass } from "@/lib/utils";
-import { handleSignOut, useProfileData, getProfileMonogram } from "./profile-utils";
+import { handleSignOut, useProfileData } from "./profile-utils";
 
 type MenuItem = {
   label: string;

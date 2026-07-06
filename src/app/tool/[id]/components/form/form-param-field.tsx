@@ -175,7 +175,7 @@ export function FormParamField({
                   try {
                     const parsed = JSON.parse(trimmed);
                     if (Array.isArray(parsed)) return parsed.map(String);
-                  } catch (e) { }
+                  } catch { }
                 }
                 return [trimmed];
               }

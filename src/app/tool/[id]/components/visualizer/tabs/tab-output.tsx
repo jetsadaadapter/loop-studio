@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Table2, FileCode } from "lucide-react";
 import type { ToolJob } from "@/core/interfaces/tools.interface";
@@ -27,7 +27,7 @@ import { StructuredObjectSummary } from "../overview/structured-object-summary";
 import { TabOutputOverview } from "./tab-output-overview";
 import { AllFieldsTable } from "../table/all-fields-table";
 import { DynamicLayoutVisualizer } from "@/components/dynamic-layout-visualizer";
-import type { DynamicUIItem } from "@/components/dynamic-layout-visualizer/types";
+import type { DynamicUIItem, DynamicUISection } from "@/components/dynamic-layout-visualizer/types";
 import {
   getFunctionDeclarationsFromJob,
   generateDynamicLayoutFromSchema,
@@ -232,6 +232,16 @@ export function TabOutput({ job }: TabOutputProps) {
     setInnerTab(defaultTab);
   }
 
+  const showAllFieldsTab = true;
+  const [prevShowAllFieldsTab, setPrevShowAllFieldsTab] = useState(showAllFieldsTab);
+
+  if (showAllFieldsTab !== prevShowAllFieldsTab) {
+    setPrevShowAllFieldsTab(showAllFieldsTab);
+    if (!showAllFieldsTab && innerTab === "all") {
+      setInnerTab("overview");
+    }
+  }
+
   const displayedSummaryText = hasMultipleSummaryTabs
     ? summaryParts[activeSummaryTab] || ""
     : singleTextValue;
@@ -397,14 +407,6 @@ export function TabOutput({ job }: TabOutputProps) {
     if (isExportCommentsJob) return "โพสต์ทั้งหมด (All Fields)";
     return "ตารางข้อมูล (All Fields)";
   })();
-
-  const showAllFieldsTab = true;
-
-  useEffect(() => {
-    if (!showAllFieldsTab && innerTab === "all") {
-      setInnerTab("overview");
-    }
-  }, [showAllFieldsTab, innerTab, setInnerTab]);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 text-slate-700">
@@ -607,9 +609,40 @@ export function TabOutput({ job }: TabOutputProps) {
   );
 }
 
+interface BrandPreferenceMetric {
+  metric_key?: string;
+  metric_value?: number | string;
+  metric_type?: string;
+}
+
+interface BrandPreferenceSegment {
+  segment_type?: string;
+  segment_key?: string;
+  count?: number;
+  percent?: number;
+}
+
+interface BrandPreferenceInsight {
+  insight_text?: string;
+}
+
+interface BrandPreferenceComment {
+  comment_text?: string;
+  tags?: string;
+}
+
+interface BrandPreferenceResult {
+  metrics?: BrandPreferenceMetric[];
+  segments?: BrandPreferenceSegment[];
+  insights?: BrandPreferenceInsight[];
+  comments?: BrandPreferenceComment[];
+}
+
 // Helper to transform Brand Preference result into DynamicUIItem sections
-function transformBrandPreferenceToDynamicLayoutSections(result: any) {
-  const sections: any[] = [];
+function transformBrandPreferenceToDynamicLayoutSections(
+  result: BrandPreferenceResult,
+): DynamicUISection[] {
+  const sections: DynamicUISection[] = [];
   const formatKey = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   if (Array.isArray(result.metrics) && result.metrics.length > 0) {
@@ -617,7 +650,7 @@ function transformBrandPreferenceToDynamicLayoutSections(result: any) {
       section_id: "metrics",
       section_title: "สัดส่วนความสนใจ (Metrics)",
       section_type: "scorecard",
-      data: result.metrics.map((m: any) => ({
+      data: result.metrics.map((m) => ({
         label: formatKey(m.metric_key || ""),
         value: typeof m.metric_value === "number" && m.metric_type === "percentage" ? `${m.metric_value}%` : m.metric_value
       }))
@@ -625,15 +658,15 @@ function transformBrandPreferenceToDynamicLayoutSections(result: any) {
   }
 
   if (Array.isArray(result.segments) && result.segments.length > 0) {
-    const userInterest = result.segments.filter((s: any) => s.segment_type === "user_interest");
-    const brandPref = result.segments.filter((s: any) => s.segment_type === "brand_preference");
+    const userInterest = result.segments.filter((s) => s.segment_type === "user_interest");
+    const brandPref = result.segments.filter((s) => s.segment_type === "brand_preference");
 
     if (userInterest.length > 0) {
       sections.push({
         section_id: "segment_user_interest",
         section_title: "ความสนใจของผู้ใช้ (User Interest)",
         section_type: "pie_chart",
-        data: userInterest.map((s: any) => ({
+        data: userInterest.map((s) => ({
           label: formatKey(s.segment_key || ""),
           value: s.count,
           percent: s.percent
@@ -646,7 +679,7 @@ function transformBrandPreferenceToDynamicLayoutSections(result: any) {
         section_id: "segment_brand_preference",
         section_title: "แบรนด์ที่ได้รับความนิยม (Brand Preference)",
         section_type: "bar_chart",
-        data: brandPref.map((s: any) => ({
+        data: brandPref.map((s) => ({
           label: formatKey(s.segment_key || ""),
           value: s.count
         }))
@@ -659,7 +692,7 @@ function transformBrandPreferenceToDynamicLayoutSections(result: any) {
       section_id: "insights",
       section_title: "ข้อมูลเชิงลึก (Insights)",
       section_type: "list",
-      data: result.insights.map((i: any) => ({
+      data: result.insights.map((i) => ({
         comment: i.insight_text
       }))
     });
@@ -670,7 +703,7 @@ function transformBrandPreferenceToDynamicLayoutSections(result: any) {
       section_id: "comments",
       section_title: "ความคิดเห็นที่น่าสนใจ (Comments)",
       section_type: "list",
-      data: result.comments.map((c: any) => ({
+      data: result.comments.map((c) => ({
         comment: c.comment_text,
         keywords_mentioned: c.tags ? c.tags.split(",") : []
       }))

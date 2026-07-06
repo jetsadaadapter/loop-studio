@@ -40,8 +40,8 @@ export function UserFormModal({
 }: UserFormModalProps) {
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
-  const [department, setDepartment] = useState(user.department ?? "");
-  const [position, setPosition] = useState(user.position ?? "");
+  const [department] = useState(user.department ?? "");
+  const [position] = useState(user.position ?? "");
   const [selectedRoles, setSelectedRoles] = useState<string[]>(user.roles ?? []);
   const [errors, setErrors] = useState<Partial<Record<keyof ManageUserFormValues, string>>>({});
   const [copiedEmpId, setCopiedEmpId] = useState(false);

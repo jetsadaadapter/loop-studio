@@ -46,8 +46,6 @@ export function ProjectsTab({
   onRefresh,
   isRefreshing,
   lastUpdatedAt,
-  userContext,
-  usersMap,
   canTopUp = false,
 }: ProjectsTabProps) {
   const [sortBy, setSortBy] = useState<string>("name-asc");
