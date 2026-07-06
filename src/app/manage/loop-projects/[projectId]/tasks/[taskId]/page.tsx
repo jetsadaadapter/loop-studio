@@ -9,6 +9,7 @@ import { StageWorkspace } from "@/app/manage/loop-projects/components/StageWorks
 import { ChatPanel } from "@/app/manage/loop-projects/components/ChatPanel";
 import { LogTerminal } from "@/app/manage/loop-projects/components/LogTerminal";
 import { PreviewPane } from "@/app/manage/loop-projects/components/PreviewPane";
+import { AutoPipeline } from "@/app/manage/loop-projects/components/AutoPipeline";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -154,7 +155,16 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                 </div>
             </div>
 
-            {/* Stage controls & run logs — used until the pipeline runs automatically. */}
+            {/* Auto-pipeline (Phase 3): run Verify + Automate as checkpoints and
+                advance the stage automatically instead of clicking through them. */}
+            <AutoPipeline
+                projectId={projectId}
+                taskId={task.id}
+                onComplete={loadData}
+                onTriggerLog={triggerLogReload}
+            />
+
+            {/* Stage controls & run logs — manual fallback / detail. */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <StageWorkspace
                     projectId={projectId}
