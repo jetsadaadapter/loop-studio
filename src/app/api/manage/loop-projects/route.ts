@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { action, name, path: projectPath, template } = body;
+        const { action, name, path: projectPath, template, previewUrl } = body;
 
         const projects = getProjects();
 
@@ -38,6 +38,7 @@ export async function POST(req: Request) {
                 path: projectPath,
                 template: template || "generic",
                 tasks: [],
+                ...(typeof previewUrl === "string" && previewUrl.trim() ? { previewUrl: previewUrl.trim() } : {}),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };

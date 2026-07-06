@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { X, FolderInput, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -31,6 +31,7 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
     const [name, setName] = useState("");
     const [path, setPath] = useState("");
     const [template, setTemplate] = useState("nextjs-app");
+    const [previewUrl, setPreviewUrl] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -43,7 +44,7 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
             const res = await fetch("/api/manage/loop-projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "register", name, path, template }),
+                body: JSON.stringify({ action: "register", name, path, template, previewUrl }),
             });
             const data = await res.json();
             if (data.success) {
@@ -108,6 +109,19 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                             value={path}
                             onChange={(e) => setPath(e.target.value)}
                         />
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>Preview / Dev server URL</FieldLabel>
+                        <Input
+                            type="text"
+                            placeholder="e.g. http://localhost:3001  (or /apps for this repo)"
+                            value={previewUrl}
+                            onChange={(e) => setPreviewUrl(e.target.value)}
+                        />
+                        <FieldDescription>
+                            Optional. Where this project&apos;s app runs, shown in the Studio preview pane. Leave blank to default to /apps.
+                        </FieldDescription>
                     </Field>
 
                     <Field>

@@ -145,8 +145,9 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                         onTriggerLog={triggerLogReload}
                     />
 
-                    {/* Prototype: live app preview pane (v0-style Studio direction) */}
-                    <PreviewPane />
+                    {/* Live app preview pane (v0-style Studio direction). Points at the
+                        project's own dev server when set, else the same-repo app route. */}
+                    <PreviewPane initialUrl={project?.previewUrl || "/apps"} />
 
                     <LogTerminal
                         projectId={projectId}

@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
+    const isProd = process.env.NODE_ENV === "production";
     return [
       {
         source: "/(.*)",
@@ -51,13 +52,11 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
-          {
-            key: "X-Frame-Options",
-            // DENY in production; SAMEORIGIN in dev so the Loop Studio preview pane
-            // can embed the app (same-origin) in an iframe. Pairs with the dev-only
-            // CSP frame-ancestors relaxation in src/proxy.ts.
-            value: process.env.NODE_ENV === "production" ? "DENY" : "SAMEORIGIN",
-          },
+          // X-Frame-Options cannot allow-list cross-origin framers, so it is set only
+          // in production (DENY). In dev it is omitted, and framing is governed solely
+          // by the CSP frame-ancestors directive (see src/proxy.ts) which allows local
+          // ports — letting the Studio preview pane embed a project's dev server.
+          ...(isProd ? [{ key: "X-Frame-Options", value: "DENY" }] : []),
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",

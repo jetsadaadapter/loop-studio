@@ -124,6 +124,10 @@ export interface LoopProject {
     path: string; // absolute local path
     template: ProjectTemplate;
     tasks: LoopTask[];
+    // Where this project's app runs, used by the Studio preview pane. For a project
+    // that is the same repo as the Studio, a relative path like "/apps" works; for a
+    // separate repo, its dev server URL (e.g. "http://localhost:3001").
+    previewUrl?: string;
     createdAt: string;
     updatedAt: string;
 }
