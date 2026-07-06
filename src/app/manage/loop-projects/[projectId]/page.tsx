@@ -8,12 +8,9 @@ import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { CreateTaskModal } from "../components/CreateTaskModal";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
-import { OverviewView } from "./components/OverviewView";
-import { PlanningView } from "./components/PlanningView";
 import { TaskView } from "./components/TaskView";
 import { WalkthroughView } from "./components/WalkthroughView";
-import { SimulationView } from "./components/SimulationView";
-import type { LoopProject, LoopTask } from "@/core/interfaces/loop-projects.interface";
+import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectWorkspaceProps {
     params: Promise<{ projectId: string }>;
@@ -31,14 +28,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const [statusFilter, setStatusFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("overview");
-
-    // Optimistic local update; the view components persist edits via their own APIs.
-    const handleUpdateTaskField = (taskId: string, fields: Partial<LoopTask>) => {
-        setProject((prev) =>
-            prev ? { ...prev, tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...fields } : t)) } : prev,
-        );
-    };
+    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("walkthrough");
 
     const loadData = async () => {
         setLoading(true);
@@ -142,12 +132,6 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
 
             <ViewTabs viewTab={viewTab} onChange={setViewTab} />
 
-            {viewTab === "overview" && (
-                <OverviewView projectId={projectId} project={project} tasks={tasks} gitInfo={gitInfo} />
-            )}
-
-            {viewTab === "simulation" && <SimulationView projectId={projectId} />}
-
             {viewTab === "task" && (
                 <>
                     <ManagerToolbar
@@ -158,15 +142,9 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                         trailing={toolbarTrailing}
                     />
                     {filteredTasks.length === 0 ? emptyTasks : (
-                        <TaskView projectId={projectId} tasks={filteredTasks} onUpdateTask={handleUpdateTaskField} />
+                        <TaskView projectId={projectId} tasks={filteredTasks} />
                     )}
                 </>
-            )}
-
-            {viewTab === "planning" && (
-                tasks.length === 0 ? emptyTasks : (
-                    <PlanningView projectId={projectId} tasks={tasks} onUpdateTask={handleUpdateTaskField} />
-                )
             )}
 
             {viewTab === "walkthrough" && (

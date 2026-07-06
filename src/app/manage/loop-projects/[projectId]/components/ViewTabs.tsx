@@ -1,16 +1,17 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, CalendarRange, ListChecks, Footprints, PlayCircle, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { PanelsTopLeft, ListChecks, Settings, type LucideIcon } from "lucide-react";
 
-export type WorkspaceViewTab = "overview" | "planning" | "task" | "walkthrough" | "simulation";
+// Trimmed Studio navigation (Phase 4): the workspace ("Studio") and the task
+// backlog ("Tasks"). Overview folded into the header; Planning and the standalone
+// Live Run tab removed (preview + auto-pipeline cover that flow).
+export type WorkspaceViewTab = "walkthrough" | "task";
 
 const TABS: { key: WorkspaceViewTab; label: string; icon: LucideIcon }[] = [
-    { key: "overview", label: "Overview", icon: LayoutDashboard },
-    { key: "planning", label: "Planning", icon: CalendarRange },
-    { key: "task", label: "Task", icon: ListChecks },
-    { key: "walkthrough", label: "Walkthrough", icon: Footprints },
-    { key: "simulation", label: "Live Run", icon: PlayCircle },
+    { key: "walkthrough", label: "Studio", icon: PanelsTopLeft },
+    { key: "task", label: "Tasks", icon: ListChecks },
 ];
 
 interface ViewTabsProps {
@@ -20,7 +21,7 @@ interface ViewTabsProps {
 
 export function ViewTabs({ viewTab, onChange }: ViewTabsProps) {
     return (
-        <div className="flex border-b border-slate-200 gap-6 shrink-0 select-none pb-px overflow-x-auto">
+        <div className="flex items-center border-b border-slate-200 gap-6 shrink-0 select-none pb-px overflow-x-auto">
             {TABS.map(({ key, label, icon: Icon }) => {
                 const active = viewTab === key;
                 return (
@@ -38,6 +39,14 @@ export function ViewTabs({ viewTab, onChange }: ViewTabsProps) {
                     </button>
                 );
             })}
+
+            <Link
+                href="/manage/loop-projects/agents"
+                className="ml-auto flex items-center gap-1.5 text-xs font-semibold py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer whitespace-nowrap"
+            >
+                <Settings className="size-3.5" />
+                Settings
+            </Link>
         </div>
     );
 }
