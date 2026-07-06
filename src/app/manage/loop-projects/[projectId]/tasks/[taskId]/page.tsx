@@ -133,31 +133,11 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                 status={task.status}
             />
 
-            {/* Dual Pane Workspace */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Pane: Stage Controller */}
-                <div className="lg:col-span-2 space-y-6">
-                    <StageWorkspace
-                        projectId={projectId}
-                        task={task}
-                        activeStage={activeStage}
-                        onUpdateTask={handleUpdateTask}
-                        onTriggerLog={triggerLogReload}
-                    />
-
-                    {/* Live app preview pane (v0-style Studio direction). Points at the
-                        project's own dev server when set, else the same-repo app route. */}
-                    <PreviewPane initialUrl={project?.previewUrl || "/apps"} />
-
-                    <LogTerminal
-                        projectId={projectId}
-                        taskId={task.id}
-                        triggerCount={triggerCount}
-                    />
-                </div>
-
-                {/* Right Pane: AI chat space */}
-                <div className="lg:col-span-1">
+            {/* Studio workspace (v0 layout): chat drives edits on the left, the app
+                previews live on the right. */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                {/* Chat — the driver */}
+                <div className="lg:col-span-2">
                     <ChatPanel
                         projectId={projectId}
                         taskId={task.id}
@@ -166,6 +146,29 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                         onTriggerLog={triggerLogReload}
                     />
                 </div>
+
+                {/* Live preview — Preview / Code / Diff. Points at the project's own dev
+                    server when set, else the same-repo app route. */}
+                <div className="self-start lg:sticky lg:top-4 lg:col-span-3">
+                    <PreviewPane initialUrl={project?.previewUrl || "/apps"} />
+                </div>
+            </div>
+
+            {/* Stage controls & run logs — used until the pipeline runs automatically. */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <StageWorkspace
+                    projectId={projectId}
+                    task={task}
+                    activeStage={activeStage}
+                    onUpdateTask={handleUpdateTask}
+                    onTriggerLog={triggerLogReload}
+                />
+
+                <LogTerminal
+                    projectId={projectId}
+                    taskId={task.id}
+                    triggerCount={triggerCount}
+                />
             </div>
         </div>
     );
