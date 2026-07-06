@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, calculateRiskTier } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, calculateRiskTier, getSafetyNets } from "@/core/services/loop-projects.service";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
 export async function GET(req: Request, context: { params: Promise<{ projectId: string }> }) {
@@ -40,29 +40,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         const { tier, count } = calculateRiskTier(project.path, primaryFile);
 
         // Assign safety nets based on calculated Risk Tier
-        let safetyNets: string[] = [];
-        if (tier === "RED") {
-            safetyNets = [
-                "Unit tests covering all edge cases",
-                "Snapshot assertions for all usages",
-                "Visual regression tests (Playwright)",
-                "CI Guard validation run"
-            ];
-        } else if (tier === "ORANGE") {
-            safetyNets = [
-                "Unit tests for basic flows",
-                "Snapshot assertions for all visual variants"
-            ];
-        } else if (tier === "YELLOW") {
-            safetyNets = [
-                "Standard unit tests",
-                "Manual visual verification of 2-3 key states"
-            ];
-        } else {
-            safetyNets = [
-                "Basic unit test verification"
-            ];
-        }
+        const safetyNets = getSafetyNets(tier);
 
         const newTask: LoopTask = {
             id: `task-${Date.now()}`,

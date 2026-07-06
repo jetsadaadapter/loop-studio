@@ -176,6 +176,32 @@ export function calculateRiskTier(projectPath: string, relativeFilePath: string)
     return { tier, count };
 }
 
+// Safety-net checklist required for a given risk tier. Shared by the task-create
+// route and the live risk-tier preview so the modal shows exactly what will apply.
+export function getSafetyNets(tier: RiskTier): string[] {
+    switch (tier) {
+        case "RED":
+            return [
+                "Unit tests covering all edge cases",
+                "Snapshot assertions for all usages",
+                "Visual regression tests (Playwright)",
+                "CI Guard validation run",
+            ];
+        case "ORANGE":
+            return [
+                "Unit tests for basic flows",
+                "Snapshot assertions for all visual variants",
+            ];
+        case "YELLOW":
+            return [
+                "Standard unit tests",
+                "Manual visual verification of 2-3 key states",
+            ];
+        default:
+            return ["Basic unit test verification"];
+    }
+}
+
 // Git Helpers
 export async function executeGitCommand(projectPath: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
