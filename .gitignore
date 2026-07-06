@@ -112,6 +112,8 @@ pnpm-debug.log*
 # Antigravity
 # -------------------------------------------------------
 .antigravity/cache/
+# Runtime logs (Live Run / task / bootstrap) — regenerated on demand
+.antigravity/log-*.txt
 
 # -------------------------------------------------------
 # Temporary files
