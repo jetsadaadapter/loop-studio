@@ -161,7 +161,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                                 className="flex items-center gap-1 rounded-sm border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 cursor-pointer shadow-3xs"
                             >
                                 <ArrowUpCircle className="size-3.5" />
-                                Push to Remote
+                                Publish
                             </button>
                             <button
                                 type="submit"

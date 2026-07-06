@@ -10,6 +10,7 @@ import { ChatPanel } from "@/app/manage/loop-projects/components/ChatPanel";
 import { LogTerminal } from "@/app/manage/loop-projects/components/LogTerminal";
 import { PreviewPane } from "@/app/manage/loop-projects/components/PreviewPane";
 import { AutoPipeline } from "@/app/manage/loop-projects/components/AutoPipeline";
+import { VersionTimeline } from "@/app/manage/loop-projects/components/VersionTimeline";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -137,8 +138,8 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
             {/* Studio workspace (v0 layout): chat drives edits on the left, the app
                 previews live on the right. */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                {/* Chat — the driver */}
-                <div className="lg:col-span-2">
+                {/* Chat — the driver — with the version timeline beneath it */}
+                <div className="lg:col-span-2 space-y-6">
                     <ChatPanel
                         projectId={projectId}
                         taskId={task.id}
@@ -146,6 +147,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                         onRefresh={loadData}
                         onTriggerLog={triggerLogReload}
                     />
+                    <VersionTimeline projectId={projectId} refreshKey={triggerCount} />
                 </div>
 
                 {/* Live preview — Preview / Code / Diff. Points at the project's own dev

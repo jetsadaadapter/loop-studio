@@ -228,6 +228,42 @@ export async function getGitInfo(projectPath: string) {
     }
 }
 
+export interface GitCommit {
+    hash: string;
+    subject: string;
+    relativeDate: string;
+    insertions: number;
+    deletions: number;
+}
+
+// Recent commits (version history) with per-commit insertion/deletion counts, for
+// the Studio version timeline. Uses record/field separators so subjects with any
+// characters parse safely.
+export async function getRecentCommits(projectPath: string, limit = 20): Promise<GitCommit[]> {
+    try {
+        const out = await executeGitCommand(projectPath, [
+            "log",
+            `-n${limit}`,
+            "--pretty=format:\x1e%h\x1f%s\x1f%cr",
+            "--shortstat",
+        ]);
+        return out
+            .split("\x1e")
+            .map((rec) => rec.trim())
+            .filter(Boolean)
+            .map((rec) => {
+                const [head, ...rest] = rec.split("\n");
+                const [hash, subject, relativeDate] = head.split("\x1f");
+                const stat = rest.join(" ");
+                const insertions = Number(stat.match(/(\d+) insertion/)?.[1] ?? 0);
+                const deletions = Number(stat.match(/(\d+) deletion/)?.[1] ?? 0);
+                return { hash, subject: subject ?? "", relativeDate: relativeDate ?? "", insertions, deletions };
+            });
+    } catch {
+        return [];
+    }
+}
+
 // Returns git-tracked, editable source files (relative paths) for the target-file
 // picker. Uses `git ls-files` so it respects .gitignore and stays fast.
 export async function listProjectFiles(projectPath: string): Promise<string[]> {

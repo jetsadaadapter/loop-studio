@@ -5,7 +5,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
     try {
         const { projectId } = await context.params;
         const body = await req.json();
-        const { action, commitMessage } = body;
+        const { action, commitMessage, hash } = body;
 
         const projects = getProjects();
         const project = projects.find((p) => p.id === projectId);
@@ -35,6 +35,17 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
                 success: true,
                 message: `Successfully pushed to origin ${branch}`,
                 data: pushResult
+            });
+        } else if (action === "revert") {
+            if (!hash || typeof hash !== "string") {
+                return NextResponse.json({ success: false, error: "Commit hash is required" }, { status: 400 });
+            }
+            // Safe undo: create a new commit that reverses the target, never rewrites history.
+            const revertResult = await executeGitCommand(project.path, ["revert", "--no-edit", hash]);
+            return NextResponse.json({
+                success: true,
+                message: `Reverted commit ${hash}`,
+                data: revertResult
             });
         }
 
