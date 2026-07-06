@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { GitCommitHorizontal, Undo2, Loader2, RotateCw } from "lucide-react";
+import { GitCommitHorizontal, Undo2, Loader2, RotateCw, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface GitCommit {
     hash: string;
@@ -23,6 +24,8 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
     const [reverting, setReverting] = useState<string | null>(null);
     const [error, setError] = useState("");
     const [reloadTick, setReloadTick] = useState(0);
+    // The commit awaiting revert confirmation (null = dialog closed).
+    const [confirmCommit, setConfirmCommit] = useState<GitCommit | null>(null);
 
     // Fetch on mount, when the project changes, on external refresh, or after a revert.
     useEffect(() => {
@@ -44,6 +47,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
     }, [projectId, refreshKey, reloadTick]);
 
     const handleRevert = async (hash: string) => {
+        setConfirmCommit(null);
         setReverting(hash);
         setError("");
         try {
@@ -110,7 +114,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                             </div>
                             <button
                                 type="button"
-                                onClick={() => handleRevert(c.hash)}
+                                onClick={() => setConfirmCommit(c)}
                                 disabled={reverting !== null}
                                 title="Revert this commit (creates an undo commit)"
                                 className="flex items-center gap-1 rounded-sm border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-50 cursor-pointer"
@@ -122,6 +126,40 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                     ))}
                 </ol>
             )}
+
+            <Dialog open={confirmCommit !== null} onOpenChange={(open) => !open && setConfirmCommit(null)}>
+                <DialogContent hideCloseButton className="w-full max-w-sm rounded-2xl border border-slate-200/60 bg-white p-5 shadow-xl focus:outline-none">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="flex size-11 items-center justify-center rounded-full border border-amber-200/60 bg-amber-50 text-amber-600">
+                            <AlertTriangle className="size-5" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-slate-800">Revert this commit?</h3>
+                        <p className="text-xs leading-relaxed text-slate-500">
+                            This creates a new commit that undoes{" "}
+                            <span className="font-semibold text-slate-700">{confirmCommit?.subject}</span>{" "}
+                            (<span className="font-mono text-slate-500">{confirmCommit?.hash}</span>). Your history is
+                            kept — nothing is deleted.
+                        </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-center gap-2.5">
+                        <button
+                            type="button"
+                            onClick={() => setConfirmCommit(null)}
+                            className="h-9 cursor-pointer rounded-sm border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => confirmCommit && handleRevert(confirmCommit.hash)}
+                            className="flex h-9 cursor-pointer items-center gap-1.5 rounded-sm bg-brand px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-brand/90"
+                        >
+                            <Undo2 className="size-3.5" />
+                            Revert
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
