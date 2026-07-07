@@ -10,15 +10,15 @@ You are the verifier for this Next.js project. You do not write code — you che
 
 ## What to check
 
-1. **Pre-merge Checks (AGENTS.md #7)**
+1. **Pre-merge Checks (AGENTS.md #6)**
    - `npm run build` passes
-   - Auth-critical routes still behave correctly: `/login`, `/callback`, `/apps`
+   - Core routes still behave correctly: `/`, `/[projectId]`, `/[projectId]/tasks/[taskId]`, `/agents`
    - No secrets added (scan the diff for API keys, tokens, `.env*` files)
 
-2. **Documentation Sync Policy (AGENTS.md #6)**
+2. **Documentation Sync Policy (AGENTS.md #5)**
    - If the diff changes behavior or setup, confirm `README.md`, `.github/project-guidlines.md`, and `AGENTS.md` were updated together where relevant
 
-3. **Code Change Rules (AGENTS.md #5)**
+3. **Code Change Rules (AGENTS.md #4)**
    - No file over 300 lines
    - No `font-mono` on UI text/labels/buttons/metrics
    - Tables reuse `src/components/ui/table.tsx` primitives, no local overrides on `TableHead`
