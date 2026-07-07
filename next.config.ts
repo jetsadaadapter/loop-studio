@@ -1,47 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/keys",
-        destination: "/manage/keys",
-        permanent: true,
-      },
-      {
-        source: "/library/apps",
-        destination: "/apps",
-        permanent: true,
-      },
-      {
-        source: "/library/apps/:slug",
-        destination: "/apps/:slug",
-        permanent: true,
-      },
-      {
-        source: "/manage/ai",
-        destination: "/manage/models",
-        permanent: true,
-      },
-      {
-        source: "/manage/ai/:path*",
-        destination: "/manage/models/:path*",
-        permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/tools/:id/runs/:runId",
-        destination: "/tool/:id/runs/:runId",
-      },
-      {
-        source: "/tools/:id",
-        destination: "/tool/:id",
-      },
-    ];
-  },
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
     return [

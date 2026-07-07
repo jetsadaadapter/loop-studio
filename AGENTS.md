@@ -42,25 +42,29 @@ Rules:
 
 ## 3. Current App Model (Must Match Code)
 
+This repo was cut down from the "Adapter App Store" codebase to a standalone Loop
+DevStudio (task management for AI coding agents) — the App Store's public pages,
+management-menu CRUD modules (apps/banners/categories/keys/models/prompts/tags/
+tools/users), and its Zero Trust auth system were all removed. If you find code
+that only makes sense for that old App Store (an unused service, a stray import),
+it's leftover — flag it for removal rather than building on it.
+
 - Main app routes:
-  - `/apps`
-  - `/apps/[id]`
-  - `/manage/apps`
-  - `/manage/ai`
-- Legacy routes are redirected in `next.config.ts`:
-  - `/library/apps -> /apps`
-  - `/library/apps/:id -> /apps/:id`
-- Route protection and CSP are enforced in `src/proxy.ts`
-- Primary authentication flow is Zero Trust login script + callback + `zt_token` cookie
+  - `/` — redirects to `/manage/loop-projects` (stopgap; final home route is TBD)
+  - `/manage/loop-projects`, `/manage/loop-projects/[projectId]`, `/manage/loop-projects/[projectId]/tasks/[taskId]`, `/manage/loop-projects/agents`
+  - `/api/manage/loop-projects/**`, `/api/manage/loop-agents/**`
+- No auth system — every route is public. `src/proxy.ts` only sets CSP/security
+  headers (per-request nonce) now, it does not gate access.
+- `.claude/hooks/pre-tool-use.sh` still blocks edits to `src/proxy.ts` that add
+  `unsafe-inline`/`unsafe-eval` — CSP is kept even though auth was removed.
 
-## 4. Auth and Security Guardrails
+## 4. Open Decisions (from the App Store → Loop Studio cut)
 
-- Do not weaken CSP or remove nonce-based CSP flow unless explicitly requested
-- Keep `zt_token` cookie flow intact for login/callback/logout paths
-- Keep `/login`, `/callback`, `/api/auth/*` as public unless requirements change
-- If adding new third-party domains:
-  - Update `next.config.ts` (`images.remotePatterns` if image host)
-  - Update trusted CSP sources in `src/proxy.ts`
+Not yet resolved — check with the user before acting on these:
+
+- Whether Loop DevStudio should move from `/manage/loop-projects` to `/` instead of the current redirect stopgap
+- Whether `NotificationProvider`/`NotificationPanel` (still wired globally in `src/app/layout.tsx`) should be removed or kept
+- Whether `recharts`/`xlsx` in `package.json` are actually unused now (not yet verified) and safe to remove
 
 ## 5. Code Change Rules
 

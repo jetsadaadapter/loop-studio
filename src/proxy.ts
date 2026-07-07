@@ -1,50 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-// Routes that do NOT require authentication
-const PUBLIC_PATHS = [
-    "/login",
-    "/callback",
-    "/api/auth",
-    "/docs/openapi.json",
-    // Dev-only component gallery used by Playwright visual-regression tests.
-    // Never public in production: the entry is only added when not prod, and the
-    // page itself also calls notFound() under NODE_ENV === "production".
-    ...(process.env.NODE_ENV !== "production" ? ["/dev"] : []),
-];
-
 // Static asset patterns — skip middleware entirely
 const STATIC_PATTERN =
-    /^\/(_next\/static|_next\/image|favicon\.ico|images|fonts|login-adapterstore|robots\.txt|sitemap\.xml)/;
-
-const TOKEN_COOKIE = "zt_token";
+    /^\/(_next\/static|_next\/image|favicon\.ico|images|fonts|robots\.txt|sitemap\.xml)/;
 
 // ─── Trusted sources for CSP ─────────────────────────────────────────────────
 // Update these when adding new external resources.
 
-const TRUSTED_CONNECT_SRCS = [
-    "'self'",
-    "https://auth.adapterinternal.com",
-    "https://library-api.adapterdigital.com",
-    // Scalar API Reference — registry, search, and proxy endpoints
-    "https://api.scalar.com",
-    "https://proxy.scalar.com",
-].join(" ");
+const TRUSTED_CONNECT_SRCS = ["'self'"].join(" ");
 
-const TRUSTED_IMG_SRCS = [
-    "'self'",
-    "data:",
-    "blob:",
-    "https://*.adapterdigital.com",
-    "https://*.googleusercontent.com",
-    "https://*.google.com",
-    "https://images.unsplash.com",
-    "https://source.unsplash.com",
-    "https://ui-avatars.com",
-    "https://placehold.co",
-    "https://*.fbcdn.net",
-    "https://*.facebook.com",
-    "https://*.akamaihd.net",
-].join(" ");
+const TRUSTED_IMG_SRCS = ["'self'", "data:", "blob:"].join(" ");
 
 /**
  * Build a strict Content-Security-Policy header value using a per-request nonce.
@@ -72,7 +37,7 @@ function buildCsp(nonce: string): string {
         "script-src": scriptSrc,
         "style-src": "'self' 'unsafe-inline'",
         "img-src": TRUSTED_IMG_SRCS,
-        "font-src": "'self' https://fonts.scalar.com https://fonts.gstatic.com",
+        "font-src": "'self' https://fonts.gstatic.com",
         "connect-src": TRUSTED_CONNECT_SRCS,
         // Loop Studio embeds a live app preview (iframe) inside the workspace.
         // In DEV only, allow local dev-server ports so the preview pane can render —
@@ -85,7 +50,6 @@ function buildCsp(nonce: string): string {
         "base-uri": "'self'",
         "object-src": "'none'",
         "upgrade-insecure-requests": "",
-        "report-uri": "/api/csp-violation-report",
     };
 
     return Object.entries(directives)
@@ -109,37 +73,14 @@ function applySecurityHeaders(res: NextResponse, nonce: string): NextResponse {
 export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    // Generate a fresh cryptographic nonce for every request
-    const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-
-    // Allow static assets through unconditionally
+    // Static assets don't need CSP headers or a nonce.
     if (STATIC_PATTERN.test(pathname)) {
-        return applySecurityHeaders(NextResponse.next(), nonce);
+        return NextResponse.next();
     }
 
-    // Check for zt_token cookie
-    const token = req.cookies.get(TOKEN_COOKIE)?.value;
-
-    // Prevent logged-in users from returning to login page
-    if (pathname === "/login" && token) {
-        return applySecurityHeaders(
-            NextResponse.redirect(new URL("/apps", req.url)),
-            nonce,
-        );
-    }
-
-    // Allow public paths through
-    if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-        return applySecurityHeaders(NextResponse.next(), nonce);
-    }
-
-    if (!token) {
-        const loginUrl = req.nextUrl.clone();
-        loginUrl.pathname = "/login";
-        loginUrl.search = ""; // login button handles returnTo via sessionStorage
-        return applySecurityHeaders(NextResponse.redirect(loginUrl), nonce);
-    }
-
+    // Generate a fresh cryptographic nonce for every request.
+    // No auth gate here — Loop Studio has no auth system; every route is public.
+    const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
     return applySecurityHeaders(NextResponse.next(), nonce);
 }
 
