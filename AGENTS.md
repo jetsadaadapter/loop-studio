@@ -43,7 +43,7 @@ Rules:
 ## 3. Current App Model (Must Match Code)
 
 This repo was cut down from the "Adapter App Store" codebase to a standalone Loop
-DevStudio (task management for AI coding agents) — the App Store's public pages,
+Studio (task management for AI coding agents) — the App Store's public pages,
 management-menu CRUD modules (apps/banners/categories/keys/models/prompts/tags/
 tools/users), and its Zero Trust auth system were all removed. If you find code
 that only makes sense for that old App Store (an unused service, a stray import),
@@ -130,15 +130,15 @@ If code changes affect behavior or setup, update these files together:
 Before finishing a substantial change:
 
 1. `npm run build` passes
-2. Auth-critical routes still behave correctly:
-   - `/login`
-   - `/callback`
-   - `/apps`
+2. Core routes still behave correctly:
+   - `/` (project list)
+   - `/[projectId]` and `/[projectId]/tasks/[taskId]`
+   - `/agents`
 3. No secrets added to repository
 
-## 7. Loop DevStudio IDE Bridge Protocol
+## 7. Loop Studio IDE Bridge Protocol
 
-Loop DevStudio (`/manage/loop-projects`) chat has a **free, key-less mode** ("Use IDE Agent Bridge"). Instead of calling a paid LLM, the app writes the request to `.antigravity/bridge.json` and waits for an IDE coding agent (you) to fulfill it. Follow this protocol when asked to `run bridge`:
+Loop Studio chat has a **free, key-less mode** ("Use IDE Agent Bridge"). Instead of calling a paid LLM, the app writes the request to `.antigravity/bridge.json` and waits for an IDE coding agent (you) to fulfill it. Follow this protocol when asked to `run bridge`:
 
 1. Read `.antigravity/bridge.json`. If `status` is `"pending"`, act on it; otherwise there is nothing to do.
 2. Fulfill `prompt` (use `history` for context). Make the code changes in this repository as needed.

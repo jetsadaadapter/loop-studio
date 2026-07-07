@@ -80,7 +80,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Loop DevStudio",
+  title: "Loop Studio",
   description: "Task management for AI coding agents",
 };
 
@@ -115,7 +115,7 @@ export default async function RootLayout({
               <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                   <Workflow className="size-3.5 text-brand" />
-                  Loop DevStudio
+                  Loop Studio
                 </span>
               </div>
               <main className="flex-1 flex flex-col">{children}</main>

@@ -22,7 +22,7 @@ export const AVAILABLE_MODELS = [
 /**
  * Model actually sent to the Anthropic Messages API by the chat/collaborate
  * routes. All agent personas share one call to keep setup simple, so this is the
- * single source of truth — update here to switch the Loop DevStudio LLM.
+ * single source of truth — update here to switch the Loop Studio LLM.
  */
 export const LOOP_LLM_MODEL = "claude-sonnet-5";
 

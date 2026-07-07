@@ -5,7 +5,7 @@ import os from "os";
 
 // Lists sub-directories of an absolute path so the Register/Bootstrap modals can
 // browse the server's local filesystem instead of hand-typing a path. Guarded by
-// the app auth proxy + the Loop DevStudio (super-admin) route guard.
+// the app auth proxy + the Loop Studio (super-admin) route guard.
 export async function GET(req: Request) {
     try {
         const requested = new URL(req.url).searchParams.get("path")?.trim();

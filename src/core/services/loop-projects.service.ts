@@ -59,7 +59,7 @@ export function saveProjects(projects: LoopProject[]): void {
 // .antigravity/bridge.json for an IDE coding agent (Antigravity/Cursor/Claude Code)
 // to fulfill. The agent writes its reply back into the same file; the app polls,
 // applies any <file_edit> blocks, and shows the reply in chat. See AGENTS.md
-// "Loop DevStudio IDE Bridge" for the protocol the IDE agent must follow.
+// "Loop Studio IDE Bridge" for the protocol the IDE agent must follow.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type BridgeStatus = "pending" | "done" | "error" | "consumed";
@@ -79,7 +79,7 @@ export interface BridgeRequest {
 }
 
 const BRIDGE_INSTRUCTIONS =
-    "You are an IDE coding agent fulfilling a Loop DevStudio request. Read `prompt` " +
+    "You are an IDE coding agent fulfilling a Loop Studio request. Read `prompt` " +
     "(and `history` for context), make the changes in this repository, then write your " +
     "reply into the `response` field of this file and set `status` to \"done\" (or " +
     "\"error\" with an `error` message). To have the app render/apply code, include full " +

@@ -5,7 +5,7 @@ const { exec } = require("child_process");
 const BRIDGE_FILE = path.join(process.cwd(), ".antigravity", "bridge.json");
 let lastTaskId = "";
 
-console.log("🚀 Loop DevStudio Bridge Watcher started.");
+console.log("🚀 Loop Studio Bridge Watcher started.");
 console.log(`Watching for pending requests in: ${BRIDGE_FILE}`);
 console.log("Press Ctrl+C to stop.");
 
@@ -21,7 +21,7 @@ setInterval(() => {
             
             // Clean message text to avoid shell syntax errors
             const msg = `New ${data.requestType} request. Type run bridge in IDE Chat to process.`;
-            const title = "Loop DevStudio";
+            const title = "Loop Studio";
             
             // Safe double-quoted shell escaping
             const script = `display notification "${msg}" with title "${title}" sound name "Glass"`;

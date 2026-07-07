@@ -106,7 +106,7 @@ export default function LoopProjectsDashboard() {
         <div className="flex flex-col space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Local Loop DevStudio</h1>
+                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Local Loop Studio</h1>
                     <p className="text-xs text-slate-500 font-sans mt-0.5">Manage multiple workspaces, trace dependencies, and delegate tasks to AI Agents</p>
                 </div>
                 
@@ -129,7 +129,7 @@ export default function LoopProjectsDashboard() {
 
             {loading && projects.length === 0 ? (
                 <div className="flex h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                    <span className="text-xs font-sans text-slate-500 animate-pulse">Loading DevStudio workspaces...</span>
+                    <span className="text-xs font-sans text-slate-500 animate-pulse">Loading Studio workspaces...</span>
                 </div>
             ) : filteredProjects.length === 0 ? (
                 <div className="flex flex-col h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">

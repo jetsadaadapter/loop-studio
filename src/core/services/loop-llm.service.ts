@@ -1,6 +1,6 @@
 import { LOOP_LLM_MODEL } from "@/core/interfaces/loop-projects.interface";
 
-// Multi-provider LLM layer for the Loop DevStudio chat/collaborate flows.
+// Multi-provider LLM layer for the Loop Studio chat/collaborate flows.
 // Supports Anthropic (Claude) and Google AI Studio (Gemini). The provider is
 // auto-detected from the API key so a single key field works for both.
 // Anthropic keys have a stable "sk-ant-" prefix; Google AI Studio keys vary by

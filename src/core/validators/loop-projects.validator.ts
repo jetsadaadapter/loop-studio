@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Validation schemas for every form/boundary under Loop DevStudio. Used both at the
+// Validation schemas for every form/boundary under Loop Studio. Used both at the
 // API routes (authoritative) and in the modals (instant field-level feedback), so the
 // two never drift.
 
