@@ -40,9 +40,35 @@ async def run_test():
         except Exception:
             pass
         
+        # -> Click the 'Open Studio' link on the 'App Store (Host)' project card to open its workspace.
+        # Open Studio link
+        elem = page.locator('a[href="/app-store-default"]')
+        await elem.click(timeout=10000)
+        
+        # -> Click the 'Tasks' tab to switch to the Tasks view.
+        # Tasks button
+        elem = page.get_by_role('button', name='Tasks', exact=True)
+        await elem.click(timeout=10000)
+        
+        # -> Click the 'Enter Loop' button on the task row to open the task workspace.
+        # Enter Loop link
+        elem = page.get_by_role('link', name='Enter Loop', exact=True)
+        await elem.click(timeout=10000)
+        
         # --> Assertions to verify final state
-        # Assert: Verify the task workspace is displayed
-        assert False, "Expected: Verify the task workspace is displayed (could not be verified on the page)"
+        
+        # --> Verify the task workspace is displayed
+        # Assert: The URL shows the task workspace for task-1783322272499.
+        await expect(page).to_have_url(re.compile("/app\\-store\\-default/tasks/task\\-1783322272499"), timeout=15000), "The URL shows the task workspace for task-1783322272499."
+        await page.locator("xpath=/html/body/main/div/div[2]/div[1]/div[2]/button").nth(0).scroll_into_view_if_needed()
+        # Assert: The 'Commit & Publish' button is visible in the task workspace.
+        await expect(page.locator("xpath=/html/body/main/div/div[2]/div[1]/div[2]/button").nth(0)).to_be_visible(timeout=15000), "The 'Commit & Publish' button is visible in the task workspace."
+        await page.locator("xpath=/html/body/main/div/div[2]/div[2]/div[1]/div[1]/form/div/textarea").nth(0).scroll_into_view_if_needed()
+        # Assert: The task chat input ('Ask a follow-up…') is visible in the workspace.
+        await expect(page.locator("xpath=/html/body/main/div/div[2]/div[2]/div[1]/div[1]/form/div/textarea").nth(0)).to_be_visible(timeout=15000), "The task chat input ('Ask a follow-up\u2026') is visible in the workspace."
+        await page.locator("xpath=/html/body/main/div/div[2]/div[2]/div[2]/div[1]/div[2]/div/iframe").nth(0).scroll_into_view_if_needed()
+        # Assert: The workspace preview iframe is present.
+        await expect(page.locator("xpath=/html/body/main/div/div[2]/div[2]/div[2]/div[1]/div[2]/div/iframe").nth(0)).to_be_visible(timeout=15000), "The workspace preview iframe is present."
         await asyncio.sleep(5)
 
     finally:

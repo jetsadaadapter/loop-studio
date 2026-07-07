@@ -209,6 +209,7 @@ export async function executeGitCommand(projectPath: string, args: string[]): Pr
         let out = "";
         proc.stdout.on("data", (d) => { out += d.toString(); });
         proc.stderr.on("data", (d) => { out += d.toString(); });
+        proc.on("error", (err) => reject(err));
         proc.on("close", (code) => {
             if (code === 0) resolve(out.trim());
             else reject(new Error(out.trim() || `Git exited with code ${code}`));
@@ -314,6 +315,12 @@ export function runProjectCommand(
 
         proc.stdout.on("data", handleData);
         proc.stderr.on("data", handleData);
+
+        proc.on("error", (err) => {
+            ACTIVE_PROCESSES.delete(taskId);
+            onData(`\n[Error] Failed to run command: ${err.message}\n`);
+            resolve(1);
+        });
 
         proc.on("close", (code) => {
             ACTIVE_PROCESSES.delete(taskId);
