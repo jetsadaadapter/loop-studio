@@ -1,0 +1,1632 @@
+[
+  {
+    "id": "TC001",
+    "title": "Move a task through the full six-stage loop",
+    "description": "This verifies that a user can progress a task through Plan, Build, Verify, Automate, Observe, and Learn from the task workspace.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Advance the task through the next stage repeatedly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the six-stage loop is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task reaches the final Learn stage"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Open an existing project workspace from the dashboard",
+    "description": "This verifies that a user can open a registered project from the dashboard and reach its workspace.",
+    "category": "View, search, and filter registered projects",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project workspace is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project overview and task list are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Complete the Plan stage and advance to Build",
+    "description": "This test verifies that a task can be reviewed in Plan and approved to move into Build after the required checks are acknowledged.",
+    "category": "Step through the 6-stage manual loop",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Review the target file and safety-net checklist in the Plan stage"
+      },
+      {
+        "type": "action",
+        "description": "Approve the plan and advance to Build"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task is now in the Build stage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the Plan stage is marked complete"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Chat with the AI developer agent in a task",
+    "description": "This verifies that a user can send a message in task chat and see the conversation update in the studio.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Enter a message for the AI developer agent"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the conversation updates with the sent message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the agent reply area is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Filter projects by search and framework",
+    "description": "This verifies that a user can narrow the registered project list by searching and choosing a framework filter, then clear the search to see the list update.",
+    "category": "View, search, and filter registered projects",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Type a project search term into the search field"
+      },
+      {
+        "type": "action",
+        "description": "Select a framework filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project list is narrowed to matching projects"
+      },
+      {
+        "type": "action",
+        "description": "Clear the search field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project list updates to show more projects again"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Run the Verify and Automate pipeline from a task",
+    "description": "This verifies that a user can start task execution and see the pipeline advance through the Verify and Automate stages.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Start the task pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify pipeline activity or progress is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the Verify and Automate stages are shown as completed or in progress"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Open task workspace and chat with the AI developer agent",
+    "description": "A user can enter a task workspace from a project and use the chat area to start a conversation with the AI developer agent.",
+    "category": "View project overview and task list",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task workspace from the task list"
+      },
+      {
+        "type": "action",
+        "description": "Enter a message in the task chat"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the conversation appears in the chat thread"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Complete the Build stage and advance to Verify",
+    "description": "This test verifies that a user can copy the AI prompter template, mark code written, and move the task into Verify.",
+    "category": "Step through the 6-stage manual loop",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Copy the AI prompter template"
+      },
+      {
+        "type": "action",
+        "description": "Mark code written and advance to Verify"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task is now in the Verify stage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the Build stage is marked complete"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Navigate from a project workspace to the task studio",
+    "description": "This verifies that a user can open a project workspace, create a task, and enter the task studio for that task.",
+    "category": "Project workspace and task studio",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Create a new task for the project"
+      },
+      {
+        "type": "action",
+        "description": "Open the created task"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task studio is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task workspace shows the task context and controls"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Open a task workspace from the project task list",
+    "description": "A user can open an individual task from the project workspace and enter the task studio.",
+    "category": "View project overview and task list",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the Tasks view"
+      },
+      {
+        "type": "action",
+        "description": "Open a task workspace from the task list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task workspace is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Open a task workspace from the project page",
+    "description": "This verifies that a user can move from the project overview into the full task workspace for deeper execution.",
+    "category": "Walk through the 6-stage loop from the project page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task workspace is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task context and execution controls are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "View live execution logs while a task runs",
+    "description": "This verifies that a user can observe live task execution logs in the studio while the pipeline is active.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Start task execution"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live execution logs are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify log output updates while the task is running"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Review project overview and git information",
+    "description": "A user can load a project workspace and see the project header together with its git metadata.",
+    "category": "View project overview and task list",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project header is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify git information is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Send a direct chat message to the AI developer agent",
+    "description": "This verifies that a user can send a message in task chat and see the assistant respond with visible conversation output.",
+    "category": "Chat with the AI developer agent or bridge to an IDE agent",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "action",
+        "description": "Type a short chat message into the conversation field"
+      },
+      {
+        "type": "action",
+        "description": "Send the message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the assistant response is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live execution logs are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Run verification and advance to Automate",
+    "description": "This test verifies that a user can choose a verification tool, execute verification, and progress from Verify into Automate.",
+    "category": "Step through the 6-stage manual loop",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Choose a verification tool"
+      },
+      {
+        "type": "action",
+        "description": "Execute verification"
+      },
+      {
+        "type": "action",
+        "description": "Advance to Automate"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task is now in the Automate stage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify verification completion is reflected in the stage status"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Create a task with target files and review the risk preview",
+    "description": "This verifies that a user can create a task with target files and review the generated risk-tier preview before entering the studio.",
+    "category": "Project workspace and task studio",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Create a new task"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a task title"
+      },
+      {
+        "type": "action",
+        "description": "Add target files for the task"
+      },
+      {
+        "type": "action",
+        "description": "Continue to the task preview"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a risk-tier preview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task can be entered from the preview"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Create a new task and see it added to the list",
+    "description": "A user can submit a valid new task from a project workspace and see it appear in the task list after the modal closes.",
+    "category": "Create a new task",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open the create task flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a task title"
+      },
+      {
+        "type": "action",
+        "description": "Add one or more target files"
+      },
+      {
+        "type": "action",
+        "description": "Submit the task form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new task appears in the task list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Run the Verify and Automate pipeline to completion",
+    "description": "This verifies that a user can start automated checks and see the checklist progress to a completed success or failure result.",
+    "category": "Run the automated Verify+Automate pipeline",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "action",
+        "description": "Run the checks pipeline"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the step checklist is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a final pipeline result banner is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Run automation checks and advance to Observe",
+    "description": "This test verifies that a user can run lint or build checks, confirm CI tests passed, and move into Observe.",
+    "category": "Step through the 6-stage manual loop",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Run a lint or build check"
+      },
+      {
+        "type": "action",
+        "description": "Mark CI tests passed and advance to Observe"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task is now in the Observe stage"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify automation check completion is reflected in the stage status"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Register an existing local project",
+    "description": "This verifies that a user can register an existing local codebase and see it appear in the project list.",
+    "category": "Register an existing project",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the existing project registration flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a project name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in an absolute directory path"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new project appears in the project list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC021",
+    "title": "Bootstrap a new project from a template",
+    "description": "This verifies that a user can start a new project scaffold from a template and see it added to the dashboard when complete.",
+    "category": "Bootstrap a brand-new project",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the new project bootstrap flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a project name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in an absolute directory path"
+      },
+      {
+        "type": "action",
+        "description": "Select a template"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bootstrap form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify scaffold progress or completion feedback is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new project appears in the project list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC022",
+    "title": "Use the project workspace to reach the task list and stage loop",
+    "description": "This verifies that a user can open a project overview, view its task list, and continue into the loop-based task workflow from the same workspace.",
+    "category": "Walk through the 6-stage loop from the project page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task list is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task stage workspace is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC023",
+    "title": "Watch live execution logs update during task actions",
+    "description": "This test verifies that task actions produce visible log updates in the live terminal so users can monitor execution progress.",
+    "category": "Stream execution logs",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Complete a stage action that produces new execution output"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live log terminal updates with new entries"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the log buffer contains recent task activity"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC024",
+    "title": "Add a new AI agent to the roster",
+    "description": "Verifies that a user can create a new AI agent with role, model, skills, and system instructions and see it added to the roster.",
+    "category": "List, add, edit, and delete AI agents",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Open the add-agent flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the agent name field with a unique name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the agent role field with a valid role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the model field with a valid model engine"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the skills field with a relevant skill set"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the system instructions field with a useful prompt"
+      },
+      {
+        "type": "action",
+        "description": "Submit the agent form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new agent appears in the roster"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC025",
+    "title": "Commit or publish changes from the task studio",
+    "description": "This verifies that a user can use the studio title bar action to commit or publish task changes and see the action complete.",
+    "category": "Task studio commit history and publishing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Use the studio title bar action to commit or publish changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a commit or publish confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task reflects that changes were saved or published"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC026",
+    "title": "Switch between Studio and Tasks views",
+    "description": "A user can switch between the Studio and Tasks tabs in a project workspace and see the task list view appear.",
+    "category": "View project overview and task list",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the Tasks view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task list is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC027",
+    "title": "Create and publish a commit from Observe",
+    "description": "This test verifies that a user can review git information, enter a commit message, and publish changes from the task workspace.",
+    "category": "Live preview, commit, and publish from the Studio title bar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Review the git branch and diff in the Observe stage"
+      },
+      {
+        "type": "action",
+        "description": "Enter a commit message"
+      },
+      {
+        "type": "action",
+        "description": "Publish the changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a commit action completes successfully"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify commit history reflects the new commit"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC028",
+    "title": "Edit an existing AI agent configuration",
+    "description": "Verifies that a user can update an existing agent's details and save the changes to the roster.",
+    "category": "List, add, edit, and delete AI agents",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Edit an existing agent's name"
+      },
+      {
+        "type": "action",
+        "description": "Edit the existing agent's role"
+      },
+      {
+        "type": "action",
+        "description": "Edit the existing agent's model"
+      },
+      {
+        "type": "action",
+        "description": "Edit the existing agent's skills"
+      },
+      {
+        "type": "action",
+        "description": "Edit the existing agent's system instructions"
+      },
+      {
+        "type": "action",
+        "description": "Save the agent configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated agent details are shown in the roster"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC029",
+    "title": "Register a project with preview URL and template metadata",
+    "description": "This verifies that a user can register an existing project with optional preview and template details and then see the project listed.",
+    "category": "Register an existing project",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the existing project registration flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a project name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in an absolute directory path"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a preview URL"
+      },
+      {
+        "type": "action",
+        "description": "Select a template"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the registered project appears in the project list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC030",
+    "title": "Delegate a task to the AI Agent Team",
+    "description": "This verifies that a user can start delegated multi-turn collaboration from task chat and see the conversation stream begin.",
+    "category": "Chat with the AI developer agent or bridge to an IDE agent",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "action",
+        "description": "Delegate the task to the AI Agent Team"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the collaboration stream is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a new assistant message or activity entry appears"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC031",
+    "title": "Use chat delegation and bridge controls from a task",
+    "description": "This test verifies that a user can return from agent management to a task and use direct chat, delegation, or bridge state controls in the studio.",
+    "category": "AI Developer Team management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Return to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Send a chat message to the AI developer agent"
+      },
+      {
+        "type": "action",
+        "description": "Delegate the task to the AI Agent Team"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the IDE Agent Bridge pending state"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the chat thread shows the new agent response or message entry"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the delegation or bridge state is visible in the task workspace"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC032",
+    "title": "Search and filter tasks in a project workspace",
+    "description": "A user can search tasks and apply a status filter in the Tasks view to narrow the visible task list.",
+    "category": "View project overview and task list",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the Tasks view"
+      },
+      {
+        "type": "action",
+        "description": "Enter a search term in the task search field"
+      },
+      {
+        "type": "action",
+        "description": "Select a task status filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task list is filtered"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC033",
+    "title": "Save a project API key and manage agent settings",
+    "description": "This test verifies that a user can open the AI Developer Team page, save a local provider API key, and update an agent configuration.",
+    "category": "AI Developer Team management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the local provider API key field with a valid value"
+      },
+      {
+        "type": "action",
+        "description": "Save the configuration"
+      },
+      {
+        "type": "action",
+        "description": "Update an agent setting"
+      },
+      {
+        "type": "action",
+        "description": "Save the agent configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the API key configuration is saved"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the agent roster reflects the updated configuration"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC034",
+    "title": "View recent commit history in a task workspace",
+    "description": "Verifies that a user can open a task workspace and inspect the list of recent commits with their change summaries.",
+    "category": "View commit history and revert",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify recent commit history is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify commit change summaries are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC035",
+    "title": "View task commit history and revert a change",
+    "description": "This verifies that a user can open commit history for a task and revert a selected change from the task workspace.",
+    "category": "Task studio commit history and publishing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Open the task commit history"
+      },
+      {
+        "type": "action",
+        "description": "Revert a selected commit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the commit history is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task reflects that a revert occurred"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC036",
+    "title": "Switch task chat into bridge waiting mode and cancel it",
+    "description": "This verifies that enabling IDE Agent Bridge shows the waiting state and that the user can cancel the pending bridge request.",
+    "category": "Chat with the AI developer agent or bridge to an IDE agent",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "action",
+        "description": "Enable IDE Agent Bridge mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the waiting banner is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Cancel the bridge request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the waiting banner is removed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC037",
+    "title": "Save an API key in the AI developer team page",
+    "description": "This verifies that a user can open the agents page, save a local AI provider API key, and see it persist in the interface.",
+    "category": "AI Developer Team management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the API key field"
+      },
+      {
+        "type": "action",
+        "description": "Save the configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a saved confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the API key is shown as stored"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC038",
+    "title": "Revert a task workspace to a prior commit",
+    "description": "Verifies that a user can select an earlier commit to revert the workspace and complete the confirmation prompt.",
+    "category": "View commit history and revert",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Click the revert control for a prior commit"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the revert prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the workspace shows the reverted commit as the current state"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC039",
+    "title": "Delete an AI agent from the roster",
+    "description": "Verifies that a user can remove an existing agent after confirming the deletion prompt.",
+    "category": "List, add, edit, and delete AI agents",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Delete an existing agent"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the deletion prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the agent no longer appears in the roster"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC040",
+    "title": "Update an agent configuration and save it",
+    "description": "This verifies that a user can edit an AI developer agent configuration on the agents page and persist the change with Save Config.",
+    "category": "AI Developer Team management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Modify an agent configuration field"
+      },
+      {
+        "type": "action",
+        "description": "Toggle an agent skill setting"
+      },
+      {
+        "type": "action",
+        "description": "Save the configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated agent configuration is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the saved skill state is reflected after saving"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC041",
+    "title": "Open and use the live preview",
+    "description": "This test verifies that a user can switch to the Preview tab and see the project rendered inside the live preview area.",
+    "category": "Live preview, commit, and publish from the Studio title bar",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the Preview tab"
+      },
+      {
+        "type": "action",
+        "description": "Reload the preview view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live preview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project content is visible inside the preview area"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC042",
+    "title": "Save an API key locally",
+    "description": "Verifies that a user can enter an AI provider API key on the agents page and receive a local save confirmation.",
+    "category": "Configure the AI provider API key",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the API key field with a valid key value"
+      },
+      {
+        "type": "action",
+        "description": "Save the API key"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a local save confirmation is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC043",
+    "title": "Use the project workspace tabs to switch between Studio and Tasks",
+    "description": "This verifies that a user can switch between the workspace Studio and Tasks views without losing access to the project context.",
+    "category": "Project workspace and task studio",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the Tasks view"
+      },
+      {
+        "type": "action",
+        "description": "Switch back to the Studio view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify both workspace tabs are available"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project context remains visible after switching"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC044",
+    "title": "View task execution logs during an active session",
+    "description": "This verifies that a user can open a task and see live execution logs as part of the normal development workflow.",
+    "category": "Chat with the AI developer agent or bridge to an IDE agent",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open a project workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open a task in Studio"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify execution logs are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify recent activity entries are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC045",
+    "title": "Generate a system prompt from role and skills",
+    "description": "Verifies that a user can auto-generate system instructions from an agent role and skills before creating the agent.",
+    "category": "List, add, edit, and delete AI agents",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /agents"
+      },
+      {
+        "type": "action",
+        "description": "Open the add-agent flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the agent role field with a valid role"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the skills field with a relevant skill set"
+      },
+      {
+        "type": "action",
+        "description": "Generate a prompt from the role and skills"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the system instructions field is populated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the generated prompt is usable for submission"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC046",
+    "title": "Copy the current log buffer",
+    "description": "This test verifies that a user can copy the visible execution log buffer for sharing or debugging.",
+    "category": "Stream execution logs",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /[projectId]/tasks/[taskId]"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the log terminal to display execution output"
+      },
+      {
+        "type": "action",
+        "description": "Copy the logs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a copy confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the log buffer remains visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC047",
+    "title": "Delegate a task to the AI agent team from the studio",
+    "description": "This verifies that a user can delegate work from a task workspace to the AI agent team and see the delegation state in the UI.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Choose to delegate the task to the AI agent team"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify delegation state is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the task remains open in the studio"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC048",
+    "title": "Show validation when required project registration fields are missing",
+    "description": "This verifies that the registration form blocks submission until required project name and absolute path fields are provided.",
+    "category": "Register an existing project",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the existing project registration flow"
+      },
+      {
+        "type": "action",
+        "description": "Submit the form without filling required fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation errors are visible"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the required project name and absolute directory path"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the form accepts the valid input"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC049",
+    "title": "Manage the IDE agent bridge pending state",
+    "description": "This verifies that a user can see the IDE bridge pending state in a task and cancel the request from the UI.",
+    "category": "Task studio chat and execution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a project card to open its workspace"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing task"
+      },
+      {
+        "type": "action",
+        "description": "Initiate the IDE agent bridge flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a bridge pending state is visible"
+      },
+      {
+        "type": "action",
+        "description": "Cancel the bridge request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the pending state is cleared"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC050",
+    "title": "Unregister a project from the dashboard",
+    "description": "A user can remove a registered project from the dashboard and see it disappear after confirming the browser prompt.",
+    "category": "Unregister a project",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the remove control on a project card"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the browser prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the project is removed from the list"
+      }
+    ],
+    "priority": "Low"
+  }
+]

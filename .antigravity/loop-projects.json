@@ -73,6 +73,25 @@
               "output": 100,
               "cost": 0.0005875
             }
+          },
+          {
+            "id": "msg-u-1783434297772",
+            "role": "user",
+            "senderName": "User",
+            "content": "สวัสดีครับ",
+            "timestamp": "2026-07-07T14:24:57.772Z"
+          },
+          {
+            "id": "msg-a-1783434297772",
+            "role": "assistant",
+            "senderName": "Somsri (Developer)",
+            "content": "สวัสดีครับ! ยินดีที่ได้คุยกันอีกครั้งครับ\n\nมีอะไรที่ผม Somsri ในฐานะ Lead Developer ผู้เชี่ยวชาญด้าน React/Next.js/TypeScript จะช่วยคุณได้บ้างครับ? ไม่ว่าจะเป็นการพัฒนาฟีเจอร์ใหม่ แก้ไขปัญหา หรือให้คำแนะนำด้านโค้ด ยินดีครับ!",
+            "timestamp": "2026-07-07T14:24:57.772Z",
+            "tokensUsed": {
+              "input": 421,
+              "output": 73,
+              "cost": 0.0004295
+            }
           }
         ],
         "activities": [
@@ -167,15 +186,25 @@
             "action": "chat_edit",
             "message": "Replied in chat",
             "timestamp": "2026-07-06T15:50:46.879Z"
+          },
+          {
+            "id": "act-chat-1783434297772",
+            "taskId": "task-1783322272499",
+            "agentId": "agent-somsri",
+            "agentName": "Somsri (Developer)",
+            "stage": "BUILD",
+            "action": "chat_edit",
+            "message": "Replied in chat",
+            "timestamp": "2026-07-07T14:24:57.772Z"
           }
         ],
         "tokensUsed": {
-          "input": 814,
-          "output": 167,
-          "cost": 0.000908
+          "input": 1235,
+          "output": 240,
+          "cost": 0.0013375
         },
         "createdAt": "2026-07-06T07:17:52.499Z",
-        "updatedAt": "2026-07-06T15:50:46.879Z",
+        "updatedAt": "2026-07-07T14:24:57.772Z",
         "testRunner": "vitest",
         "storyPoints": 2,
         "sprintId": "sprint-1"

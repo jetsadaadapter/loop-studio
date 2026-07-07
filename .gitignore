@@ -128,3 +128,4 @@ pnpm-debug.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+testsprite_tests/tmp/
