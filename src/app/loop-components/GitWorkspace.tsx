@@ -23,13 +23,13 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
 
     const loadGitData = async () => {
         try {
-            const iRes = await fetch(`/api/manage/loop-projects/${projectId}/git-info`);
+            const iRes = await fetch(`/api/loop-projects/${projectId}/git-info`);
             const iData = await iRes.json();
             if (iData.success) {
                 setGitInfo(iData.data);
             }
 
-            const dRes = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}/diff`);
+            const dRes = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}/diff`);
             const dData = await dRes.json();
             if (dData.success) {
                 setDiff(dData.data || "No modifications detected. Working tree clean.");
@@ -52,7 +52,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
         setResult("Executing git commit...");
 
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/git-action`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/git-action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "commit", commitMessage })
@@ -78,7 +78,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
         onTriggerLog();
 
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/git-action`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/git-action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "push" })

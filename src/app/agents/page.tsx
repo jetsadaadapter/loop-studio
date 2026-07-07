@@ -23,7 +23,7 @@ export default function AiTeamSpace() {
 
     const loadAgents = async () => {
         try {
-            const res = await fetch("/api/manage/loop-agents");
+            const res = await fetch("/api/loop-agents");
             const data = await res.json();
             if (data.success) {
                 setAgents(data.data || []);
@@ -53,7 +53,7 @@ export default function AiTeamSpace() {
     const handleUpdateAgent = async (id: string, updatedFields: Partial<LoopAgent>) => {
         setSavingId(id);
         try {
-            const res = await fetch(`/api/manage/loop-agents/${id}`, {
+            const res = await fetch(`/api/loop-agents/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedFields)
@@ -84,7 +84,7 @@ export default function AiTeamSpace() {
     const handleDelete = async (agent: LoopAgent) => {
         setDeletingId(agent.id);
         try {
-            const res = await fetch(`/api/manage/loop-agents/${agent.id}`, { method: "DELETE" });
+            const res = await fetch(`/api/loop-agents/${agent.id}`, { method: "DELETE" });
             const data = await res.json();
             if (data.success) {
                 setDeleteTarget(null);
@@ -114,7 +114,7 @@ export default function AiTeamSpace() {
         <div className="flex flex-col space-y-6 max-w-4xl mx-auto">
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
-                    <Link href="/manage/loop-projects" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
+                    <Link href="/" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
                         <ArrowLeft className="size-4" />
                     </Link>
                     <div>

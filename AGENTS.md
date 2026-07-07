@@ -49,24 +49,21 @@ tools/users), and its Zero Trust auth system were all removed. If you find code
 that only makes sense for that old App Store (an unused service, a stray import),
 it's leftover — flag it for removal rather than building on it.
 
-- Main app routes:
-  - `/` — redirects to `/manage/loop-projects` (stopgap; final home route is TBD)
-  - `/manage/loop-projects`, `/manage/loop-projects/[projectId]`, `/manage/loop-projects/[projectId]/tasks/[taskId]`, `/manage/loop-projects/agents`
-  - `/api/manage/loop-projects/**`, `/api/manage/loop-agents/**`
+- Main app routes (all live at root now, no `/manage` prefix):
+  - `/` — the project list (formerly `/manage/loop-projects`)
+  - `/[projectId]`, `/[projectId]/tasks/[taskId]`, `/agents`
+  - `/api/loop-projects/**`, `/api/loop-agents/**`
+- Page-local component folder for the root routes is `src/app/loop-components/`
+  (named to avoid confusion with the shared `src/components/`) — don't recreate
+  a plain `src/app/components/`.
 - No auth system — every route is public. `src/proxy.ts` only sets CSP/security
   headers (per-request nonce) now, it does not gate access.
+- No global notification system — `NotificationProvider`/`NotificationPanel`
+  were removed along with the App Store backend they polled.
 - `.claude/hooks/pre-tool-use.sh` still blocks edits to `src/proxy.ts` that add
   `unsafe-inline`/`unsafe-eval` — CSP is kept even though auth was removed.
 
-## 4. Open Decisions (from the App Store → Loop Studio cut)
-
-Not yet resolved — check with the user before acting on these:
-
-- Whether Loop DevStudio should move from `/manage/loop-projects` to `/` instead of the current redirect stopgap
-- Whether `NotificationProvider`/`NotificationPanel` (still wired globally in `src/app/layout.tsx`) should be removed or kept
-- Whether `recharts`/`xlsx` in `package.json` are actually unused now (not yet verified) and safe to remove
-
-## 5. Code Change Rules
+## 4. Code Change Rules
 
 **AI/LLM Token & Context Guardrails (Strict Efficiency Rules):**
 
@@ -120,7 +117,7 @@ Before writing code on any new task, follow this sequence:
 10. Keep code readable, beginner-friendly, and easy to maintain.
 11. Always account for security, maintainability, and best practices.
 
-## 6. Documentation Sync Policy
+## 5. Documentation Sync Policy
 
 If code changes affect behavior or setup, update these files together:
 
@@ -128,7 +125,7 @@ If code changes affect behavior or setup, update these files together:
 2. `.github/project-guidlines.md` (engineering standards)
 3. `AGENTS.md` (agent execution constraints)
 
-## 7. Pre-merge Checks
+## 6. Pre-merge Checks
 
 Before finishing a substantial change:
 
@@ -139,7 +136,7 @@ Before finishing a substantial change:
    - `/apps`
 3. No secrets added to repository
 
-## 8. Loop DevStudio IDE Bridge Protocol
+## 7. Loop DevStudio IDE Bridge Protocol
 
 Loop DevStudio (`/manage/loop-projects`) chat has a **free, key-less mode** ("Use IDE Agent Bridge"). Instead of calling a paid LLM, the app writes the request to `.antigravity/bridge.json` and waits for an IDE coding agent (you) to fulfill it. Follow this protocol when asked to `run bridge`:
 
@@ -150,13 +147,13 @@ Loop DevStudio (`/manage/loop-projects`) chat has a **free, key-less mode** ("Us
 
 The `instructions` field inside the file restates this. The bridge is single-slot (one pending request at a time); the app times out polling after ~5 minutes but leaves the file for later fulfillment.
 
-## 9. Agent Guardrail Automation
+## 8. Agent Guardrail Automation
 
 Some rules above are also enforced mechanically, so they hold even if a session forgets to self-check:
 
 - `.claude/hooks/pre-tool-use.sh` — blocks new `src/**` files over 300 lines, blocks edits to `src/proxy.ts` that add `unsafe-inline`/`unsafe-eval`
 - `.claude/hooks/post-tool-use.sh` — runs ESLint on every `.ts`/`.tsx` file right after it's edited, feeds errors back immediately
 - `.claude/hooks/stop.sh` — runs `tsc --noEmit` at the end of a turn; currently advisory only (see comment in the script for why)
-- `.claude/agents/verifier.md` — a subagent that checks a diff against Section 7 before you call a change done; invoke it before handing off substantial work
+- `.claude/agents/verifier.md` — a subagent that checks a diff against Section 6 before you call a change done; invoke it before handing off substantial work
 
 These are a backstop, not a replacement for following Sections 5–7 directly.

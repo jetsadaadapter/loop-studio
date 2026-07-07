@@ -25,7 +25,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
         setBusy(true);
         setResult(null);
         try {
-            const commitRes = await fetch(`/api/manage/loop-projects/${projectId}/git-action`, {
+            const commitRes = await fetch(`/api/loop-projects/${projectId}/git-action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "commit", commitMessage: message }),
@@ -35,7 +35,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
                 setResult({ ok: false, text: commitData.error || "Commit failed." });
                 return;
             }
-            const pushRes = await fetch(`/api/manage/loop-projects/${projectId}/git-action`, {
+            const pushRes = await fetch(`/api/loop-projects/${projectId}/git-action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "push" }),

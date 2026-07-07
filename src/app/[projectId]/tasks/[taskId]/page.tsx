@@ -4,14 +4,14 @@ import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, Coins, CheckCircle2 } from "lucide-react";
 import type { LoopProject, LoopTask, TaskStage } from "@/core/interfaces/loop-projects.interface";
-import { TimelineStages } from "@/app/manage/loop-projects/components/TimelineStages";
-import { StageWorkspace } from "@/app/manage/loop-projects/components/StageWorkspace";
-import { ChatPanel } from "@/app/manage/loop-projects/components/ChatPanel";
-import { LogTerminal } from "@/app/manage/loop-projects/components/LogTerminal";
-import { PreviewPane } from "@/app/manage/loop-projects/components/PreviewPane";
-import { AutoPipeline } from "@/app/manage/loop-projects/components/AutoPipeline";
-import { VersionTimeline } from "@/app/manage/loop-projects/components/VersionTimeline";
-import { StudioWindow } from "@/app/manage/loop-projects/components/StudioWindow";
+import { TimelineStages } from "@/app/loop-components/TimelineStages";
+import { StageWorkspace } from "@/app/loop-components/StageWorkspace";
+import { ChatPanel } from "@/app/loop-components/ChatPanel";
+import { LogTerminal } from "@/app/loop-components/LogTerminal";
+import { PreviewPane } from "@/app/loop-components/PreviewPane";
+import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
+import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
+import { StudioWindow } from "@/app/loop-components/StudioWindow";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -39,7 +39,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
 
     const loadData = async () => {
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}`);
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}`);
             const data = await res.json();
             if (data.success && data.data) {
                 setTask(data.data);
@@ -49,7 +49,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                 }
             }
 
-            const pRes = await fetch(`/api/manage/loop-projects/${projectId}`);
+            const pRes = await fetch(`/api/loop-projects/${projectId}`);
             const pData = await pRes.json();
             if (pRes.ok && pData.success) {
                 setProject(pData.data);
@@ -69,7 +69,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
 
     const handleUpdateTask = async (fields: Partial<LoopTask>) => {
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(fields)
@@ -102,7 +102,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
         return (
             <div className="flex flex-col h-60 items-center justify-center text-center p-4">
                 <h3 className="text-sm font-semibold text-slate-800">Task Not Found</h3>
-                <Link href={`/manage/loop-projects/${projectId}`} className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90 transition-colors">
+                <Link href={`/${projectId}`} className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90 transition-colors">
                     Back to Workspace
                 </Link>
             </div>
@@ -114,7 +114,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
                 <div className="flex items-center gap-3">
-                    <Link href={`/manage/loop-projects/${projectId}`} className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
+                    <Link href={`/${projectId}`} className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
                         <ArrowLeft className="size-4" />
                     </Link>
                     <div>

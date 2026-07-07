@@ -16,7 +16,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
 
     useEffect(() => {
         // Fetch Git info
-        fetch(`/api/manage/loop-projects/${project.id}/git-info`)
+        fetch(`/api/loop-projects/${project.id}/git-info`)
             .then((res) => res.json())
             .then((res) => {
                 if (res.success && res.data) {
@@ -83,7 +83,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
                 </span>
                 
                 <Link
-                    href={`/manage/loop-projects/${project.id}`}
+                    href={`/${project.id}`}
                     className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 group/link transition-colors duration-200"
                 >
                     Open Studio

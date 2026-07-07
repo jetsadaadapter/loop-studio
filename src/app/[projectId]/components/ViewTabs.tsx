@@ -41,7 +41,7 @@ export function ViewTabs({ viewTab, onChange }: ViewTabsProps) {
             })}
 
             <Link
-                href="/manage/loop-projects/agents"
+                href="/agents"
                 className="ml-auto flex items-center gap-1.5 text-xs font-semibold py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer whitespace-nowrap"
             >
                 <Settings className="size-3.5" />

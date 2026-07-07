@@ -32,7 +32,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
         let active = true;
         // Deferred to a microtask so it isn't a synchronous setState in the effect body.
         Promise.resolve().then(() => active && setLoading(true));
-        fetch(`/api/manage/loop-projects/${projectId}/commits`)
+        fetch(`/api/loop-projects/${projectId}/commits`)
             .then((res) => res.json())
             .then((data) => {
                 if (!active) return;
@@ -51,7 +51,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
         setReverting(hash);
         setError("");
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/git-action`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/git-action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "revert", hash }),

@@ -21,6 +21,12 @@ Follow-up: anything left undone or worth watching (omit if none)
 
 ---
 
+## 2026-07-07 — Resolved the 3 deferred decisions: Loop DevStudio moved to root
+Agent/tool: Claude Code
+What: User resolved the 3 open items from the App Store cut. (1) Moved Loop DevStudio from `/manage/loop-projects` to root: `src/app/manage/loop-projects/**` → `src/app/**` (page.tsx, `[projectId]/`, `agents/`), page-local `components/` renamed to `src/app/loop-components/` to avoid clashing with shared `src/components/`; API routes `/api/manage/loop-projects` → `/api/loop-projects`, `/api/manage/loop-agents` → `/api/loop-agents`; rewrote all internal path strings and relative/aliased imports; merged the old `manage/layout.tsx` top bar into root `src/app/layout.tsx`; deleted the now-empty `src/app/manage/`. (2) Removed the global `NotificationProvider`/`NotificationPanel` (had zero API calls — dead UI, not a backend integration). (3) Confirmed `recharts`/`xlsx` had zero remaining imports and removed both from `package.json`. Verified with `tsc --noEmit`, `eslint`, `next build`, `vitest run` (209 tests), and a real `npm start` + curl smoke test of `/`, `/agents`, `/api/loop-projects` (all 200, CSP header intact).
+Files: ~35 files moved/renamed under `src/app/`; edited `src/app/layout.tsx`, `package.json`, `AGENTS.md`
+Follow-up: `.claude/agents/verifier.md` still references the old section numbers and the deleted `/login`/`/callback`/`/apps` routes — flagged but not yet fixed (user held off on that specific edit). `README.md`/`.github/project-guidlines.md` still describe the old App Store.
+
 ## 2026-07-07 — Cut repo down to Loop DevStudio only
 Agent/tool: Claude Code
 What: Removed the App Store this repo used to double as — Zero Trust auth (login/callback/api/auth, proxy.ts auth gate), the whole `/manage` CRUD menu (apps/banners/categories/keys/models/prompts/tags/tools/users + their APIs/services/interfaces/validators), public App Store pages (apps/library/projects/tool/dashboard/about/changelogs/docs), and dev-only component-gallery. `src/proxy.ts` now only sets CSP headers (no auth check). `package.json` lost `next-auth` and `@scalar/api-reference-react`; lockfile resynced (-168 packages). Verified with `tsc --noEmit`, `eslint`, `next build`, and `vitest run` (209 tests) after every batch — all clean.

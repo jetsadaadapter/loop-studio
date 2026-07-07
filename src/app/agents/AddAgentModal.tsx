@@ -67,7 +67,7 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
 
         setLoading(true);
         try {
-            const res = await fetch("/api/manage/loop-agents", {
+            const res = await fetch("/api/loop-agents", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),

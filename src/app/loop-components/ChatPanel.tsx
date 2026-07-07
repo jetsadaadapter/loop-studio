@@ -151,7 +151,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
         cancelBridge();
 
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}/chat`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}/chat`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -195,7 +195,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
         onTriggerLog();
 
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}/collaborate`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}/collaborate`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -246,7 +246,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                 <div className="flex shrink-0 items-start gap-1.5 border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-2">
                     <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-400" />
                     <span className="text-[10px] leading-normal text-amber-200/90 font-sans">
-                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/manage/loop-projects/agents" className="font-semibold underline hover:text-amber-100">AI Team Manager</Link> (or a server-configured key).
+                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/agents" className="font-semibold underline hover:text-amber-100">AI Team Manager</Link> (or a server-configured key).
                     </span>
                 </div>
             )}

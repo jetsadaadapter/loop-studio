@@ -65,7 +65,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
     useEffect(() => {
         if (!isOpen) return;
         let active = true;
-        fetch(`/api/manage/loop-projects/${projectId}/files`)
+        fetch(`/api/loop-projects/${projectId}/files`)
             .then((res) => res.json())
             .then((data) => {
                 if (active && data.success) setFileOptions(data.data as string[]);
@@ -84,7 +84,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
         let active = true;
         const timer = setTimeout(() => {
             setRiskLoading(true);
-            fetch(`/api/manage/loop-projects/${projectId}/risk-tier?file=${encodeURIComponent(primaryFile)}`)
+            fetch(`/api/loop-projects/${projectId}/risk-tier?file=${encodeURIComponent(primaryFile)}`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (active && data.success) setRisk(data.data as RiskPreview);
@@ -114,7 +114,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
 
         setLoading(true);
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, targetFiles }),

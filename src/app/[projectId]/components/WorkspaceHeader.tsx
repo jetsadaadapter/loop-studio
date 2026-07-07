@@ -15,7 +15,7 @@ export function WorkspaceHeader({ project, gitInfo, totalCost }: WorkspaceHeader
     return (
         <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
             <div className="flex items-center gap-3">
-                <Link href="/manage/loop-projects" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
+                <Link href="/" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
                     <ArrowLeft className="size-4" />
                 </Link>
                 <div>

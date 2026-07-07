@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, HelpCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
-import { CreateTaskModal } from "../components/CreateTaskModal";
+import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
 import { TaskView } from "./components/TaskView";
@@ -33,11 +33,11 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const loadData = async () => {
         setLoading(true);
         try {
-            const pRes = await fetch(`/api/manage/loop-projects/${projectId}`);
+            const pRes = await fetch(`/api/loop-projects/${projectId}`);
             const pData = await pRes.json();
             if (pData.success) setProject(pData.data);
 
-            const gRes = await fetch(`/api/manage/loop-projects/${projectId}/git-info`);
+            const gRes = await fetch(`/api/loop-projects/${projectId}/git-info`);
             const gData = await gRes.json();
             if (gData.success) setGitInfo(gData.data);
         } catch (e) {
@@ -59,7 +59,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                 <AlertTriangle className="size-8 text-red-500 mb-2" />
                 <h3 className="text-sm font-semibold text-slate-800">Project Not Found</h3>
                 <p className="text-xs text-slate-500 font-sans mt-1">This workspace path might have been unregistered or moved.</p>
-                <Link href="/manage/loop-projects" className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90">
+                <Link href="/" className="mt-4 rounded-sm bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand/90">
                     Back to Dashboard
                 </Link>
             </div>

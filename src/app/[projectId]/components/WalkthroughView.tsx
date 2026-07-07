@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import { TimelineStages } from "../../components/TimelineStages";
-import { StageWorkspace } from "../../components/StageWorkspace";
+import { TimelineStages } from "../../loop-components/TimelineStages";
+import { StageWorkspace } from "../../loop-components/StageWorkspace";
 import type { LoopTask, TaskStage } from "@/core/interfaces/loop-projects.interface";
 
 interface WalkthroughViewProps {
@@ -32,7 +32,7 @@ export function WalkthroughView({ projectId, tasks, onRefresh }: WalkthroughView
     const handleUpdateTask = async (fields: Partial<LoopTask>) => {
         if (!task) return;
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${task.id}`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${task.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(fields),
@@ -68,7 +68,7 @@ export function WalkthroughView({ projectId, tasks, onRefresh }: WalkthroughView
                     </button>
                 ))}
                 <Link
-                    href={`/manage/loop-projects/${projectId}/tasks/${task.id}`}
+                    href={`/${projectId}/tasks/${task.id}`}
                     className="ml-auto flex items-center gap-1 rounded-sm border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                     <ExternalLink className="size-3.5" />

@@ -33,7 +33,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
         setRunningAction(type);
         onTriggerLog();
         try {
-            await fetch(`/api/manage/loop-projects/${projectId}/tasks/${task.id}/action`, {
+            await fetch(`/api/loop-projects/${projectId}/tasks/${task.id}/action`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type })

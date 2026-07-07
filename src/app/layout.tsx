@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
+import { Workflow } from "lucide-react";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
-import { NotificationProvider } from "@/components/notification-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -80,8 +80,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adapter Library",
-  description: "Internal app library for Adapter teams",
+  title: "Loop DevStudio",
+  description: "Task management for AI coding agents",
 };
 
 export default async function RootLayout({
@@ -99,34 +99,28 @@ export default async function RootLayout({
       className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="preconnect" href="https://library-api.adapterdigital.com" />
-        <link
-          rel="preconnect"
-          href="https://auth.adapterinternal.com"
-          crossOrigin="anonymous"
-        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        <link
-          rel="dns-prefetch"
-          href="https://library-api.adapterdigital.com"
-        />
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-slate-50" suppressHydrationWarning>
         <TooltipProvider>
-          <NotificationProvider>
-            <AlertDialogToastProvider>
-              <ToastProvider>
-                <main className="flex-1 flex flex-col">{children}</main>
-              </ToastProvider>
-            </AlertDialogToastProvider>
-          </NotificationProvider>
+          <AlertDialogToastProvider>
+            <ToastProvider>
+              <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                  <Workflow className="size-3.5 text-brand" />
+                  Loop DevStudio
+                </span>
+              </div>
+              <main className="flex-1 flex flex-col">{children}</main>
+            </ToastProvider>
+          </AlertDialogToastProvider>
         </TooltipProvider>
         <Toaster />
       </body>

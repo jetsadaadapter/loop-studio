@@ -20,7 +20,7 @@ export async function resolveBridge(
 ): Promise<BridgeOutcome> {
     const timeoutMs = opts.timeoutMs ?? 300_000; // give up after 5 min
     const signal = opts.signal;
-    const base = `/api/manage/loop-projects/${projectId}/tasks/${taskId}/bridge`;
+    const base = `/api/loop-projects/${projectId}/tasks/${taskId}/bridge`;
     const start = Date.now();
     let interval = 2_000;
 

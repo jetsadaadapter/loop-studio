@@ -50,7 +50,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
         setLogs("Initializing bootstrap process...\n");
 
         try {
-            const res = await fetch("/api/manage/loop-projects", {
+            const res = await fetch("/api/loop-projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -65,7 +65,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                 // Connect to EventSource for logs
                 // The logs route keys streams by taskId only; the bootstrap job id
                 // is used as the taskId while the project is still being created.
-                const eventSource = new EventSource(`/api/manage/loop-projects/bootstrap/tasks/${data.projectId}/logs`);
+                const eventSource = new EventSource(`/api/loop-projects/bootstrap/tasks/${data.projectId}/logs`);
 
                 const finalize = () => {
                     eventSource.close();

@@ -74,7 +74,7 @@ export function TaskListTable({ projectId, tasks }: TaskListTableProps) {
                             </TableCell>
                             <TableCell className="text-right">
                                 <Link
-                                    href={`/manage/loop-projects/${projectId}/tasks/${t.id}`}
+                                    href={`/${projectId}/tasks/${t.id}`}
                                     className="inline-block rounded-sm border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs"
                                 >
                                     Enter Loop

@@ -37,7 +37,7 @@ export function AutoPipeline({ projectId, taskId, onComplete, onTriggerLog }: Au
         setError("");
         onTriggerLog();
         try {
-            const res = await fetch(`/api/manage/loop-projects/${projectId}/tasks/${taskId}/pipeline`, {
+            const res = await fetch(`/api/loop-projects/${projectId}/tasks/${taskId}/pipeline`, {
                 method: "POST",
             });
             const data = await res.json();

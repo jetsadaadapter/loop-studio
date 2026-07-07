@@ -29,7 +29,7 @@ export function FolderPicker({ value, onChange }: FolderPickerProps) {
         setError("");
         const seed = target ?? (value.trim() || "");
         const query = seed ? `?path=${encodeURIComponent(seed)}` : "";
-        fetch(`/api/manage/loop-projects/browse${query}`)
+        fetch(`/api/loop-projects/browse${query}`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {

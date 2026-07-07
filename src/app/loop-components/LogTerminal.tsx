@@ -17,7 +17,7 @@ export function LogTerminal({ projectId, taskId, triggerCount }: LogTerminalProp
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setLogs("Connecting log stream...\n");
-        const eventSource = new EventSource(`/api/manage/loop-projects/${projectId}/tasks/${taskId}/logs`);
+        const eventSource = new EventSource(`/api/loop-projects/${projectId}/tasks/${taskId}/logs`);
 
         eventSource.onmessage = (event) => {
             try {
