@@ -22,8 +22,7 @@ When these files diverge, update both in the same change.
 - Core standards & guidelines: `.antigravity/standard.md`
 - Coding best practices & automation: `.antigravity/best-practices.md`
 - UI/UX & Design system standards: `DESIGN.md`
-
-
+- Cross-session shift log: `MEMORY.md` — skim recent entries before non-trivial work, append one after
 
 ## 2. Repository Analysis Policy (Mandatory Pre-Analysis)
 
@@ -146,3 +145,14 @@ Loop DevStudio (`/manage/loop-projects`) chat has a **free, key-less mode** ("Us
 4. Do **not** change `id`, `taskId`, or `projectId` — the app polls by `id` and finalizes the reply into the task chat (applying any `<file_edit>` blocks). It sets `status: "consumed"` once applied.
 
 The `instructions` field inside the file restates this. The bridge is single-slot (one pending request at a time); the app times out polling after ~5 minutes but leaves the file for later fulfillment.
+
+## 9. Agent Guardrail Automation
+
+Some rules above are also enforced mechanically, so they hold even if a session forgets to self-check:
+
+- `.claude/hooks/pre-tool-use.sh` — blocks new `src/**` files over 300 lines, blocks edits to `src/proxy.ts` that add `unsafe-inline`/`unsafe-eval`
+- `.claude/hooks/post-tool-use.sh` — runs ESLint on every `.ts`/`.tsx` file right after it's edited, feeds errors back immediately
+- `.claude/hooks/stop.sh` — runs `tsc --noEmit` at the end of a turn; currently advisory only (see comment in the script for why)
+- `.claude/agents/verifier.md` — a subagent that checks a diff against Section 7 before you call a change done; invoke it before handing off substantial work
+
+These are a backstop, not a replacement for following Sections 5–7 directly.
