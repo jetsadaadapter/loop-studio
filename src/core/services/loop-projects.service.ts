@@ -44,6 +44,16 @@ export function saveProjects(projects: LoopProject[]): void {
     }
 }
 
+/**
+ * True when the registered project IS this running app's own repo. Guarded
+ * operations (next build, auto-commit, dev server) are blocked for it: they
+ * would overwrite the live .next output, sweep unrelated work into commits,
+ * or fight over the port the app is serving on.
+ */
+export function isHostProject(projectPath: string): boolean {
+    return path.resolve(projectPath) === process.cwd();
+}
+
 // Trace fan-out (import references) of a file to determine Risk Tier
 export function calculateRiskTier(projectPath: string, relativeFilePath: string): { tier: RiskTier; count: number } {
     let count = 0;

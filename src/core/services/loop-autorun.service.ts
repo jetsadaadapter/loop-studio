@@ -1,4 +1,4 @@
-import { getProjects, saveProjects, executeGitCommand } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, executeGitCommand, isHostProject, isOwnGitRepo } from "@/core/services/loop-projects.service";
 import { runCollaborationLoop, type ResolvedLlm } from "@/core/services/loop-collaboration.service";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
@@ -107,8 +107,11 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
             continue;
         }
 
+        // Auto-commit is never allowed on the host app: `git add -A` there
+        // would sweep unrelated in-progress work into an AI commit.
+        const host = isHostProject(projectPath);
         const lowRisk = task.riskTier === "GREEN" || task.riskTier === "YELLOW";
-        if (lowRisk && result.testsPassed && result.typecheckPassed) {
+        if (!host && lowRisk && result.testsPassed && result.typecheckPassed) {
             const committed = await autoCloseTask(projectId, taskId, projectPath, task.name);
             state.results.push({
                 taskId,
@@ -117,9 +120,11 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
                 detail: committed ? "Auto-closed and committed." : "Auto-closed (nothing to commit).",
             });
         } else {
-            const reason = lowRisk
-                ? `checks incomplete (tests ${result.testsPassed ? "passed" : "failed"}, typecheck ${result.typecheckPassed ? "passed" : "failed"})`
-                : `risk tier ${task.riskTier} requires human review`;
+            const reason = host
+                ? "host app — auto-commit is disabled, review and approve manually"
+                : lowRisk
+                    ? `checks incomplete (tests ${result.testsPassed ? "passed" : "failed"}, typecheck ${result.typecheckPassed ? "passed" : "failed"})`
+                    : `risk tier ${task.riskTier} requires human review`;
             mutateTask(projectId, taskId, (t) => {
                 t.activities.push({
                     id: `act-approval-${Date.now()}`,
@@ -154,6 +159,10 @@ async function autoCloseTask(projectId: string, taskId: string, projectPath: str
     });
 
     try {
+        // Never `git add -A` against a parent repo: a project without its own
+        // git root (e.g. a git-less folder nested in the host's .projects/)
+        // would stage the surrounding repository's files instead.
+        if (!(await isOwnGitRepo(projectPath))) return false;
         await executeGitCommand(projectPath, ["add", "-A"]);
         await executeGitCommand(projectPath, ["commit", "-m", `feat(auto-run): ${taskName}`]);
         return true;

@@ -46,6 +46,14 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                         <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-700 font-sans mt-0.5 uppercase">
                             {project.template.replace("-", " ")}
                         </span>
+                        {project.isHost && (
+                            <span
+                                className="ml-1 inline-flex items-center gap-1 rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 font-sans mt-0.5 uppercase"
+                                title="This is the running Loop Studio app itself — build, dev, and auto-commit are disabled to protect the live server."
+                            >
+                                Host App
+                            </span>
+                        )}
                     </div>
                 </div>
                 
@@ -59,8 +67,9 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                     </button>
                     <button
                         onClick={() => onDelete(project.id)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 cursor-pointer"
-                        title="Unregister project"
+                        disabled={project.isHost}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                        title={project.isHost ? "The host app cannot be unregistered" : "Unregister project"}
                     >
                         <Trash2 className="size-4" />
                     </button>

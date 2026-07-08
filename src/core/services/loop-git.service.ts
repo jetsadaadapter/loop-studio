@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import path from "path";
 
 // Git helpers for registered project workspaces. Split out of
 // loop-projects.service.ts (300-line rule); that module re-exports everything
@@ -18,8 +19,27 @@ export async function executeGitCommand(projectPath: string, args: string[]): Pr
     });
 }
 
+/**
+ * True only when the project directory is the ROOT of its own git repo.
+ * A project nested inside another repo (e.g. a git-less folder under the
+ * host's .projects/) resolves git commands against the PARENT repo — acting
+ * on it would read/commit the wrong repository, so callers must check this
+ * before any git write.
+ */
+export async function isOwnGitRepo(projectPath: string): Promise<boolean> {
+    try {
+        const top = await executeGitCommand(projectPath, ["rev-parse", "--show-toplevel"]);
+        return path.resolve(top) === path.resolve(projectPath);
+    } catch {
+        return false;
+    }
+}
+
 export async function getGitInfo(projectPath: string) {
     try {
+        if (!(await isOwnGitRepo(projectPath))) {
+            return { branch: "unknown", commit: "none", modifiedFiles: [] };
+        }
         const branch = await executeGitCommand(projectPath, ["branch", "--show-current"]).catch(() => "unknown");
         const commit = await executeGitCommand(projectPath, ["rev-parse", "--short", "HEAD"]).catch(() => "none");
         const status = await executeGitCommand(projectPath, ["status", "--porcelain"]).catch(() => "");

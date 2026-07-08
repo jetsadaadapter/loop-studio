@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -31,9 +31,17 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
         fs.writeFileSync(logFilePath, `\n--- Auto-Pipeline: Verify + Automate ---\n\n`, "utf8");
 
+        // Host-app guard: never `next build` the repo this server is running
+        // from — it would overwrite the live .next output mid-serve.
+        const host = isHostProject(project.path);
+        const steps = host ? STEPS.filter((s) => s.key !== "build") : STEPS;
+        if (host) {
+            fs.appendFileSync(logFilePath, `\n⚠ Build step skipped: this project is the running Loop Studio app itself.\n`);
+        }
+
         // Run steps sequentially; stop the pipeline on the first failure.
-        const results: { key: string; label: string; exitCode: number; ok: boolean }[] = [];
-        for (const step of STEPS) {
+        const results: { key: string; label: string; exitCode: number; ok: boolean; skipped?: boolean }[] = [];
+        for (const step of steps) {
             fs.appendFileSync(logFilePath, `\n▶ ${step.label} (${step.cmd} ${step.args.join(" ")})\n`);
             const exitCode = await runProjectCommand(`${taskId}-pipeline`, project.path, step.cmd, step.args, (chunk) => {
                 fs.appendFileSync(logFilePath, chunk);
@@ -44,7 +52,10 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
             if (!ok) break;
         }
 
-        const allPassed = results.length === STEPS.length && results.every((r) => r.ok);
+        const allPassed = results.length === steps.length && results.every((r) => r.ok);
+        if (host) {
+            results.push({ key: "build", label: "Build (skipped — host app)", exitCode: 0, ok: allPassed, skipped: true });
+        }
 
         // Persist outcome on a fresh read (the run may have taken a while).
         const reloaded = getProjects();

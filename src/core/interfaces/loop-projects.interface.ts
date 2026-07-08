@@ -141,6 +141,8 @@ export interface LoopProject {
     // project's own dev server URL (e.g. "http://localhost:3001"). A relative path
     // works for a project that is this same repo.
     previewUrl?: string;
+    /** Computed by the API (not persisted): this project is the running app's own repo. */
+    isHost?: boolean;
     createdAt: string;
     updatedAt: string;
 }

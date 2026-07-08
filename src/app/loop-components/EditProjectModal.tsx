@@ -123,11 +123,17 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
                                 id="edit-proj-path"
                                 aria-invalid={!!fieldErrors.path}
                                 value={path}
+                                disabled={project.isHost}
                                 onChange={(e) => { setPath(e.target.value); clearFieldError("path"); }}
                                 placeholder="e.g. /Users/name/AdapterWorks/2026/my-app"
                             />
-                            <FolderPicker value={path} onChange={(v) => { setPath(v); clearFieldError("path"); }} />
+                            {!project.isHost && <FolderPicker value={path} onChange={(v) => { setPath(v); clearFieldError("path"); }} />}
                         </div>
+                        {project.isHost && (
+                            <FieldDescription>
+                                Locked — this is the running Loop Studio app; its safety guards depend on this path.
+                            </FieldDescription>
+                        )}
                         <FieldError errors={fieldErrors.path ? [{ message: fieldErrors.path }] : []} />
                     </Field>
 

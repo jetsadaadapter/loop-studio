@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Users, FolderGit2, ChevronDown, Workflow } from "lucide-react";
+import { Users, FolderGit2, ChevronDown, Workflow, Pin } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectSidebarProps {
@@ -52,6 +52,9 @@ export function ProjectSidebar({ projects }: ProjectSidebarProps) {
                                 <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-600 group-hover:text-slate-800">
                                     {p.name}
                                 </span>
+                                {p.isHost && (
+                                    <Pin className="size-3 shrink-0 rotate-45 text-amber-500" aria-label="Pinned host app" />
+                                )}
                                 {activeTasks > 0 && (
                                     <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white font-sans">
                                         {activeTasks}

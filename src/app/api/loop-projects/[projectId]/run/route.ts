@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, runProjectCommand } from "@/core/services/loop-projects.service";
+import { getProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -31,6 +31,15 @@ export async function POST(
         const project = projects.find((p) => p.id === projectId);
         if (!project) {
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+        }
+
+        // Host-app guard: `build` would overwrite the live .next output and
+        // `dev` would fight over the port this server is already serving on.
+        if ((type === "build" || type === "dev") && isHostProject(project.path)) {
+            return NextResponse.json(
+                { success: false, error: `"${type}" is disabled for the host app — it conflicts with the running Loop Studio server.` },
+                { status: 400 },
+            );
         }
 
         const { cmd, args } = mapping;

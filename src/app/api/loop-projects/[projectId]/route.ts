@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
-import { getProjects, saveProjects } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, isHostProject } from "@/core/services/loop-projects.service";
 import { UpdateProjectSchema } from "@/core/validators/loop-projects.validator";
 import type { ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
 
@@ -12,7 +12,7 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
         if (!project) {
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
         }
-        return NextResponse.json({ success: true, data: project });
+        return NextResponse.json({ success: true, data: { ...project, isHost: isHostProject(project.path) } });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         return NextResponse.json({ success: false, error: message }, { status: 500 });
@@ -33,6 +33,15 @@ export async function PATCH(req: Request, context: { params: Promise<{ projectId
         const project = projects.find((p) => p.id === projectId);
         if (!project) {
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+        }
+
+        // Changing the host app's path would break isHostProject() detection
+        // and silently disable every host guard (build/dev/auto-commit blocks).
+        if (input.path !== undefined && input.path !== project.path && isHostProject(project.path)) {
+            return NextResponse.json(
+                { success: false, error: "The host app's path cannot be changed — the safety guards depend on it. Name, preview URL, and template are editable." },
+                { status: 400 },
+            );
         }
 
         if (input.path !== undefined && input.path !== project.path) {
@@ -64,6 +73,18 @@ export async function DELETE(req: Request, context: { params: Promise<{ projectI
     try {
         const { projectId } = await context.params;
         const projects = getProjects();
+
+        // Unregistering the host app would permanently drop its task history
+        // from the store while the app is managing itself — block it. (If it
+        // must go, remove the entry from .antigravity/loop-projects.json.)
+        const target = projects.find((p) => p.id === projectId);
+        if (target && isHostProject(target.path)) {
+            return NextResponse.json(
+                { success: false, error: "The host app cannot be unregistered from inside itself. Edit .antigravity/loop-projects.json manually if you really need to remove it." },
+                { status: 400 },
+            );
+        }
+
         const filtered = projects.filter((p) => p.id !== projectId);
         saveProjects(filtered);
         return NextResponse.json({ success: true, message: "Project unregistered successfully" });

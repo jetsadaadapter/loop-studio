@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -22,6 +22,15 @@ export async function POST(
         const tIdx = project.tasks?.findIndex((t) => t.id === taskId) ?? -1;
         if (tIdx === -1) {
             return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
+        }
+
+        // Host-app guard: building the repo this server runs from would
+        // overwrite the live .next output mid-serve.
+        if (type === "build" && isHostProject(project.path)) {
+            return NextResponse.json(
+                { success: false, error: "Build is disabled for the host app — it would overwrite the running server's build output. Run `npm run build` from a terminal when the server is stopped." },
+                { status: 400 },
+            );
         }
 
         const task = project.tasks[tIdx];

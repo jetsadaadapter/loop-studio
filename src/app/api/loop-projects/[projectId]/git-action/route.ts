@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, executeGitCommand, getGitInfo } from "@/core/services/loop-projects.service";
+import { getProjects, executeGitCommand, getGitInfo, isOwnGitRepo } from "@/core/services/loop-projects.service";
 
 export async function POST(req: Request, context: { params: Promise<{ projectId: string }> }) {
     try {
@@ -11,6 +11,16 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         const project = projects.find((p) => p.id === projectId);
         if (!project) {
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+        }
+
+        // A project without its own git root resolves git commands against a
+        // PARENT repo (e.g. a git-less folder under the host's .projects/) —
+        // committing/pushing there would hit the wrong repository.
+        if (!(await isOwnGitRepo(project.path))) {
+            return NextResponse.json(
+                { success: false, error: "This project has no git repository of its own. Run `git init` in the project folder first." },
+                { status: 400 },
+            );
         }
 
         if (action === "commit") {

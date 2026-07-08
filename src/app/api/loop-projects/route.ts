@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
 import type { LoopProject, ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
 import { RegisterProjectSchema, BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
 import fs from "fs";
@@ -7,7 +7,10 @@ import path from "path";
 
 export async function GET() {
     try {
-        const projects = getProjects();
+        const projects = getProjects()
+            .map((p) => ({ ...p, isHost: isHostProject(p.path) }))
+            // Host app pinned first; stable sort keeps registration order after it.
+            .sort((a, b) => Number(b.isHost) - Number(a.isHost));
         return NextResponse.json({ success: true, data: projects });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
