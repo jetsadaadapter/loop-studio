@@ -6,6 +6,7 @@ import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles } from "lucide-react
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { Breadcrumbs } from "../loop-components/Breadcrumbs";
+import { ProjectSidebar } from "../loop-components/ProjectSidebar";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
 import { AutoRunProgress } from "../loop-components/AutoRunProgress";
@@ -24,6 +25,7 @@ interface ProjectWorkspaceProps {
 export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const { projectId } = use(params);
     const [project, setProject] = useState<LoopProject | null>(null);
+    const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
     const [gitInfo, setGitInfo] = useState<{ branch: string; commit: string; modifiedFiles: string[] }>({
         branch: "...",
         commit: "...",
@@ -47,6 +49,10 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
             const gRes = await fetch(`/api/loop-projects/${projectId}/git-info`);
             const gData = await gRes.json();
             if (gData.success) setGitInfo(gData.data);
+
+            const allRes = await fetch(`/api/loop-projects`);
+            const allData = await allRes.json();
+            if (allData.success) setAllProjects(allData.data || []);
         } catch (e) {
             console.error("Failed to load workspace data:", e);
         } finally {
@@ -152,41 +158,45 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     );
 
     return (
-        <div className="flex flex-col space-y-6">
-            <Breadcrumbs items={[{ label: project.name }]} />
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+            <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
-            <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
+            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
+                <Breadcrumbs items={[{ label: project.name }]} />
 
-            <AutoRunProgress projectId={projectId} onRefresh={loadData} />
+                <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
 
-            <ViewTabs viewTab={viewTab} onChange={setViewTab} />
+                <AutoRunProgress projectId={projectId} onRefresh={loadData} />
 
-            {viewTab === "task" && (
-                <>
-                    <ManagerToolbar
-                        searchValue={searchValue}
-                        onSearchChange={setSearchValue}
-                        searchPlaceholder="Search tasks..."
-                        filters={filters}
-                        trailing={toolbarTrailing}
-                    />
-                    {filteredTasks.length === 0 ? emptyTasks : (
-                        <TaskView projectId={projectId} tasks={filteredTasks} onRefresh={loadData} />
-                    )}
-                </>
-            )}
+                <ViewTabs viewTab={viewTab} onChange={setViewTab} />
 
-            {viewTab === "board" && (
-                tasks.length === 0 ? emptyTasks : (
-                    <BoardView projectId={projectId} tasks={tasks} />
-                )
-            )}
+                {viewTab === "task" && (
+                    <>
+                        <ManagerToolbar
+                            searchValue={searchValue}
+                            onSearchChange={setSearchValue}
+                            searchPlaceholder="Search tasks..."
+                            filters={filters}
+                            trailing={toolbarTrailing}
+                        />
+                        {filteredTasks.length === 0 ? emptyTasks : (
+                            <TaskView projectId={projectId} tasks={filteredTasks} onRefresh={loadData} />
+                        )}
+                    </>
+                )}
 
-            {viewTab === "walkthrough" && (
-                tasks.length === 0 ? emptyTasks : (
-                    <WalkthroughView projectId={projectId} tasks={tasks} onRefresh={loadData} />
-                )
-            )}
+                {viewTab === "board" && (
+                    tasks.length === 0 ? emptyTasks : (
+                        <BoardView projectId={projectId} tasks={tasks} onAddTask={() => setIsCreateOpen(true)} />
+                    )
+                )}
+
+                {viewTab === "walkthrough" && (
+                    tasks.length === 0 ? emptyTasks : (
+                        <WalkthroughView projectId={projectId} tasks={tasks} onRefresh={loadData} />
+                    )
+                )}
+            </section>
 
             <CreateTaskModal
                 isOpen={isCreateOpen}

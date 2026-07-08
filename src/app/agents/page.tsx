@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Sparkles, Check } from "lucide-react";
-import type { LoopAgent } from "@/core/interfaces/loop-projects.interface";
+import { Plus, Sparkles, Check } from "lucide-react";
+import type { LoopAgent, LoopProject } from "@/core/interfaces/loop-projects.interface";
+import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
@@ -21,6 +21,7 @@ export default function AiTeamSpace() {
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const [apiKey, setApiKey] = useState("");
+    const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
 
     const loadAgents = async () => {
         try {
@@ -42,6 +43,10 @@ export default function AiTeamSpace() {
             setApiKey(localStorage.getItem("loop_anthropic_api_key") || "");
         }
         loadAgents();
+        fetch("/api/loop-projects")
+            .then((res) => res.json())
+            .then((data) => { if (data.success) setAllProjects(data.data || []); })
+            .catch(() => { /* sidebar just shows an empty list */ });
     }, []);
 
     const saveApiKey = (key: string) => {
@@ -112,18 +117,17 @@ export default function AiTeamSpace() {
     };
 
     return (
-        <div className="flex flex-col space-y-6 max-w-4xl mx-auto w-full">
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+            <ProjectSidebar projects={allProjects} />
+
+            <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-6 py-6">
+                <div className="mx-auto flex w-full max-w-4xl flex-col space-y-6">
             <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
 
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                    <Link href="/" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
-                        <ArrowLeft className="size-4" />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-bold text-slate-800 tracking-tight">AI Developer Team</h1>
-                        <p className="text-xs text-slate-500 mt-0.5">Manage models, prompt templates, and professional skills for your autonomous AI team</p>
-                    </div>
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>
+                    <p className="mt-1 text-xs text-slate-500 font-sans">Manage models, prompt templates, and professional skills for your autonomous AI team</p>
                 </div>
                 <button
                     onClick={() => setIsAddOpen(true)}
@@ -197,6 +201,8 @@ export default function AiTeamSpace() {
                     onConfirm={() => handleDelete(deleteTarget)}
                 />
             )}
+                </div>
+            </section>
         </div>
     );
 }

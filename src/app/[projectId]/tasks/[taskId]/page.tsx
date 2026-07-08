@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Clock, Coins, CheckCircle2 } from "lucide-react";
+import { Clock, Coins, CheckCircle2 } from "lucide-react";
 import type { LoopProject, LoopTask, TaskStage } from "@/core/interfaces/loop-projects.interface";
 import { TimelineStages } from "@/app/loop-components/TimelineStages";
 import { StageWorkspace } from "@/app/loop-components/StageWorkspace";
@@ -13,6 +13,7 @@ import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
 import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
 import { StudioWindow } from "@/app/loop-components/StudioWindow";
 import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
+import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -33,6 +34,7 @@ function getPipelineStatus(task: LoopTask): { verify: CheckState; build: CheckSt
 export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
     const { projectId, taskId } = use(params);
     const [project, setProject] = useState<LoopProject | null>(null);
+    const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
     const [task, setTask] = useState<LoopTask | null>(null);
     const [activeStage, setActiveStage] = useState<TaskStage>("PLAN");
     const [loading, setLoading] = useState(true);
@@ -55,6 +57,10 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
             if (pRes.ok && pData.success) {
                 setProject(pData.data);
             }
+
+            const allRes = await fetch(`/api/loop-projects`);
+            const allData = await allRes.json();
+            if (allData.success) setAllProjects(allData.data || []);
         } catch (e) {
             console.error("Failed to load task details:", e);
         } finally {
@@ -111,7 +117,10 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
     }
 
     return (
-        <div className="flex flex-col space-y-6">
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+            <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
+
+            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
             <Breadcrumbs
                 items={[
                     { label: project?.name || "Project", href: `/${projectId}` },
@@ -120,30 +129,25 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
             />
 
             {/* Header section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
-                <div className="flex items-center gap-3">
-                    <Link href={`/${projectId}`} className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">
-                        <ArrowLeft className="size-4" />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                            {task.name}
-                            {task.status === "completed" && <CheckCircle2 className="size-4 text-emerald-500" />}
-                        </h1>
-                        <p className="text-[10px] text-slate-400 font-sans tracking-wide mt-0.5">
-                            ID: {task.id} &bull; Project: {project?.name}
-                        </p>
-                    </div>
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
+                    <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-800">
+                        <span className="truncate">{task.name}</span>
+                        {task.status === "completed" && <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />}
+                    </h1>
+                    <p className="mt-1 text-xs text-slate-500 font-sans truncate">
+                        ID: {task.id} &bull; Project: {project?.name}
+                    </p>
                 </div>
 
-                <div className="flex items-center gap-3 text-[10px] font-sans text-slate-600">
-                    <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 rounded-lg border border-slate-200/60 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-600">
                         <Clock className="size-3.5 text-slate-400" />
-                        <span>Updated: {new Date(task.updatedAt).toLocaleTimeString()}</span>
+                        <span className="font-sans">Updated {new Date(task.updatedAt).toLocaleTimeString()}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/60 px-2.5 py-1 rounded-lg text-slate-700">
+                    <div className="flex items-center gap-1.5 rounded-lg border border-slate-200/60 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-600">
                         <Coins className="size-3.5 text-amber-500" />
-                        <span className="font-sans font-medium">${task.tokensUsed.cost.toFixed(3)}</span>
+                        <span className="font-semibold font-sans">${task.tokensUsed.cost.toFixed(3)}</span>
                     </div>
                 </div>
             </div>
@@ -224,6 +228,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                     })()
                 }
             />
+            </section>
         </div>
     );
 }

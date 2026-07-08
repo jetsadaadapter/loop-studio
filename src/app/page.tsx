@@ -111,7 +111,7 @@ export default function LoopProjectsDashboard() {
     );
 
     return (
-        <div className="flex flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
             <ProjectSidebar projects={projects} />
 
             <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">

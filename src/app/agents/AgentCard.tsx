@@ -102,7 +102,7 @@ export function AgentCard({
 
                     <Field>
                         <FieldLabel>Expertise Skills</FieldLabel>
-                        <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
+                        <div className="space-y-1.5">
                             {AVAILABLE_SKILLS.map((skill) => {
                                 const isChecked = agent.skills.includes(skill.key);
                                 return (

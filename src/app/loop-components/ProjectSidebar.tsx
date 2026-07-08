@@ -2,11 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
-import { Users, FolderGit2, ChevronDown, Workflow, Pin } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Users, FolderGit2, ChevronDown, Workflow, Pin, LayoutDashboard } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectSidebarProps {
     projects: LoopProject[];
+    /** Highlight this workspace as the current one (workspace pages). */
+    activeProjectId?: string;
 }
 
 // Colored identity dot per framework template, mirroring the reference
@@ -19,9 +22,13 @@ const TEMPLATE_DOT: Record<string, string> = {
     generic: "bg-slate-400",
 };
 
-// Left navigation rail of the dashboard shell: the registered workspaces with
-// active-task counts, plus the AI Developer Team shortcut pinned below.
-export function ProjectSidebar({ projects }: ProjectSidebarProps) {
+// Left navigation rail shared by the dashboard and workspace shells: Menu
+// section, registered workspaces with active-task counts, and the AI team
+// shortcut pinned below.
+export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProps) {
+    const pathname = usePathname();
+    const onDashboard = pathname === "/";
+
     return (
         <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200/60 bg-slate-50/60">
             <div className="flex items-center gap-2 px-5 pt-4 pb-1">
@@ -29,6 +36,21 @@ export function ProjectSidebar({ projects }: ProjectSidebarProps) {
                     <Workflow className="size-3.5" />
                 </span>
                 <span className="text-sm font-bold tracking-tight text-slate-800">Loop Studio</span>
+            </div>
+
+            <div className="px-3 pt-3">
+                <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-sans">Menu</p>
+                <Link
+                    href="/"
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+                        onDashboard
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-800"
+                    }`}
+                >
+                    <LayoutDashboard className="size-4 text-slate-400" />
+                    Dashboard
+                </Link>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-slate-200/60 bg-white mx-3 mt-3 px-3 py-2 shadow-sm">
@@ -42,14 +64,20 @@ export function ProjectSidebar({ projects }: ProjectSidebarProps) {
                 ) : (
                     projects.map((p) => {
                         const activeTasks = (p.tasks ?? []).filter((t) => t.status !== "completed").length;
+                        const isActive = p.id === activeProjectId;
                         return (
                             <Link
                                 key={p.id}
                                 href={`/${p.id}`}
-                                className="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-white hover:shadow-sm transition-all"
+                                aria-current={isActive ? "page" : undefined}
+                                className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all ${
+                                    isActive ? "bg-white shadow-sm" : "hover:bg-white hover:shadow-sm"
+                                }`}
                             >
                                 <span className={`size-2 shrink-0 rounded-full ${TEMPLATE_DOT[p.template] ?? TEMPLATE_DOT.generic}`} />
-                                <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-600 group-hover:text-slate-800">
+                                <span className={`min-w-0 flex-1 truncate text-xs font-semibold ${
+                                    isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
+                                }`}>
                                     {p.name}
                                 </span>
                                 {p.isHost && (
@@ -69,7 +97,12 @@ export function ProjectSidebar({ projects }: ProjectSidebarProps) {
             <div className="border-t border-slate-200/60 p-3 space-y-0.5">
                 <Link
                     href="/agents"
-                    className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-800 transition-all"
+                    aria-current={pathname === "/agents" ? "page" : undefined}
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+                        pathname === "/agents"
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-800"
+                    }`}
                 >
                     <Users className="size-4 text-indigo-500" />
                     AI Developer Team

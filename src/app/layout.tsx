@@ -107,14 +107,15 @@ export default async function RootLayout({
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-100" suppressHydrationWarning>
+      <body className="h-screen overflow-hidden flex flex-col bg-slate-100" suppressHydrationWarning>
         <TooltipProvider>
           <AlertDialogToastProvider>
             <ToastProvider>
               {/* Floating-canvas look: every page sits inside page padding, never flush
-                  to the viewport edge. The brand lives inside each page's shell (e.g.
-                  the dashboard sidebar), so modal backdrops dim the screen uniformly. */}
-              <main className="flex-1 flex flex-col p-4 md:p-6">{children}</main>
+                  to the viewport edge. The frame is locked to the viewport (body
+                  h-screen + min-h-0 here) so page shells keep their sidebar fixed and
+                  scroll only the content column. */}
+              <main className="flex-1 min-h-0 flex flex-col p-4 md:p-6">{children}</main>
             </ToastProvider>
           </AlertDialogToastProvider>
         </TooltipProvider>
