@@ -38,7 +38,13 @@ export const BootstrapProjectSchema = z.object({
         .trim()
         .min(2, "Project name must be at least 2 characters.")
         .max(60, "Project name must be 60 characters or fewer."),
-    path: absolutePath,
+    // Blank = the server creates the folder under its .projects/ workspace root.
+    path: z
+        .string()
+        .trim()
+        .refine((v) => v === "" || v.startsWith("/"), { message: "Path must be absolute (start with /)." })
+        .optional()
+        .or(z.literal("")),
     template: z.string().trim().min(1, "Template is required.").default("nextjs-app"),
 });
 
@@ -53,6 +59,57 @@ export const CreateTaskSchema = z.object({
         .min(1, "Add at least one target file.")
         .max(20, "A task can target at most 20 files."),
 });
+
+// Every field optional for PATCH; at least one must be present. Built field-by-
+// field (not RegisterProjectSchema.partial()) because template's .default()
+// would survive partial() and silently reset the template on unrelated updates.
+export const UpdateProjectSchema = z
+    .object({
+        name: z.string().trim().min(2, "Project name must be at least 2 characters.").max(60, "Project name must be 60 characters or fewer.").optional(),
+        path: absolutePath.optional(),
+        template: z.string().trim().min(1, "Template is required.").optional(),
+        previewUrl: previewUrlField,
+    })
+    .refine((data) => Object.values(data).some((v) => v !== undefined), { message: "No fields to update." });
+
+export const PlanFromGoalSchema = z.object({
+    goal: z
+        .string()
+        .trim()
+        .min(10, "Describe the goal in at least 10 characters.")
+        .max(2000, "Goal must be 2000 characters or fewer."),
+    apply: z.boolean().optional().default(false),
+});
+
+// Shape the Architect LLM must return when decomposing a goal. Validated before
+// any task is created so a malformed model reply can never corrupt the store.
+const PlannedTaskSchema = z.object({
+    name: z.string().trim().min(3).max(120),
+    targetFiles: z.array(z.string().trim().min(1)).min(1).max(20),
+    rationale: z.string().trim().max(500).optional(),
+    priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+    storyPoints: z.number().int().min(1).max(13).optional(),
+    tags: z.array(z.string().trim().min(1)).max(10).optional(),
+    group: z.string().trim().min(1).max(60).optional(),
+});
+
+export const GoalPlanSchema = z.object({
+    tasks: z.array(PlannedTaskSchema).min(1, "Plan must contain at least one task.").max(15, "Plan may contain at most 15 tasks."),
+});
+
+// A single path segment (folder name): no separators, no traversal, no leading dot-dot.
+const folderName = z
+    .string()
+    .trim()
+    .min(1, "Folder name is required.")
+    .max(80, "Folder name must be 80 characters or fewer.")
+    .refine((v) => !/[/\\]/.test(v) && v !== "." && v !== "..", { message: "Folder name cannot contain path separators." });
+
+export const FolderActionSchema = z.discriminatedUnion("action", [
+    z.object({ action: z.literal("mkdir"), path: absolutePath, name: folderName }),
+    z.object({ action: z.literal("rename"), path: absolutePath, newName: folderName }),
+    z.object({ action: z.literal("delete"), path: absolutePath }),
+]);
 
 export const CreateAgentSchema = z.object({
     name: z
@@ -78,6 +135,10 @@ export const UpdateAgentSchema = CreateAgentSchema.partial().refine(
     (data) => Object.keys(data).length > 0,
     { message: "No fields to update." },
 );
+
+export type PlanFromGoalInput = z.infer<typeof PlanFromGoalSchema>;
+export type GoalPlan = z.infer<typeof GoalPlanSchema>;
+export type PlannedTask = GoalPlan["tasks"][number];
 
 export type RegisterProjectInput = z.infer<typeof RegisterProjectSchema>;
 export type BootstrapProjectInput = z.infer<typeof BootstrapProjectSchema>;

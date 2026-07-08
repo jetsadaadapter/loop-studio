@@ -2,13 +2,17 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Plus, HelpCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
+import { AutoRunModal } from "../loop-components/AutoRunModal";
+import { AutoRunProgress } from "../loop-components/AutoRunProgress";
+import { AVAILABLE_SKILLS } from "@/core/interfaces/loop-projects.interface";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
 import { TaskView } from "./components/TaskView";
+import { BoardView } from "./components/BoardView";
 import { WalkthroughView } from "./components/WalkthroughView";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
@@ -26,8 +30,10 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     });
     const [searchValue, setSearchValue] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [tagFilter, setTagFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isAutoRunOpen, setIsAutoRunOpen] = useState(false);
     const [viewTab, setViewTab] = useState<WorkspaceViewTab>("walkthrough");
 
     const loadData = async () => {
@@ -80,7 +86,8 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const filteredTasks = tasks.filter((t) => {
         const matchesSearch = t.name.toLowerCase().includes(searchValue.toLowerCase());
         const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const matchesTag = tagFilter === "all" || (t.tags ?? []).includes(tagFilter);
+        return matchesSearch && matchesStatus && matchesTag;
     });
 
     const filters = [
@@ -97,11 +104,28 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
             ],
             onChange: (val: string) => setStatusFilter(val),
         },
+        {
+            key: "tag",
+            label: "Tag",
+            value: tagFilter,
+            options: [
+                { value: "all", label: "All Tags" },
+                ...AVAILABLE_SKILLS.map((s) => ({ value: s.key, label: s.label })),
+            ],
+            onChange: (val: string) => setTagFilter(val),
+        },
     ];
 
     const toolbarTrailing = (
         <div className="flex items-center gap-2">
             <ManageRefreshButton isLoading={loading} isRefreshing={loading} onRefresh={loadData} title="Refresh Tasks" />
+            <button
+                onClick={() => setIsAutoRunOpen(true)}
+                className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-sm"
+            >
+                <Sparkles className="size-4" />
+                Plan from Goal
+            </button>
             <button
                 onClick={() => setIsCreateOpen(true)}
                 className="flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
@@ -130,6 +154,8 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
         <div className="flex flex-col space-y-6">
             <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
 
+            <AutoRunProgress projectId={projectId} onRefresh={loadData} />
+
             <ViewTabs viewTab={viewTab} onChange={setViewTab} />
 
             {viewTab === "task" && (
@@ -142,9 +168,15 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                         trailing={toolbarTrailing}
                     />
                     {filteredTasks.length === 0 ? emptyTasks : (
-                        <TaskView projectId={projectId} tasks={filteredTasks} />
+                        <TaskView projectId={projectId} tasks={filteredTasks} onRefresh={loadData} />
                     )}
                 </>
+            )}
+
+            {viewTab === "board" && (
+                tasks.length === 0 ? emptyTasks : (
+                    <BoardView projectId={projectId} tasks={tasks} />
+                )
             )}
 
             {viewTab === "walkthrough" && (
@@ -158,6 +190,16 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                 projectId={projectId}
                 onClose={() => setIsCreateOpen(false)}
                 onSuccess={loadData}
+            />
+
+            <AutoRunModal
+                isOpen={isAutoRunOpen}
+                projectId={projectId}
+                onClose={() => setIsAutoRunOpen(false)}
+                onSuccess={(startedAutoRun) => {
+                    loadData();
+                    if (startedAutoRun) setViewTab("task");
+                }}
             />
         </div>
     );

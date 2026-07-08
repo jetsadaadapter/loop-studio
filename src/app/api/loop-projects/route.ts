@@ -59,14 +59,25 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
             }
 
-            const parentDir = path.dirname(projectPath);
-            const folderName = path.basename(projectPath);
+            // Blank path → create under the app's .projects/ workspace folder,
+            // named after the project (kebab-case). Keeps bootstrapped projects
+            // in one predictable, gitignored place.
+            const slug = String(name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "new-project";
+            const defaultRoot = path.join(process.cwd(), ".projects");
+            const targetPath: string = parsed.data.path?.trim() ? parsed.data.path : path.join(defaultRoot, slug);
+
+            const parentDir = path.dirname(targetPath);
+            const folderName = path.basename(targetPath);
 
             if (!fs.existsSync(parentDir)) {
-                return NextResponse.json({ success: false, error: "Parent directory does not exist" }, { status: 400 });
+                if (parentDir === defaultRoot) {
+                    fs.mkdirSync(defaultRoot, { recursive: true });
+                } else {
+                    return NextResponse.json({ success: false, error: "Parent directory does not exist" }, { status: 400 });
+                }
             }
 
-            if (fs.existsSync(projectPath)) {
+            if (fs.existsSync(targetPath)) {
                 return NextResponse.json({ success: false, error: "Target folder already exists" }, { status: 400 });
             }
 
@@ -104,14 +115,14 @@ export async function POST(req: Request) {
                 }
             ).then((code) => {
                 if (code === 0) {
-                    fs.appendFileSync(logFilePath, `\n[Bootstrap] SUCCESS: Project created at ${projectPath}!\n`);
+                    fs.appendFileSync(logFilePath, `\n[Bootstrap] SUCCESS: Project created at ${targetPath}!\n`);
 
                     // Post-Vite React installation steps if template is vite
                     if (template === "vite-react") {
-                        fs.appendFileSync(logFilePath, `[Bootstrap] Installing dependencies in ${projectPath}...\n`);
+                        fs.appendFileSync(logFilePath, `[Bootstrap] Installing dependencies in ${targetPath}...\n`);
                         void runProjectCommand(
                             `${tempProjectId}-deps`,
-                            projectPath,
+                            targetPath,
                             "npm",
                             ["install"],
                             (chunk) => {
@@ -120,15 +131,15 @@ export async function POST(req: Request) {
                         ).then((depsCode) => {
                             if (depsCode === 0) {
                                 fs.appendFileSync(logFilePath, `\n[Bootstrap] SUCCESS: Dependencies installed!\n`);
-                                registerBootstrappedProject(name || folderName, projectPath, template);
+                                registerBootstrappedProject(name || folderName, targetPath, template);
                             } else {
                                 fs.appendFileSync(logFilePath, `\n[Bootstrap] WARNING: Dependency installation exited with code ${depsCode}. Please run npm install manually.\n`);
-                                registerBootstrappedProject(name || folderName, projectPath, template);
+                                registerBootstrappedProject(name || folderName, targetPath, template);
                             }
                             fs.appendFileSync(logFilePath, `\n[Bootstrap] __DONE__\n`);
                         });
                     } else {
-                        registerBootstrappedProject(name || folderName, projectPath, template);
+                        registerBootstrappedProject(name || folderName, targetPath, template);
                         fs.appendFileSync(logFilePath, `\n[Bootstrap] __DONE__\n`);
                     }
                 } else {

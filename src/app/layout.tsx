@@ -108,17 +108,18 @@ export default async function RootLayout({
         {/* Expose nonce to Next.js so it can stamp inline hydration scripts */}
         <meta name="next-nonce" content={nonce} />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-50" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-slate-100" suppressHydrationWarning>
         <TooltipProvider>
           <AlertDialogToastProvider>
             <ToastProvider>
-              <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
+              <div className="flex items-center justify-between px-6 pt-4 pb-1">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                   <Workflow className="size-3.5 text-brand" />
                   Loop Studio
                 </span>
               </div>
-              <main className="flex-1 flex flex-col">{children}</main>
+              {/* Floating-canvas look: every page sits inside page padding, never flush to the viewport edge. */}
+              <main className="flex-1 flex flex-col px-4 pb-4 md:px-6 md:pb-6">{children}</main>
             </ToastProvider>
           </AlertDialogToastProvider>
         </TooltipProvider>

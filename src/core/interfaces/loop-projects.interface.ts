@@ -120,6 +120,8 @@ export interface LoopTask {
     endDate?: string;
     sprintId?: string;
     storyPoints?: number;
+    /** SkillTag keys (see AVAILABLE_SKILLS) — used for filtering and agent routing. */
+    tags?: string[];
     tokensUsed: {
         input: number;
         output: number;
@@ -135,9 +137,9 @@ export interface LoopProject {
     path: string; // absolute local path
     template: ProjectTemplate;
     tasks: LoopTask[];
-    // Where this project's app runs, used by the Studio preview pane. For a project
-    // that is the same repo as the Studio, a relative path like "/apps" works; for a
-    // separate repo, its dev server URL (e.g. "http://localhost:3001").
+    // Where this project's app runs, used by the Studio preview pane — usually the
+    // project's own dev server URL (e.g. "http://localhost:3001"). A relative path
+    // works for a project that is this same repo.
     previewUrl?: string;
     createdAt: string;
     updatedAt: string;

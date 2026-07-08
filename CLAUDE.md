@@ -42,6 +42,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
       loop-projects.service.ts          JSON store, git helpers, process runner, risk tiers, SSE log pub/sub
       loop-agents.service.ts            agent roster CRUD
       loop-llm.service.ts               Anthropic/Gemini calls for chat
+      loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
+      loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
+      loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```

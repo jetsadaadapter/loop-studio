@@ -51,7 +51,7 @@ export async function PATCH(
         const task = project.tasks[tIdx];
 
         // Update fields
-        const allowedUpdates: (keyof LoopTask)[] = ["status", "currentStage", "retroAnswers", "safetyNets", "testRunner"];
+        const allowedUpdates: (keyof LoopTask)[] = ["status", "currentStage", "retroAnswers", "safetyNets", "testRunner", "kanbanColumn", "priority", "tags"];
         for (const key of allowedUpdates) {
             if (body[key] !== undefined) {
                 setTaskField(task, key, body[key]);

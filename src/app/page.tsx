@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { Plus, Users, FolderPlus, HelpCircle } from "lucide-react";
+import { Plus, FolderPlus, HelpCircle } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { ProjectCard } from "./loop-components/ProjectCard";
+import { ProjectSidebar } from "./loop-components/ProjectSidebar";
 import { RegisterModal } from "./loop-components/RegisterModal";
 import { BootstrapModal } from "./loop-components/BootstrapModal";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
@@ -103,51 +103,45 @@ export default function LoopProjectsDashboard() {
     );
 
     return (
-        <div className="flex flex-col space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
-                <div>
+        <div className="flex flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+            <ProjectSidebar projects={projects} />
+
+            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
+                <div className="border-b border-slate-100 pb-4">
                     <h1 className="text-xl font-bold text-slate-800 tracking-tight">Local Loop Studio</h1>
                     <p className="text-xs text-slate-500 font-sans mt-0.5">Manage multiple workspaces, trace dependencies, and delegate tasks to AI Agents</p>
                 </div>
-                
-                <Link
-                    href="/agents"
-                    className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs self-start md:self-auto"
-                >
-                    <Users className="size-4 text-indigo-600" />
-                    AI Developer Team
-                </Link>
-            </div>
 
-            <ManagerToolbar
-                searchValue={searchValue}
-                onSearchChange={setSearchValue}
-                searchPlaceholder="Search projects by name or path..."
-                filters={filters}
-                trailing={toolbarTrailing}
-            />
+                <ManagerToolbar
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
+                    searchPlaceholder="Search projects by name or path..."
+                    filters={filters}
+                    trailing={toolbarTrailing}
+                />
 
-            {loading && projects.length === 0 ? (
-                <div className="flex h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                    <span className="text-xs font-sans text-slate-500 animate-pulse">Loading Studio workspaces...</span>
-                </div>
-            ) : filteredProjects.length === 0 ? (
-                <div className="flex flex-col h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
-                    <HelpCircle className="size-8 text-slate-400 mb-2" />
-                    <h3 className="text-sm font-semibold text-slate-800">No projects found</h3>
-                    <p className="text-xs text-slate-500 font-sans mt-1 max-w-xs">Register an existing project directory or bootstrap a new Next.js / Vite project to get started.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filteredProjects.map((project) => (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            onDelete={handleDelete}
-                        />
-                    ))}
-                </div>
-            )}
+                {loading && projects.length === 0 ? (
+                    <div className="flex h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                        <span className="text-xs font-sans text-slate-500 animate-pulse">Loading Studio workspaces...</span>
+                    </div>
+                ) : filteredProjects.length === 0 ? (
+                    <div className="flex flex-col h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center">
+                        <HelpCircle className="size-8 text-slate-400 mb-2" />
+                        <h3 className="text-sm font-semibold text-slate-800">No projects found</h3>
+                        <p className="text-xs text-slate-500 font-sans mt-1 max-w-xs">Register an existing project directory or bootstrap a new Next.js / Vite project to get started.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {filteredProjects.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                project={project}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+                    </div>
+                )}
+            </section>
 
             <RegisterModal
                 isOpen={isRegisterOpen}

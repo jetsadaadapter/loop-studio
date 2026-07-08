@@ -129,3 +129,4 @@ pnpm-debug.log*
 /blob-report/
 /playwright/.cache/
 testsprite_tests/tmp/
+.antigravity/archive/
