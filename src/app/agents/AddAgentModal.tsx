@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, UserPlus, Wand2, X } from "lucide-react";
+import { Loader2, UserPlus, Wand2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CreateAgentSchema } from "@/core/validators/loop-projects.validator";
+import { CreateAgentSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 import {
     Select,
     SelectContent,
@@ -28,6 +29,7 @@ const EMPTY_FORM = { name: "", role: "", model: "claude-sonnet-5", systemPrompt:
 export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps) {
     const [form, setForm] = useState(EMPTY_FORM);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [wasOpen, setWasOpen] = useState(isOpen);
 
@@ -36,8 +38,14 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
         if (isOpen) {
             setForm(EMPTY_FORM);
             setError("");
+            setFieldErrors({});
         }
     }
+
+    const setField = (key: keyof typeof EMPTY_FORM, value: string) => {
+        setForm((p) => ({ ...p, [key]: value }));
+        if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+    };
 
     const toggleSkill = (key: string) => {
         setForm((prev) => ({
@@ -61,9 +69,10 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
 
         const check = CreateAgentSchema.safeParse(form);
         if (!check.success) {
-            setError(check.error.issues[0].message);
+            setFieldErrors(zodFieldErrors(check.error));
             return;
         }
+        setFieldErrors({});
 
         setLoading(true);
         try {
@@ -99,40 +108,34 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Add AI Agent</h2>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close modal"
-                        title="Close modal"
-                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                    >
-                        <X className="size-4" />
-                    </button>
+                    <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} noValidate className="px-5 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field>
                             <FieldLabel>
                                 Agent Name <span className="text-destructive">*</span>
                             </FieldLabel>
                             <Input
-                                required
+                                aria-invalid={!!fieldErrors.name}
                                 placeholder="e.g. Ada"
                                 value={form.name}
-                                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                                onChange={(e) => setField("name", e.target.value)}
                             />
+                            <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
                         </Field>
                         <Field>
                             <FieldLabel>
                                 Role <span className="text-destructive">*</span>
                             </FieldLabel>
                             <Input
-                                required
+                                aria-invalid={!!fieldErrors.role}
                                 placeholder="e.g. Frontend Engineer"
                                 value={form.role}
-                                onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
+                                onChange={(e) => setField("role", e.target.value)}
                             />
+                            <FieldError errors={fieldErrors.role ? [{ message: fieldErrors.role }] : []} />
                         </Field>
                     </div>
 
@@ -189,11 +192,13 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
                         </div>
                         <Textarea
                             rows={7}
+                            aria-invalid={!!fieldErrors.systemPrompt}
                             placeholder="Describe the agent's responsibilities and behavior..."
                             value={form.systemPrompt}
-                            onChange={(e) => setForm((p) => ({ ...p, systemPrompt: e.target.value }))}
+                            onChange={(e) => setField("systemPrompt", e.target.value)}
                             className="min-h-0 leading-relaxed"
                         />
+                        <FieldError errors={fieldErrors.systemPrompt ? [{ message: fieldErrors.systemPrompt }] : []} />
                     </Field>
 
                     <FieldError errors={error ? [{ message: error }] : []} />

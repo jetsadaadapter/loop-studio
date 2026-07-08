@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { Pencil, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
-import { RegisterProjectSchema } from "@/core/validators/loop-projects.validator";
+import { RegisterProjectSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 import { FolderPicker } from "./FolderPicker";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,7 +49,12 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
     const [template, setTemplate] = useState<string>(project.template);
     const [previewUrl, setPreviewUrl] = useState(project.previewUrl ?? "");
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
+
+    const clearFieldError = (key: string) => {
+        if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,9 +62,10 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
 
         const check = RegisterProjectSchema.safeParse({ name, path, template, previewUrl });
         if (!check.success) {
-            setError(check.error.issues[0].message);
+            setFieldErrors(zodFieldErrors(check.error));
             return;
         }
+        setFieldErrors({});
 
         setLoading(true);
         try {
@@ -93,29 +100,50 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Edit Project</h2>
                     </div>
-                    <button onClick={onClose} className="text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer">Close</button>
+                    <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4 px-5 py-4">
+                <form onSubmit={handleSubmit} noValidate className="space-y-4 px-5 py-4">
                     <Field>
                         <FieldLabel htmlFor="edit-proj-name">Project Name <span className="text-brand">*</span></FieldLabel>
-                        <Input id="edit-proj-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My Website" />
+                        <Input
+                            id="edit-proj-name"
+                            aria-invalid={!!fieldErrors.name}
+                            value={name}
+                            onChange={(e) => { setName(e.target.value); clearFieldError("name"); }}
+                            placeholder="e.g. My Website"
+                        />
+                        <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
                     </Field>
 
                     <Field>
                         <FieldLabel htmlFor="edit-proj-path">Absolute Directory Path <span className="text-brand">*</span></FieldLabel>
                         <div className="flex items-center gap-2">
-                            <Input id="edit-proj-path" value={path} onChange={(e) => setPath(e.target.value)} placeholder="e.g. /Users/name/AdapterWorks/2026/my-app" />
-                            <FolderPicker value={path} onChange={setPath} />
+                            <Input
+                                id="edit-proj-path"
+                                aria-invalid={!!fieldErrors.path}
+                                value={path}
+                                onChange={(e) => { setPath(e.target.value); clearFieldError("path"); }}
+                                placeholder="e.g. /Users/name/AdapterWorks/2026/my-app"
+                            />
+                            <FolderPicker value={path} onChange={(v) => { setPath(v); clearFieldError("path"); }} />
                         </div>
+                        <FieldError errors={fieldErrors.path ? [{ message: fieldErrors.path }] : []} />
                     </Field>
 
                     <Field>
                         <FieldLabel htmlFor="edit-proj-preview">Preview / Dev server URL</FieldLabel>
-                        <Input id="edit-proj-preview" value={previewUrl} onChange={(e) => setPreviewUrl(e.target.value)} placeholder="e.g. http://localhost:3001" />
+                        <Input
+                            id="edit-proj-preview"
+                            aria-invalid={!!fieldErrors.previewUrl}
+                            value={previewUrl}
+                            onChange={(e) => { setPreviewUrl(e.target.value); clearFieldError("previewUrl"); }}
+                            placeholder="e.g. http://localhost:3001"
+                        />
                         <FieldDescription>
                             Optional. Where this project&apos;s app runs, shown in the Studio preview pane.
                         </FieldDescription>
+                        <FieldError errors={fieldErrors.previewUrl ? [{ message: fieldErrors.previewUrl }] : []} />
                     </Field>
 
                     <Field>

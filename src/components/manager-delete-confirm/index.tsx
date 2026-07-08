@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { Trash2Icon, AlertTriangle, X } from "lucide-react";
+import { Trash2Icon, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 
 type ManagerDeleteConfirmProps = {
   itemName: string;
@@ -47,14 +48,7 @@ export function ManagerDeleteConfirm({
           className="fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2.5rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-slate-100 bg-white/95 backdrop-blur-md p-5 text-xs shadow-2xl outline-none duration-300 sm:max-w-[320px] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8 data-closed:zoom-out-95"
           role="dialog"
         >
-          <button
-            type="button"
-            onClick={onCancel}
-            className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 cursor-pointer text-slate-400 hover:text-slate-650 focus:outline-none"
-          >
-            <X className="size-4" />
-            <span className="sr-only">Close</span>
-          </button>
+          <ModalCloseButton onClose={onCancel} disabled={isLoading} className="absolute right-3 top-3" />
           <div className="flex flex-col items-center gap-4 text-center">
             {/* Glowing Danger Circle */}
             <div className="flex size-11 items-center justify-center rounded-full bg-brand/5 border border-brand/10 text-brand shadow-2xs animate-in zoom-in-50 duration-300">

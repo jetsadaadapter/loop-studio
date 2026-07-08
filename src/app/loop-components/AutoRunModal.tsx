@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import { Sparkles, Loader2, Trash2, Play } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import type { EnrichedPlannedTask } from "@/core/services/loop-planner.service";
+import { PlanFromGoalSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 
 interface AutoRunModalProps {
     isOpen: boolean;
@@ -36,6 +38,11 @@ export function AutoRunModal({ isOpen, projectId, onClose, onSuccess }: AutoRunM
 
     const generatePlan = async () => {
         setError("");
+        const check = PlanFromGoalSchema.safeParse({ goal, apply: false });
+        if (!check.success) {
+            setError(zodFieldErrors(check.error).goal ?? check.error.issues[0].message);
+            return;
+        }
         setBusy("plan");
         try {
             const res = await fetch(`/api/loop-projects/${projectId}/plan`, {
@@ -97,7 +104,7 @@ export function AutoRunModal({ isOpen, projectId, onClose, onSuccess }: AutoRunM
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Plan from Goal</h2>
                     </div>
-                    <button onClick={close} className="text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer">Close</button>
+                    <ModalCloseButton onClose={close} disabled={!!busy} />
                 </div>
 
                 <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-4">
@@ -105,8 +112,9 @@ export function AutoRunModal({ isOpen, projectId, onClose, onSuccess }: AutoRunM
                         <FieldLabel htmlFor="autorun-goal">Goal</FieldLabel>
                         <textarea
                             id="autorun-goal"
+                            aria-invalid={!!error}
                             value={goal}
-                            onChange={(e) => setGoal(e.target.value)}
+                            onChange={(e) => { setGoal(e.target.value); if (error) setError(""); }}
                             rows={3}
                             disabled={!!drafts}
                             placeholder="Describe what you want built — the Architect will break it into backlog tasks."
@@ -150,7 +158,7 @@ export function AutoRunModal({ isOpen, projectId, onClose, onSuccess }: AutoRunM
                     {!drafts ? (
                         <button
                             onClick={generatePlan}
-                            disabled={goal.trim().length < 10 || busy === "plan"}
+                            disabled={busy === "plan"}
                             className="flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 disabled:opacity-50 cursor-pointer shadow-sm"
                         >
                             {busy === "plan" ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}

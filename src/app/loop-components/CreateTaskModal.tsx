@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, FileText, ListChecks, Loader2, Check } from "lucide-react";
+import { FileText, ListChecks, Loader2, Check } from "lucide-react";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { TagInput } from "@/components/ui/tag-input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
-import { CreateTaskSchema } from "@/core/validators/loop-projects.validator";
+import { CreateTaskSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -34,6 +35,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
     const [targetFiles, setTargetFiles] = useState<string[]>([]);
     const [fileOptions, setFileOptions] = useState<string[]>([]);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [wasOpen, setWasOpen] = useState(isOpen);
     const [risk, setRisk] = useState<RiskPreview | null>(null);
@@ -51,6 +53,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
             setName("");
             setTargetFiles([]);
             setError("");
+            setFieldErrors({});
         }
     }
 
@@ -108,9 +111,10 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
 
         const check = CreateTaskSchema.safeParse({ name, targetFiles });
         if (!check.success) {
-            setError(check.error.issues[0].message);
+            setFieldErrors(zodFieldErrors(check.error));
             return;
         }
+        setFieldErrors({});
 
         setLoading(true);
         try {
@@ -146,29 +150,25 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Create Loop Task</h2>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close modal"
-                        title="Close modal"
-                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                    >
-                        <X className="size-4" />
-                    </button>
+                    <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
+                <form onSubmit={handleSubmit} noValidate className="px-5 py-5 space-y-4">
                     <Field>
                         <FieldLabel>
                             Task Title / Goal <span className="text-destructive">*</span>
                         </FieldLabel>
                         <Input
                             type="text"
-                            required
+                            aria-invalid={!!fieldErrors.name}
                             placeholder="e.g. Implement rounding options for Button"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => {
+                                setName(e.target.value);
+                                if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: "" }));
+                            }}
                         />
+                        <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
                     </Field>
 
                     <Field>
@@ -177,7 +177,10 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
                         </FieldLabel>
                         <TagInput
                             value={targetFiles}
-                            onChange={setTargetFiles}
+                            onChange={(files) => {
+                                setTargetFiles(files);
+                                if (fieldErrors.targetFiles) setFieldErrors((prev) => ({ ...prev, targetFiles: "" }));
+                            }}
                             suggestions={fileOptions}
                             placeholder="Search files… e.g. button.tsx"
                         />
@@ -185,6 +188,7 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
                             Type to search project files, then click to add. Press Enter to add a path
                             that doesn&apos;t exist yet (e.g. a new test file).
                         </FieldDescription>
+                        <FieldError errors={fieldErrors.targetFiles ? [{ message: fieldErrors.targetFiles }] : []} />
                     </Field>
 
                     {!primaryFile ? (

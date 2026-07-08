@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, FolderInput, Loader2 } from "lucide-react";
+import { FolderInput, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
-import { RegisterProjectSchema } from "@/core/validators/loop-projects.validator";
+import { RegisterProjectSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 import { FolderPicker } from "./FolderPicker";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,7 +36,12 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
     const [template, setTemplate] = useState("nextjs-app");
     const [previewUrl, setPreviewUrl] = useState("");
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
+
+    const clearFieldError = (key: string) => {
+        if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,9 +49,10 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
 
         const check = RegisterProjectSchema.safeParse({ name, path, template, previewUrl });
         if (!check.success) {
-            setError(check.error.issues[0].message);
+            setFieldErrors(zodFieldErrors(check.error));
             return;
         }
+        setFieldErrors({});
 
         setLoading(true);
         try {
@@ -81,29 +88,22 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Register Existing Project</h2>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close modal"
-                        title="Close modal"
-                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                    >
-                        <X className="size-4" />
-                    </button>
+                    <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
+                <form onSubmit={handleSubmit} noValidate className="px-5 py-5 space-y-4">
                     <Field>
                         <FieldLabel>
                             Project Name <span className="text-destructive">*</span>
                         </FieldLabel>
                         <Input
                             type="text"
-                            required
+                            aria-invalid={!!fieldErrors.name}
                             placeholder="e.g. My Website"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => { setName(e.target.value); clearFieldError("name"); }}
                         />
+                        <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
                     </Field>
 
                     <Field>
@@ -113,27 +113,30 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                         <div className="flex items-center gap-2">
                             <Input
                                 type="text"
-                                required
+                                aria-invalid={!!fieldErrors.path}
                                 placeholder="e.g. /Users/name/AdapterWorks/2026/my-app"
                                 value={path}
-                                onChange={(e) => setPath(e.target.value)}
+                                onChange={(e) => { setPath(e.target.value); clearFieldError("path"); }}
                                 className="flex-1"
                             />
-                            <FolderPicker value={path} onChange={setPath} />
+                            <FolderPicker value={path} onChange={(v) => { setPath(v); clearFieldError("path"); }} />
                         </div>
+                        <FieldError errors={fieldErrors.path ? [{ message: fieldErrors.path }] : []} />
                     </Field>
 
                     <Field>
                         <FieldLabel>Preview / Dev server URL</FieldLabel>
                         <Input
                             type="text"
+                            aria-invalid={!!fieldErrors.previewUrl}
                             placeholder="e.g. http://localhost:3001"
                             value={previewUrl}
-                            onChange={(e) => setPreviewUrl(e.target.value)}
+                            onChange={(e) => { setPreviewUrl(e.target.value); clearFieldError("previewUrl"); }}
                         />
                         <FieldDescription>
                             Optional. Where this project&apos;s app runs, shown in the Studio preview pane.
                         </FieldDescription>
+                        <FieldError errors={fieldErrors.previewUrl ? [{ message: fieldErrors.previewUrl }] : []} />
                     </Field>
 
                     <Field>

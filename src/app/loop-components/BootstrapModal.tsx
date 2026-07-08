@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Rocket, Loader2 } from "lucide-react";
+import { Rocket, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
+import { BootstrapProjectSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 import { FolderPicker } from "./FolderPicker";
 import {
     Select,
@@ -32,6 +33,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
     const [pathValue, setPathValue] = useState("");
     const [template, setTemplate] = useState("nextjs-app");
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isBootstrapping, setIsBootstrapping] = useState(false);
     const [logs, setLogs] = useState("");
     const logContainerRef = useRef<HTMLPreElement>(null);
@@ -42,9 +44,10 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
 
         const check = BootstrapProjectSchema.safeParse({ name, path: pathValue, template });
         if (!check.success) {
-            setError(check.error.issues[0].message);
+            setFieldErrors(zodFieldErrors(check.error));
             return;
         }
+        setFieldErrors({});
 
         setIsBootstrapping(true);
         setLogs("Initializing bootstrap process...\n");
@@ -125,31 +128,26 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                         </span>
                         <h2 className="text-sm font-semibold text-slate-800">Bootstrap New Project</h2>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isBootstrapping}
-                        aria-label="Close modal"
-                        title="Close modal"
-                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30"
-                    >
-                        <X className="size-4" />
-                    </button>
+                    <ModalCloseButton onClose={onClose} disabled={isBootstrapping} />
                 </div>
 
                 {!isBootstrapping ? (
-                    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto px-5 py-5">
+                    <form onSubmit={handleSubmit} noValidate className="space-y-4 overflow-y-auto px-5 py-5">
                         <Field>
                             <FieldLabel>
                                 Project Name <span className="text-destructive">*</span>
                             </FieldLabel>
                             <Input
                                 type="text"
-                                required
+                                aria-invalid={!!fieldErrors.name}
                                 placeholder="e.g. Next Big Thing"
                                 value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                onChange={(e) => {
+                                    setName(e.target.value);
+                                    if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: "" }));
+                                }}
                             />
+                            <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
                         </Field>
 
                         <Field>
@@ -157,16 +155,24 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                             <div className="flex items-center gap-2">
                                 <Input
                                     type="text"
+                                    aria-invalid={!!fieldErrors.path}
                                     placeholder="Leave blank to create in .projects/"
                                     value={pathValue}
-                                    onChange={(e) => setPathValue(e.target.value)}
+                                    onChange={(e) => {
+                                        setPathValue(e.target.value);
+                                        if (fieldErrors.path) setFieldErrors((prev) => ({ ...prev, path: "" }));
+                                    }}
                                     className="flex-1"
                                 />
-                                <FolderPicker value={pathValue} onChange={setPathValue} />
+                                <FolderPicker value={pathValue} onChange={(v) => {
+                                    setPathValue(v);
+                                    if (fieldErrors.path) setFieldErrors((prev) => ({ ...prev, path: "" }));
+                                }} />
                             </div>
                             <FieldDescription>
                                 Optional. Blank creates the folder under Loop Studio&apos;s <span className="font-semibold">.projects/</span> workspace, named after the project.
                             </FieldDescription>
+                            <FieldError errors={fieldErrors.path ? [{ message: fieldErrors.path }] : []} />
                         </Field>
 
                         <Field>

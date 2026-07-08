@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+/**
+ * Map a ZodError to one message per field (first issue wins), keyed by the
+ * field's path — powers per-field <FieldError> rendering in the form modals
+ * instead of the browser's native `required` tooltips.
+ */
+export function zodFieldErrors(error: z.ZodError): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const issue of error.issues) {
+        const key = issue.path.join(".") || "_form";
+        if (!out[key]) out[key] = issue.message;
+    }
+    return out;
+}
+
 // Validation schemas for every form/boundary under Loop Studio. Used both at the
 // API routes (authoritative) and in the modals (instant field-level feedback), so the
 // two never drift.
