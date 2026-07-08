@@ -2,11 +2,517 @@
   {
     "id": "proj-1783482683504",
     "name": "CRM Thai Oil",
-    "path": "/Users/jetsada/AdapterWorks/2026/",
+    "path": "/Users/jetsada/AdapterWorks/2026/crm-thai-oil",
     "template": "nextjs-pages",
     "tasks": [],
     "previewUrl": "http://localhost:3001",
     "createdAt": "2026-07-08T03:51:23.504Z",
-    "updatedAt": "2026-07-08T03:51:23.504Z"
+    "updatedAt": "2026-07-08T05:50:50.670Z"
+  },
+  {
+    "id": "proj-1783488031732",
+    "name": "Loop Studio",
+    "path": "/Users/jetsada/AdapterWorks/2026/loop-studio",
+    "template": "nextjs-app",
+    "tasks": [
+      {
+        "id": "task-1783488067210-0",
+        "projectId": "proj-1783488031732",
+        "name": "Create Breadcrumbs component file",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/loop-components/Breadcrumbs.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "critical",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 1,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-0",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Establishes the foundation for the reusable breadcrumb navigation component.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-0",
+            "taskId": "task-1783488067210-0",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.551Z"
+      },
+      {
+        "id": "task-1783488067210-1",
+        "projectId": "proj-1783488031732",
+        "name": "Implement core Breadcrumbs component logic and UI",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/loop-components/Breadcrumbs.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "critical",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 3,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-1",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Develops the component's structure to display navigation links and handle basic styling.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-1",
+            "taskId": "task-1783488067210-1",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.565Z"
+      },
+      {
+        "id": "task-1783488067210-2",
+        "projectId": "proj-1783488031732",
+        "name": "Create unit test file for Breadcrumbs component",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/loop-components/Breadcrumbs.test.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 1,
+        "tags": [
+          "vitest",
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-2",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Prepares the testing environment for verifying the component's functionality.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-2",
+            "taskId": "task-1783488067210-2",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: vitest/react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.575Z"
+      },
+      {
+        "id": "task-1783488067210-3",
+        "projectId": "proj-1783488031732",
+        "name": "Add comprehensive unit tests and snapshots for Breadcrumbs component",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/loop-components/Breadcrumbs.test.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 3,
+        "tags": [
+          "vitest",
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-3",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Ensures the component renders correctly and behaves as expected across various inputs.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-3",
+            "taskId": "task-1783488067210-3",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: vitest/react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.586Z"
+      },
+      {
+        "id": "task-1783488067210-4",
+        "projectId": "proj-1783488031732",
+        "name": "Integrate Breadcrumbs into Agents page",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/agents/page.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 2,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-4",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Adds static breadcrumb navigation to the Agents page, a simpler integration.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-4",
+            "taskId": "task-1783488067210-4",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.597Z"
+      },
+      {
+        "id": "task-1783488067210-5",
+        "projectId": "proj-1783488031732",
+        "name": "Implement data fetching for dynamic project names",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/lib/data-utils.ts",
+          "src/app/[projectId]/page.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 3,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-5",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Enables retrieving project names to populate dynamic breadcrumb labels.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-5",
+            "taskId": "task-1783488067210-5",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.605Z"
+      },
+      {
+        "id": "task-1783488067210-6",
+        "projectId": "proj-1783488031732",
+        "name": "Integrate Breadcrumbs into Project Workspace page",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/[projectId]/page.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 3,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-6",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Adds dynamic breadcrumb navigation, handling the variable projectId segment.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-6",
+            "taskId": "task-1783488067210-6",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.614Z"
+      },
+      {
+        "id": "task-1783488067210-7",
+        "projectId": "proj-1783488031732",
+        "name": "Implement data fetching for dynamic task names",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/lib/data-utils.ts",
+          "src/app/[projectId]/tasks/[taskId]/page.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 3,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-7",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Enables retrieving task names to populate dynamic breadcrumb labels.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-7",
+            "taskId": "task-1783488067210-7",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.622Z"
+      },
+      {
+        "id": "task-1783488067210-8",
+        "projectId": "proj-1783488031732",
+        "name": "Integrate Breadcrumbs into Task Studio page",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "src/app/[projectId]/tasks/[taskId]/page.tsx"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "high",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 5,
+        "tags": [
+          "react",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-8",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Adds dynamic breadcrumb navigation to a nested page, handling projectId and taskId.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-8",
+            "taskId": "task-1783488067210-8",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: react/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:26:11.631Z"
+      },
+      {
+        "id": "task-1783488067210-9",
+        "projectId": "proj-1783488031732",
+        "name": "Add Playwright E2E tests for breadcrumb navigation",
+        "status": "completed",
+        "currentStage": "LEARN",
+        "targetFiles": [
+          "playwright/e2e/breadcrumbs.spec.ts"
+        ],
+        "riskTier": "GREEN",
+        "safetyNets": [
+          "Basic unit test verification"
+        ],
+        "priority": "medium",
+        "kanbanColumn": "done",
+        "sprintId": "goal-1783488067210-g1",
+        "storyPoints": 5,
+        "tags": [
+          "vitest",
+          "playwright",
+          "nextjs"
+        ],
+        "logs": "[Plan] Created from goal plan (goal-1783488067210). Risk tier: GREEN\n",
+        "chatHistory": [
+          {
+            "id": "msg-init-9",
+            "role": "system",
+            "senderName": "System",
+            "content": "Task created by Plan-from-Goal.\nGoal: Add breadcrumb navigation to the sub-pages of this Next.js app so users can easily navigate back. Pages: project workspace src/app/[projectId]/page.tsx, task studio src/app/[projectId]/tasks/[taskId]/page.tsx, and agents page src/app/agents/page.tsx. Create one reusable Breadcrumbs component in src/app/loop-components/ (kebab or Pascal naming consistent with existing files), then integrate it on each page showing the trail e.g. Home > Project > Task. Include a unit test for the component.\nRationale: Verifies breadcrumbs are rendered and navigate correctly across all integrated pages.\nRisk tier: GREEN. Safety nets: Basic unit test verification",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "act-plan-1783488067210-9",
+            "taskId": "task-1783488067210-9",
+            "stage": "PLAN",
+            "action": "create",
+            "message": "Created from goal plan (group 1, tags: vitest/playwright/nextjs)",
+            "timestamp": "2026-07-08T05:21:07.210Z"
+          }
+        ],
+        "tokensUsed": {
+          "input": 0,
+          "output": 0,
+          "cost": 0
+        },
+        "createdAt": "2026-07-08T05:21:07.210Z",
+        "updatedAt": "2026-07-08T05:33:38.904Z"
+      }
+    ],
+    "previewUrl": "http://localhost:3000",
+    "createdAt": "2026-07-08T05:20:31.732Z",
+    "updatedAt": "2026-07-08T05:46:12.631Z"
   }
 ]

@@ -130,3 +130,6 @@ pnpm-debug.log*
 /playwright/.cache/
 testsprite_tests/tmp/
 .antigravity/archive/
+
+# Bootstrapped workspace projects (each is its own repo)
+.projects/
