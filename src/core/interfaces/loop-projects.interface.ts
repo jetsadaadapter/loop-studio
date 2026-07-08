@@ -145,12 +145,27 @@ export interface LoopTask {
     updatedAt: string;
 }
 
+/**
+ * Heartbeat config: fire an auto-run on a cadence instead of the user clicking
+ * "Plan from Goal" every time. Headless runs use the server env API key
+ * (ANTHROPIC_API_KEY/GEMINI_API_KEY) — there is no per-user key on the server.
+ */
+export interface ProjectSchedule {
+    enabled: boolean;
+    intervalMinutes: number;
+    /** ISO timestamp of the last time the scheduler evaluated this project. */
+    lastRunAt?: string;
+    /** Short human-readable outcome of the last heartbeat (started / skipped + why). */
+    lastResult?: string;
+}
+
 export interface LoopProject {
     id: string;
     name: string;
     path: string; // absolute local path
     template: ProjectTemplate;
     tasks: LoopTask[];
+    schedule?: ProjectSchedule;
     // Where this project's app runs, used by the Studio preview pane — usually the
     // project's own dev server URL (e.g. "http://localhost:3001"). A relative path
     // works for a project that is this same repo.

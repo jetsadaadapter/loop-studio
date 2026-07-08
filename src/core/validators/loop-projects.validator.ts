@@ -86,6 +86,13 @@ export const UpdateProjectSchema = z
     })
     .refine((data) => Object.values(data).some((v) => v !== undefined), { message: "No fields to update." });
 
+// Heartbeat schedule. Minimum 15 minutes: a headless auto-run burns tokens and
+// spawns build/test processes, so a tighter cadence would be reckless.
+export const UpdateScheduleSchema = z.object({
+    enabled: z.boolean(),
+    intervalMinutes: z.number().int().min(15, "Interval must be at least 15 minutes.").max(1440, "Interval must be 24 hours or less."),
+});
+
 export const PlanFromGoalSchema = z.object({
     goal: z
         .string()

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles } from "lucide-react";
+import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles, Clock } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { Breadcrumbs } from "../loop-components/Breadcrumbs";
@@ -10,6 +10,7 @@ import { ProjectSidebar } from "../loop-components/ProjectSidebar";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
 import { AutoRunProgress } from "../loop-components/AutoRunProgress";
+import { ScheduleModal } from "../loop-components/ScheduleModal";
 import { AVAILABLE_SKILLS } from "@/core/interfaces/loop-projects.interface";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
@@ -37,6 +38,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isAutoRunOpen, setIsAutoRunOpen] = useState(false);
+    const [isScheduleOpen, setIsScheduleOpen] = useState(false);
     const [viewTab, setViewTab] = useState<WorkspaceViewTab>("walkthrough");
 
     const loadData = async () => {
@@ -134,6 +136,14 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                 Plan from Goal
             </button>
             <button
+                onClick={() => setIsScheduleOpen(true)}
+                className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-sm"
+                title="Auto-run the backlog on a schedule"
+            >
+                <Clock className="size-4" />
+                Schedule
+            </button>
+            <button
                 onClick={() => setIsCreateOpen(true)}
                 className="flex items-center gap-1.5 rounded-sm bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
             >
@@ -213,6 +223,13 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                     loadData();
                     if (startedAutoRun) setViewTab("task");
                 }}
+            />
+
+            <ScheduleModal
+                isOpen={isScheduleOpen}
+                projectId={projectId}
+                onClose={() => setIsScheduleOpen(false)}
+                onSaved={loadData}
             />
         </div>
     );

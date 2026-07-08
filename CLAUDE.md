@@ -50,6 +50,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
       loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
       loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close; state
                                         mirrored to disk, interrupted runs detected on read
+      loop-scheduler.service.ts         heartbeat: a server-side tick fires auto-run on each
+                                        project's cadence (headless, uses env API key); started
+                                        once via src/instrumentation.ts register()
       loop-knowledge.service.ts         per-project knowledge store: LEARN retros + auto-run
                                         failures accumulate and are injected back into
                                         planner/collaboration prompts (knowledge-<id>.json)
@@ -60,6 +63,8 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
 **The server runs real commands.** `runProjectCommand()` in `loop-projects.service.ts` spawns child processes (`git`, `npx vitest`, `npm run build`, `create-next-app`, …) with `cwd` set to the *registered project's* path — not this repo. Output is appended to `.antigravity/log-*.txt` and pushed to in-memory listeners; `GET .../tasks/[taskId]/logs` serves it as Server-Sent Events (`LogTerminal.tsx` consumes it via `EventSource`). Always attach both `error` and `close` handlers to spawned processes — an unhandled spawn error crashes the whole server (a registered project whose directory was deleted is a known trigger).
 
 **Stage flow.** A task's `currentStage` advances via `PATCH .../tasks/[taskId]`. Stage UIs live in `src/app/loop-components/` (`PlanStage` … `LearnStage`, orchestrated by `StageWorkspace` + `TimelineStages`); `AutoPipeline` runs the whole verify/lint/build pipeline in one `POST .../pipeline` call. Risk tier (RED/ORANGE/YELLOW/GREEN) is computed server-side from the target file's import fan-out. The AI-team pipeline separates maker from checker: the Developer/fix-loop (implementer) cannot write test or verifier-config files, only the QA agent may author tests, and build/test/CI config is off-limits to every AI role (Karpathy's "don't let the agent edit the evaluator").
+
+**Heartbeat.** A per-project schedule (`schedule` on `LoopProject`, edited via the Schedule modal → `PATCH .../schedule`) lets the backlog drain on a cadence. `loop-scheduler.service.ts` runs one server-side tick a minute (started by `src/instrumentation.ts` on boot); a due project with pending backlog and a **server env API key** (`ANTHROPIC_API_KEY`/`GEMINI_API_KEY` — there is no per-user key server-side) triggers `startAutoRun`. With no env key the tick records "skipped" rather than spinning.
 
 **Chat & LLM keys.** `ChatPanel` sends `POST .../chat` with an `X-Anthropic-API-Key` header read from `localStorage["loop_anthropic_api_key"]` (saved on `/agents`; Google keys are auto-detected by prefix and routed to Gemini). Server falls back to env keys (`.env.example`), and with no key at all the request goes to the IDE bridge instead — chat is never blocked client-side.
 
