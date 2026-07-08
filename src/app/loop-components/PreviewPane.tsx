@@ -8,10 +8,9 @@ import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
 type CheckState = "pass" | "fail" | "idle";
 
 interface PreviewPaneProps {
-    // URL of the live app to preview. Defaults to a route that renders directly
-    // (no auth redirect) so the pane works out of the box in dev. The app root "/"
-    // 307-redirects to /login, so it is a poor default. Point this at "/apps", or a
-    // project's own dev server (e.g. http://localhost:3001), once available.
+    // URL of the live app to preview. Point this at the project's own dev server
+    // (project.previewUrl, e.g. http://localhost:3001). Falls back to this app's
+    // root, which renders without auth, when the project has no preview URL set.
     initialUrl?: string;
     // Latest auto-pipeline outcome (Phase 3) and the task's risk tier, shown next
     // to the tabs — e.g. "Verify ✓  Build ✓  · YELLOW" — so status is visible
@@ -48,7 +47,7 @@ function CheckBadge({ label, state }: { label: string; state: CheckState }) {
     );
 }
 
-export function PreviewPane({ initialUrl = "/apps", verifyStatus = "idle", buildStatus = "idle", riskTier }: PreviewPaneProps) {
+export function PreviewPane({ initialUrl = "/", verifyStatus = "idle", buildStatus = "idle", riskTier }: PreviewPaneProps) {
     const [url, setUrl] = useState(initialUrl);
     const [inputUrl, setInputUrl] = useState(initialUrl);
     const [tab, setTab] = useState<PreviewTab>("preview");

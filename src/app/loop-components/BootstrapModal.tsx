@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Rocket, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
 import { FolderPicker } from "./FolderPicker";
@@ -153,20 +153,20 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                         </Field>
 
                         <Field>
-                            <FieldLabel>
-                                Absolute Directory Path (To Create Folder) <span className="text-destructive">*</span>
-                            </FieldLabel>
+                            <FieldLabel>Directory Path (To Create Folder)</FieldLabel>
                             <div className="flex items-center gap-2">
                                 <Input
                                     type="text"
-                                    required
-                                    placeholder="e.g. /Users/name/AdapterWorks/2026/next-big-thing"
+                                    placeholder="Leave blank to create in .projects/"
                                     value={pathValue}
                                     onChange={(e) => setPathValue(e.target.value)}
                                     className="flex-1"
                                 />
                                 <FolderPicker value={pathValue} onChange={setPathValue} />
                             </div>
+                            <FieldDescription>
+                                Optional. Blank creates the folder under Loop Studio&apos;s <span className="font-semibold">.projects/</span> workspace, named after the project.
+                            </FieldDescription>
                         </Field>
 
                         <Field>

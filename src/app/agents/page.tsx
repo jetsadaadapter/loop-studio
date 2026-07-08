@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { AgentCard } from "./AgentCard";
 import { AddAgentModal } from "./AddAgentModal";
+import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
 
 export default function AiTeamSpace() {
     const [agents, setAgents] = useState<LoopAgent[]>([]);
@@ -111,7 +112,9 @@ export default function AiTeamSpace() {
     };
 
     return (
-        <div className="flex flex-col space-y-6 max-w-4xl mx-auto">
+        <div className="flex flex-col space-y-6 max-w-4xl mx-auto w-full">
+            <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
+
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-3">
                     <Link href="/" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 transition-colors">

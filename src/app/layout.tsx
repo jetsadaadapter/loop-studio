@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
-import { Workflow } from "lucide-react";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -112,14 +111,10 @@ export default async function RootLayout({
         <TooltipProvider>
           <AlertDialogToastProvider>
             <ToastProvider>
-              <div className="flex items-center justify-between px-6 pt-4 pb-1">
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                  <Workflow className="size-3.5 text-brand" />
-                  Loop Studio
-                </span>
-              </div>
-              {/* Floating-canvas look: every page sits inside page padding, never flush to the viewport edge. */}
-              <main className="flex-1 flex flex-col px-4 pb-4 md:px-6 md:pb-6">{children}</main>
+              {/* Floating-canvas look: every page sits inside page padding, never flush
+                  to the viewport edge. The brand lives inside each page's shell (e.g.
+                  the dashboard sidebar), so modal backdrops dim the screen uniformly. */}
+              <main className="flex-1 flex flex-col p-4 md:p-6">{children}</main>
             </ToastProvider>
           </AlertDialogToastProvider>
         </TooltipProvider>

@@ -14,6 +14,8 @@ type ManagerDeleteConfirmProps = {
   itemTypeLabel?: string;
   actionLabel?: string;
   confirmingLabel?: string;
+  /** Override the consequence line under the item name (e.g. when data is kept). */
+  description?: string;
 };
 
 export function ManagerDeleteConfirm({
@@ -25,6 +27,7 @@ export function ManagerDeleteConfirm({
   itemTypeLabel = "app",
   actionLabel = "Delete",
   confirmingLabel = "Deleting...",
+  description,
 }: ManagerDeleteConfirmProps) {
   const [confirmationInput, setConfirmationInput] = useState("");
   const isConfirmationValid = confirmationInput.trim() === itemName.trim();
@@ -79,9 +82,10 @@ export function ManagerDeleteConfirm({
                   </span>
                 )}
                 <span className="block mt-1.5 text-slate-400 font-medium">
-                  {actionLabel === "Revoke"
-                    ? "This action cannot be undone. The key will be permanently revoked and all access will be disabled immediately."
-                    : "This action cannot be undone and all data will be permanently removed."}
+                  {description ??
+                    (actionLabel === "Revoke"
+                      ? "This action cannot be undone. The key will be permanently revoked and all access will be disabled immediately."
+                      : "This action cannot be undone and all data will be permanently removed.")}
                 </span>
               </p>
             </div>

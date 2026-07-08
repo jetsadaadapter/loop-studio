@@ -12,6 +12,7 @@ import { PreviewPane } from "@/app/loop-components/PreviewPane";
 import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
 import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
 import { StudioWindow } from "@/app/loop-components/StudioWindow";
+import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -111,6 +112,13 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
 
     return (
         <div className="flex flex-col space-y-6">
+            <Breadcrumbs
+                items={[
+                    { label: project?.name || "Project", href: `/${projectId}` },
+                    { label: task.name },
+                ]}
+            />
+
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
                 <div className="flex items-center gap-3">
@@ -164,7 +172,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                         return (
                             <>
                                 <PreviewPane
-                                    initialUrl={project?.previewUrl || "/apps"}
+                                    initialUrl={project?.previewUrl || "/"}
                                     verifyStatus={verify}
                                     buildStatus={build}
                                     riskTier={task.riskTier}

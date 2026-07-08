@@ -4,10 +4,12 @@ import React, { useEffect, useState } from "react";
 import { Plus, FolderPlus, HelpCircle } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
+import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ProjectCard } from "./loop-components/ProjectCard";
 import { ProjectSidebar } from "./loop-components/ProjectSidebar";
 import { RegisterModal } from "./loop-components/RegisterModal";
 import { BootstrapModal } from "./loop-components/BootstrapModal";
+import { EditProjectModal } from "./loop-components/EditProjectModal";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 export default function LoopProjectsDashboard() {
@@ -18,6 +20,9 @@ export default function LoopProjectsDashboard() {
     
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [isBootstrapOpen, setIsBootstrapOpen] = useState(false);
+    const [editTarget, setEditTarget] = useState<LoopProject | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<LoopProject | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const loadProjects = async () => {
         setLoading(true);
@@ -39,16 +44,19 @@ export default function LoopProjectsDashboard() {
         loadProjects();
     }, []);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to unregister this project? Files on disk will NOT be deleted.")) return;
+    const handleDelete = async (project: LoopProject) => {
+        setDeleting(true);
         try {
-            const res = await fetch(`/api/loop-projects/${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/loop-projects/${project.id}`, { method: "DELETE" });
             const data = await res.json();
             if (data.success) {
+                setDeleteTarget(null);
                 loadProjects();
             }
         } catch (e) {
             console.error("Failed to delete project:", e);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -136,7 +144,8 @@ export default function LoopProjectsDashboard() {
                             <ProjectCard
                                 key={project.id}
                                 project={project}
-                                onDelete={handleDelete}
+                                onEdit={setEditTarget}
+                                onDelete={(id) => setDeleteTarget(projects.find((p) => p.id === id) ?? null)}
                             />
                         ))}
                     </div>
@@ -154,6 +163,26 @@ export default function LoopProjectsDashboard() {
                 onClose={() => setIsBootstrapOpen(false)}
                 onSuccess={loadProjects}
             />
+
+            <EditProjectModal
+                project={editTarget}
+                onClose={() => setEditTarget(null)}
+                onSuccess={loadProjects}
+            />
+
+            {deleteTarget && (
+                <ManagerDeleteConfirm
+                    itemTypeLabel="project"
+                    actionLabel="Unregister"
+                    confirmingLabel="Unregistering..."
+                    description="The workspace and its loop tasks will be removed from Loop Studio. Files on disk will NOT be deleted."
+                    itemName={deleteTarget.name}
+                    itemId={deleteTarget.id}
+                    isLoading={deleting}
+                    onCancel={() => setDeleteTarget(null)}
+                    onConfirm={() => handleDelete(deleteTarget)}
+                />
+            )}
         </div>
     );
 }

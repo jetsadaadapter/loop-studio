@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
+import { Breadcrumbs } from "../loop-components/Breadcrumbs";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
 import { AutoRunProgress } from "../loop-components/AutoRunProgress";
@@ -152,6 +153,8 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
 
     return (
         <div className="flex flex-col space-y-6">
+            <Breadcrumbs items={[{ label: project.name }]} />
+
             <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
 
             <AutoRunProgress projectId={projectId} onRefresh={loadData} />

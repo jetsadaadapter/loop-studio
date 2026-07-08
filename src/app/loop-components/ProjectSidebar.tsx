@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Users, FolderGit2, ChevronDown } from "lucide-react";
+import { Users, FolderGit2, ChevronDown, Workflow } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectSidebarProps {
@@ -24,7 +24,14 @@ const TEMPLATE_DOT: Record<string, string> = {
 export function ProjectSidebar({ projects }: ProjectSidebarProps) {
     return (
         <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200/60 bg-slate-50/60">
-            <div className="flex items-center justify-between rounded-xl border border-slate-200/60 bg-white mx-3 mt-4 px-3 py-2 shadow-sm">
+            <div className="flex items-center gap-2 px-5 pt-4 pb-1">
+                <span className="flex size-6 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <Workflow className="size-3.5" />
+                </span>
+                <span className="text-sm font-bold tracking-tight text-slate-800">Loop Studio</span>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-slate-200/60 bg-white mx-3 mt-3 px-3 py-2 shadow-sm">
                 <span className="text-xs font-semibold text-slate-700">Workspaces</span>
                 <ChevronDown className="size-3.5 text-slate-400" />
             </div>

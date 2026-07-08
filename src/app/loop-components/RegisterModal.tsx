@@ -127,12 +127,12 @@ export function RegisterModal({ isOpen, onClose, onSuccess }: RegisterModalProps
                         <FieldLabel>Preview / Dev server URL</FieldLabel>
                         <Input
                             type="text"
-                            placeholder="e.g. http://localhost:3001  (or /apps for this repo)"
+                            placeholder="e.g. http://localhost:3001"
                             value={previewUrl}
                             onChange={(e) => setPreviewUrl(e.target.value)}
                         />
                         <FieldDescription>
-                            Optional. Where this project&apos;s app runs, shown in the Studio preview pane. Leave blank to default to /apps.
+                            Optional. Where this project&apos;s app runs, shown in the Studio preview pane.
                         </FieldDescription>
                     </Field>
 

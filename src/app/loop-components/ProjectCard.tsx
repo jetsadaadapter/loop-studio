@@ -2,15 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Folder, GitBranch, Coins, Trash2, ArrowRight } from "lucide-react";
+import { Folder, GitBranch, Coins, Trash2, Pencil, ArrowRight } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectCardProps {
     project: LoopProject;
+    onEdit: (project: LoopProject) => void;
     onDelete: (id: string) => void;
 }
 
-export function ProjectCard({ project, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
     const [gitInfo, setGitInfo] = useState<{ branch: string; commit: string }>({ branch: "...", commit: "..." });
     const [totalCost, setTotalCost] = useState<number>(0);
 
@@ -33,7 +34,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
 
     return (
         <div className="relative group overflow-hidden rounded-xl border border-slate-200/80 bg-white/60 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-indigo-500/30 backdrop-blur-md">
-            <div className="absolute top-0 right-0 h-32 w-32 rounded-bl-full bg-linear-to-tr from-indigo-500/5 to-purple-500/5 opacity-50 group-hover:scale-110 transition-transform duration-500" />
+            <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-bl-full bg-linear-to-tr from-indigo-500/5 to-purple-500/5 opacity-50 group-hover:scale-110 transition-transform duration-500" />
             
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -48,13 +49,22 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
                     </div>
                 </div>
                 
-                <button
-                    onClick={() => onDelete(project.id)}
-                    className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 cursor-pointer"
-                    title="Unregister project"
-                >
-                    <Trash2 className="size-4" />
-                </button>
+                <div className="flex items-center gap-0.5">
+                    <button
+                        onClick={() => onEdit(project)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all duration-200 cursor-pointer"
+                        title="Edit project"
+                    >
+                        <Pencil className="size-4" />
+                    </button>
+                    <button
+                        onClick={() => onDelete(project.id)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 cursor-pointer"
+                        title="Unregister project"
+                    >
+                        <Trash2 className="size-4" />
+                    </button>
+                </div>
             </div>
 
             <div className="mt-5 space-y-2.5">

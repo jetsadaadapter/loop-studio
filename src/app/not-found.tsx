@@ -91,18 +91,18 @@ export default function NotFound() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
-            href="/apps"
+            href="/"
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-violet-500/10 hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98] transition-all duration-200 w-full sm:w-auto"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
-            Back to Library
+            Back to Dashboard
           </Link>
           <Link
-            href="/apps"
+            href="/agents"
             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/50 px-6 py-3 text-sm font-semibold text-slate-650 hover:bg-white hover:text-slate-800 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950/20 dark:text-slate-350 dark:hover:bg-slate-900 dark:hover:text-white dark:hover:border-slate-700 active:scale-[0.98] transition-all duration-200 w-full sm:w-auto"
           >
             <Home className="size-4" aria-hidden="true" />
-            Browse Apps
+            AI Developer Team
           </Link>
         </div>
       </div>
