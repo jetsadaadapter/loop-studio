@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import { getProjects, saveProjects, isHostProject } from "@/core/services/loop-projects.service";
+import { deleteKnowledge } from "@/core/services/loop-knowledge.service";
 import { UpdateProjectSchema } from "@/core/validators/loop-projects.validator";
 import type { ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
 
@@ -87,6 +88,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ projectI
 
         const filtered = projects.filter((p) => p.id !== projectId);
         saveProjects(filtered);
+        deleteKnowledge(projectId);
         return NextResponse.json({ success: true, message: "Project unregistered successfully" });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);

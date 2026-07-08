@@ -45,6 +45,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
       loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
       loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
       loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close
+      loop-knowledge.service.ts         per-project knowledge store: LEARN retros + auto-run
+                                        failures accumulate and are injected back into
+                                        planner/collaboration prompts (knowledge-<id>.json)
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```

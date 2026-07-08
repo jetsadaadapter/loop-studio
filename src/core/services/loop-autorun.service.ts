@@ -1,5 +1,6 @@
 import { getProjects, saveProjects, executeGitCommand, isHostProject, isOwnGitRepo } from "@/core/services/loop-projects.service";
 import { runCollaborationLoop, type ResolvedLlm } from "@/core/services/loop-collaboration.service";
+import { upsertKnowledgeEntry } from "@/core/services/loop-knowledge.service";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
 // Auto-Run orchestrator: drains a project's backlog group-by-group, running the
@@ -104,6 +105,14 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
         if (!result.success) {
             mutateTask(projectId, taskId, (t) => { t.kanbanColumn = "todo"; });
             state.results.push({ taskId, name: task.name, outcome: "failed", detail: result.error ?? "Pipeline error" });
+            // Failures are the most valuable knowledge — the next planner run
+            // should know this area broke the pipeline.
+            upsertKnowledgeEntry(projectId, {
+                taskId,
+                taskName: task.name,
+                source: "auto-run",
+                learnings: [`Pipeline failed on ${task.targetFiles.join(", ")}: ${result.error ?? "unknown error"}`],
+            });
             continue;
         }
 
@@ -136,6 +145,18 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
                 });
             });
             state.results.push({ taskId, name: task.name, outcome: "awaiting_approval", detail: reason });
+            // Only record check failures — host/risk-tier holds are policy, not learnings.
+            if (!result.testsPassed || !result.typecheckPassed) {
+                upsertKnowledgeEntry(projectId, {
+                    taskId,
+                    taskName: task.name,
+                    source: "auto-run",
+                    learnings: [
+                        `Checks incomplete on ${task.targetFiles.join(", ")}: ` +
+                        `tests ${result.testsPassed ? "passed" : "failed"}, typecheck ${result.typecheckPassed ? "passed" : "failed"}.`,
+                    ],
+                });
+            }
         }
     }
 

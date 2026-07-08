@@ -79,10 +79,11 @@ export function groupTasks(tasks: PlannedTask[]): number[] {
 }
 
 /** System prompt for the Architect: decompose a goal into a strict-JSON plan. */
-export function buildPlanPrompt(architectPersona: string): string {
+export function buildPlanPrompt(architectPersona: string, projectKnowledge = ""): string {
     const tagList = AVAILABLE_SKILLS.map((s) => `"${s.key}" (${s.label})`).join(", ");
+    const knowledgeBlock = projectKnowledge ? `\n\n${projectKnowledge}` : "";
     return (
-        `${architectPersona}\n\n` +
+        `${architectPersona}${knowledgeBlock}\n\n` +
         `Decompose the user's goal into small, independently verifiable tasks for this codebase. ` +
         `Respond with ONLY a JSON object — no markdown fences, no prose — matching exactly:\n` +
         `{"tasks":[{"name":string,"targetFiles":string[],"rationale":string,` +

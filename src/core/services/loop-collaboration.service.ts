@@ -3,6 +3,7 @@ import path from "path";
 import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo } from "@/core/services/loop-projects.service";
 import { callLoopLlm, type LlmProvider, type LlmMessage } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
+import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
 import type { TaskStatus, TaskStage } from "@/core/interfaces/loop-projects.interface";
 
 // The per-task AI-team pipeline (Architect plan → Developer code → QA test →
@@ -56,16 +57,22 @@ export async function runCollaborationLoop(
         writeLog(`\n[Collaboration] --- AI Team Collaboration Started ---`);
         writeLog(`[Collaboration] Prompt: "${instructions}"\n`);
 
+        // Accumulated learnings from previous runs — planner and developer both
+        // see them so knowledge compounds instead of restarting from zero.
+        const knowledge = knowledgeForPrompt(projectId);
+        const knowledgeBlock = knowledge ? `\n\n${knowledge}` : "";
+        if (knowledge) writeLog(`[Collaboration] Injected project knowledge from previous runs.`);
+
         // --- STEP 1: Somchai (Architect) Plans the Task ---
         writeLog(`[Step 1/5] Somchai (Architect) is analyzing requirements...`);
-        const somchaiPrompt = `${somchai.systemPrompt}\n\nTask instructions: ${instructions}. Please write a short plan summarizing files to edit.`;
+        const somchaiPrompt = `${somchai.systemPrompt}${knowledgeBlock}\n\nTask instructions: ${instructions}. Please write a short plan summarizing files to edit.`;
         const somchaiRes = await callAgentLLM(llm, somchaiPrompt, [{ role: "user", content: "Plan the task." }]);
         appendHistoryMessage(projectId, taskId, "Somchai (Architect)", somchaiRes.text, somchaiRes.input, somchaiRes.output, somchaiRes.cost);
         writeLog(`[Somchai (Architect)]: ${somchaiRes.text.split("\n")[0]}...`);
 
         // --- STEP 2: Somsri (Developer) Writes Code ---
         writeLog(`\n[Step 2/5] Somsri (Developer) is writing code...`);
-        const somsriPrompt = `${somsri.systemPrompt}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
+        const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
         const somsriRes = await callAgentLLM(llm, somsriPrompt, [{ role: "user", content: "Implement the required files." }]);
         const editedFiles = applyFileEdits(projectPath, somsriRes.text);
 

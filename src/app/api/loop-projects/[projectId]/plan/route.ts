@@ -4,6 +4,7 @@ import { resolveLoopLlm, callLoopLlm } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { PlanFromGoalSchema, GoalPlanSchema } from "@/core/validators/loop-projects.validator";
 import { buildPlanPrompt, parsePlanResponse, enrichPlan, createTasksFromPlan } from "@/core/services/loop-planner.service";
+import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
 
 // POST /api/loop-projects/[projectId]/plan
 // Decompose a goal into backlog tasks via the Architect agent.
@@ -54,7 +55,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
 
         // Plans for broad goals run long; a higher ceiling avoids mid-JSON
         // truncation (parsePlanResponse can still salvage a cut-off reply).
-        const res = await callLoopLlm(llm.provider, llm.apiKey, llm.model, buildPlanPrompt(persona), [
+        const res = await callLoopLlm(llm.provider, llm.apiKey, llm.model, buildPlanPrompt(persona, knowledgeForPrompt(projectId)), [
             { role: "user", content: `Goal: ${goal}` },
         ], 8000);
 

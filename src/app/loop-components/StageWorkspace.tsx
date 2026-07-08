@@ -117,6 +117,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
 
             {activeStage === "LEARN" && (
                 <LearnStage
+                    projectId={projectId}
                     retroAnswers={retroAnswers}
                     onRetroAnswersChange={setRetroAnswers}
                     onSubmit={handleRetroSubmit}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects } from "@/core/services/loop-projects.service";
-import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
+import { upsertKnowledgeEntry } from "@/core/services/loop-knowledge.service";
+import type { LoopTask, RetroAnswers } from "@/core/interfaces/loop-projects.interface";
 
 function setTaskField<K extends keyof LoopTask>(task: LoopTask, key: K, value: LoopTask[K]) {
     task[key] = value;
@@ -73,6 +74,22 @@ export async function PATCH(
         task.updatedAt = new Date().toISOString();
         project.tasks[tIdx] = task;
         saveProjects(projects);
+
+        // A submitted retrospective is project knowledge — persist it so the
+        // planner and collaboration prompts of future runs can read it back.
+        if (body.retroAnswers) {
+            const retro = body.retroAnswers as RetroAnswers;
+            upsertKnowledgeEntry(projectId, {
+                taskId,
+                taskName: task.name,
+                source: "manual",
+                learnings: [
+                    retro.testsProven && `Tests: ${retro.testsProven}`,
+                    retro.envVerified && `Environments: ${retro.envVerified}`,
+                    retro.sideEffects && `Side effects: ${retro.sideEffects}`,
+                ].filter((l): l is string => Boolean(l)),
+            });
+        }
 
         return NextResponse.json({ success: true, data: task });
     } catch (e) {

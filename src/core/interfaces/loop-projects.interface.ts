@@ -100,6 +100,20 @@ export interface RetroAnswers {
     sideEffects: string;
 }
 
+/**
+ * One accumulated learning per task, persisted per project and fed back into
+ * the planner/collaboration prompts so later loops start from what earlier
+ * loops discovered ("skills" in loop-engineering terms).
+ */
+export interface KnowledgeEntry {
+    taskId: string;
+    taskName: string;
+    source: "manual" | "auto-run";
+    /** Short bullet lines, e.g. "Tests: snapshot needed jsdom cleanup". */
+    learnings: string[];
+    updatedAt: string;
+}
+
 export interface LoopTask {
     id: string;
     projectId: string;
