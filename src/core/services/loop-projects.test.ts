@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getProjects, calculateRiskTier, isHostProject } from "./loop-projects.service";
+import { getProjects, calculateRiskTier, isHostProject, classifyProtectedPath, applyFileEdits } from "./loop-projects.service";
 
 vi.mock("fs", () => {
     const mockData = JSON.stringify([
@@ -72,5 +72,75 @@ describe("isHostProject", () => {
     it("is false for any other project directory", () => {
         expect(isHostProject("/tmp/some-other-project")).toBe(false);
         expect(isHostProject(process.cwd() + "/.projects/child")).toBe(false);
+    });
+});
+
+describe("classifyProtectedPath", () => {
+    it("flags verifier/build configuration as config", () => {
+        for (const p of [
+            "package.json",
+            "tsconfig.json",
+            "tsconfig.build.json",
+            "vitest.config.ts",
+            "vite.config.mts",
+            "playwright.config.ts",
+            "eslint.config.mjs",
+            ".eslintrc.json",
+            ".github/workflows/ci.yml",
+        ]) {
+            expect(classifyProtectedPath(p)).toBe("config");
+        }
+    });
+
+    it("flags test/spec/snapshot sources as test", () => {
+        for (const p of [
+            "src/lib/utils.test.ts",
+            "src/components/Button.spec.tsx",
+            "tests/visual/card.visual.spec.ts",
+            "src/__tests__/thing.ts",
+            "src/components/__snapshots__/x.snap",
+        ]) {
+            expect(classifyProtectedPath(p)).toBe("test");
+        }
+    });
+
+    it("leaves ordinary source unprotected", () => {
+        expect(classifyProtectedPath("src/components/ui/button.tsx")).toBeNull();
+        expect(classifyProtectedPath("src/core/services/thing.service.ts")).toBeNull();
+        // "config" as part of an ordinary filename is not the config file itself
+        expect(classifyProtectedPath("src/lib/config-helper.ts")).toBeNull();
+    });
+});
+
+describe("applyFileEdits verifier guard", () => {
+    const block = (path: string, body = "x") => `<file_edit path="${path}">${body}</file_edit>`;
+
+    it("lets the implementer write ordinary source", () => {
+        const res = applyFileEdits("/fake/path", block("src/components/ui/button.tsx"));
+        expect(res.written).toEqual(["src/components/ui/button.tsx"]);
+        expect(res.blocked).toEqual([]);
+    });
+
+    it("blocks the implementer from writing test files", () => {
+        const res = applyFileEdits("/fake/path", block("src/lib/utils.test.ts"));
+        expect(res.written).toEqual([]);
+        expect(res.blocked[0].path).toBe("src/lib/utils.test.ts");
+    });
+
+    it("lets QA write test files when allowTestFiles is set", () => {
+        const res = applyFileEdits("/fake/path", block("src/lib/utils.test.ts"), { allowTestFiles: true });
+        expect(res.written).toEqual(["src/lib/utils.test.ts"]);
+    });
+
+    it("blocks verifier config even for QA/human-in-the-loop", () => {
+        const res = applyFileEdits("/fake/path", block("package.json"), { allowTestFiles: true });
+        expect(res.written).toEqual([]);
+        expect(res.blocked[0].reason).toContain("configuration");
+    });
+
+    it("blocks path traversal out of the project root", () => {
+        const res = applyFileEdits("/fake/path", block("../../etc/evil.ts"));
+        expect(res.written).toEqual([]);
+        expect(res.blocked[0].reason).toContain("outside");
     });
 });

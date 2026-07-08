@@ -62,7 +62,9 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
 
         const responseText = bridge.response || "";
         // Apply edits only if the agent returned <file_edit> blocks (no-op otherwise).
-        const editedFiles = applyFileEdits(project.path, responseText);
+        // Bridge replies are human-reviewed in chat, so test files are allowed;
+        // verifier/build config stays protected.
+        const { written: editedFiles, blocked } = applyFileEdits(project.path, responseText, { allowTestFiles: true });
 
         const agentMsg: ChatMessage = {
             id: `msg-bridge-${Date.now()}`,
@@ -84,10 +86,15 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
 
-        if (editedFiles.length > 0) {
+        if (editedFiles.length > 0 || blocked.length > 0) {
             const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
             fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
-            fs.appendFileSync(logFilePath, `[Bridge] IDE agent modified: ${editedFiles.join(", ")}\n`);
+            if (editedFiles.length > 0) {
+                fs.appendFileSync(logFilePath, `[Bridge] IDE agent modified: ${editedFiles.join(", ")}\n`);
+            }
+            if (blocked.length > 0) {
+                fs.appendFileSync(logFilePath, blocked.map((b) => `[Bridge] BLOCKED ${b.path} — ${b.reason}\n`).join(""));
+            }
         }
 
         markBridgeConsumed(id);

@@ -41,7 +41,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
   → src/app/api/loop-projects/**        route handlers: parse/validate, delegate
     src/app/api/loop-agents/**
   → src/core/services/*.service.ts      all business logic, fs access, child processes
-      loop-projects.service.ts          JSON store, git helpers, process runner, risk tiers, SSE log pub/sub
+      loop-projects.service.ts          JSON store, git helpers, process runner, risk tiers, SSE log pub/sub;
+                                        applyFileEdits guards the verifier (config = blocked for all AI,
+                                        test files = only the QA role / human-in-the-loop may write)
       loop-agents.service.ts            agent roster CRUD
       loop-llm.service.ts               Anthropic/Gemini calls for chat
       loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
@@ -57,7 +59,7 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
 
 **The server runs real commands.** `runProjectCommand()` in `loop-projects.service.ts` spawns child processes (`git`, `npx vitest`, `npm run build`, `create-next-app`, …) with `cwd` set to the *registered project's* path — not this repo. Output is appended to `.antigravity/log-*.txt` and pushed to in-memory listeners; `GET .../tasks/[taskId]/logs` serves it as Server-Sent Events (`LogTerminal.tsx` consumes it via `EventSource`). Always attach both `error` and `close` handlers to spawned processes — an unhandled spawn error crashes the whole server (a registered project whose directory was deleted is a known trigger).
 
-**Stage flow.** A task's `currentStage` advances via `PATCH .../tasks/[taskId]`. Stage UIs live in `src/app/loop-components/` (`PlanStage` … `LearnStage`, orchestrated by `StageWorkspace` + `TimelineStages`); `AutoPipeline` runs the whole verify/lint/build pipeline in one `POST .../pipeline` call. Risk tier (RED/ORANGE/YELLOW/GREEN) is computed server-side from the target file's import fan-out.
+**Stage flow.** A task's `currentStage` advances via `PATCH .../tasks/[taskId]`. Stage UIs live in `src/app/loop-components/` (`PlanStage` … `LearnStage`, orchestrated by `StageWorkspace` + `TimelineStages`); `AutoPipeline` runs the whole verify/lint/build pipeline in one `POST .../pipeline` call. Risk tier (RED/ORANGE/YELLOW/GREEN) is computed server-side from the target file's import fan-out. The AI-team pipeline separates maker from checker: the Developer/fix-loop (implementer) cannot write test or verifier-config files, only the QA agent may author tests, and build/test/CI config is off-limits to every AI role (Karpathy's "don't let the agent edit the evaluator").
 
 **Chat & LLM keys.** `ChatPanel` sends `POST .../chat` with an `X-Anthropic-API-Key` header read from `localStorage["loop_anthropic_api_key"]` (saved on `/agents`; Google keys are auto-detected by prefix and routed to Gemini). Server falls back to env keys (`.env.example`), and with no key at all the request goes to the IDE bridge instead — chat is never blocked client-side.
 

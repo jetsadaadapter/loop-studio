@@ -32,6 +32,19 @@ async function callAgentLLM(llm: ResolvedLlm, systemPrompt: string, messages: Ll
     return callLoopLlm(llm.provider, llm.apiKey, llm.model, systemPrompt, messages, 3000);
 }
 
+// Surface refused edits in the task log so a blocked attempt to touch the
+// verifier is visible, not silent — the human reviewing the run should know
+// an agent tried to edit a protected test/config file.
+function logBlockedEdits(
+    writeLog: (text: string) => void,
+    role: string,
+    blocked: { path: string; reason: string }[],
+) {
+    for (const b of blocked) {
+        writeLog(`[${role}] BLOCKED edit to ${b.path} — ${b.reason}.`);
+    }
+}
+
 export async function runCollaborationLoop(
     projectId: string,
     taskId: string,
@@ -79,7 +92,9 @@ export async function runCollaborationLoop(
         writeLog(`\n[Step 2/5] Somsri (Developer) is writing code...`);
         const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
         const somsriRes = await callAgentLLM(llm, somsriPrompt, [{ role: "user", content: "Implement the required files." }]);
-        const editedFiles = applyFileEdits(projectPath, somsriRes.text);
+        // Implementer role: cannot write test or verifier-config files (default policy).
+        const devEdit = applyFileEdits(projectPath, somsriRes.text);
+        const editedFiles = devEdit.written;
 
         appendHistoryMessage(projectId, taskId, "Somsri (Developer)", somsriRes.text, somsriRes.input, somsriRes.output, somsriRes.cost);
         if (editedFiles.length > 0) {
@@ -87,6 +102,7 @@ export async function runCollaborationLoop(
         } else {
             writeLog(`[Somsri (Developer)] Code suggestion completed (no files written).`);
         }
+        logBlockedEdits(writeLog, "Somsri (Developer)", devEdit.blocked);
 
         // --- STEP 3: Wichai (QA) Writes and Runs Unit Test ---
         writeLog(`\n[Step 3/5] Wichai (QA) is writing tests and verifying...`);
@@ -95,10 +111,12 @@ export async function runCollaborationLoop(
 
         const qaPrompt = `${wichai.systemPrompt}\n\nWrite a basic unit test file in Vitest for the modified file: ${targetFile}. Save it using <file_edit path="${testFile}">...</file_edit> tags.`;
         const qaRes = await callAgentLLM(llm, qaPrompt, [{ role: "user", content: "Write test cases." }]);
-        const testFilesCreated = applyFileEdits(projectPath, qaRes.text);
+        // QA role: the one path allowed to author test files (still not config).
+        const qaEdit = applyFileEdits(projectPath, qaRes.text, { allowTestFiles: true });
 
         appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
-        writeLog(`[Wichai (QA)] Test file created: ${testFilesCreated.join(", ")}`);
+        writeLog(`[Wichai (QA)] Test file created: ${qaEdit.written.join(", ")}`);
+        logBlockedEdits(writeLog, "Wichai (QA)", qaEdit.blocked);
 
         // Run the vitest test, keeping the output tail: a failing run is fed
         // back to the developer verbatim — "the tests failed" alone made the
@@ -125,11 +143,14 @@ export async function runCollaborationLoop(
                     llm,
                     `${somsri.systemPrompt}${knowledgeBlock}\n\nThe tests for ${targetFile} failed.\n` +
                     `Failing test output (tail):\n${testOutput}\n\n` +
-                    `Fix the implementation (or the test if it asserts the wrong thing) and return the full corrected file(s) in <file_edit> blocks.`,
+                    `Fix the IMPLEMENTATION only — do not edit the test file, it is the gate you must satisfy. ` +
+                    `Return the full corrected implementation file(s) in <file_edit> blocks.`,
                     [{ role: "user", content: "Fix the unit test failures." }]
                 );
-                applyFileEdits(projectPath, fixRes.text);
+                // Fix loop is still the implementer: test/config edits stay blocked.
+                const fixEdit = applyFileEdits(projectPath, fixRes.text);
                 appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
+                logBlockedEdits(writeLog, `Somsri (Developer) - Fix ${attempt}`, fixEdit.blocked);
                 testResultCode = await runTests();
             }
             testsPassed = testResultCode === 0;
