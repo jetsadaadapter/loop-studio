@@ -22,6 +22,11 @@ export interface CollaborationResult {
     typecheckPassed: boolean;
 }
 
+// Failing tests get re-fixed at most this many times before the pipeline gives up.
+const MAX_FIX_ATTEMPTS = 2;
+// Tail of vitest output fed back to the developer on failure (prompt-size cap).
+const MAX_TEST_OUTPUT_CHARS = 4000;
+
 // All agent personas share one resolved provider (Claude or Gemini) to keep setup simple.
 async function callAgentLLM(llm: ResolvedLlm, systemPrompt: string, messages: LlmMessage[]) {
     return callLoopLlm(llm.provider, llm.apiKey, llm.model, systemPrompt, messages, 3000);
@@ -95,29 +100,42 @@ export async function runCollaborationLoop(
         appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
         writeLog(`[Wichai (QA)] Test file created: ${testFilesCreated.join(", ")}`);
 
-        // Run the vitest test
+        // Run the vitest test, keeping the output tail: a failing run is fed
+        // back to the developer verbatim — "the tests failed" alone made the
+        // fix loop guess; the actual assertion diff lets it fix the real bug.
+        let testOutput = "";
+        const runTests = () => {
+            testOutput = "";
+            return runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
+                fs.appendFileSync(logFilePath, chunk);
+                testOutput = (testOutput + chunk).slice(-MAX_TEST_OUTPUT_CHARS);
+            });
+        };
+
         writeLog(`[Wichai (QA)] Executing Vitest runner...`);
-        const testResultCode = await runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
-            fs.appendFileSync(logFilePath, chunk);
-        });
+        let testResultCode = await runTests();
 
         if (testResultCode === 0) {
             testsPassed = true;
             writeLog(`[Wichai (QA)] SUCCESS: All Vitest unit tests passed!`);
         } else {
-            writeLog(`[Wichai (QA)] FAILED: Vitest failed with exit code ${testResultCode}. Somsri, please fix the bugs!`);
-            // Run one fix loop
-            const fixRes = await callAgentLLM(llm, `${somsri.systemPrompt}\n\nThe tests failed. Please review and rewrite the file: ${targetFile}.`, [{ role: "user", content: "Fix the unit test failures." }]);
-            applyFileEdits(projectPath, fixRes.text);
-            appendHistoryMessage(projectId, taskId, "Somsri (Developer) - Fix Loop", fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
-            writeLog(`[Somsri (Developer)] Refactored file in response to failures.`);
-            const retryCode = await runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
-                fs.appendFileSync(logFilePath, chunk);
-            });
-            testsPassed = retryCode === 0;
+            for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS && testResultCode !== 0; attempt++) {
+                writeLog(`[Wichai (QA)] FAILED (exit ${testResultCode}). Fix attempt ${attempt}/${MAX_FIX_ATTEMPTS}: sending the failing output to Somsri...`);
+                const fixRes = await callAgentLLM(
+                    llm,
+                    `${somsri.systemPrompt}${knowledgeBlock}\n\nThe tests for ${targetFile} failed.\n` +
+                    `Failing test output (tail):\n${testOutput}\n\n` +
+                    `Fix the implementation (or the test if it asserts the wrong thing) and return the full corrected file(s) in <file_edit> blocks.`,
+                    [{ role: "user", content: "Fix the unit test failures." }]
+                );
+                applyFileEdits(projectPath, fixRes.text);
+                appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
+                testResultCode = await runTests();
+            }
+            testsPassed = testResultCode === 0;
             writeLog(testsPassed
                 ? `[Wichai (QA)] SUCCESS: Tests pass after the fix loop.`
-                : `[Wichai (QA)] Tests still failing after one fix loop (exit ${retryCode}).`);
+                : `[Wichai (QA)] Tests still failing after ${MAX_FIX_ATTEMPTS} fix attempts (exit ${testResultCode}).`);
         }
 
         // --- STEP 4: Mana (DevOps) Typechecks and Simulates CI ---

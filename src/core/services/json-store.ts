@@ -20,6 +20,14 @@ import path from "path";
  * the store after any await before mutating it.
  */
 
+/** Guard an id that will become part of a store filename (path-traversal safety). */
+export function assertSafeStoreId(id: string): string {
+    if (!/^[A-Za-z0-9_-]+$/.test(id)) {
+        throw new Error(`Invalid store id: ${id}`);
+    }
+    return id;
+}
+
 export function readJsonStore<T>(filePath: string, defaultValue: T): T {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     if (!fs.existsSync(filePath)) {
@@ -45,4 +53,8 @@ export function writeJsonStore<T>(filePath: string, data: T): void {
     const tmpPath = `${filePath}.tmp-${process.pid}`;
     fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf8");
     fs.renameSync(tmpPath, filePath);
+}
+
+export function deleteJsonStore(filePath: string): void {
+    fs.rmSync(filePath, { force: true });
 }

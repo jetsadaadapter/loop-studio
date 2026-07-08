@@ -1,6 +1,8 @@
+import path from "path";
 import { getProjects, saveProjects, executeGitCommand, isHostProject, isOwnGitRepo } from "@/core/services/loop-projects.service";
 import { runCollaborationLoop, type ResolvedLlm } from "@/core/services/loop-collaboration.service";
 import { upsertKnowledgeEntry } from "@/core/services/loop-knowledge.service";
+import { assertSafeStoreId, deleteJsonStore, readJsonStore, writeJsonStore } from "./json-store";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
 // Auto-Run orchestrator: drains a project's backlog group-by-group, running the
@@ -27,20 +29,71 @@ export interface AutoRunState {
     total: number;
     results: AutoRunTaskResult[];
     stopRequested: boolean;
+    /** True when the run died with the server instead of finishing (recovered on next read). */
+    interrupted?: boolean;
 }
 
-// One run per project at a time; state is in-memory (dev-server lifetime),
-// matching how ACTIVE_PROCESSES works in loop-projects.service.
+// One live run per project at a time. The async loop itself lives in this
+// process, but its state is mirrored to .antigravity/ after every mutation so
+// a server restart mid-run is detected (and reported) instead of vanishing.
 const RUNS = new Map<string, AutoRunState>();
 
+function stateFilePath(projectId: string): string {
+    return path.join(process.cwd(), ".antigravity", `autorun-${assertSafeStoreId(projectId)}.json`);
+}
+
+function persistState(projectId: string, state: AutoRunState): void {
+    try {
+        writeJsonStore(stateFilePath(projectId), state);
+    } catch (e) {
+        // Mirroring must never kill a live run — the in-memory state is primary.
+        console.error("Failed to persist auto-run state:", e);
+    }
+}
+
+export function deleteAutoRunState(projectId: string): void {
+    RUNS.delete(projectId);
+    deleteJsonStore(stateFilePath(projectId));
+}
+
 export function getAutoRunStatus(projectId: string): AutoRunState | null {
-    return RUNS.get(projectId) ?? null;
+    const live = RUNS.get(projectId);
+    if (live) return live;
+
+    // No live run in this process — whatever is on disk is history. If it
+    // still says "running", the server restarted mid-run: close it out and
+    // put the task that was in flight back into the backlog so the next run
+    // (or a manual retry) can pick it up.
+    const persisted = readJsonStore<AutoRunState | null>(stateFilePath(projectId), null);
+    if (!persisted) return null;
+    if (persisted.running) {
+        persisted.running = false;
+        persisted.interrupted = true;
+        persisted.finishedAt = new Date().toISOString();
+        if (persisted.currentTaskId) {
+            mutateTask(projectId, persisted.currentTaskId, (t) => {
+                t.status = "pending";
+                t.kanbanColumn = "backlog";
+            });
+            persisted.results.push({
+                taskId: persisted.currentTaskId,
+                name: persisted.currentTaskName ?? persisted.currentTaskId,
+                outcome: "failed",
+                detail: "Interrupted by a server restart — task returned to the backlog.",
+            });
+            persisted.currentTaskId = undefined;
+            persisted.currentTaskName = undefined;
+        }
+        persistState(projectId, persisted);
+    }
+    return persisted;
 }
 
 export function requestAutoRunStop(projectId: string): boolean {
     const state = RUNS.get(projectId);
     if (!state || !state.running) return false;
     state.stopRequested = true;
+    persistState(projectId, state);
     return true;
 }
 
@@ -77,6 +130,7 @@ export function startAutoRun(projectId: string, llm: ResolvedLlm, taskIds?: stri
         stopRequested: false,
     };
     RUNS.set(projectId, state);
+    persistState(projectId, state);
 
     void runQueue(projectId, project.path, llm, queue.map((t) => t.id), state);
     return { started: true, total: queue.length };
@@ -91,6 +145,7 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
 
         state.currentTaskId = task.id;
         state.currentTaskName = task.name;
+        persistState(projectId, state);
         mutateTask(projectId, taskId, (t) => {
             t.status = "running";
             t.kanbanColumn = "in_progress";
@@ -113,6 +168,7 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
                 source: "auto-run",
                 learnings: [`Pipeline failed on ${task.targetFiles.join(", ")}: ${result.error ?? "unknown error"}`],
             });
+            persistState(projectId, state);
             continue;
         }
 
@@ -158,12 +214,14 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
                 });
             }
         }
+        persistState(projectId, state);
     }
 
     state.running = false;
     state.currentTaskId = undefined;
     state.currentTaskName = undefined;
     state.finishedAt = new Date().toISOString();
+    persistState(projectId, state);
 }
 
 /** Fill the retro, mark LEARN/done, and commit the work. Returns true if a commit was made. */

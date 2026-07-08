@@ -30,6 +30,8 @@ After every change run lint + typecheck + build (AGENTS.md rule); hooks in `.cla
 - `loop-projects.json` — registered projects, their tasks, chat history, activities
 - `loop-agents.json` — the AI agent roster (auto-seeded with defaults on first read)
 - `bridge.json` — single-slot IDE-bridge request (protocol in AGENTS.md §7)
+- `knowledge-<projectId>.json` — accumulated learnings, injected into planner/collab prompts
+- `autorun-<projectId>.json` — auto-run state mirror (survives restarts; interrupted runs recovered)
 - `log-<taskId>.txt` — per-task process output, streamed to the UI
 
 **Layering** (enforce this direction; UI never touches `fs` or spawns processes):
@@ -44,7 +46,8 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
       loop-llm.service.ts               Anthropic/Gemini calls for chat
       loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
       loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
-      loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close
+      loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close; state
+                                        mirrored to disk, interrupted runs detected on read
       loop-knowledge.service.ts         per-project knowledge store: LEARN retros + auto-run
                                         failures accumulate and are injected back into
                                         planner/collaboration prompts (knowledge-<id>.json)

@@ -69,7 +69,9 @@ export function AutoRunProgress({ projectId, onRefresh }: AutoRunProgressProps) 
                         <p className="text-xs font-semibold text-slate-800">
                             {state.running
                                 ? `Auto-Run: ${doneCount}/${state.total} done — running "${state.currentTaskName ?? "…"}"`
-                                : `Auto-Run finished: ${doneCount}/${state.total} task(s) processed`}
+                                : state.interrupted
+                                    ? `Auto-Run interrupted by a server restart: ${doneCount}/${state.total} task(s) processed — the in-flight task is back in the backlog`
+                                    : `Auto-Run finished: ${doneCount}/${state.total} task(s) processed`}
                         </p>
                         <p className="text-[11px] text-slate-500">
                             Low-risk tasks auto-commit; ORANGE/RED wait for your approval in the task list.

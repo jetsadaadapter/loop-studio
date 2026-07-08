@@ -10,10 +10,17 @@ import type { KnowledgeEntry } from "@/core/interfaces/loop-projects.interface";
 // (upsert/dedupe/prompt rendering) without touching the real .antigravity/.
 const stores = new Map<string, unknown>();
 vi.mock("./json-store", () => ({
+    assertSafeStoreId: (id: string) => {
+        if (!/^[A-Za-z0-9_-]+$/.test(id)) throw new Error(`Invalid store id: ${id}`);
+        return id;
+    },
     readJsonStore: (filePath: string, defaultValue: unknown) =>
         stores.has(filePath) ? stores.get(filePath) : defaultValue,
     writeJsonStore: (filePath: string, data: unknown) => {
         stores.set(filePath, data);
+    },
+    deleteJsonStore: (filePath: string) => {
+        stores.delete(filePath);
     },
 }));
 

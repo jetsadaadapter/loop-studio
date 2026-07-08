@@ -1,6 +1,6 @@
 import path from "path";
 import type { KnowledgeEntry } from "@/core/interfaces/loop-projects.interface";
-import { readJsonStore, writeJsonStore } from "./json-store";
+import { assertSafeStoreId, deleteJsonStore, readJsonStore, writeJsonStore } from "./json-store";
 
 // Per-project knowledge store — the "skill file" of the loop. LEARN-stage
 // retrospectives and auto-run outcomes append here; the planner and the
@@ -8,11 +8,7 @@ import { readJsonStore, writeJsonStore } from "./json-store";
 // compounds across runs instead of dying inside a finished task.
 
 function knowledgeFilePath(projectId: string): string {
-    // The id lands in a filename — never let a crafted id traverse out of .antigravity/.
-    if (!/^[A-Za-z0-9_-]+$/.test(projectId)) {
-        throw new Error(`Invalid project id for knowledge store: ${projectId}`);
-    }
-    return path.join(process.cwd(), ".antigravity", `knowledge-${projectId}.json`);
+    return path.join(process.cwd(), ".antigravity", `knowledge-${assertSafeStoreId(projectId)}.json`);
 }
 
 export function getKnowledgeEntries(projectId: string): KnowledgeEntry[] {
@@ -34,7 +30,7 @@ export function upsertKnowledgeEntry(
 }
 
 export function deleteKnowledge(projectId: string): void {
-    writeJsonStore(knowledgeFilePath(projectId), []);
+    deleteJsonStore(knowledgeFilePath(projectId));
 }
 
 /**
