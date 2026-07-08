@@ -56,8 +56,10 @@ it's leftover — flag it for removal rather than building on it.
 - Page-local component folder for the root routes is `src/app/loop-components/`
   (named to avoid confusion with the shared `src/components/`) — don't recreate
   a plain `src/app/components/`.
-- No auth system — every route is public. `src/proxy.ts` only sets CSP/security
-  headers (per-request nonce) now, it does not gate access.
+- No auth system — every route is public to the local user. `src/proxy.ts` sets
+  CSP/security headers (per-request nonce) and rejects cross-site requests
+  (Host allowlist + same-origin check on state-changing methods; extend hosts
+  via `LOOP_ALLOWED_HOSTS`). It does not authenticate anyone.
 - No global notification system — `NotificationProvider`/`NotificationPanel`
   were removed along with the App Store backend they polled.
 - `.claude/hooks/pre-tool-use.sh` still blocks edits to `src/proxy.ts` that add

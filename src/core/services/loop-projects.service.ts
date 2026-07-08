@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { spawn, type ChildProcess } from "child_process";
 import type { LoopProject, RiskTier } from "@/core/interfaces/loop-projects.interface";
+import { readJsonStore, writeJsonStore } from "./json-store";
 
 const PROJECTS_FILE_PATH = path.join(process.cwd(), ".antigravity", "loop-projects.json");
 
@@ -10,38 +11,15 @@ export const ACTIVE_PROCESSES = new Map<string, ChildProcess>();
 // In-memory stream listeners for logs
 const LOG_LISTENERS = new Map<string, ((data: string) => void)[]>();
 
-function ensureDirExists() {
-    const dir = path.dirname(PROJECTS_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-}
-
 // A fresh store starts empty — projects are registered/bootstrapped by the user.
-// (The old "App Store (Host)" seed was leftover from the removed App Store repo.)
-const DEFAULT_PROJECTS: LoopProject[] = [];
-
+// Read/save semantics (corrupt-file backup, atomic writes, throwing on
+// failure) live in json-store.ts. Re-read after any await before mutating.
 export function getProjects(): LoopProject[] {
-    try {
-        ensureDirExists();
-        if (!fs.existsSync(PROJECTS_FILE_PATH)) {
-            fs.writeFileSync(PROJECTS_FILE_PATH, JSON.stringify(DEFAULT_PROJECTS, null, 2), "utf8");
-            return DEFAULT_PROJECTS;
-        }
-        const data = fs.readFileSync(PROJECTS_FILE_PATH, "utf8");
-        return JSON.parse(data) as LoopProject[];
-    } catch {
-        return DEFAULT_PROJECTS;
-    }
+    return readJsonStore<LoopProject[]>(PROJECTS_FILE_PATH, []);
 }
 
 export function saveProjects(projects: LoopProject[]): void {
-    try {
-        ensureDirExists();
-        fs.writeFileSync(PROJECTS_FILE_PATH, JSON.stringify(projects, null, 2), "utf8");
-    } catch (err) {
-        console.error("Failed to save projects:", err);
-    }
+    writeJsonStore(PROJECTS_FILE_PATH, projects);
 }
 
 /**
@@ -54,27 +32,37 @@ export function isHostProject(projectPath: string): boolean {
     return path.resolve(projectPath) === process.cwd();
 }
 
-// Trace fan-out (import references) of a file to determine Risk Tier
-export function calculateRiskTier(projectPath: string, relativeFilePath: string): { tier: RiskTier; count: number } {
+const RISK_SCAN_SKIP_DIRS = new Set(["node_modules", ".next", ".git", "dist"]);
+
+// Trace fan-out (import references) of a file to determine Risk Tier.
+// Async on purpose: the walk reads every source file in the target repo, and a
+// sync version freezes the whole server (all routes + SSE) for its duration.
+export async function calculateRiskTier(
+    projectPath: string,
+    relativeFilePath: string
+): Promise<{ tier: RiskTier; count: number }> {
     let count = 0;
     try {
-        const fileBase = path.basename(relativeFilePath, path.extname(relativeFilePath));
         // Remove extension and directories to get name like 'button'
-        const importPattern = new RegExp(`from\\s+["'].*\\/${fileBase}["']|import\\s+["'].*\\/${fileBase}["']`, "i");
+        const fileBase = path.basename(relativeFilePath, path.extname(relativeFilePath));
+        const escapedBase = fileBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const importPattern = new RegExp(
+            `from\\s+["'].*\\/${escapedBase}["']|import\\s+["'].*\\/${escapedBase}["']`,
+            "i"
+        );
 
-        const walk = (dir: string) => {
-            const list = fs.readdirSync(dir);
-            for (const file of list) {
-                const fullPath = path.join(dir, file);
-                const stat = fs.statSync(fullPath);
-                if (stat.isDirectory()) {
-                    if (file !== "node_modules" && file !== ".next" && file !== ".git" && file !== "dist") {
-                        walk(fullPath);
+        const walk = async (dir: string): Promise<void> => {
+            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (!RISK_SCAN_SKIP_DIRS.has(entry.name)) {
+                        await walk(fullPath);
                     }
-                } else if (/\.(tsx|ts|jsx|js)$/.test(file)) {
+                } else if (/\.(tsx|ts|jsx|js)$/.test(entry.name)) {
                     // Do not count the file itself
                     if (fullPath.includes(relativeFilePath)) continue;
-                    const content = fs.readFileSync(fullPath, "utf8");
+                    const content = await fs.promises.readFile(fullPath, "utf8");
                     if (importPattern.test(content)) {
                         count++;
                     }
@@ -83,7 +71,7 @@ export function calculateRiskTier(projectPath: string, relativeFilePath: string)
         };
 
         if (fs.existsSync(projectPath)) {
-            walk(projectPath);
+            await walk(projectPath);
         }
     } catch (e) {
         console.error("Failed to scan fan out:", e);
@@ -123,6 +111,22 @@ export function getSafetyNets(tier: RiskTier): string[] {
     }
 }
 
+// Commands run through a shell (shell: true), so proc.pid is the shell — killing
+// it alone leaves the actual command (vitest, next dev, …) running. Spawning
+// detached puts the shell and its children in their own process group, which
+// can then be killed as a unit via the negative-pid form.
+function killProcessTree(proc: ChildProcess): void {
+    if (proc.pid) {
+        try {
+            process.kill(-proc.pid, "SIGTERM");
+            return;
+        } catch {
+            // Group already gone — fall through to a plain kill just in case.
+        }
+    }
+    proc.kill();
+}
+
 // Process Runner
 export function runProjectCommand(
     taskId: string,
@@ -132,10 +136,10 @@ export function runProjectCommand(
     onData: (data: string) => void
 ): Promise<number> {
     return new Promise((resolve) => {
-        // Kill existing process for task if any
+        // Kill existing process (and its whole tree) for task if any
         const existing = ACTIVE_PROCESSES.get(taskId);
         if (existing) {
-            existing.kill();
+            killProcessTree(existing);
         }
 
         // The parent (Next.js dev server) runs with NODE_ENV=development. If we let
@@ -146,7 +150,8 @@ export function runProjectCommand(
         const childEnv = { ...process.env };
         delete (childEnv as Record<string, string | undefined>).NODE_ENV;
 
-        const proc = spawn(command, args, { cwd: projectPath, shell: true, env: childEnv });
+        // detached: own process group, so killProcessTree can take out shell + children
+        const proc = spawn(command, args, { cwd: projectPath, shell: true, env: childEnv, detached: true });
         ACTIVE_PROCESSES.set(taskId, proc);
 
         const handleData = (chunk: Buffer) => {
@@ -189,11 +194,19 @@ export function applyFileEdits(projectPath: string, content: string): string[] {
     const fileRegex = /<file_edit\s+path=["']([^"']+)["']\s*>([\s\S]*?)<\/file_edit>/g;
     let match;
     const modifiedFiles: string[] = [];
+    const projectRoot = path.resolve(projectPath);
 
     while ((match = fileRegex.exec(content)) !== null) {
         const relativePath = match[1];
         const fileContent = match[2];
-        const fullPath = path.join(projectPath, relativePath);
+        const fullPath = path.resolve(projectRoot, relativePath);
+
+        // The path comes from LLM/bridge output — never let it escape the
+        // registered project directory (e.g. via "../" or an absolute path).
+        if (!fullPath.startsWith(projectRoot + path.sep)) {
+            console.error(`Refused file edit outside project root: ${relativePath}`);
+            continue;
+        }
 
         try {
             fs.mkdirSync(path.dirname(fullPath), { recursive: true });

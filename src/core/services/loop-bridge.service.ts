@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { writeJsonStore } from "./json-store";
 
 // IDE Agent Bridge — a free, key-less path: instead of calling a paid LLM, the
 // request is written to .antigravity/bridge.json for an IDE coding agent
@@ -42,10 +43,6 @@ export function writeBridgeRequest(input: {
     prompt: string;
     history?: unknown[];
 }): string {
-    const dir = path.dirname(BRIDGE_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
     const id = `bridge-${Date.now()}`;
     const payload: BridgeRequest = {
         status: "pending",
@@ -58,7 +55,8 @@ export function writeBridgeRequest(input: {
         instructions: BRIDGE_INSTRUCTIONS,
         updatedAt: new Date().toISOString(),
     };
-    fs.writeFileSync(BRIDGE_FILE_PATH, JSON.stringify(payload, null, 2), "utf8");
+    // Atomic write: the IDE agent on the other side may read this file at any moment.
+    writeJsonStore(BRIDGE_FILE_PATH, payload);
     return id;
 }
 
@@ -78,9 +76,7 @@ export function markBridgeConsumed(id: string): void {
     if (!current || current.id !== id) return;
     current.status = "consumed";
     current.updatedAt = new Date().toISOString();
-    try {
-        fs.writeFileSync(BRIDGE_FILE_PATH, JSON.stringify(current, null, 2), "utf8");
-    } catch (e) {
-        console.error("Failed to mark bridge consumed:", e);
-    }
+    // Throws on failure: silently failing here would let the same bridge
+    // response (and its file edits) be applied twice.
+    writeJsonStore(BRIDGE_FILE_PATH, current);
 }

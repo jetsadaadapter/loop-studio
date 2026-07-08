@@ -137,18 +137,20 @@ export interface EnrichedPlannedTask extends PlannedTask {
 }
 
 /** Enrich a validated plan with tags, conflict-safe groups, and risk tiers. */
-export function enrichPlan(projectPath: string, plan: GoalPlan): EnrichedPlannedTask[] {
+export async function enrichPlan(projectPath: string, plan: GoalPlan): Promise<EnrichedPlannedTask[]> {
     const groups = groupTasks(plan.tasks);
-    return plan.tasks.map((t, i) => {
-        const { tier } = calculateRiskTier(projectPath, t.targetFiles[0]);
-        return {
-            ...t,
-            tags: mergeTags(t.tags, autoTagsFor(t.targetFiles)),
-            groupNumber: groups[i],
-            riskTier: tier,
-            safetyNets: getSafetyNets(tier),
-        };
-    });
+    return Promise.all(
+        plan.tasks.map(async (t, i) => {
+            const { tier } = await calculateRiskTier(projectPath, t.targetFiles[0]);
+            return {
+                ...t,
+                tags: mergeTags(t.tags, autoTagsFor(t.targetFiles)),
+                groupNumber: groups[i],
+                riskTier: tier,
+                safetyNets: getSafetyNets(tier),
+            };
+        })
+    );
 }
 
 /** Materialize an enriched plan into backlog tasks on the project. */

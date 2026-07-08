@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Tooling/runtime dir (IDE bridge scripts, logs, project data) — not app source.
     ".antigravity/**",
+    // Bootstrapped/registered projects live in their own repos — never lint them here.
+    ".projects/**",
   ]),
 ]);
 

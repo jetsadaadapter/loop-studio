@@ -18,7 +18,7 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
         }
 
-        const { tier, count } = calculateRiskTier(project.path, file);
+        const { tier, count } = await calculateRiskTier(project.path, file);
         return NextResponse.json({ success: true, data: { tier, count, safetyNets: getSafetyNets(tier) } });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);

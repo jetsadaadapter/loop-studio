@@ -39,7 +39,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
 
         // Evaluate risk tier of primary target file
         const primaryFile = targetFiles[0];
-        const { tier, count } = calculateRiskTier(project.path, primaryFile);
+        const { tier, count } = await calculateRiskTier(project.path, primaryFile);
 
         // Assign safety nets based on calculated Risk Tier
         const safetyNets = getSafetyNets(tier);

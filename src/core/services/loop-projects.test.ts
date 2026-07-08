@@ -13,21 +13,31 @@ vi.mock("fs", () => {
             updatedAt: "",
         }
     ]);
+    const promises = {
+        readdir: async () => [],
+        readFile: async () => "",
+    };
     return {
         default: {
             existsSync: () => true,
             readFileSync: () => mockData,
             writeFileSync: () => {},
+            renameSync: () => {},
+            copyFileSync: () => {},
             mkdirSync: () => {},
             readdirSync: () => [],
-            statSync: () => ({ isDirectory: () => false })
+            statSync: () => ({ isDirectory: () => false }),
+            promises,
         },
         existsSync: () => true,
         readFileSync: () => mockData,
         writeFileSync: () => {},
+        renameSync: () => {},
+        copyFileSync: () => {},
         mkdirSync: () => {},
         readdirSync: () => [],
-        statSync: () => ({ isDirectory: () => false })
+        statSync: () => ({ isDirectory: () => false }),
+        promises,
     };
 });
 
@@ -43,8 +53,8 @@ describe("Loop Projects Service", () => {
         expect(projects[0].name).toBe("Test Project");
     });
 
-    it("should calculate Risk Tier for green leaf components", () => {
-        const result = calculateRiskTier("/fake/path", "src/components/ui/leaf.tsx");
+    it("should calculate Risk Tier for green leaf components", async () => {
+        const result = await calculateRiskTier("/fake/path", "src/components/ui/leaf.tsx");
         expect(result.tier).toBe("GREEN");
         expect(result.count).toBe(0);
     });

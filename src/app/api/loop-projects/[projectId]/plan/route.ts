@@ -33,7 +33,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
             if (!planParsed.success) {
                 return NextResponse.json({ success: false, error: planParsed.error.issues[0].message }, { status: 400 });
             }
-            const enrichedEdited = enrichPlan(project.path, planParsed.data);
+            const enrichedEdited = await enrichPlan(project.path, planParsed.data);
             const createdEdited = createTasksFromPlan(projectId, goal, enrichedEdited);
             return NextResponse.json({ success: true, data: { preview: false, tasks: createdEdited } });
         }
@@ -59,7 +59,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         ], 8000);
 
         const plan = parsePlanResponse(res.text);
-        const enriched = enrichPlan(project.path, plan);
+        const enriched = await enrichPlan(project.path, plan);
 
         if (!apply) {
             return NextResponse.json({

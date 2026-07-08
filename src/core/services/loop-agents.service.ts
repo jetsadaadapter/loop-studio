@@ -1,6 +1,6 @@
-import fs from "fs";
 import path from "path";
 import type { LoopAgent } from "@/core/interfaces/loop-projects.interface";
+import { readJsonStore, writeJsonStore } from "./json-store";
 
 const AGENTS_FILE_PATH = path.join(process.cwd(), ".antigravity", "loop-agents.json");
 
@@ -47,35 +47,14 @@ const DEFAULT_AGENTS: LoopAgent[] = [
     },
 ];
 
-function ensureDirExists() {
-    const dir = path.dirname(AGENTS_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-}
-
+// Read/save semantics (corrupt-file backup, atomic writes, throwing on
+// failure) live in json-store.ts. The default roster seeds the file on first read.
 export function getAgents(): LoopAgent[] {
-    try {
-        ensureDirExists();
-        if (!fs.existsSync(AGENTS_FILE_PATH)) {
-            fs.writeFileSync(AGENTS_FILE_PATH, JSON.stringify(DEFAULT_AGENTS, null, 2), "utf8");
-            return DEFAULT_AGENTS;
-        }
-        const data = fs.readFileSync(AGENTS_FILE_PATH, "utf8");
-        return JSON.parse(data) as LoopAgent[];
-    } catch (error) {
-        console.error("Failed to read agents:", error);
-        return DEFAULT_AGENTS;
-    }
+    return readJsonStore<LoopAgent[]>(AGENTS_FILE_PATH, structuredClone(DEFAULT_AGENTS));
 }
 
 export function saveAgents(agents: LoopAgent[]): void {
-    try {
-        ensureDirExists();
-        fs.writeFileSync(AGENTS_FILE_PATH, JSON.stringify(agents, null, 2), "utf8");
-    } catch (error) {
-        console.error("Failed to save agents:", error);
-    }
+    writeJsonStore(AGENTS_FILE_PATH, agents);
 }
 
 export function updateAgent(id: string, partial: Partial<LoopAgent>): LoopAgent {

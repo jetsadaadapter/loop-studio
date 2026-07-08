@@ -60,4 +60,4 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
 - `src/app/loop-components/` — page-local components shared across the root routes (do **not** create `src/app/components/`)
 - route-local `components/` folders (e.g. `src/app/[projectId]/components/`) — used by one route only
 
-`src/proxy.ts` is the middleware: CSP + security headers only, per-request nonce, no auth. A pre-tool-use hook blocks edits that add `unsafe-inline`/`unsafe-eval` to it.
+`src/proxy.ts` is the middleware: CSP + security headers (per-request nonce) plus cross-site request rejection — Host must be a localhost name (extend via `LOOP_ALLOWED_HOSTS`) and state-changing requests must be same-origin, since the no-auth API runs real commands. A pre-tool-use hook blocks edits that add `unsafe-inline`/`unsafe-eval` to it.

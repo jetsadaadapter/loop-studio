@@ -57,6 +57,56 @@ function buildCsp(nonce: string): string {
         .join("; ");
 }
 
+// ─── Cross-site request protection ───────────────────────────────────────────
+// Loop Studio has no auth, and its API runs real commands and writes files on
+// this machine. Without these checks, any website open in the same browser
+// could fire requests at localhost:3000 (CSRF) or reach it via DNS rebinding.
+
+// Hostnames this app may be addressed by. Extend via LOOP_ALLOWED_HOSTS
+// (comma-separated, e.g. "192.168.1.20,mymac.local") for LAN access.
+const ALLOWED_HOSTNAMES = new Set([
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+    ...(process.env.LOOP_ALLOWED_HOSTS?.split(",").map((h) => h.trim().toLowerCase()).filter(Boolean) ?? []),
+]);
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * Reject requests that don't come from this app's own origin.
+ * - Host allowlist defeats DNS rebinding (attacker's domain resolving to 127.0.0.1
+ *   still arrives with the attacker's hostname in the Host header).
+ * - Origin check on state-changing methods defeats classic cross-site POSTs.
+ * Same-origin requests from the app itself always pass both checks.
+ */
+function rejectCrossSiteRequest(req: NextRequest): NextResponse | null {
+    const host = req.headers.get("host") ?? "";
+    const hostname = host.replace(/:\d+$/, "").toLowerCase();
+    if (!ALLOWED_HOSTNAMES.has(hostname)) {
+        return new NextResponse(`Blocked: host "${host}" is not allowed. Set LOOP_ALLOWED_HOSTS to permit it.`, {
+            status: 403,
+        });
+    }
+
+    if (!SAFE_METHODS.has(req.method)) {
+        const origin = req.headers.get("origin");
+        if (origin) {
+            let originHost: string | null = null;
+            try {
+                originHost = new URL(origin).host;
+            } catch {
+                originHost = null; // includes Origin: null (sandboxed iframes, some redirects)
+            }
+            if (originHost !== host) {
+                return new NextResponse("Blocked: cross-origin request.", { status: 403 });
+            }
+        }
+    }
+
+    return null;
+}
+
 /** Attach security response headers to any NextResponse. */
 function applySecurityHeaders(res: NextResponse, nonce: string): NextResponse {
     res.headers.set("Content-Security-Policy", buildCsp(nonce));
@@ -78,8 +128,14 @@ export function proxy(req: NextRequest) {
         return NextResponse.next();
     }
 
+    // No auth gate — Loop Studio has no auth system — but cross-site requests
+    // are rejected so other websites/hosts can't drive the local API.
+    const blocked = rejectCrossSiteRequest(req);
+    if (blocked) {
+        return blocked;
+    }
+
     // Generate a fresh cryptographic nonce for every request.
-    // No auth gate here — Loop Studio has no auth system; every route is public.
     const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
     return applySecurityHeaders(NextResponse.next(), nonce);
 }
