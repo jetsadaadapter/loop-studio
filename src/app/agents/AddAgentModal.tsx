@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, UserPlus, Wand2 } from "lucide-react";
+import { Loader2, UserPlus, Pencil, Wand2 } from "lucide-react";
+import type { LoopAgent } from "@/core/interfaces/loop-projects.interface";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ModalCloseButton } from "@/components/ui/modal-close-button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
@@ -24,11 +25,22 @@ interface AddAgentModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    /** When provided, the modal edits this agent instead of creating a new one. */
+    agent?: LoopAgent | null;
 }
 
 const EMPTY_FORM = { name: "", role: "", model: "claude-sonnet-5", systemPrompt: "", skills: [] as string[] };
 
-export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps) {
+const formFromAgent = (agent: LoopAgent) => ({
+    name: agent.name,
+    role: agent.role,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    skills: [...agent.skills],
+});
+
+export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentModalProps) {
+    const isEdit = !!agent;
     const [form, setForm] = useState(EMPTY_FORM);
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -38,7 +50,7 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
     if (isOpen !== wasOpen) {
         setWasOpen(isOpen);
         if (isOpen) {
-            setForm(EMPTY_FORM);
+            setForm(agent ? formFromAgent(agent) : EMPTY_FORM);
             setError("");
             setFieldErrors({});
         }
@@ -78,20 +90,23 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
 
         setLoading(true);
         try {
-            const res = await fetch("/api/loop-agents", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
+            const res = await fetch(
+                isEdit ? `/api/loop-agents/${agent!.id}` : "/api/loop-agents",
+                {
+                    method: isEdit ? "PATCH" : "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(form),
+                },
+            );
             const data = await res.json();
             if (data.success) {
                 onSuccess();
                 onClose();
             } else {
-                setError(data.error || "Failed to create agent");
+                setError(data.error || `Failed to ${isEdit ? "update" : "create"} agent`);
             }
         } catch {
-            setError("Failed to create agent due to network error");
+            setError(`Failed to ${isEdit ? "update" : "create"} agent due to network error`);
         } finally {
             setLoading(false);
         }
@@ -106,9 +121,9 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                     <div className="flex items-center gap-2.5">
                         <span className="flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                            <UserPlus className="size-3.5" />
+                            {isEdit ? <Pencil className="size-3.5" /> : <UserPlus className="size-3.5" />}
                         </span>
-                        <h2 className="text-sm font-semibold text-slate-800">Add AI Agent</h2>
+                        <h2 className="text-sm font-semibold text-slate-800">{isEdit ? "Edit AI Agent" : "Add AI Agent"}</h2>
                     </div>
                     <ModalCloseButton onClose={onClose} />
                 </div>
@@ -222,7 +237,7 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
                             className="flex h-9 cursor-pointer items-center gap-2 rounded-sm bg-brand px-5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 disabled:opacity-60"
                         >
                             {loading && <Loader2 className="size-3.5 animate-spin" />}
-                            {loading ? "Creating..." : "Add Agent"}
+                            {loading ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save Changes" : "Add Agent")}
                         </button>
                     </div>
                 </form>

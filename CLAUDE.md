@@ -45,6 +45,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         applyFileEdits guards the verifier (config = blocked for all AI,
                                         test files = only the QA role / human-in-the-loop may write)
       loop-agents.service.ts            agent roster CRUD
+      loop-agent-metrics.service.ts     derives per-agent stats (task load, success rate, avg
+                                        resolution, weekday volume) from task history across all
+                                        projects; backs the /agents dashboard + GET .../summary
       loop-llm.service.ts               Anthropic/Gemini calls for chat
       loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
       loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
