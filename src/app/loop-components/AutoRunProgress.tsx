@@ -73,7 +73,7 @@ export function AutoRunProgress({ projectId, onRefresh }: AutoRunProgressProps) 
                                     ? `Auto-Run interrupted by a server restart: ${doneCount}/${state.total} task(s) processed — the in-flight task is back in the backlog`
                                     : `Auto-Run finished: ${doneCount}/${state.total} task(s) processed`}
                         </p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-xs text-slate-500">
                             Low-risk tasks auto-commit; ORANGE/RED wait for your approval in the task list.
                         </p>
                     </div>
@@ -100,7 +100,7 @@ export function AutoRunProgress({ projectId, onRefresh }: AutoRunProgressProps) 
                     {state.results.map((r) => {
                         const meta = OUTCOME_META[r.outcome];
                         return (
-                            <li key={r.taskId} className="flex items-center gap-2 text-[11px]">
+                            <li key={r.taskId} className="flex items-center gap-2 text-xs">
                                 <span className={meta.className}>{meta.icon}</span>
                                 <span className="font-semibold text-slate-700 truncate">{r.name}</span>
                                 <span className={`${meta.className} font-sans`}>{meta.label}</span>

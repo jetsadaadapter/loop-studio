@@ -194,33 +194,33 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
                     {!primaryFile ? (
                         <div className="flex items-start gap-2 rounded-lg border border-amber-200/50 bg-amber-50/50 p-3">
                             <FileText className="mt-0.5 size-4 shrink-0 text-amber-600" />
-                            <div className="text-[10px] leading-normal text-amber-800">
+                            <div className="text-xs leading-normal text-amber-800">
                                 <strong>Note on planning:</strong> The first file you add is scanned automatically to calculate its imports fan-out and determine the Task Risk Tier (Red, Orange, Yellow, Green) following the playbook.
                             </div>
                         </div>
                     ) : riskLoading && !risk ? (
-                        <div className="flex items-center gap-2 rounded-lg border border-slate-200/60 bg-slate-50/60 p-3 text-[11px] text-slate-500">
+                        <div className="flex items-center gap-2 rounded-lg border border-slate-200/60 bg-slate-50/60 p-3 text-xs text-slate-500">
                             <Loader2 className="size-3.5 animate-spin" />
                             Analyzing imports fan-out for <span className="font-semibold text-slate-700">{primaryFile}</span>…
                         </div>
                     ) : risk ? (
                         <div className="space-y-2.5 rounded-lg border border-slate-200/60 bg-slate-50/50 p-3">
                             <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11px] font-semibold text-slate-600">Task Risk Tier</span>
-                                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${RISK_STYLES[risk.tier]}`}>
+                                <span className="text-xs font-semibold text-slate-600">Task Risk Tier</span>
+                                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase ${RISK_STYLES[risk.tier]}`}>
                                     {risk.tier}
                                 </span>
                             </div>
-                            <p className="text-[10px] text-slate-500">
+                            <p className="text-xs text-slate-500">
                                 <span className="font-semibold text-slate-700">{primaryFile}</span> is imported in{" "}
                                 <span className="font-semibold text-slate-700">{risk.count}</span>{" "}
                                 {risk.count === 1 ? "file" : "files"}.
                             </p>
                             <div>
-                                <p className="mb-1 text-[10px] font-semibold text-slate-600">Safety nets that will apply:</p>
+                                <p className="mb-1 text-xs font-semibold text-slate-600">Safety nets that will apply:</p>
                                 <ul className="space-y-1">
                                     {risk.safetyNets.map((sn) => (
-                                        <li key={sn} className="flex items-start gap-1.5 text-[10px] text-slate-600">
+                                        <li key={sn} className="flex items-start gap-1.5 text-xs text-slate-600">
                                             <Check className="mt-0.5 size-3 shrink-0 text-emerald-500" />
                                             {sn}
                                         </li>

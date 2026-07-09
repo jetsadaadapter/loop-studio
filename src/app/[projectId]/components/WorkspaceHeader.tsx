@@ -23,7 +23,7 @@ export function WorkspaceHeader({ project, gitInfo, totalCost }: WorkspaceHeader
                 <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-800 truncate">
                     {project?.name}
                     {project?.isHost && (
-                        <span className="rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700 font-sans">
+                        <span className="rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-xs font-semibold uppercase text-amber-700 font-sans">
                             Host App
                         </span>
                     )}

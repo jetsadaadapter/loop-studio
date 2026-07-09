@@ -44,7 +44,7 @@ export const customToast = {
               {title}
             </h4>
             {description && (
-              <p className="text-[11px] font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
+              <p className="text-xs font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
                 {description}
               </p>
             )}
@@ -75,7 +75,7 @@ export const customToast = {
               {title}
             </h4>
             {description && (
-              <p className="text-[11px] font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
+              <p className="text-xs font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
                 {description}
               </p>
             )}
@@ -106,7 +106,7 @@ export const customToast = {
               {title}
             </h4>
             {description && (
-              <p className="text-[11px] font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
+              <p className="text-xs font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
                 {description}
               </p>
             )}
@@ -137,7 +137,7 @@ export const customToast = {
               {title}
             </h4>
             {description && (
-              <p className="text-[11px] font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
+              <p className="text-xs font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
                 {description}
               </p>
             )}
@@ -194,7 +194,7 @@ export const customToast = {
           <h4 className="text-xs font-bold text-slate-900 leading-tight">
             Processing
           </h4>
-          <p className="text-[11px] font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
+          <p className="text-xs font-medium leading-relaxed text-slate-500 mt-0.5 break-words">
             {options.loading}
           </p>
         </div>

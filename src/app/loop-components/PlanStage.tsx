@@ -28,10 +28,10 @@ export function PlanStage({ task, onAdvance }: PlanStageProps) {
 
             <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-500 font-sans">Primary Target:</span>
-                <code className="text-[11px] bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 font-sans font-medium text-slate-700">
+                <code className="text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 font-sans font-medium text-slate-700">
                     {task.targetFiles[0]}
                 </code>
-                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold font-sans uppercase ${getRiskBadge(task.riskTier)}`}>
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold font-sans uppercase ${getRiskBadge(task.riskTier)}`}>
                     {task.riskTier || "GREEN"} Tier
                 </span>
             </div>

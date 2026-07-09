@@ -254,7 +254,7 @@ export function ImageUpload({
 
         {value && (
           <div className="absolute top-2 right-2">
-            <div className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] text-white">
+            <div className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">
               Selected
             </div>
           </div>

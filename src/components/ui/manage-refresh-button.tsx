@@ -23,7 +23,7 @@ export function ManageRefreshButton({ lastUpdatedAt, isLoading = false, isRefres
   return (
     <div className="flex items-center gap-2">
       {mounted && lastUpdatedAt && (
-        <span className="text-[10px] font-medium text-slate-400">
+        <span className="text-xs font-medium text-slate-400">
           Updated {lastUpdatedAt.toLocaleString("en-US", { month: "numeric", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" })}
         </span>
       )}

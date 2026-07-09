@@ -111,7 +111,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
         }
 
         return (
-            <div key={index} className={`font-mono text-[10px] py-0.5 px-2 leading-relaxed select-text truncate ${lineClass}`}>
+            <div key={index} className={`font-mono text-xs py-0.5 px-2 leading-relaxed select-text truncate ${lineClass}`}>
                 {line}
             </div>
         );
@@ -129,7 +129,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                 
                 <button
                     onClick={loadGitData}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-slate-600 hover:text-slate-800 cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800 cursor-pointer"
                 >
                     <RefreshCw className="size-3" />
                     Sync Status
@@ -175,7 +175,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                     </form>
                     
                     {result && (
-                        <p className="text-[10px] font-sans font-medium text-indigo-600">{result}</p>
+                        <p className="text-xs font-sans font-medium text-indigo-600">{result}</p>
                     )}
                 </div>
             )}
@@ -192,7 +192,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
                     {diff ? (
                         diff.split("\n").map((line, idx) => renderDiffLine(line, idx))
                     ) : (
-                        <div className="text-slate-500 text-[10px] p-4 font-sans text-center">Loading git diff files...</div>
+                        <div className="text-slate-500 text-xs p-4 font-sans text-center">Loading git diff files...</div>
                     )}
                 </div>
             </div>

@@ -82,7 +82,7 @@ export function AlertDialogToastProvider({
                           Insufficient Credits
                         </DialogTitle>
                       </DialogHeader>
-                      <p className="text-white/80 text-[11px] font-medium mt-1">
+                      <p className="text-white/80 text-xs font-medium mt-1">
                         You don&apos;t have enough credits to run this tool.
                       </p>
                     </div>
@@ -91,13 +91,13 @@ export function AlertDialogToastProvider({
                   <div className="px-5 pt-6 pb-5 space-y-4 -mt-2">
                     <div className="bg-white rounded-xl border border-slate-100 shadow-xs p-3.5 flex items-start gap-3">
                       <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
                         {dialog.message}
                       </p>
                     </div>
                     <Button
                       type="button"
-                      className="w-full h-9 rounded-xl text-[12px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-none shadow-sm shadow-amber-500/20 hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                      className="w-full h-9 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-none shadow-sm shadow-amber-500/20 hover:shadow-md transition-all active:scale-95 cursor-pointer"
                       onClick={() => handleClose(dialog.id)}
                     >
                       Got it
@@ -128,13 +128,13 @@ export function AlertDialogToastProvider({
                     <DialogTitle className="text-base font-bold tracking-tight text-slate-800 leading-none">
                       {dialog.tone === "success" ? "Success" : dialog.tone === "error" ? "Error" : "Info"}
                     </DialogTitle>
-                    <p className="text-slate-500 text-[11px] leading-relaxed font-medium mt-1 select-text max-w-[280px]">
+                    <p className="text-slate-500 text-xs leading-relaxed font-medium mt-1 select-text max-w-[280px]">
                       {dialog.message}
                     </p>
                   </DialogHeader>
                   <Button
                     type="button"
-                    className={`px-8 min-w-[100px] h-8.5 rounded-xl text-[11px] font-bold border-none transition-all active:scale-95 duration-200 cursor-pointer ${
+                    className={`px-8 min-w-[100px] h-8.5 rounded-xl text-xs font-bold border-none transition-all active:scale-95 duration-200 cursor-pointer ${
                       dialog.tone === "success"
                         ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/10 hover:shadow-md"
                         : dialog.tone === "error"

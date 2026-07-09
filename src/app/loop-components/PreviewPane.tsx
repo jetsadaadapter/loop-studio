@@ -37,7 +37,7 @@ const TIER_COLOR: Record<RiskTier, string> = {
 
 function CheckBadge({ label, state }: { label: string; state: CheckState }) {
     return (
-        <span className={`inline-flex items-center gap-1 font-mono text-[11px] ${
+        <span className={`inline-flex items-center gap-1 font-mono text-xs ${
             state === "pass" ? "text-emerald-400" : state === "fail" ? "text-red-400" : "text-slate-500"
         }`}>
             {label}
@@ -72,7 +72,7 @@ export function PreviewPane({ initialUrl = "/", verifyStatus = "idle", buildStat
                             key={key}
                             type="button"
                             onClick={() => setTab(key)}
-                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[11px] transition-colors cursor-pointer ${
+                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs transition-colors cursor-pointer ${
                                 active ? "bg-[#1c2c4a] text-white" : "text-slate-500 hover:text-slate-300"
                             }`}
                         >
@@ -88,7 +88,7 @@ export function PreviewPane({ initialUrl = "/", verifyStatus = "idle", buildStat
                     {riskTier && (
                         <>
                             <span className="text-slate-600">·</span>
-                            <span className={`font-mono text-[11px] ${TIER_COLOR[riskTier]}`}>{riskTier}</span>
+                            <span className={`font-mono text-xs ${TIER_COLOR[riskTier]}`}>{riskTier}</span>
                         </>
                     )}
                 </div>
@@ -146,7 +146,7 @@ export function PreviewPane({ initialUrl = "/", verifyStatus = "idle", buildStat
                             />
                         </div>
                     </div>
-                    <p className="shrink-0 py-2 text-center font-mono text-[10px] text-slate-500">
+                    <p className="shrink-0 py-2 text-center font-mono text-xs text-slate-500">
                         live · next dev via Live Run
                     </p>
                 </>

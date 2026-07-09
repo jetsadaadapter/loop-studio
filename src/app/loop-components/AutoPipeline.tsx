@@ -71,7 +71,7 @@ export function AutoPipeline({ projectId, taskId, onComplete, onTriggerLog }: Au
                     </span>
                     <div>
                         <h3 className="text-sm font-semibold text-slate-800">Auto Checkpoints</h3>
-                        <p className="text-[10px] text-slate-400 font-sans">Runs Verify + Automate, then advances to Observe</p>
+                        <p className="text-xs text-slate-400 font-sans">Runs Verify + Automate, then advances to Observe</p>
                     </div>
                 </div>
                 <button
@@ -99,7 +99,7 @@ export function AutoPipeline({ projectId, taskId, onComplete, onTriggerLog }: Au
                             {state === "idle" && <Circle className="size-3.5 shrink-0 text-slate-300" />}
                             <span className={state === "fail" ? "text-red-600 font-semibold" : ""}>{row.label}</span>
                             {row.result && (
-                                <span className="ml-auto font-sans text-[10px] text-slate-400">exit {row.result.exitCode}</span>
+                                <span className="ml-auto font-sans text-xs text-slate-400">exit {row.result.exitCode}</span>
                             )}
                         </li>
                     );

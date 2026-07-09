@@ -67,11 +67,11 @@ export function ManagerDeleteConfirm({
               </h2>
               <p
                 data-slot="dialog-description"
-                className="text-slate-500 text-[11px] leading-relaxed font-medium mt-1 select-text max-w-[280px]"
+                className="text-slate-500 text-xs leading-relaxed font-medium mt-1 select-text max-w-[280px]"
               >
                 You are about to {actionLabel.toLowerCase()} <span className="text-slate-800 font-bold bg-slate-50 border border-slate-100 px-1 py-0.2 rounded mx-0.5">{itemName}</span>
                 {itemId && (
-                  <span className="text-[9px] font-sans font-bold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all ml-1.5 shrink-0 uppercase">
+                  <span className="text-xs font-sans font-bold bg-slate-100 text-slate-500 border border-slate-200/40 px-1 py-0.2 rounded select-all ml-1.5 shrink-0 uppercase">
                     #{itemId.slice(0, 8)}
                   </span>
                 )}
@@ -86,7 +86,7 @@ export function ManagerDeleteConfirm({
 
             <div className="w-full space-y-4">
               <div className="grid gap-1.5 text-left">
-                <label htmlFor="confirm-input" className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-none">
+                <label htmlFor="confirm-input" className="text-xs font-bold text-slate-500 uppercase tracking-wider leading-none">
                   Type the {itemTypeLabel} name to {actionLabel.toLowerCase()}:
                 </label>
                 <Input
@@ -97,7 +97,7 @@ export function ManagerDeleteConfirm({
                   onChange={(e) => setConfirmationInput(e.target.value)}
                   disabled={isLoading}
                   autoComplete="off"
-                  className="h-8.5 border-slate-200 bg-white/50 focus-visible:ring-brand focus-visible:border-brand-strong/30 text-[11px] rounded-lg shadow-2xs transition-all placeholder:text-slate-350"
+                  className="h-8.5 border-slate-200 bg-white/50 focus-visible:ring-brand focus-visible:border-brand-strong/30 text-xs rounded-lg shadow-2xs transition-all placeholder:text-slate-350"
                 />
                 {confirmationInput.trim() !== "" && !isConfirmationValid ? (
                   <p className="text-[9.5px] font-medium text-brand mt-0.5 flex items-center gap-1 animate-fade-in">
@@ -111,7 +111,7 @@ export function ManagerDeleteConfirm({
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-8.5 rounded-lg text-[11px] font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 duration-200 transition-all shadow-3xs cursor-pointer bg-white"
+                  className="flex-1 h-8.5 rounded-lg text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 duration-200 transition-all shadow-3xs cursor-pointer bg-white"
                   onClick={onCancel}
                   disabled={isLoading}
                 >
@@ -119,7 +119,7 @@ export function ManagerDeleteConfirm({
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 h-8.5 rounded-lg text-[11px] font-bold bg-brand hover:bg-brand-strong text-white active:scale-95 duration-200 transition-all shadow-sm shadow-brand/10 border-none disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  className="flex-1 h-8.5 rounded-lg text-xs font-bold bg-brand hover:bg-brand-strong text-white active:scale-95 duration-200 transition-all shadow-sm shadow-brand/10 border-none disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   onClick={onConfirm}
                   disabled={isLoading || !isConfirmationValid}
                 >

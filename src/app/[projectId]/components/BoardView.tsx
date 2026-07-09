@@ -64,33 +64,33 @@ function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
             href={`/${projectId}/tasks/${task.id}`}
             className="group block rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-slate-300/70"
         >
-            <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-semibold font-sans ${status.className}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold font-sans ${status.className}`}>
                 <span className="size-1.5 rounded-full bg-current" />
                 {status.label}
             </span>
 
             <p className="mt-2 text-sm font-semibold text-slate-800 group-hover:text-brand transition-colors">{task.name}</p>
 
-            <p className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 font-sans truncate" title={task.targetFiles.join(", ")}>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 font-sans truncate" title={task.targetFiles.join(", ")}>
                 <FileCode2 className="size-3 shrink-0 text-slate-400" />
                 {task.targetFiles[0]}
                 {task.targetFiles.length > 1 && <span className="text-slate-400">+{task.targetFiles.length - 1}</span>}
             </p>
 
             <div className="mt-2.5 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 text-[11px] text-slate-500 font-sans">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500 font-sans">
                     <Flag className="size-3 text-slate-400" />
                     {shortDate(task.updatedAt)}
                 </span>
-                <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize font-sans ${PRIORITY_CHIP[priority]}`}>
+                <span className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize font-sans ${PRIORITY_CHIP[priority]}`}>
                     {priority}
                 </span>
             </div>
 
-            <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-2.5 text-[11px] text-slate-400 font-sans">
+            <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-2.5 text-xs text-slate-400 font-sans">
                 <span className="flex items-center gap-1"><MessageSquare className="size-3" /> {comments} Comments</span>
                 <span className="flex items-center gap-1"><Activity className="size-3" /> {activities}</span>
-                <span className="ml-auto uppercase tracking-wider text-[10px]">{task.currentStage}</span>
+                <span className="ml-auto uppercase tracking-wider text-xs">{task.currentStage}</span>
             </div>
         </Link>
     );
@@ -108,7 +108,7 @@ export function BoardView({ projectId, tasks, onAddTask }: BoardViewProps) {
                         <div className="flex items-center gap-2 px-1 pb-3">
                             <span className={`size-2 rounded-full ${col.dot}`} />
                             <h3 className="text-sm font-semibold text-slate-700">{col.label}</h3>
-                            <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold font-sans ${col.badge}`}>
+                            <span className={`flex size-5 items-center justify-center rounded-full text-xs font-bold font-sans ${col.badge}`}>
                                 {items.length}
                             </span>
                             {onAddTask && (
@@ -123,7 +123,7 @@ export function BoardView({ projectId, tasks, onAddTask }: BoardViewProps) {
                         </div>
                         <div className="space-y-3">
                             {items.length === 0 ? (
-                                <p className="rounded-xl border border-dashed border-slate-200 bg-white/50 px-3 py-6 text-center text-[11px] text-slate-400 font-sans">
+                                <p className="rounded-xl border border-dashed border-slate-200 bg-white/50 px-3 py-6 text-center text-xs text-slate-400 font-sans">
                                     No tasks
                                 </p>
                             ) : (

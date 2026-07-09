@@ -67,7 +67,7 @@ export function LogTerminal({ projectId, taskId, triggerCount }: LogTerminalProp
                 </div>
                 <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1 rounded-sm border border-slate-800 bg-slate-900 px-2 py-0.5 text-[10px] text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all cursor-pointer"
+                    className="flex items-center gap-1 rounded-sm border border-slate-800 bg-slate-900 px-2 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all cursor-pointer"
                 >
                     {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
                     {copied ? "Copied!" : "Copy Logs"}
@@ -76,7 +76,7 @@ export function LogTerminal({ projectId, taskId, triggerCount }: LogTerminalProp
             
             <pre
                 ref={logRef}
-                className="flex-1 overflow-y-auto font-mono text-[10px] leading-relaxed text-slate-300 whitespace-pre-wrap select-text pr-1"
+                className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed text-slate-300 whitespace-pre-wrap select-text pr-1"
             >
                 {logs}
             </pre>

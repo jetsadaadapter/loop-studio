@@ -53,7 +53,7 @@ export function WalkthroughView({ projectId, tasks, onRefresh }: WalkthroughView
         <div className="space-y-4">
             {/* Task picker */}
             <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-semibold text-slate-500">Task:</span>
+                <span className="text-xs font-semibold text-slate-500">Task:</span>
                 {tasks.map((t) => (
                     <button
                         key={t.id}

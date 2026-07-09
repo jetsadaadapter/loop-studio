@@ -58,7 +58,7 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                             </div>
                             <div className="min-w-0">
                                 <p className="text-xs font-semibold text-slate-800 leading-normal truncate">{item.label}</p>
-                                <p className="text-[10px] text-slate-400 font-sans truncate uppercase tracking-wider">
+                                <p className="text-xs text-slate-400 font-sans truncate uppercase tracking-wider">
                                     {isCompleted ? "Completed" : isCurrent ? "Active" : "Pending"}
                                 </p>
                             </div>

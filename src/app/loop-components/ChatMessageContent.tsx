@@ -61,14 +61,14 @@ const PROSE_CLASS = [
 // Markdown component overrides — font-mono is used only for code (allowed per DESIGN.md).
 const MD_COMPONENTS = {
     pre: ({ children }: { children?: React.ReactNode }) => (
-        <pre className="overflow-x-auto rounded-lg bg-slate-900 p-2.5 text-[10px] leading-relaxed text-slate-100">{children}</pre>
+        <pre className="overflow-x-auto rounded-lg bg-slate-900 p-2.5 text-xs leading-relaxed text-slate-100">{children}</pre>
     ),
     code: ({ className, children }: { className?: string; children?: React.ReactNode }) => {
         const isBlock = (className || "").includes("language-") || String(children).includes("\n");
         return isBlock ? (
             <code className="font-mono">{children}</code>
         ) : (
-            <code className="rounded bg-slate-200/70 px-1 py-0.5 text-[11px] font-mono text-slate-800">{children}</code>
+            <code className="rounded bg-slate-200/70 px-1 py-0.5 text-xs font-mono text-slate-800">{children}</code>
         );
     },
     a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
@@ -81,9 +81,9 @@ function FileEditBlock({ path, code }: { path: string; code: string }) {
         <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
             <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-2.5 py-1.5">
                 <FileCode className="size-3 shrink-0 text-indigo-300" />
-                <span className="truncate text-[10px] font-semibold text-slate-200 font-sans">{path}</span>
+                <span className="truncate text-xs font-semibold text-slate-200 font-sans">{path}</span>
             </div>
-            <pre className="overflow-x-auto p-2.5 text-[10px] leading-relaxed text-slate-100 font-mono">{code}</pre>
+            <pre className="overflow-x-auto p-2.5 text-xs leading-relaxed text-slate-100 font-mono">{code}</pre>
         </div>
     );
 }

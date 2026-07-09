@@ -33,13 +33,13 @@ function KnowledgePanel({ projectId }: { projectId: string }) {
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
             <div className="mb-2 flex items-center gap-1.5">
                 <BookOpenText className="size-3.5 text-indigo-600" />
-                <span className="text-[10px] font-semibold text-slate-700 font-sans">
+                <span className="text-xs font-semibold text-slate-700 font-sans">
                     Project knowledge — fed into every planner & AI-team run
                 </span>
             </div>
             <ul className="space-y-1.5">
                 {[...entries].reverse().slice(0, 5).map((e) => (
-                    <li key={e.taskId} className="text-[10px] text-slate-600 font-sans">
+                    <li key={e.taskId} className="text-xs text-slate-600 font-sans">
                         <span className="font-semibold">{e.taskName}</span>
                         {" — "}
                         {e.learnings.join("; ")}
@@ -62,7 +62,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
 
             <div className="space-y-3">
                 <div>
-                    <label className="block text-[10px] font-medium text-slate-600 font-sans mb-1">
+                    <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
                         1. Did the test cases actually prove correctness (or pass insignificantly)?
                     </label>
                     <Input
@@ -75,7 +75,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
                 </div>
 
                 <div>
-                    <label className="block text-[10px] font-medium text-slate-600 font-sans mb-1">
+                    <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
                         2. Are there any environments left unverified?
                     </label>
                     <Input
@@ -88,7 +88,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
                 </div>
 
                 <div>
-                    <label className="block text-[10px] font-medium text-slate-600 font-sans mb-1">
+                    <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
                         3. Did any unintended side-effects occur outside the scoped files?
                     </label>
                     <Input

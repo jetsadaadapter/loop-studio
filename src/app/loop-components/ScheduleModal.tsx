@@ -134,7 +134,7 @@ export function ScheduleModal({ isOpen, projectId, onClose, onSaved }: ScheduleM
                     </Field>
 
                     {existing?.lastRunAt && (
-                        <p className="text-[11px] text-slate-500 font-sans">
+                        <p className="text-xs text-slate-500 font-sans">
                             Last checked {new Date(existing.lastRunAt).toLocaleString()}
                             {existing.lastResult ? ` — ${existing.lastResult}` : ""}
                         </p>

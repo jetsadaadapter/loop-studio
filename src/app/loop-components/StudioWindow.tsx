@@ -84,7 +84,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
 
                     {open && (
                         <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-xl border border-[#24304b] bg-[#141e33] p-3 shadow-2xl">
-                            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 font-sans">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 font-sans">
                                 Commit workspace changes
                             </p>
                             <Textarea
@@ -97,7 +97,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
                                 className="min-h-0 resize-none rounded-lg border-[#24304b] bg-[#0d1526] px-2.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30"
                             />
                             {result && (
-                                <p className={`mt-2 flex items-center gap-1.5 text-[10px] font-sans ${result.ok ? "text-emerald-400" : "text-red-400"}`}>
+                                <p className={`mt-2 flex items-center gap-1.5 text-xs font-sans ${result.ok ? "text-emerald-400" : "text-red-400"}`}>
                                     {result.ok ? <Check className="size-3" /> : <X className="size-3" />}
                                     {result.text}
                                 </p>
@@ -106,7 +106,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
                                 <button
                                     type="button"
                                     onClick={() => setOpen(false)}
-                                    className="rounded-md px-3 py-1.5 text-[11px] font-semibold text-slate-400 hover:text-slate-200 cursor-pointer"
+                                    className="rounded-md px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 cursor-pointer"
                                 >
                                     Close
                                 </button>
@@ -114,7 +114,7 @@ export function StudioWindow({ projectId, projectName, left, right, onPublished 
                                     type="button"
                                     onClick={publish}
                                     disabled={busy || !message.trim()}
-                                    className="flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 cursor-pointer"
+                                    className="flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 cursor-pointer"
                                 >
                                     {busy ? <Loader2 className="size-3 animate-spin" /> : <Rocket className="size-3" />}
                                     {busy ? "Publishing…" : "Publish"}

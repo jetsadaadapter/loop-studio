@@ -186,7 +186,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                     and run logs — proportioned like a config + history panel;
                                     scrolls with the preview in this same column. */}
                                 <div className="space-y-4 p-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 font-sans">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 font-sans">
                                         Advanced controls
                                     </p>
 

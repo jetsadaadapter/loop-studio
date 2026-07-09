@@ -43,12 +43,12 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors duration-200">{project.name}</h3>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-700 font-sans mt-0.5 uppercase">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700 font-sans mt-0.5 uppercase">
                             {project.template.replace("-", " ")}
                         </span>
                         {project.isHost && (
                             <span
-                                className="ml-1 inline-flex items-center gap-1 rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 font-sans mt-0.5 uppercase"
+                                className="ml-1 inline-flex items-center gap-1 rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 font-sans mt-0.5 uppercase"
                                 title="This is the running Loop Studio app itself — build, dev, and auto-commit are disabled to protect the live server."
                             >
                                 Host App

@@ -235,7 +235,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                     <Users className="size-4 text-indigo-400" />
                     <span className="text-xs font-semibold text-slate-200 font-sans">AI Developer Space</span>
                 </div>
-                <div className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                <div className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-xs font-semibold text-amber-300">
                     <Coins className="size-3 text-amber-400" />
                     <span>${costSummary.cost.toFixed(3)} ({Math.round((costSummary.input + costSummary.output)/1000)}k tokens)</span>
                 </div>
@@ -245,7 +245,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
             {useBridge && (
                 <div className="flex shrink-0 items-start gap-1.5 border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-2">
                     <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-400" />
-                    <span className="text-[10px] leading-normal text-amber-200/90 font-sans">
+                    <span className="text-xs leading-normal text-amber-200/90 font-sans">
                         IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/agents" className="font-semibold underline hover:text-amber-100">AI Team Manager</Link> (or a server-configured key).
                     </span>
                 </div>
@@ -255,15 +255,15 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
             {isBridgedPending && (
                 <div className="flex shrink-0 items-start gap-2 border-b border-indigo-400/20 bg-indigo-400/[0.06] px-3 py-2.5">
                     <Sparkles className="size-4 shrink-0 mt-0.5 animate-pulse text-indigo-400" />
-                    <div className="flex-1 text-[10px] leading-relaxed text-indigo-200/90 font-sans">
+                    <div className="flex-1 text-xs leading-relaxed text-indigo-200/90 font-sans">
                         <span>Bridged to your IDE agent — waiting for a reply. In your IDE, run </span>
-                        <code className="rounded-lg border border-indigo-400/20 bg-indigo-400/10 px-1 py-0.5 text-[10px] font-semibold font-sans">run bridge</code>
+                        <code className="rounded-lg border border-indigo-400/20 bg-indigo-400/10 px-1 py-0.5 text-xs font-semibold font-sans">run bridge</code>
                         <span> (read .antigravity/bridge.json, do the work, write the reply back). Updates here automatically.</span>
                     </div>
                     <button
                         type="button"
                         onClick={cancelBridge}
-                        className="shrink-0 cursor-pointer rounded-sm border border-indigo-400/30 px-2 py-1 text-[10px] font-semibold text-indigo-300 hover:bg-indigo-400/10"
+                        className="shrink-0 cursor-pointer rounded-sm border border-indigo-400/30 px-2 py-1 text-xs font-semibold text-indigo-300 hover:bg-indigo-400/10"
                     >
                         Cancel
                     </button>
@@ -286,7 +286,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                         {attachments.map((a) => (
                             <span
                                 key={a.id}
-                                className="flex items-center gap-1.5 rounded-lg border border-[#24304b] bg-[#0b1322] py-1 pl-1.5 pr-1 text-[10px] text-slate-300 font-sans"
+                                className="flex items-center gap-1.5 rounded-lg border border-[#24304b] bg-[#0b1322] py-1 pl-1.5 pr-1 text-xs text-slate-300 font-sans"
                             >
                                 {a.mimeType.startsWith("image/") ? (
                                     <Image src={a.dataUrl} alt={a.name} width={18} height={18} unoptimized className="size-4.5 rounded object-cover" />

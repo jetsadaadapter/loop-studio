@@ -71,7 +71,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                     <GitCommitHorizontal className="size-3.5 text-slate-500" />
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 font-sans">Changes</h3>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 font-sans">Changes</h3>
                 </div>
                 <button
                     type="button"
@@ -102,7 +102,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                             <span className={`size-1.5 shrink-0 rounded-full ${idx === 0 ? "bg-emerald-400" : "bg-slate-600"}`} />
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs text-slate-300">{c.subject}</p>
-                                <p className="flex items-center gap-2 text-[10px] font-sans text-slate-500">
+                                <p className="flex items-center gap-2 text-xs font-sans text-slate-500">
                                     <span className="rounded bg-white/5 px-1 py-px font-mono text-slate-400">{c.hash}</span>
                                     <span>{c.relativeDate}</span>
                                     {c.insertions > 0 && <span className="text-emerald-400">+{c.insertions}</span>}
@@ -117,7 +117,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                                 onClick={() => setConfirmCommit(c)}
                                 disabled={reverting !== null}
                                 title="Revert this commit (creates an undo commit)"
-                                className="flex items-center gap-1 rounded-sm border border-[#24304b] px-2 py-1 text-[10px] font-semibold text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/5 hover:text-slate-200 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1 rounded-sm border border-[#24304b] px-2 py-1 text-xs font-semibold text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/5 hover:text-slate-200 disabled:opacity-50 cursor-pointer"
                             >
                                 {reverting === c.hash ? <Loader2 className="size-3 animate-spin" /> : <Undo2 className="size-3" />}
                                 Revert

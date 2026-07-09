@@ -74,7 +74,7 @@ export default function NotFound() {
         </div>
 
         {/* 404 Tag */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-violet-500/10 text-violet-600 border border-violet-500/20 dark:text-violet-400 mb-4 select-none">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-violet-500/10 text-violet-600 border border-violet-500/20 dark:text-violet-400 mb-4 select-none">
           Error Code 404
         </div>
 

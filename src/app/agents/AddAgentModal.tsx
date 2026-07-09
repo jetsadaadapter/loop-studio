@@ -204,7 +204,7 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
                             <button
                                 type="button"
                                 onClick={handleGenerate}
-                                className="flex items-center gap-1 rounded-sm border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
+                                className="flex items-center gap-1 rounded-sm border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
                             >
                                 <Wand2 className="size-3" />
                                 Generate from role & skills
