@@ -2,7 +2,7 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
-import { agentInitials, agentTint } from "./agent-visuals";
+import { agentAvatarUri } from "./agent-visuals";
 
 interface AgentStatCardProps {
     agent: AgentWithMetrics;
@@ -29,9 +29,12 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
             {/* Identity + status */}
             <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0">
-                    <span className={`flex size-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ${agentTint(agent.id)}`}>
-                        {agentInitials(agent.name)}
-                    </span>
+                    <span
+                        style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
+                        className="size-12 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
+                        role="img"
+                        aria-label={`${agent.name} avatar`}
+                    />
                     <div className="min-w-0">
                         <h3 className="truncate text-base font-semibold text-slate-800" title={agent.name}>
                             {agent.name.split("(")[0].trim()}

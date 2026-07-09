@@ -1,3 +1,5 @@
+import { createAvatar } from "@dicebear/core";
+import { bottts } from "@dicebear/collection";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
 
 // Shared, presentation-only helpers for the AI Developer Team dashboard.
@@ -5,31 +7,24 @@ import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.servic
 
 export const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-/** Up-to-two-letter initials from an agent name, ignoring a parenthetical role. */
-export function agentInitials(name: string): string {
-    const base = name.split("(")[0].trim() || name.trim();
-    const words = base.split(/\s+/).filter(Boolean);
-    if (words.length === 0) return "?";
-    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-    return (words[0][0] + words[1][0]).toUpperCase();
-}
+// Deterministic illustrated avatar per agent, generated offline as an SVG data
+// URI (no network — the app's CSP blocks external images, and data: is allowed).
+// DiceBear "bottts" (robot) style — apt for an AI team and license-clean
+// (code MIT, art "free for personal and commercial use").
+const AVATAR_BG = ["ede9fe", "e0e7ff", "dcfce7", "fef3c7", "ffe4e6", "cffafe", "ccfbf1"];
+const AVATAR_CACHE = new Map<string, string>();
 
-// Deterministic soft tint per agent so avatars/rows read as distinct without
-// needing real photos. Palette is brand-neutral (slate/indigo/emerald/etc.).
-const AVATAR_TINTS = [
-    "bg-rose-100 text-rose-700",
-    "bg-indigo-100 text-indigo-700",
-    "bg-emerald-100 text-emerald-700",
-    "bg-amber-100 text-amber-700",
-    "bg-sky-100 text-sky-700",
-    "bg-violet-100 text-violet-700",
-    "bg-teal-100 text-teal-700",
-];
-
-export function agentTint(id: string): string {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    return AVATAR_TINTS[hash % AVATAR_TINTS.length];
+export function agentAvatarUri(seed: string): string {
+    const key = seed.trim() || "agent";
+    const cached = AVATAR_CACHE.get(key);
+    if (cached) return cached;
+    const uri = createAvatar(bottts, {
+        seed: key,
+        radius: 50,
+        backgroundColor: AVATAR_BG,
+    }).toDataUri();
+    AVATAR_CACHE.set(key, uri);
+    return uri;
 }
 
 // Violet scale for the heatmap (matches the reference dashboard).
