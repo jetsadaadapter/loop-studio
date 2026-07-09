@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { AVAILABLE_SKILLS, AVAILABLE_MODELS } from "@/core/interfaces/loop-projects.interface";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { generateSystemPrompt } from "./generate-prompt";
 
 interface AddAgentModalProps {
@@ -164,14 +165,19 @@ export function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps
                         <div className="grid grid-cols-2 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
                             {AVAILABLE_SKILLS.map((skill) => {
                                 const isChecked = form.skills.includes(skill.key);
+                                const id = `add-skill-${skill.key}`;
                                 return (
-                                    <label key={skill.key} className="flex items-center gap-2 cursor-pointer select-none">
+                                    <Field key={skill.key} orientation="horizontal">
                                         <Checkbox
+                                            id={id}
+                                            name={id}
                                             checked={isChecked}
                                             onCheckedChange={() => toggleSkill(skill.key)}
                                         />
-                                        <span className="text-xs text-slate-700 font-sans">{skill.label}</span>
-                                    </label>
+                                        <Label htmlFor={id} className="text-xs font-normal text-slate-700 font-sans">
+                                            {skill.label}
+                                        </Label>
+                                    </Field>
                                 );
                             })}
                         </div>

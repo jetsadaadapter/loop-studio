@@ -7,6 +7,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -106,14 +107,19 @@ export function AgentCard({
                         <div className="space-y-1.5">
                             {AVAILABLE_SKILLS.map((skill) => {
                                 const isChecked = agent.skills.includes(skill.key);
+                                const id = `${agent.id}-skill-${skill.key}`;
                                 return (
-                                    <label key={skill.key} className="flex items-center gap-2 cursor-pointer select-none">
+                                    <Field key={skill.key} orientation="horizontal">
                                         <Checkbox
+                                            id={id}
+                                            name={id}
                                             checked={isChecked}
                                             onCheckedChange={() => onSkillToggle(agent, skill.key)}
                                         />
-                                        <span className="text-xs text-slate-700 font-sans">{skill.label}</span>
-                                    </label>
+                                        <Label htmlFor={id} className="text-xs font-normal text-slate-700 font-sans">
+                                            {skill.label}
+                                        </Label>
+                                    </Field>
                                 );
                             })}
                         </div>
