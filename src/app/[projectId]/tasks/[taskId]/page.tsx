@@ -120,7 +120,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
-            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
+            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 pb-6">
             <StickyCrumbs
                 items={[
                     { label: project?.name || "Project", href: `/${projectId}` },
