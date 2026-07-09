@@ -13,6 +13,7 @@ import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
 import { TaskVolumeHeatmap } from "./components/TaskVolumeHeatmap";
 import { SuccessTrendChart } from "./components/SuccessTrendChart";
 import { AgentStatCard } from "./components/AgentStatCard";
+import { AVATAR_CREDIT } from "./components/agent-visuals";
 
 export default function AiTeamSpace() {
     const [agents, setAgents] = useState<AgentWithMetrics[]>([]);
@@ -158,6 +159,12 @@ export default function AiTeamSpace() {
                             </div>
                         )}
                     </div>
+
+                    <p className="text-center text-[10px] text-slate-400 font-sans">
+                        <a href={AVATAR_CREDIT.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 hover:underline">
+                            {AVATAR_CREDIT.label}
+                        </a>
+                    </p>
 
                     <AddAgentModal
                         isOpen={isAddOpen}

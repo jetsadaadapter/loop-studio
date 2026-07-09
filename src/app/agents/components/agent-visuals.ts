@@ -1,5 +1,5 @@
 import { createAvatar } from "@dicebear/core";
-import { bottts } from "@dicebear/collection";
+import { personas } from "@dicebear/collection";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
 
 // Shared, presentation-only helpers for the AI Developer Team dashboard.
@@ -9,16 +9,22 @@ export const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
 // Deterministic illustrated avatar per agent, generated offline as an SVG data
 // URI (no network — the app's CSP blocks external images, and data: is allowed).
-// DiceBear "bottts" (robot) style — apt for an AI team and license-clean
-// (code MIT, art "free for personal and commercial use").
+// DiceBear "personas" (human) style — DiceBear code is MIT; the Personas art is
+// by Draftbit under CC BY 4.0, credited on the dashboard (see AVATAR_CREDIT).
 const AVATAR_BG = ["ede9fe", "e0e7ff", "dcfce7", "fef3c7", "ffe4e6", "cffafe", "ccfbf1"];
 const AVATAR_CACHE = new Map<string, string>();
+
+/** Attribution required by the Personas (CC BY 4.0) avatar art. */
+export const AVATAR_CREDIT = {
+    label: "Avatars: Personas by Draftbit (CC BY 4.0)",
+    href: "https://personas.draftbit.com/",
+};
 
 export function agentAvatarUri(seed: string): string {
     const key = seed.trim() || "agent";
     const cached = AVATAR_CACHE.get(key);
     if (cached) return cached;
-    const uri = createAvatar(bottts, {
+    const uri = createAvatar(personas, {
         seed: key,
         radius: 50,
         backgroundColor: AVATAR_BG,
