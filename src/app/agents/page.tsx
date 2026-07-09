@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { AddAgentModal } from "./AddAgentModal";
 import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
+import { AppFooter } from "@/app/loop-components/AppFooter";
 import { TaskVolumeHeatmap } from "./components/TaskVolumeHeatmap";
 import { SuccessTrendChart } from "./components/SuccessTrendChart";
 import { AgentStatCard } from "./components/AgentStatCard";
@@ -81,10 +82,15 @@ export default function AiTeamSpace() {
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
             <ProjectSidebar projects={allProjects} />
 
-            <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-6 py-6">
-                <div className="mx-auto flex w-full max-w-6xl flex-col space-y-6">
-                    <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
+            <section className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+                {/* Sticky breadcrumb bar — stays visible while the content scrolls */}
+                <div className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 backdrop-blur">
+                    <div className="mx-auto w-full max-w-6xl px-6 py-3">
+                        <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
+                    </div>
+                </div>
 
+                <div className="mx-auto flex w-full max-w-6xl flex-col space-y-4 px-6 py-5">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                             <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>
@@ -160,11 +166,11 @@ export default function AiTeamSpace() {
                         )}
                     </div>
 
-                    <p className="text-center text-[10px] text-slate-400 font-sans">
+                    <AppFooter>
                         <a href={AVATAR_CREDIT.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 hover:underline">
                             {AVATAR_CREDIT.label}
                         </a>
-                    </p>
+                    </AppFooter>
 
                     <AddAgentModal
                         isOpen={isAddOpen}

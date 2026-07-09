@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
+import { version } from "./package.json";
 
 const nextConfig: NextConfig = {
+  // Expose the package version to the client (footer) without shipping the
+  // whole package.json — only this string is inlined at build time.
+  env: {
+    NEXT_PUBLIC_APP_VERSION: version,
+  },
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
     return [
