@@ -88,7 +88,8 @@ export default function AiTeamSpace() {
                     <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
                 </div>
 
-                <div className="flex w-full flex-col space-y-6 px-6 py-5">
+                <div className="flex w-full flex-1 flex-col px-6 py-5">
+                    <div className="flex flex-col space-y-6">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                             <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>
@@ -121,7 +122,7 @@ export default function AiTeamSpace() {
 
                             <div>
                                 <h2 className="text-sm font-semibold text-slate-800">All agents</h2>
-                                <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {agents.map((agent) => (
                                         <AgentStatCard
                                             key={agent.id}
@@ -163,8 +164,9 @@ export default function AiTeamSpace() {
                             </div>
                         )}
                     </div>
+                    </div>
 
-                    <AppFooter>
+                    <AppFooter className="mt-auto pt-6">
                         <a href={AVATAR_CREDIT.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 hover:underline">
                             {AVATAR_CREDIT.label}
                         </a>

@@ -27,7 +27,7 @@ export function TaskVolumeHeatmap({ agents }: TaskVolumeHeatmapProps) {
                     <div className="grid grid-cols-[92px_repeat(7,1fr)] gap-1.5 pb-1.5">
                         <div />
                         {WEEKDAY_LABELS.map((d, i) => (
-                            <div key={i} className="text-center text-[10px] font-semibold text-slate-400 font-sans">
+                            <div key={i} className="text-center text-xs font-semibold text-slate-400 font-sans">
                                 {d}
                             </div>
                         ))}
@@ -42,7 +42,7 @@ export function TaskVolumeHeatmap({ agents }: TaskVolumeHeatmapProps) {
                                     role="img"
                                     aria-label={`${agent.name} avatar`}
                                 />
-                                <span className="truncate text-[11px] text-slate-600 font-sans" title={agent.name}>
+                                <span className="truncate text-xs text-slate-600 font-sans" title={agent.name}>
                                     {agent.name.split("(")[0].trim()}
                                 </span>
                             </div>

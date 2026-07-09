@@ -15,8 +15,8 @@ interface AgentStatCardProps {
 function StatTile({ label, value, className }: { label: string; value: string; className: string }) {
     return (
         <div className={`px-4 py-3 ${className}`}>
-            <p className="text-[11px] font-sans text-slate-500">{label}</p>
-            <p className="mt-1 text-lg font-semibold text-slate-800">{value}</p>
+            <p className="text-xs font-sans text-slate-500">{label}</p>
+            <p className="mt-1 text-base font-semibold text-slate-800">{value}</p>
         </div>
     );
 }
@@ -43,7 +43,7 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
                     </div>
                 </div>
                 <span
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold font-sans ${
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold font-sans ${
                         m.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
                     }`}
                 >
@@ -62,7 +62,7 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
 
             {/* Last activity */}
             <div className="mt-4 border-t border-slate-100 pt-3">
-                <p className="text-[10px] font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
+                <p className="text-xs font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
                 <p className="mt-1 truncate text-sm text-slate-600 font-sans" title={m.lastActivity ?? ""}>
                     {m.lastActivity ?? "No recorded activity yet"}
                 </p>

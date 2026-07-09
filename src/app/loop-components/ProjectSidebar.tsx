@@ -51,7 +51,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                 </span>
                 <div className="leading-tight">
                     <p className="text-sm font-bold tracking-tight text-slate-800">Loop Studio</p>
-                    <p className="text-[11px] text-slate-400 font-sans">AI agent control</p>
+                    <p className="text-xs text-slate-400 font-sans">AI agent control</p>
                 </div>
             </div>
 
@@ -65,7 +65,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                         placeholder="Search workspaces…"
                         className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-9 text-xs text-slate-700 placeholder:text-slate-400 focus:border-brand/40 focus:outline-none focus:ring-2 focus:ring-brand/10 font-sans"
                     />
-                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] text-slate-400 font-sans">
+                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-400 font-sans">
                         ⌘K
                     </span>
                 </div>
@@ -73,7 +73,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
 
             {/* Menu group */}
             <div className="px-3 pt-3">
-                <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-sans">Menu</p>
+                <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400 font-sans">Menu</p>
                 <Link href="/" className={navItemClass(onDashboard)}>
                     <LayoutDashboard className={`size-4 ${onDashboard ? "text-brand" : "text-slate-400"}`} />
                     Dashboard
@@ -86,12 +86,12 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
 
             {/* Workspaces group */}
             <div className="flex-1 overflow-y-auto px-3 pt-4">
-                <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-sans">Workspaces</p>
+                <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400 font-sans">Workspaces</p>
                 <nav className="space-y-0.5">
                     {projects.length === 0 ? (
-                        <p className="px-2.5 py-3 text-[11px] text-slate-400 font-sans">No workspaces registered yet.</p>
+                        <p className="px-2.5 py-3 text-xs text-slate-400 font-sans">No workspaces registered yet.</p>
                     ) : filtered.length === 0 ? (
-                        <p className="px-2.5 py-3 text-[11px] text-slate-400 font-sans">No workspaces match “{query}”.</p>
+                        <p className="px-2.5 py-3 text-xs text-slate-400 font-sans">No workspaces match “{query}”.</p>
                     ) : (
                         filtered.map((p) => {
                             const activeTasks = (p.tasks ?? []).filter((t) => t.status !== "completed").length;
@@ -115,7 +115,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                                         <Pin className="size-3 shrink-0 rotate-45 text-amber-500" aria-label="Pinned host app" />
                                     )}
                                     {activeTasks > 0 && (
-                                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white font-sans">
+                                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white font-sans">
                                             {activeTasks}
                                         </span>
                                     )}
@@ -134,7 +134,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                     </span>
                     <div className="min-w-0 flex-1 leading-tight">
                         <p className="truncate text-xs font-semibold text-slate-800">Loop Studio</p>
-                        <p className="truncate text-[11px] text-slate-400 font-sans">
+                        <p className="truncate text-xs text-slate-400 font-sans">
                             {projects.length} workspace{projects.length === 1 ? "" : "s"} · local
                         </p>
                     </div>
