@@ -7,9 +7,9 @@ interface SuccessTrendChartProps {
     agents: AgentWithMetrics[];
 }
 
-// Vivid violet fill with fine, light diagonal lines for the "Success Rate" bar
-// (thin lavender lines over solid purple — matches the reference).
-const HATCH = "repeating-linear-gradient(45deg, #7c3aed 0 4px, #d6ccfb 4px 6px)";
+// Vivid violet fill with thin, closely-spaced light diagonal lines for the
+// "Success Rate" bar (~1px lavender lines over solid purple — matches reference).
+const HATCH = "repeating-linear-gradient(45deg, #7c3aed 0 3px, #d6ccfb 3px 4px)";
 
 /**
  * "Success Rate & Time Trend" — per agent, a hatched violet bar for success rate
