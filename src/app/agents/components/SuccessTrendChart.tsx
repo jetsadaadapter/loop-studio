@@ -7,8 +7,9 @@ interface SuccessTrendChartProps {
     agents: AgentWithMetrics[];
 }
 
-// Fine diagonal two-tone violet hatch for the "Success Rate" bar (matches reference).
-const HATCH = "repeating-linear-gradient(45deg, #7c3aed 0 3px, #a689f0 3px 6px)";
+// Vivid violet fill with fine, light diagonal lines for the "Success Rate" bar
+// (thin lavender lines over solid purple — matches the reference).
+const HATCH = "repeating-linear-gradient(45deg, #7c3aed 0 4px, #d6ccfb 4px 6px)";
 
 /**
  * "Success Rate & Time Trend" — per agent, a hatched violet bar for success rate
@@ -27,7 +28,7 @@ export function SuccessTrendChart({ agents }: SuccessTrendChartProps) {
                         <span className="size-2.5 rounded-full bg-violet-600" /> Success Rate
                     </span>
                     <span className="flex items-center gap-2 text-xs text-slate-500 font-sans">
-                        <span className="size-2.5 rounded-full bg-violet-200" /> Time Trend
+                        <span className="size-2.5 rounded-full bg-violet-300" /> Time Trend
                     </span>
                 </div>
             </div>
@@ -37,15 +38,15 @@ export function SuccessTrendChart({ agents }: SuccessTrendChartProps) {
                     const success = agent.metrics.successRate; // 0–100
                     const trend = Math.round((agent.metrics.totalTasks / maxTasks) * 100);
                     return (
-                        <div key={agent.id} className="flex min-w-[56px] flex-1 flex-col items-center gap-2.5">
-                            <div className="flex h-[150px] items-end gap-1.5">
+                        <div key={agent.id} className="flex min-w-[64px] flex-1 flex-col items-center gap-2.5">
+                            <div className="flex h-[150px] items-end justify-center gap-2">
                                 <div
-                                    className="w-3.5 rounded-full"
+                                    className="w-5 rounded-full"
                                     style={{ height: `${Math.max(6, success)}%`, backgroundImage: HATCH }}
                                     title={`Success rate ${success}%`}
                                 />
                                 <div
-                                    className="w-3.5 rounded-full bg-violet-200"
+                                    className="w-5 rounded-full bg-violet-300"
                                     style={{ height: `${Math.max(6, trend)}%` }}
                                     title={`${agent.metrics.totalTasks} task(s) touched`}
                                 />
