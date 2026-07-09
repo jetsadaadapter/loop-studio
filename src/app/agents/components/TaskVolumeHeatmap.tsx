@@ -48,12 +48,12 @@ export function TaskVolumeHeatmap({ agents }: TaskVolumeHeatmapProps) {
                                 <div
                                     key={i}
                                     style={heatCellStyle(v, max)}
-                                    className={`flex h-7 items-center justify-center rounded-md text-[10px] font-semibold font-sans ${
-                                        heatCellIsDark(v, max) ? "text-white" : "text-slate-500"
+                                    className={`flex h-9 items-center justify-center rounded-lg text-xs font-semibold font-sans ${
+                                        heatCellIsDark(v, max) ? "text-white" : v > 0 ? "text-violet-700" : "text-slate-300"
                                     }`}
                                     title={`${v} message(s)`}
                                 >
-                                    {v > 0 ? v : ""}
+                                    {v}
                                 </div>
                             ))}
                         </div>

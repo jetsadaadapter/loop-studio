@@ -32,20 +32,23 @@ export function agentTint(id: string): string {
     return AVATAR_TINTS[hash % AVATAR_TINTS.length];
 }
 
+// Violet scale for the heatmap (matches the reference dashboard).
+const HEAT_RGB = "124 58 237"; // violet-600
+
 /**
  * Background for a heatmap cell given its value relative to the busiest cell in
- * the grid. Uses the brand color at increasing opacity; 0 stays neutral.
+ * the grid. Uses violet at increasing opacity; 0 stays a faint neutral.
  */
 export function heatCellStyle(value: number, max: number): React.CSSProperties {
-    if (value <= 0 || max <= 0) return { backgroundColor: "rgb(241 245 249)" }; // slate-100
-    const t = 0.15 + 0.85 * (value / max);
-    return { backgroundColor: `rgba(var(--brand-rgb) / ${t.toFixed(2)})` };
+    if (value <= 0 || max <= 0) return { backgroundColor: "rgb(248 250 252)" }; // slate-50
+    const t = 0.18 + 0.82 * (value / max);
+    return { backgroundColor: `rgba(${HEAT_RGB} / ${t.toFixed(2)})` };
 }
 
 /** Whether a heatmap cell should use light text (dark enough background). */
 export function heatCellIsDark(value: number, max: number): boolean {
     if (value <= 0 || max <= 0) return false;
-    return 0.15 + 0.85 * (value / max) > 0.55;
+    return 0.18 + 0.82 * (value / max) > 0.5;
 }
 
 /** The busiest single weekday cell across all agents (for heatmap scaling). */

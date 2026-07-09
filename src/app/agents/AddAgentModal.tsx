@@ -116,9 +116,9 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
                 hideCloseButton
-                className="w-full max-w-lg rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none"
+                className="flex h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] w-full max-w-none flex-col rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none"
             >
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div className="flex items-center gap-2.5">
                         <span className="flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                             {isEdit ? <Pencil className="size-3.5" /> : <UserPlus className="size-3.5" />}
@@ -128,7 +128,7 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
                     <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} noValidate className="px-5 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-2xl flex-1 space-y-4 overflow-y-auto px-6 py-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field>
                             <FieldLabel>
