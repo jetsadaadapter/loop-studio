@@ -84,13 +84,11 @@ export default function AiTeamSpace() {
 
             <section className="flex min-w-0 flex-1 flex-col overflow-y-auto">
                 {/* Sticky breadcrumb bar — stays visible while the content scrolls */}
-                <div className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 backdrop-blur">
-                    <div className="mx-auto w-full max-w-6xl px-6 py-3">
-                        <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
-                    </div>
+                <div className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 px-6 py-3 backdrop-blur">
+                    <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
                 </div>
 
-                <div className="mx-auto flex w-full max-w-6xl flex-col space-y-4 px-6 py-5">
+                <div className="flex w-full flex-col space-y-6 px-6 py-5">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                             <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>

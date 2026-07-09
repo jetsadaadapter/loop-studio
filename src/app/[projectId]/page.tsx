@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles, Clock } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
-import { Breadcrumbs } from "../loop-components/Breadcrumbs";
+import { StickyCrumbs } from "../loop-components/StickyCrumbs";
 import { ProjectSidebar } from "../loop-components/ProjectSidebar";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
@@ -172,7 +172,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
             <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
-                <Breadcrumbs items={[{ label: project.name }]} />
+                <StickyCrumbs items={[{ label: project.name }]} />
 
                 <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
 

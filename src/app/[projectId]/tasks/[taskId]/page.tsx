@@ -12,7 +12,7 @@ import { PreviewPane } from "@/app/loop-components/PreviewPane";
 import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
 import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
 import { StudioWindow } from "@/app/loop-components/StudioWindow";
-import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
+import { StickyCrumbs } from "@/app/loop-components/StickyCrumbs";
 import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 
 interface TaskWorkspaceProps {
@@ -121,7 +121,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
             <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
-            <Breadcrumbs
+            <StickyCrumbs
                 items={[
                     { label: project?.name || "Project", href: `/${projectId}` },
                     { label: task.name },
