@@ -14,7 +14,9 @@ vi.mock("@/core/services/loop-llm.service", () => ({
     resolveLoopLlm: () => (hasKey ? { provider: "anthropic", apiKey: "k", model: "m" } : null),
 }));
 
-const startAutoRun = vi.fn((..._args: unknown[]) => ({ started: true, total: 2 }));
+const startAutoRun = vi.fn<(...args: unknown[]) => { started: boolean; total: number }>(
+    () => ({ started: true, total: 2 }),
+);
 let running = false;
 vi.mock("@/core/services/loop-autorun.service", () => ({
     startAutoRun: (...args: unknown[]) => startAutoRun(...args),

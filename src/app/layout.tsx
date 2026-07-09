@@ -45,6 +45,51 @@ const sukhumvitSet = localFont({
   ],
 });
 
+// Active Thai UI font. Replaced Sukhumvit Set as the primary Thai face; the
+// sukhumvitSet definition above is intentionally kept (still wired as a
+// fallback in globals.css) so nothing is lost and it can be restored easily.
+const ibmPlexSansThai = localFont({
+  variable: "--font-ibm-plex-thai",
+  display: "swap",
+  src: [
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-Thin.ttf",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-ExtraLight.ttf",
+      weight: "200",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-Light.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/IBM_Plex_Sans_Thai/IBMPlexSansThai-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+});
+
 const geist = localFont({
   variable: "--font-geist",
   display: "swap",
@@ -95,7 +140,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${ibmPlexSansThai.variable} ${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
