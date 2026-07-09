@@ -114,6 +114,9 @@ pnpm-debug.log*
 .antigravity/cache/
 # Runtime logs (Live Run / task / bootstrap) — regenerated on demand
 .antigravity/log-*.txt
+# Per-project runtime state — knowledge accrues at runtime, auto-run mirror is transient
+.antigravity/knowledge-*.json
+.antigravity/autorun-*.json
 
 # -------------------------------------------------------
 # Temporary files

@@ -6,6 +6,7 @@ import { AVAILABLE_SKILLS, AVAILABLE_MODELS } from "@/core/interfaces/loop-proje
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select,
     SelectContent,
@@ -107,11 +108,9 @@ export function AgentCard({
                                 const isChecked = agent.skills.includes(skill.key);
                                 return (
                                     <label key={skill.key} className="flex items-center gap-2 cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
+                                        <Checkbox
                                             checked={isChecked}
-                                            onChange={() => onSkillToggle(agent, skill.key)}
-                                            className="rounded-sm border-slate-300 text-brand focus:ring-brand/50 size-3.5"
+                                            onCheckedChange={() => onSkillToggle(agent, skill.key)}
                                         />
                                         <span className="text-xs text-slate-700 font-sans">{skill.label}</span>
                                     </label>
