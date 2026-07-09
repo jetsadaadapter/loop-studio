@@ -12,7 +12,7 @@ interface StickyCrumbsProps {
 // so it pins flush to the top of the scrollport while the content scrolls under.
 export function StickyCrumbs({ items }: StickyCrumbsProps) {
     return (
-        <div className="sticky top-0 z-10 -mx-6 -mt-6 border-b border-slate-100 bg-white/95 px-6 py-3 backdrop-blur">
+        <div className="sticky top-0 z-20 -mx-6 -mt-6 border-b border-slate-100 bg-white px-6 py-3">
             <Breadcrumbs items={items} />
         </div>
     );
