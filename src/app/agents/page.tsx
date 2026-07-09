@@ -78,7 +78,7 @@ export default function AiTeamSpace() {
     const openEdit = (agent: LoopAgent) => { setEditing(agent); setIsAddOpen(true); };
 
     return (
-        <div className="flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm motion-hero-enter">
+        <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
             <ProjectSidebar projects={allProjects} />
 
             <section className="flex min-w-0 flex-1 flex-col overflow-y-auto px-6 py-6">
