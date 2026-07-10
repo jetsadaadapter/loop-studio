@@ -212,8 +212,9 @@ export default function AiTeamSpace() {
                         </>
                     )}
                     </div>
+                    </div>
 
-                    <AppFooter className="mt-auto pt-6">
+                    <AppFooter className="sticky bottom-0 z-20 bg-white px-6 pb-4">
                         <a href={AVATAR_CREDIT.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 hover:underline">
                             {AVATAR_CREDIT.label}
                         </a>
@@ -236,7 +237,6 @@ export default function AiTeamSpace() {
                             onConfirm={() => handleDelete(deleteTarget)}
                         />
                     )}
-                </div>
             </section>
         </div>
     );
