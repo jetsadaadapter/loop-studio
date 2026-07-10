@@ -13,9 +13,9 @@ interface AgentStatCardProps {
 // One metric tile — a self-contained white card inside the body panel.
 function StatTile({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-xl border border-slate-200/60 bg-white px-4 py-3">
+        <div className="rounded-lg border border-slate-200/60 bg-white px-3 py-2">
             <p className="text-xs font-sans text-slate-500">{label}</p>
-            <p className="mt-1 text-base font-semibold text-slate-800">{value}</p>
+            <p className="mt-0.5 text-sm font-semibold text-slate-800">{value}</p>
         </div>
     );
 }
@@ -26,23 +26,23 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
     return (
         <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition-shadow hover:shadow-md">
             {/* Identity header */}
-            <div className="flex items-start justify-between gap-3 p-5">
-                <div className="flex min-w-0 items-center gap-3.5">
+            <div className="flex items-start justify-between gap-3 p-4">
+                <div className="flex min-w-0 items-center gap-3">
                     <span
                         style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
-                        className="size-14 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
+                        className="size-11 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
                         role="img"
                         aria-label={`${agent.name} avatar`}
                     />
                     <div className="min-w-0">
-                        <h3 className="truncate text-xl font-bold tracking-tight text-slate-800" title={agent.name}>
+                        <h3 className="truncate text-base font-semibold tracking-tight text-slate-800" title={agent.name}>
                             {agent.name.split("(")[0].trim()}
                         </h3>
-                        <p className="truncate text-sm text-slate-500 font-sans">{agent.role}</p>
+                        <p className="truncate text-xs text-slate-500 font-sans">{agent.role}</p>
                     </div>
                 </div>
                 <span
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold font-sans ${
+                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold font-sans ${
                         m.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
                     }`}
                 >
@@ -54,8 +54,8 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
             <div className="border-t border-slate-100" />
 
             {/* Metrics + last activity panel */}
-            <div className="flex flex-1 flex-col gap-4 bg-slate-50/40 p-5">
-                <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-1 flex-col gap-3 bg-slate-50/40 p-4">
+                <div className="grid grid-cols-2 gap-2">
                     <StatTile label="Task this week" value={String(m.taskThisWeek)} />
                     <StatTile label="Open Ticket" value={String(m.openTickets)} />
                     <StatTile label="Success Rate" value={`${m.successRate}%`} />
@@ -64,7 +64,7 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
 
                 <div>
                     <p className="text-xs font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
-                    <p className="mt-1 truncate text-sm text-slate-700 font-sans" title={m.lastActivity ?? ""}>
+                    <p className="mt-0.5 truncate text-xs text-slate-600 font-sans" title={m.lastActivity ?? ""}>
                         {m.lastActivity ?? "No recorded activity yet"}
                     </p>
                 </div>
