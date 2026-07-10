@@ -58,7 +58,7 @@ export function SuccessTrendChart({ agents }: SuccessTrendChartProps) {
                                     role="img"
                                     aria-label={`${agent.name} avatar`}
                                 />
-                                <span className="text-xs font-medium text-slate-600 font-sans">
+                                <span className="text-xs font-semibold uppercase text-slate-600 font-sans">
                                     {agent.name.split("(")[0].trim()}
                                 </span>
                             </div>

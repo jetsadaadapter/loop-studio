@@ -42,7 +42,7 @@ export function TaskVolumeHeatmap({ agents }: TaskVolumeHeatmapProps) {
                                     role="img"
                                     aria-label={`${agent.name} avatar`}
                                 />
-                                <span className="truncate text-xs text-slate-600 font-sans" title={agent.name}>
+                                <span className="truncate text-xs font-semibold uppercase text-slate-600 font-sans" title={agent.name}>
                                     {agent.name.split("(")[0].trim()}
                                 </span>
                             </div>
