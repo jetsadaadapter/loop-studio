@@ -118,20 +118,11 @@ export default function AiTeamSpace() {
 
                 <div className="flex w-full flex-1 flex-col px-6 py-5">
                     <div className="flex flex-col space-y-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div className="min-w-0">
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>
-                            <p className="mt-1 text-xs text-slate-500 font-sans">
-                                Live overview of your autonomous AI team — activity, success, and workload across every project
-                            </p>
-                        </div>
-                        <button
-                            onClick={openAdd}
-                            className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 cursor-pointer shrink-0"
-                        >
-                            <Plus className="size-3.5" />
-                            Add Agent
-                        </button>
+                    <div className="min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-800">AI Developer Team</h1>
+                        <p className="mt-1 text-xs text-slate-500 font-sans">
+                            Live overview of your autonomous AI team — activity, success, and workload across every project
+                        </p>
                     </div>
 
                     {loading ? (
@@ -149,19 +140,28 @@ export default function AiTeamSpace() {
                             </div>
 
                             <div>
-                                <h2 className="mb-3 text-sm font-semibold text-slate-800">All agents</h2>
+                                <h2 className="mb-5 text-sm font-semibold text-slate-800">All agents</h2>
                                 <ManagerToolbar
                                     searchValue={agentSearch}
                                     onSearchChange={setAgentSearch}
                                     searchPlaceholder="Search agents by name or role…"
                                     filters={agentFilters}
                                     trailing={
-                                        <ManageRefreshButton
-                                            isLoading={loading}
-                                            isRefreshing={loading}
-                                            onRefresh={loadAgents}
-                                            title="Refresh Agents"
-                                        />
+                                        <>
+                                            <ManageRefreshButton
+                                                isLoading={loading}
+                                                isRefreshing={loading}
+                                                onRefresh={loadAgents}
+                                                title="Refresh Agents"
+                                            />
+                                            <button
+                                                onClick={openAdd}
+                                                className="flex items-center gap-1.5 rounded-sm bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand/10 transition-all hover:bg-brand/90 cursor-pointer shrink-0"
+                                            >
+                                                <Plus className="size-3.5" />
+                                                Add Agent
+                                            </button>
+                                        </>
                                     }
                                 />
                                 {filteredAgents.length === 0 ? (
