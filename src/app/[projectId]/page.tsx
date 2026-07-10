@@ -16,7 +16,6 @@ import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
 import { TaskView } from "./components/TaskView";
 import { BoardView } from "./components/BoardView";
-import { WalkthroughView } from "./components/WalkthroughView";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectWorkspaceProps {
@@ -39,7 +38,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isAutoRunOpen, setIsAutoRunOpen] = useState(false);
     const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("walkthrough");
+    const [viewTab, setViewTab] = useState<WorkspaceViewTab>("board");
 
     const loadData = async () => {
         setLoading(true);
@@ -201,11 +200,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                     )
                 )}
 
-                {viewTab === "walkthrough" && (
-                    tasks.length === 0 ? emptyTasks : (
-                        <WalkthroughView projectId={projectId} tasks={tasks} onRefresh={loadData} />
-                    )
-                )}
+
             </section>
 
             <CreateTaskModal

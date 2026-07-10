@@ -63,7 +63,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
             <div className="space-y-3">
                 <div>
                     <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
-                        1. Did the test cases actually prove correctness (or pass insignificantly)?
+                        1. เคสทดสอบ (Test Cases) สามารถพิสูจน์ความถูกต้องของโค้ดได้จริงหรือไม่? (หรือผ่านโดยไม่มีนัยสำคัญ)
                     </label>
                     <Input
                         type="text"
@@ -76,7 +76,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
 
                 <div>
                     <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
-                        2. Are there any environments left unverified?
+                        2. มีสภาพแวดล้อมระบบ (Environments) ส่วนใดที่ยังไม่ถูกทดสอบหรือตรวจสอบความเสถียรหรือไม่?
                     </label>
                     <Input
                         type="text"
@@ -89,7 +89,7 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
 
                 <div>
                     <label className="block text-xs font-medium text-slate-600 font-sans mb-1">
-                        3. Did any unintended side-effects occur outside the scoped files?
+                        3. มีผลกระทบข้างเคียง (Side-effects) ที่ไม่พึงประสงค์เกิดขึ้นนอกไฟล์ที่อยู่ในขอบเขตหรือไม่?
                     </label>
                     <Input
                         type="text"

@@ -24,43 +24,82 @@ const STAGES: { stage: TaskStage; label: string; icon: LucideIcon }[] = [
 export function TimelineStages({ currentStage, activeStage, onSelectStage, status }: TimelineStagesProps) {
     const getStageIndex = (s: TaskStage) => STAGES.findIndex(item => item.stage === s);
     const currentIndex = getStageIndex(currentStage);
-    // When the whole task loop is finished, every stage (including the final LEARN
-    // stage, which otherwise stays "Active") should render as completed.
     const isTaskComplete = status === "completed";
 
     return (
-        <div className="w-full bg-slate-50 border border-slate-200/60 rounded-xl p-4 select-none">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="w-full bg-slate-50/50 border border-slate-200/50 rounded-2xl p-6 select-none shadow-xs relative">
+            <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-2">
+                {/* Connecting track line for medium+ screens */}
+                <div className="hidden md:block absolute top-[22px] left-[8%] right-[8%] h-0.75 bg-slate-200 -z-10 rounded-full">
+                    <div 
+                        className="h-full bg-emerald-500 transition-all duration-500 ease-in-out rounded-full"
+                        style={{ 
+                            width: isTaskComplete 
+                                ? "100%" 
+                                : `${(currentIndex / (STAGES.length - 1)) * 100}%` 
+                        }}
+                    />
+                </div>
+
                 {STAGES.map((item, idx) => {
-                    const isActive = activeStage === item.stage;
+                    const isActiveView = activeStage === item.stage;
                     const isCompleted = isTaskComplete || idx < currentIndex;
                     const isCurrent = !isTaskComplete && idx === currentIndex;
 
-                    let statusClass = "border-slate-200 bg-white text-slate-400";
+                    let nodeColor = "bg-white border-slate-200 text-slate-400";
+                    let ringClass = "";
                     if (isCompleted) {
-                        statusClass = "border-emerald-500 bg-emerald-500 text-white";
+                        nodeColor = "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/10";
                     } else if (isCurrent) {
-                        statusClass = "border-indigo-600 bg-indigo-50 text-indigo-600 font-semibold";
-                    } else if (isActive) {
-                        statusClass = "border-slate-400 bg-slate-100 text-slate-700";
+                        nodeColor = "bg-brand border-brand text-white shadow-sm shadow-brand/10";
+                        ringClass = "ring-4 ring-brand/10 animate-pulse";
+                    } else if (isActiveView) {
+                        nodeColor = "bg-white border-brand text-brand shadow-xs";
                     }
+
+                    const Icon = item.icon;
 
                     return (
                         <button
                             key={item.stage}
                             onClick={() => onSelectStage(item.stage)}
-                            className={`flex-1 flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer text-left ${
-                                isActive ? "border-indigo-500 shadow-3xs ring-1 ring-indigo-500/20 bg-white" : "border-slate-200/60 hover:bg-slate-100/50 bg-white"
-                            }`}
+                            className="flex-1 group flex flex-col items-center text-center focus:outline-none cursor-pointer z-10"
                         >
-                            <div className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs transition-colors duration-200 ${statusClass}`}>
-                                {isCompleted ? <Check className="size-3.5" /> : idx + 1}
+                            {/* Circle Node */}
+                            <div className={`relative flex size-11 items-center justify-center rounded-full border-2 transition-all duration-300 ${nodeColor} ${ringClass} group-hover:scale-105`}>
+                                {isCompleted ? (
+                                    <Check className="size-5 stroke-[3]" />
+                                ) : (
+                                    <Icon className="size-5" />
+                                )}
+                                
+                                {/* Status dot on top right if it's the current executing stage */}
+                                {isCurrent && (
+                                    <span className="absolute -top-0.5 -right-0.5 flex size-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500"></span>
+                                    </span>
+                                )}
                             </div>
-                            <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 leading-normal truncate">{item.label}</p>
-                                <p className="text-xs text-slate-400 font-sans truncate uppercase tracking-wider">
-                                    {isCompleted ? "Completed" : isCurrent ? "Active" : "Pending"}
-                                </p>
+
+                            {/* Label & Description */}
+                            <div className="mt-3 flex flex-col items-center">
+                                <span className={`text-xs font-bold font-sans transition-colors duration-150 ${
+                                    isActiveView ? "text-brand" : "text-slate-800 group-hover:text-slate-900"
+                                }`}>
+                                    {item.label}
+                                </span>
+                                <span className={`text-[10px] mt-0.5 font-bold uppercase tracking-wider font-sans px-2.5 py-0.5 rounded-full border transition-colors ${
+                                    isCompleted 
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                                        : isCurrent 
+                                            ? "bg-brand/5 text-brand border-brand/10 animate-pulse" 
+                                            : isActiveView 
+                                                ? "bg-slate-100 text-slate-700 border-slate-200"
+                                                : "bg-slate-50 text-slate-400 border-slate-100"
+                                }`}>
+                                    {isCompleted ? "Completed" : isCurrent ? "Running" : "Pending"}
+                                </span>
                             </div>
                         </button>
                     );

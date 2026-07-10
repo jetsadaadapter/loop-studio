@@ -7,10 +7,9 @@ import { PanelsTopLeft, ListChecks, Settings, LayoutGrid, type LucideIcon } from
 // Workspace navigation as underline tabs, per the reference layout:
 // Studio (walkthrough), Board (kanban), and Tasks (list), with the
 // Settings shortcut kept on the right of the same row.
-export type WorkspaceViewTab = "walkthrough" | "board" | "task";
+export type WorkspaceViewTab = "board" | "task";
 
 const TABS: { key: WorkspaceViewTab; label: string; icon: LucideIcon }[] = [
-    { key: "walkthrough", label: "Studio", icon: PanelsTopLeft },
     { key: "board", label: "Board", icon: LayoutGrid },
     { key: "task", label: "Tasks", icon: ListChecks },
 ];
