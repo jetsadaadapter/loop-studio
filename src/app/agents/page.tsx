@@ -8,6 +8,8 @@ import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
+import { ManagerToolbar } from "@/components/manager-toolbar";
+import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { AddAgentModal } from "./AddAgentModal";
 import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
 import { AppFooter } from "@/app/loop-components/AppFooter";
@@ -27,6 +29,32 @@ export default function AiTeamSpace() {
 
     const [apiKey, setApiKey] = useState("");
     const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
+
+    const [agentSearch, setAgentSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    const filteredAgents = agents.filter((a) => {
+        const q = agentSearch.trim().toLowerCase();
+        const matchesSearch = !q || a.name.toLowerCase().includes(q) || a.role.toLowerCase().includes(q);
+        const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "active" ? a.metrics.active : !a.metrics.active);
+        return matchesSearch && matchesStatus;
+    });
+
+    const agentFilters = [
+        {
+            key: "status",
+            label: "Status",
+            value: statusFilter,
+            options: [
+                { value: "all", label: "All Statuses" },
+                { value: "active", label: "Active" },
+                { value: "idle", label: "Idle" },
+            ],
+            onChange: (val: string) => setStatusFilter(val),
+        },
+    ];
 
     const loadAgents = async () => {
         try {
@@ -121,17 +149,38 @@ export default function AiTeamSpace() {
                             </div>
 
                             <div>
-                                <h2 className="text-sm font-semibold text-slate-800">All agents</h2>
-                                <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    {agents.map((agent) => (
-                                        <AgentStatCard
-                                            key={agent.id}
-                                            agent={agent}
-                                            onEdit={openEdit}
-                                            onDelete={setDeleteTarget}
+                                <h2 className="mb-3 text-sm font-semibold text-slate-800">All agents</h2>
+                                <ManagerToolbar
+                                    searchValue={agentSearch}
+                                    onSearchChange={setAgentSearch}
+                                    searchPlaceholder="Search agents by name or role…"
+                                    filters={agentFilters}
+                                    trailing={
+                                        <ManageRefreshButton
+                                            isLoading={loading}
+                                            isRefreshing={loading}
+                                            onRefresh={loadAgents}
+                                            title="Refresh Agents"
                                         />
-                                    ))}
-                                </div>
+                                    }
+                                />
+                                {filteredAgents.length === 0 ? (
+                                    <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center">
+                                        <p className="text-sm font-semibold text-slate-700">No agents match your filters</p>
+                                        <p className="mt-1 text-xs text-slate-500 font-sans">Try a different search or status.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                        {filteredAgents.map((agent) => (
+                                            <AgentStatCard
+                                                key={agent.id}
+                                                agent={agent}
+                                                onEdit={openEdit}
+                                                onDelete={setDeleteTarget}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </>
                     )}
