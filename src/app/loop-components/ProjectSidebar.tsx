@@ -36,9 +36,9 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
         : projects;
 
     const navItemClass = (active: boolean) =>
-        `flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
+        `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
             active
-                ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/70"
+                ? "bg-brand/5 text-slate-900 ring-1 ring-brand/15"
                 : "text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-800"
         }`;
 
@@ -102,7 +102,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                                     href={`/${p.id}`}
                                     aria-current={isActive ? "page" : undefined}
                                     className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all ${
-                                        isActive ? "bg-white shadow-sm ring-1 ring-slate-200/70" : "hover:bg-white hover:shadow-sm"
+                                        isActive ? "bg-brand/5 ring-1 ring-brand/15" : "hover:bg-white hover:shadow-sm"
                                     }`}
                                 >
                                     <span className={`size-2 shrink-0 rounded-full ${TEMPLATE_DOT[p.template] ?? TEMPLATE_DOT.generic}`} />
