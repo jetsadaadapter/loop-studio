@@ -122,7 +122,7 @@ export default function AiTeamSpace() {
 
                             <div>
                                 <h2 className="text-sm font-semibold text-slate-800">All agents</h2>
-                                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                                     {agents.map((agent) => (
                                         <AgentStatCard
                                             key={agent.id}

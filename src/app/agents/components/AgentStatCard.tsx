@@ -10,36 +10,35 @@ interface AgentStatCardProps {
     onDelete: (agent: AgentWithMetrics) => void;
 }
 
-// One cell of the 2×2 stat grid. Internal borders are drawn per-cell so the
-// group reads as a single bordered table like the reference.
-function StatTile({ label, value, className }: { label: string; value: string; className: string }) {
+// One metric tile — a self-contained white card inside the body panel.
+function StatTile({ label, value }: { label: string; value: string }) {
     return (
-        <div className={`px-4 py-3 ${className}`}>
+        <div className="rounded-xl border border-slate-200/60 bg-white px-4 py-3">
             <p className="text-xs font-sans text-slate-500">{label}</p>
             <p className="mt-1 text-base font-semibold text-slate-800">{value}</p>
         </div>
     );
 }
 
-/** One agent card: identity, live status, four derived metrics, last activity. */
+/** One agent card: identity header, four metric tiles, and last activity. */
 export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
     const m = agent.metrics;
     return (
-        <div className="group relative flex flex-col rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-            {/* Identity + status */}
-            <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3 min-w-0">
+        <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition-shadow hover:shadow-md">
+            {/* Identity header */}
+            <div className="flex items-start justify-between gap-3 p-5">
+                <div className="flex min-w-0 items-center gap-3.5">
                     <span
                         style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
-                        className="size-12 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
+                        className="size-14 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
                         role="img"
                         aria-label={`${agent.name} avatar`}
                     />
                     <div className="min-w-0">
-                        <h3 className="truncate text-base font-semibold text-slate-800" title={agent.name}>
+                        <h3 className="truncate text-xl font-bold tracking-tight text-slate-800" title={agent.name}>
                             {agent.name.split("(")[0].trim()}
                         </h3>
-                        <p className="truncate text-xs text-slate-500 font-sans">{agent.role}</p>
+                        <p className="truncate text-sm text-slate-500 font-sans">{agent.role}</p>
                     </div>
                 </div>
                 <span
@@ -52,20 +51,23 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
                 </span>
             </div>
 
-            {/* Metrics grid */}
-            <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-xl border border-slate-200/70">
-                <StatTile label="Task this week" value={String(m.taskThisWeek)} className="border-b border-r border-slate-200/70" />
-                <StatTile label="Open Ticket" value={String(m.openTickets)} className="border-b border-slate-200/70" />
-                <StatTile label="Success Rate" value={`${m.successRate}%`} className="border-r border-slate-200/70" />
-                <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} className="" />
-            </div>
+            <div className="border-t border-slate-100" />
 
-            {/* Last activity */}
-            <div className="mt-4 border-t border-slate-100 pt-3">
-                <p className="text-xs font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
-                <p className="mt-1 truncate text-sm text-slate-600 font-sans" title={m.lastActivity ?? ""}>
-                    {m.lastActivity ?? "No recorded activity yet"}
-                </p>
+            {/* Metrics + last activity panel */}
+            <div className="flex flex-1 flex-col gap-4 bg-slate-50/40 p-5">
+                <div className="grid grid-cols-2 gap-3">
+                    <StatTile label="Task this week" value={String(m.taskThisWeek)} />
+                    <StatTile label="Open Ticket" value={String(m.openTickets)} />
+                    <StatTile label="Success Rate" value={`${m.successRate}%`} />
+                    <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} />
+                </div>
+
+                <div>
+                    <p className="text-xs font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
+                    <p className="mt-1 truncate text-sm text-slate-700 font-sans" title={m.lastActivity ?? ""}>
+                        {m.lastActivity ?? "No recorded activity yet"}
+                    </p>
+                </div>
             </div>
 
             {/* Hover actions — absolute so the card matches the reference at rest */}
