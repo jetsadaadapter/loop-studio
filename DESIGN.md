@@ -14,7 +14,7 @@
 1. การสร้าง Component ใหม่ต้องสร้างเป็นโฟลเดอร์ kebab-case (มี index.tsx, types.ts, data.ts)
 2. ห้ามเขียนโค้ดไฟล์ใดเกิน 300 บรรทัดโดยเด็ดขาด ให้แบ่งเป็น Component ย่อยอย่างสะอาดตา
 3. ใช้ฟอนต์ Sukhumvit Set เป็นหลักสำหรับภาษาไทย (ผ่าน html:lang(th))
-4. ใช้สีหลัก --color-brand (#c20019) และผสมผสานโทนสีหรูหรา --color-rich-mahogany (#3c1518) หรือ --color-dark-garnet (#69140e) สำหรับหน้าฝั่งผู้ใช้งาน
+4. ใช้สีหลัก --color-brand (#607456) และผสมผสานโทนสีหรูหรา --color-terracotta (#BA6A4C) หรือ --color-dark-red (#7B2525) สำหรับหน้าฝั่งผู้ใช้งาน
 5. ออกแบบ UI ให้มีความพรีเมียม (Premium Aesthetics): ใช้พื้นหลัง Glassmorphism, ขอบโค้งมนละมุน (rounded-xl), อนิเมชันเปิดตัวละเมียดละไม (motion-hero-enter) และเอฟเฟกต์โฮเวอร์ที่มีมิติ (shadow-md hover:shadow-indigo-500/2)
 6. ตรวจสอบและ Normalize ข้อมูลที่เป็น Object หรือ String ก่อนแสดงผลเสมอ เพื่อป้องกันแอปพัง เช่น:
    {typeof category === "string" ? category : category?.name || ""}
@@ -43,13 +43,20 @@
 โปรเจกต์นี้ใช้สีที่ผ่านการเลือกสรรอย่างประณีต ห้ามใช้รหัสสีดิบ (Raw Hex) ให้เลือกใช้ผ่านตัวแปรสีในระบบ Tailwind v4 ต่อไปนี้:
 
 ```text
-🔴 สีเน้นหลักของแบรนด์ (Brand Accent):
-   ├── --color-brand         : #c20019 (สีแดง Crimson แบรนด์หลัก)
-   └── --color-brand-strong  : #a30015 (สีแดงเข้มสำหรับสถานะ Hover หรือ Active)
+🟢 สีเน้นหลักของแบรนด์ (Brand Accent):
+   ├── --color-brand         : #607456 (สีเขียว Sage Green แบรนด์หลัก)
+   └── --color-brand-strong  : #4b5c43 (สีเขียวเข้มสำหรับสถานะ Hover หรือ Active)
 
-🟤 โทนสีมืดหรูหราพรีเมียม (Premium Dark Hues):
-   ├── --color-rich-mahogany : #3c1518 (เฉดสีมะฮอกกานีเข้ม ให้มิติลึก)
-   └── --color-dark-garnet   : #69140e (เฉดสีแดงโกเมนมืด สำหรับการเล่นแสงเงา)
+🟡 โทนสีประกอบและสีเน้นพรีเมียม (Premium Palette Hues):
+   ├── --color-cream         : #EEE0CC (สีครีม สำหรับโทนสว่างอบอุ่น)
+   ├── --color-terracotta    : #BA6A4C (สีส้มอิฐพรีเมียม สำหรับปุ่มเน้น/เน้นจุดสนใจ)
+   └── --color-dark-red      : #8E1616 (สีแดงเข้มสำหรับสถานะอันตรายหรือลบ)
+
+🎨 พาเลทสีสำหรับพื้นหลังเอเจนต์ (AI Developer Team Card Backgrounds):
+   ├── --color-agent-1       : #C4DFDF (สีฟ้าอมเขียวมินต์ Soft Mint Blue-Green)
+   ├── --color-agent-2       : #D2E9E9 (สีมินต์จาง Light Mint Tint)
+   ├── --color-agent-3       : #E3F4F4 (สีมินต์สว่างพิเศษ Very Light Mint Off-White)
+   └── --color-agent-4       : #F8F6F4 (สีเทาขาวอบอุ่น Warm Light Grey)
 
 ⚪ โทนสีปกติสำหรับการจัดระเบียบ (Clean Minimalist):
    ├── bg-slate-50/30 หรือ bg-white (พื้นหลังการ์ดสะอาด)

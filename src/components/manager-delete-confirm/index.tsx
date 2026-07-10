@@ -119,7 +119,7 @@ export function ManagerDeleteConfirm({
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 h-8.5 rounded-lg text-xs font-bold bg-brand hover:bg-brand-strong text-white active:scale-95 duration-200 transition-all shadow-sm shadow-brand/10 border-none disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  className="flex-1 h-8.5 rounded-lg text-xs font-bold bg-destructive hover:bg-destructive-strong text-white active:scale-95 duration-200 transition-all shadow-sm shadow-destructive/10 border-none disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   onClick={onConfirm}
                   disabled={isLoading || !isConfirmationValid}
                 >

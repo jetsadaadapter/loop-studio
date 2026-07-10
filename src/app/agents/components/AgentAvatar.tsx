@@ -45,7 +45,7 @@ function hashSeed(s: string): number {
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return h;
 }
-const pick = <T,>(arr: T[], n: number): T => arr[n % arr.length];
+const pick = <T,>(arr: T[], n: number): T => arr[Math.abs(n) % arr.length];
 
 // Deterministic illustrated avatar rendered fully offline as inline SVG
 // (@humation/react, MIT), with gender-matched hair/clothing and per-seed colours.
@@ -55,16 +55,16 @@ export function AgentAvatar({ seed, name, size, gender, className = "" }: AgentA
 
     const selections: Record<string, string> = {};
     const head = PART_ID[pick(HAIR[g], h)];
-    const bottom = PART_ID[pick(BOTTOM[g], h >> 3)];
+    const bottom = PART_ID[pick(BOTTOM[g], h >>> 3)];
     if (head) selections.head = head;
     if (bottom) selections.bottom = bottom;
 
     const colors = {
-        hair: `#${pick(HAIR_COLORS, h >> 2)}`,
-        skin: `#${pick(SKIN, h >> 5)}`,
-        clothes: `#${pick(CLOTHES, h >> 7)}`,
+        hair: `#${pick(HAIR_COLORS, h >>> 2)}`,
+        skin: `#${pick(SKIN, h >>> 5)}`,
+        clothes: `#${pick(CLOTHES, h >>> 7)}`,
     };
-    const background = `#${pick(BG, h >> 9)}`;
+    const background = `#${pick(BG, h >>> 19)}`;
 
     return (
         <span

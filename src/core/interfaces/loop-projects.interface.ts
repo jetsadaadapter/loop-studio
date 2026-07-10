@@ -11,12 +11,15 @@ export const AVAILABLE_SKILLS: SkillTag[] = [
 ];
 
 export const AVAILABLE_MODELS = [
-    { id: "claude-sonnet-5", label: "Claude Sonnet 5 (Recommended)", provider: "Anthropic" },
-    { id: "claude-opus-4-8", label: "Claude Opus 4.8", provider: "Anthropic" },
+    { id: "claude-opus-4-8", label: "Claude Opus 4.8 (Recommended)", provider: "Anthropic" },
+    { id: "claude-fable-5", label: "Claude Fable 5", provider: "Anthropic" },
+    { id: "claude-sonnet-5", label: "Claude Sonnet 5", provider: "Anthropic" },
     { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", provider: "Anthropic" },
-    { id: "gemini-1-5-pro", label: "Gemini 1.5 Pro", provider: "Google" },
-    { id: "gpt-4o", label: "GPT-4o", provider: "OpenAI" },
-    { id: "llama-3", label: "Llama 3 (Local/Ollama)", provider: "Meta" },
+    { id: "gemini-3-5-flash-medium", label: "Gemini 3.5 Flash (Medium)", provider: "Google" },
+    { id: "gemini-3-5-flash-high", label: "Gemini 3.5 Flash (High)", provider: "Google" },
+    { id: "gemini-3-5-flash-low", label: "Gemini 3.5 Flash (Low)", provider: "Google" },
+    { id: "gemini-3-1-pro-low", label: "Gemini 3.1 Pro (Low)", provider: "Google" },
+    { id: "gemini-3-1-pro-high", label: "Gemini 3.1 Pro (High)", provider: "Google" },
 ];
 
 /**
@@ -24,7 +27,7 @@ export const AVAILABLE_MODELS = [
  * routes. All agent personas share one call to keep setup simple, so this is the
  * single source of truth — update here to switch the Loop Studio LLM.
  */
-export const LOOP_LLM_MODEL = "claude-sonnet-5";
+export const LOOP_LLM_MODEL = "claude-opus-4-8";
 
 /** Approximate Sonnet-class pricing (USD per 1M tokens) used for cost display. */
 export const LOOP_LLM_PRICING = { inputPerM: 3, outputPerM: 15 } as const;

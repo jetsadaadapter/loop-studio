@@ -13,14 +13,10 @@ interface AgentStatCardProps {
 // Soft pastel tint for the metrics panel, picked deterministically per agent so
 // the white metric tiles stand out against a coloured background.
 const CARD_TINTS = [
-    "bg-violet-50",
-    "bg-indigo-50",
-    "bg-sky-50",
-    "bg-emerald-50",
-    "bg-amber-50",
-    "bg-rose-50",
-    "bg-teal-50",
-    "bg-fuchsia-50",
+    "bg-agent-1/40",
+    "bg-agent-2/50",
+    "bg-agent-3/85",
+    "bg-agent-4/95",
 ];
 
 function tintFor(id: string): string {
@@ -96,7 +92,7 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
                 <button
                     onClick={() => onDelete(agent)}
                     title="Delete agent"
-                    className="flex size-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 hover:border-red-200 cursor-pointer"
+                    className="flex size-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 cursor-pointer"
                 >
                     <Trash2 className="size-3.5" />
                 </button>

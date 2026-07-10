@@ -29,7 +29,7 @@ interface AddAgentModalProps {
     agent?: LoopAgent | null;
 }
 
-const EMPTY_FORM = { name: "", role: "", model: "claude-sonnet-5", systemPrompt: "", skills: [] as string[], gender: "male" as "male" | "female" };
+const EMPTY_FORM = { name: "", role: "", model: "claude-opus-4-8", systemPrompt: "", skills: [] as string[], gender: "male" as "male" | "female" };
 
 const formFromAgent = (agent: LoopAgent) => ({
     name: agent.name,
@@ -117,9 +117,9 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
                 hideCloseButton
-                className="w-full max-w-lg rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none"
+                className="w-full max-w-lg rounded-2xl border border-slate-200/60 bg-white p-0 shadow-xl shadow-slate-900/10 focus:outline-none flex flex-col max-h-[85vh]"
             >
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <span className="flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                             {isEdit ? <Pencil className="size-3.5" /> : <UserPlus className="size-3.5" />}
@@ -129,119 +129,121 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
                     <ModalCloseButton onClose={onClose} />
                 </div>
 
-                <form onSubmit={handleSubmit} noValidate className="px-5 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form onSubmit={handleSubmit} noValidate className="flex flex-col flex-1 min-h-0">
+                    <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 min-h-0">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Field>
+                                <FieldLabel>
+                                    Agent Name <span className="text-destructive">*</span>
+                                </FieldLabel>
+                                <Input
+                                    aria-invalid={!!fieldErrors.name}
+                                    placeholder="e.g. Ada"
+                                    value={form.name}
+                                    onChange={(e) => setField("name", e.target.value)}
+                                />
+                                <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
+                            </Field>
+                            <Field>
+                                <FieldLabel>
+                                    Role <span className="text-destructive">*</span>
+                                </FieldLabel>
+                                <Input
+                                    aria-invalid={!!fieldErrors.role}
+                                    placeholder="e.g. Frontend Engineer"
+                                    value={form.role}
+                                    onChange={(e) => setField("role", e.target.value)}
+                                />
+                                <FieldError errors={fieldErrors.role ? [{ message: fieldErrors.role }] : []} />
+                            </Field>
+                        </div>
+
                         <Field>
-                            <FieldLabel>
-                                Agent Name <span className="text-destructive">*</span>
-                            </FieldLabel>
-                            <Input
-                                aria-invalid={!!fieldErrors.name}
-                                placeholder="e.g. Ada"
-                                value={form.name}
-                                onChange={(e) => setField("name", e.target.value)}
-                            />
-                            <FieldError errors={fieldErrors.name ? [{ message: fieldErrors.name }] : []} />
+                            <FieldLabel>Model Engine</FieldLabel>
+                            <Select
+                                value={form.model}
+                                onValueChange={(val) => setForm((p) => ({ ...p, model: val || "" }))}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent align="start">
+                                    {AVAILABLE_MODELS.map((m) => (
+                                        <SelectItem key={m.id} value={m.id}>
+                                            {m.label} ({m.provider})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </Field>
+
                         <Field>
-                            <FieldLabel>
-                                Role <span className="text-destructive">*</span>
-                            </FieldLabel>
-                            <Input
-                                aria-invalid={!!fieldErrors.role}
-                                placeholder="e.g. Frontend Engineer"
-                                value={form.role}
-                                onChange={(e) => setField("role", e.target.value)}
-                            />
-                            <FieldError errors={fieldErrors.role ? [{ message: fieldErrors.role }] : []} />
+                            <FieldLabel>Gender</FieldLabel>
+                            <Select
+                                value={form.gender}
+                                onValueChange={(val) => setForm((p) => ({ ...p, gender: (val as "male" | "female") || "male" }))}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent align="start">
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">Female</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FieldDescription>Sets the avatar&apos;s hair &amp; clothing style.</FieldDescription>
                         </Field>
+
+                        <Field>
+                            <FieldLabel>Expertise Skills</FieldLabel>
+                            <div className="grid grid-cols-2 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
+                                {AVAILABLE_SKILLS.map((skill) => {
+                                    const isChecked = form.skills.includes(skill.key);
+                                    const id = `add-skill-${skill.key}`;
+                                    return (
+                                        <Field key={skill.key} orientation="horizontal">
+                                            <Checkbox
+                                                id={id}
+                                                name={id}
+                                                checked={isChecked}
+                                                onCheckedChange={() => toggleSkill(skill.key)}
+                                            />
+                                            <Label htmlFor={id} className="text-xs font-normal text-slate-700 font-sans">
+                                                {skill.label}
+                                            </Label>
+                                        </Field>
+                                    );
+                                })}
+                            </div>
+                        </Field>
+
+                        <Field>
+                            <div className="flex items-center justify-between">
+                                <FieldLabel>System Instructions Prompt</FieldLabel>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerate}
+                                    className="flex items-center gap-1 rounded-sm border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
+                                >
+                                    <Wand2 className="size-3" />
+                                    Generate from role & skills
+                                </button>
+                            </div>
+                            <Textarea
+                                rows={7}
+                                aria-invalid={!!fieldErrors.systemPrompt}
+                                placeholder="Describe the agent's responsibilities and behavior..."
+                                value={form.systemPrompt}
+                                onChange={(e) => setField("systemPrompt", e.target.value)}
+                                className="min-h-0 leading-relaxed"
+                            />
+                            <FieldError errors={fieldErrors.systemPrompt ? [{ message: fieldErrors.systemPrompt }] : []} />
+                        </Field>
+
+                        <FieldError errors={error ? [{ message: error }] : []} />
                     </div>
 
-                    <Field>
-                        <FieldLabel>Model Engine</FieldLabel>
-                        <Select
-                            value={form.model}
-                            onValueChange={(val) => setForm((p) => ({ ...p, model: val || "" }))}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent align="start">
-                                {AVAILABLE_MODELS.map((m) => (
-                                    <SelectItem key={m.id} value={m.id}>
-                                        {m.label} ({m.provider})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </Field>
-
-                    <Field>
-                        <FieldLabel>Gender</FieldLabel>
-                        <Select
-                            value={form.gender}
-                            onValueChange={(val) => setForm((p) => ({ ...p, gender: (val as "male" | "female") || "male" }))}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent align="start">
-                                <SelectItem value="male">Male</SelectItem>
-                                <SelectItem value="female">Female</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FieldDescription>Sets the avatar&apos;s hair &amp; clothing style.</FieldDescription>
-                    </Field>
-
-                    <Field>
-                        <FieldLabel>Expertise Skills</FieldLabel>
-                        <div className="grid grid-cols-2 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
-                            {AVAILABLE_SKILLS.map((skill) => {
-                                const isChecked = form.skills.includes(skill.key);
-                                const id = `add-skill-${skill.key}`;
-                                return (
-                                    <Field key={skill.key} orientation="horizontal">
-                                        <Checkbox
-                                            id={id}
-                                            name={id}
-                                            checked={isChecked}
-                                            onCheckedChange={() => toggleSkill(skill.key)}
-                                        />
-                                        <Label htmlFor={id} className="text-xs font-normal text-slate-700 font-sans">
-                                            {skill.label}
-                                        </Label>
-                                    </Field>
-                                );
-                            })}
-                        </div>
-                    </Field>
-
-                    <Field>
-                        <div className="flex items-center justify-between">
-                            <FieldLabel>System Instructions Prompt</FieldLabel>
-                            <button
-                                type="button"
-                                onClick={handleGenerate}
-                                className="flex items-center gap-1 rounded-sm border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
-                            >
-                                <Wand2 className="size-3" />
-                                Generate from role & skills
-                            </button>
-                        </div>
-                        <Textarea
-                            rows={7}
-                            aria-invalid={!!fieldErrors.systemPrompt}
-                            placeholder="Describe the agent's responsibilities and behavior..."
-                            value={form.systemPrompt}
-                            onChange={(e) => setField("systemPrompt", e.target.value)}
-                            className="min-h-0 leading-relaxed"
-                        />
-                        <FieldError errors={fieldErrors.systemPrompt ? [{ message: fieldErrors.systemPrompt }] : []} />
-                    </Field>
-
-                    <FieldError errors={error ? [{ message: error }] : []} />
-
-                    <div className="flex items-center justify-end gap-2.5 pt-1">
+                    <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 shrink-0 rounded-b-2xl">
                         <button
                             type="button"
                             onClick={onClose}
