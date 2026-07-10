@@ -9,7 +9,8 @@
       "nextjs",
       "security",
       "git"
-    ]
+    ],
+    "gender": "male"
   },
   {
     "id": "agent-somsri",
@@ -20,7 +21,8 @@
     "skills": [
       "react",
       "nextjs"
-    ]
+    ],
+    "gender": "female"
   },
   {
     "id": "agent-wichai",
@@ -31,7 +33,8 @@
     "skills": [
       "vitest",
       "playwright"
-    ]
+    ],
+    "gender": "male"
   },
   {
     "id": "agent-mana",
@@ -42,7 +45,8 @@
     "skills": [
       "devops",
       "git"
-    ]
+    ],
+    "gender": "male"
   },
   {
     "id": "agent-preecha",
@@ -53,6 +57,7 @@
     "skills": [
       "security",
       "git"
-    ]
+    ],
+    "gender": "male"
   }
 ]

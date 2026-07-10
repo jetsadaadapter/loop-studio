@@ -149,6 +149,7 @@ export const CreateAgentSchema = z.object({
         .trim()
         .min(10, "System prompt must be at least 10 characters."),
     skills: z.array(z.string()).default([]),
+    gender: z.enum(["male", "female"]).optional(),
 });
 
 // Every field optional for PATCH; at least one must be present.

@@ -15,7 +15,6 @@ import { AppFooter } from "@/app/loop-components/AppFooter";
 import { TaskVolumeHeatmap } from "./components/TaskVolumeHeatmap";
 import { SuccessTrendChart } from "./components/SuccessTrendChart";
 import { AgentStatCard } from "./components/AgentStatCard";
-import { AVATAR_CREDIT } from "./components/agent-visuals";
 
 export default function AiTeamSpace() {
     const [agents, setAgents] = useState<AgentWithMetrics[]>([]);
@@ -214,11 +213,7 @@ export default function AiTeamSpace() {
                     </div>
                     </div>
 
-                    <AppFooter className="sticky bottom-0 z-20 bg-white px-6 pb-4">
-                        <a href={AVATAR_CREDIT.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 hover:underline">
-                            {AVATAR_CREDIT.label}
-                        </a>
-                    </AppFooter>
+                    <AppFooter className="sticky bottom-0 z-20 bg-white px-6 pb-4" />
 
                     <AddAgentModal
                         isOpen={isAddOpen}

@@ -2,7 +2,7 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
-import { agentAvatarUri } from "./agent-visuals";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface AgentStatCardProps {
     agent: AgentWithMetrics;
@@ -10,17 +10,29 @@ interface AgentStatCardProps {
     onDelete: (agent: AgentWithMetrics) => void;
 }
 
-// Soft alternating linear-gradient tints for the metric tiles (left column vs
-// right column) so the 2×2 grid reads with gentle variation, not flat white.
-const TILE_TINTS = [
-    "bg-gradient-to-br from-slate-50 to-white",
-    "bg-gradient-to-br from-indigo-50/50 to-white",
+// Soft pastel tint for the metrics panel, picked deterministically per agent so
+// the white metric tiles stand out against a coloured background.
+const CARD_TINTS = [
+    "bg-violet-50",
+    "bg-indigo-50",
+    "bg-sky-50",
+    "bg-emerald-50",
+    "bg-amber-50",
+    "bg-rose-50",
+    "bg-teal-50",
+    "bg-fuchsia-50",
 ];
 
-// One metric tile — a self-contained card inside the body panel.
-function StatTile({ label, value, index }: { label: string; value: string; index: number }) {
+function tintFor(id: string): string {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return CARD_TINTS[h % CARD_TINTS.length];
+}
+
+// One metric tile — a plain white card inside the body panel (no border/tint).
+function StatTile({ label, value }: { label: string; value: string }) {
     return (
-        <div className={`rounded-lg border border-slate-200/60 px-3 py-2 ${TILE_TINTS[index % 2]}`}>
+        <div className="rounded-lg bg-white px-3 py-2">
             <p className="text-xs font-sans text-slate-500">{label}</p>
             <p className="mt-0.5 text-sm font-semibold text-slate-800">{value}</p>
         </div>
@@ -35,12 +47,7 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
             {/* Identity header */}
             <div className="flex items-start justify-between gap-3 p-4">
                 <div className="flex min-w-0 items-center gap-3">
-                    <span
-                        style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
-                        className="size-11 shrink-0 rounded-full bg-slate-100 bg-cover bg-center ring-1 ring-slate-200/60"
-                        role="img"
-                        aria-label={`${agent.name} avatar`}
-                    />
+                    <AgentAvatar seed={agent.id} name={agent.name} size={44} gender={agent.gender} className="ring-1 ring-slate-200/60" />
                     <div className="min-w-0">
                         <h3 className="truncate text-base font-semibold tracking-tight text-slate-800" title={agent.name}>
                             {agent.name.split("(")[0].trim()}
@@ -60,13 +67,13 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
 
             <div className="border-t border-slate-100" />
 
-            {/* Metrics + last activity panel */}
-            <div className="flex flex-1 flex-col gap-3 bg-slate-50/40 p-4">
+            {/* Metrics + last activity panel — tinted per agent so white tiles pop */}
+            <div className={`flex flex-1 flex-col gap-3 p-4 ${tintFor(agent.id)}`}>
                 <div className="grid grid-cols-2 gap-2">
-                    <StatTile label="Task this week" value={String(m.taskThisWeek)} index={0} />
-                    <StatTile label="Open Ticket" value={String(m.openTickets)} index={1} />
-                    <StatTile label="Success Rate" value={`${m.successRate}%`} index={2} />
-                    <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} index={3} />
+                    <StatTile label="Task this week" value={String(m.taskThisWeek)} />
+                    <StatTile label="Open Ticket" value={String(m.openTickets)} />
+                    <StatTile label="Success Rate" value={`${m.successRate}%`} />
+                    <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} />
                 </div>
 
                 <div>

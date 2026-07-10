@@ -5,7 +5,7 @@ import { Loader2, UserPlus, Pencil, Wand2 } from "lucide-react";
 import type { LoopAgent } from "@/core/interfaces/loop-projects.interface";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ModalCloseButton } from "@/components/ui/modal-close-button";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateAgentSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
@@ -29,7 +29,7 @@ interface AddAgentModalProps {
     agent?: LoopAgent | null;
 }
 
-const EMPTY_FORM = { name: "", role: "", model: "claude-sonnet-5", systemPrompt: "", skills: [] as string[] };
+const EMPTY_FORM = { name: "", role: "", model: "claude-sonnet-5", systemPrompt: "", skills: [] as string[], gender: "male" as "male" | "female" };
 
 const formFromAgent = (agent: LoopAgent) => ({
     name: agent.name,
@@ -37,6 +37,7 @@ const formFromAgent = (agent: LoopAgent) => ({
     model: agent.model,
     systemPrompt: agent.systemPrompt,
     skills: [...agent.skills],
+    gender: agent.gender ?? "male",
 });
 
 export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentModalProps) {
@@ -173,6 +174,23 @@ export function AddAgentModal({ isOpen, onClose, onSuccess, agent }: AddAgentMod
                                 ))}
                             </SelectContent>
                         </Select>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>Gender</FieldLabel>
+                        <Select
+                            value={form.gender}
+                            onValueChange={(val) => setForm((p) => ({ ...p, gender: (val as "male" | "female") || "male" }))}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent align="start">
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FieldDescription>Sets the avatar&apos;s hair &amp; clothing style.</FieldDescription>
                     </Field>
 
                     <Field>

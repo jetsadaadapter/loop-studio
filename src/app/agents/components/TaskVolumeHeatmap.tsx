@@ -3,11 +3,11 @@
 import { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
 import {
     WEEKDAY_LABELS,
-    agentAvatarUri,
     heatCellStyle,
     heatCellIsDark,
     maxWeekdayVolume,
 } from "./agent-visuals";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface TaskVolumeHeatmapProps {
     agents: AgentWithMetrics[];
@@ -36,12 +36,7 @@ export function TaskVolumeHeatmap({ agents }: TaskVolumeHeatmapProps) {
                     {agents.map((agent) => (
                         <div key={agent.id} className="grid grid-cols-[92px_repeat(7,1fr)] items-center gap-1.5 py-0.5">
                             <div className="flex items-center gap-1.5 min-w-0">
-                                <span
-                                    style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
-                                    className="size-5 shrink-0 rounded-full bg-slate-100 bg-cover bg-center"
-                                    role="img"
-                                    aria-label={`${agent.name} avatar`}
-                                />
+                                <AgentAvatar seed={agent.id} name={agent.name} size={20} gender={agent.gender} />
                                 <span className="truncate text-xs font-semibold uppercase text-slate-600 font-sans" title={agent.name}>
                                     {agent.name.split("(")[0].trim()}
                                 </span>

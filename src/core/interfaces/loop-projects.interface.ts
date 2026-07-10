@@ -57,6 +57,8 @@ export interface LoopAgent {
     model: string;
     systemPrompt: string;
     skills: string[]; // key references
+    /** Drives the avatar's gendered features (hair/clothing). Defaults to male when unset. */
+    gender?: "male" | "female";
 }
 
 export interface ProjectActivity {

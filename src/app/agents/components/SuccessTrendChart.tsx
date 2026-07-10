@@ -1,7 +1,7 @@
 "use client";
 
 import { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
-import { agentAvatarUri } from "./agent-visuals";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface SuccessTrendChartProps {
     agents: AgentWithMetrics[];
@@ -52,12 +52,7 @@ export function SuccessTrendChart({ agents }: SuccessTrendChartProps) {
                                 />
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <span
-                                    style={{ backgroundImage: `url("${agentAvatarUri(agent.name)}")` }}
-                                    className="size-6 shrink-0 rounded-full bg-slate-100 bg-cover bg-center"
-                                    role="img"
-                                    aria-label={`${agent.name} avatar`}
-                                />
+                                <AgentAvatar seed={agent.id} name={agent.name} size={24} gender={agent.gender} />
                                 <span className="text-xs font-semibold uppercase text-slate-600 font-sans">
                                     {agent.name.split("(")[0].trim()}
                                 </span>
