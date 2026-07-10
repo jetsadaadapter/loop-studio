@@ -10,10 +10,17 @@ interface AgentStatCardProps {
     onDelete: (agent: AgentWithMetrics) => void;
 }
 
-// One metric tile — a self-contained white card inside the body panel.
-function StatTile({ label, value }: { label: string; value: string }) {
+// Soft alternating linear-gradient tints for the metric tiles (left column vs
+// right column) so the 2×2 grid reads with gentle variation, not flat white.
+const TILE_TINTS = [
+    "bg-gradient-to-br from-slate-50 to-white",
+    "bg-gradient-to-br from-indigo-50/50 to-white",
+];
+
+// One metric tile — a self-contained card inside the body panel.
+function StatTile({ label, value, index }: { label: string; value: string; index: number }) {
     return (
-        <div className="rounded-lg border border-slate-200/60 bg-white px-3 py-2">
+        <div className={`rounded-lg border border-slate-200/60 px-3 py-2 ${TILE_TINTS[index % 2]}`}>
             <p className="text-xs font-sans text-slate-500">{label}</p>
             <p className="mt-0.5 text-sm font-semibold text-slate-800">{value}</p>
         </div>
@@ -56,14 +63,14 @@ export function AgentStatCard({ agent, onEdit, onDelete }: AgentStatCardProps) {
             {/* Metrics + last activity panel */}
             <div className="flex flex-1 flex-col gap-3 bg-slate-50/40 p-4">
                 <div className="grid grid-cols-2 gap-2">
-                    <StatTile label="Task this week" value={String(m.taskThisWeek)} />
-                    <StatTile label="Open Ticket" value={String(m.openTickets)} />
-                    <StatTile label="Success Rate" value={`${m.successRate}%`} />
-                    <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} />
+                    <StatTile label="Task this week" value={String(m.taskThisWeek)} index={0} />
+                    <StatTile label="Open Ticket" value={String(m.openTickets)} index={1} />
+                    <StatTile label="Success Rate" value={`${m.successRate}%`} index={2} />
+                    <StatTile label="Avg. Resolution" value={m.avgResolutionDays > 0 ? `${m.avgResolutionDays} Days` : "—"} index={3} />
                 </div>
 
                 <div>
-                    <p className="text-xs font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
+                    <p className="text-2xs font-semibold font-sans uppercase tracking-wide text-slate-400">Last Activity</p>
                     <p className="mt-0.5 truncate text-xs text-slate-600 font-sans" title={m.lastActivity ?? ""}>
                         {m.lastActivity ?? "No recorded activity yet"}
                     </p>
