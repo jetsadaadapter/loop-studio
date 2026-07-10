@@ -76,7 +76,7 @@ export function LogTerminal({ projectId, taskId, triggerCount }: LogTerminalProp
             
             <pre
                 ref={logRef}
-                className="flex-1 overflow-y-auto font-mono text-xs leading-relaxed text-slate-300 whitespace-pre-wrap select-text pr-1"
+                className="flex-1 overflow-y-auto font-mono text-2xs leading-relaxed text-slate-300 whitespace-pre-wrap select-text pr-1"
             >
                 {logs}
             </pre>

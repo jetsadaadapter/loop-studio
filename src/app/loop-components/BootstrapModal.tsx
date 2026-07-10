@@ -217,7 +217,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                         </div>
                         <pre
                             ref={logContainerRef}
-                            className="flex-1 select-text overflow-y-auto rounded-lg border border-slate-800 bg-slate-900 p-4 font-mono text-xs leading-relaxed text-slate-200"
+                            className="flex-1 select-text overflow-y-auto rounded-lg border border-slate-800 bg-slate-900 p-4 font-mono text-2xs leading-relaxed text-slate-200"
                         >
                             {logs}
                         </pre>

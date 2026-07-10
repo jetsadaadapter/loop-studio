@@ -29,7 +29,7 @@ export function BuildStage({ buildPrompt, copied, onCopyPrompt, onAdvance }: Bui
             </div>
 
             <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-lg">
-                <pre className="font-sans text-xs text-slate-700 leading-relaxed whitespace-pre-wrap select-all">
+                <pre className="font-sans text-2xs text-slate-700 leading-relaxed whitespace-pre-wrap select-all">
                     {buildPrompt}
                 </pre>
             </div>
