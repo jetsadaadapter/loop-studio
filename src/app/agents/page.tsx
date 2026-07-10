@@ -5,7 +5,6 @@ import { Plus, Sparkles, Check } from "lucide-react";
 import type { LoopAgent, LoopProject } from "@/core/interfaces/loop-projects.interface";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
 import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
-import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ManagerToolbar } from "@/components/manager-toolbar";
@@ -125,6 +124,34 @@ export default function AiTeamSpace() {
                         </p>
                     </div>
 
+                    {/* AI provider key — a compact setup row at the top; it gates live
+                        chat and autonomous editing, so it belongs above the fold, not buried. */}
+                    <div className="flex flex-col gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+                        <div className="flex shrink-0 items-center gap-2.5 sm:w-72">
+                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                                <Sparkles className="size-4" />
+                            </span>
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-semibold text-slate-800">AI Provider API Key</h3>
+                                <p className="text-xs text-slate-500 font-sans">Enables live chat &amp; autonomous edits · stored only in your browser</p>
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <Input
+                                type="password"
+                                placeholder="sk-ant-…  or  AIza… / AQ.…  (Anthropic or Google AI Studio)"
+                                value={apiKey}
+                                onChange={(e) => saveApiKey(e.target.value)}
+                            />
+                            {message && (
+                                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-600">
+                                    <Check className="size-3.5" />
+                                    <span>{message}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {loading ? (
                         <div className="flex h-40 items-center justify-center text-xs text-slate-500">Loading AI team…</div>
                     ) : agents.length === 0 ? (
@@ -184,35 +211,6 @@ export default function AiTeamSpace() {
                             </div>
                         </>
                     )}
-
-                    {/* API Key Configuration */}
-                    <div className="rounded-xl border border-slate-200/70 bg-white p-5 shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="flex size-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                                <Sparkles className="size-4" />
-                            </span>
-                            <h3 className="font-semibold text-slate-800 text-sm">AI Provider API Key</h3>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-2.5 leading-relaxed">
-                            Paste an <span className="font-semibold text-slate-700">Anthropic</span> key (<code className="font-sans">sk-ant-…</code>) or a free
-                            {" "}<span className="font-semibold text-slate-700">Google AI Studio</span> key (<code className="font-sans">AIza…</code> or <code className="font-sans">AQ.…</code>) to enable live chat and autonomous file editing.
-                            Any non-Anthropic key is treated as Gemini. This key is stored strictly in your browser&apos;s local storage and never leaves your computer.
-                        </p>
-                        <Field className="mt-4">
-                            <Input
-                                type="password"
-                                placeholder="sk-ant-…  or  AIza… / AQ.…"
-                                value={apiKey}
-                                onChange={(e) => saveApiKey(e.target.value)}
-                            />
-                        </Field>
-                        {message && (
-                            <div className="mt-2.5 flex items-center gap-1.5 text-xs text-emerald-600">
-                                <Check className="size-3.5" />
-                                <span>{message}</span>
-                            </div>
-                        )}
-                    </div>
                     </div>
 
                     <AppFooter className="mt-auto pt-6">
