@@ -18,16 +18,49 @@ export async function GET(
             return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
         }
 
-        // Run git diff on target files or the whole project if empty
-        const diffArgs = ["diff"];
+        let diff = "";
+
+        // 1. Unstaged changes in working directory
+        const unstagedArgs = ["diff"];
         if (task.targetFiles && task.targetFiles.length > 0) {
-            diffArgs.push("--");
-            diffArgs.push(...task.targetFiles);
+            unstagedArgs.push("--");
+            unstagedArgs.push(...task.targetFiles);
+        }
+        diff = await executeGitCommand(project.path, unstagedArgs).catch(() => "");
+
+        // 2. Staged changes (index)
+        if (!diff || diff.trim() === "") {
+            const stagedArgs = ["diff", "--cached"];
+            if (task.targetFiles && task.targetFiles.length > 0) {
+                stagedArgs.push("--");
+                stagedArgs.push(...task.targetFiles);
+            }
+            diff = await executeGitCommand(project.path, stagedArgs).catch(() => "");
         }
 
-        const diff = await executeGitCommand(project.path, diffArgs).catch((e) => {
-            return `No git diff available: ${e.message}`;
-        });
+        // 3. Fallback to the last commit modifying the target files
+        if ((!diff || diff.trim() === "") && task.targetFiles && task.targetFiles.length > 0) {
+            const logArgs = ["log", "-n", "1", "--pretty=format:%H", "--"];
+            logArgs.push(...task.targetFiles);
+            const lastCommitHash = await executeGitCommand(project.path, logArgs).then((h) => h.trim()).catch(() => "");
+            
+            if (lastCommitHash) {
+                const commitDiffArgs = ["diff", `${lastCommitHash}~1`, lastCommitHash, "--"];
+                commitDiffArgs.push(...task.targetFiles);
+                let commitDiff = await executeGitCommand(project.path, commitDiffArgs).catch(() => "");
+
+                // Fallback for initial commit (no parent revision)
+                if (!commitDiff || commitDiff.trim() === "") {
+                    const showArgs = ["show", lastCommitHash, "--"];
+                    showArgs.push(...task.targetFiles);
+                    commitDiff = await executeGitCommand(project.path, showArgs).catch(() => "");
+                }
+
+                if (commitDiff && commitDiff.trim() !== "") {
+                    diff = commitDiff;
+                }
+            }
+        }
 
         return NextResponse.json({ success: true, data: diff });
     } catch (e) {

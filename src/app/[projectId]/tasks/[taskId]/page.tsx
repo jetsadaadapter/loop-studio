@@ -37,6 +37,8 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
     const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
     const [task, setTask] = useState<LoopTask | null>(null);
     const [activeStage, setActiveStage] = useState<TaskStage>("PLAN");
+    const [bottomTab, setBottomTab] = useState<"workspace" | "pipeline" | "logs" | "changes">("workspace");
+    const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
     const [loading, setLoading] = useState(true);
     const [triggerCount, setTriggerCount] = useState(0);
 
@@ -120,114 +122,148 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
-            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 pb-6">
-            <StickyCrumbs
-                items={[
-                    { label: project?.name || "Project", href: `/${projectId}` },
-                    { label: task.name },
-                ]}
-            />
+            <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-slate-50">
+                {/* Studio workspace: stretches 100% height and width to the remaining viewport */}
+                <div className="flex-1 min-h-0 relative">
+                    <StudioWindow
+                        projectId={projectId}
+                        projectName={project?.name || task.name}
+                        onPublished={loadData}
+                        deviceMode={deviceMode}
+                        onDeviceModeChange={setDeviceMode}
+                        header={
+                            /* Header section (clean, compact, with bottom border) */
+                            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 shrink-0 h-14 select-none">
+                                <div className="min-w-0">
+                                    <h1 className="flex items-center gap-2 text-sm font-bold tracking-tight text-slate-800">
+                                        <span className="truncate">{task.name}</span>
+                                        {task.status === "completed" && <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />}
+                                    </h1>
+                                    <p className="text-[10px] text-slate-400 font-sans truncate">
+                                        ID: {task.id} &bull; Project: {project?.name}
+                                    </p>
+                                </div>
 
-            {/* Header section */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                    <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-800">
-                        <span className="truncate">{task.name}</span>
-                        {task.status === "completed" && <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />}
-                    </h1>
-                    <p className="mt-1 text-xs text-slate-500 font-sans truncate">
-                        ID: {task.id} &bull; Project: {project?.name}
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <div className="flex items-center gap-1.5 rounded-lg border border-slate-200/60 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-600">
-                        <Clock className="size-3.5 text-slate-400" />
-                        <span className="font-sans">Updated {new Date(task.updatedAt).toLocaleTimeString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-lg border border-slate-200/60 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-600">
-                        <Coins className="size-3.5 text-amber-500" />
-                        <span className="font-semibold font-sans">${task.tokensUsed.cost.toFixed(3)}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Studio workspace (v0 layout): one dark window — chat + changes on the
-                left drive edits, the app previews live on the right. */}
-            <StudioWindow
-                projectId={projectId}
-                projectName={project?.name || task.name}
-                onPublished={loadData}
-                left={
-                    <>
-                        <ChatPanel
-                            projectId={projectId}
-                            taskId={task.id}
-                            chatHistory={task.chatHistory}
-                            onRefresh={loadData}
-                            onTriggerLog={triggerLogReload}
-                        />
-                        <VersionTimeline projectId={projectId} refreshKey={triggerCount} />
-                    </>
-                }
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 px-2 py-1 text-[10px] text-slate-500">
+                                        <Clock className="size-3 text-slate-400" />
+                                        <span className="font-sans">Updated {new Date(task.updatedAt).toLocaleTimeString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50/70 px-2 py-1 text-[10px] text-slate-500">
+                                        <Coins className="size-3 text-amber-500" />
+                                        <span className="font-semibold font-sans">${task.tokensUsed.cost.toFixed(3)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        left={
+                            <ChatPanel
+                                projectId={projectId}
+                                taskId={task.id}
+                                chatHistory={task.chatHistory}
+                                onRefresh={loadData}
+                                onTriggerLog={triggerLogReload}
+                            />
+                        }
                 right={
                     (() => {
                         const { verify, build } = getPipelineStatus(task);
                         return (
-                            <>
-                                <PreviewPane
-                                    initialUrl={project?.previewUrl || "/"}
-                                    verifyStatus={verify}
-                                    buildStatus={build}
-                                    riskTier={task.riskTier}
-                                />
-
-                                {/* Advanced controls: manual stage stepper, checkpoint runner,
-                                    and run logs — proportioned like a config + history panel;
-                                    scrolls with the preview in this same column. */}
-                                <div className="space-y-4 p-4">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 font-sans">
-                                        Advanced controls
-                                    </p>
-
-                                    <TimelineStages
-                                        currentStage={task.currentStage}
-                                        activeStage={activeStage}
-                                        onSelectStage={setActiveStage}
-                                        status={task.status}
+                            <div className="flex flex-col h-full min-h-0 overflow-hidden bg-slate-50">
+                                {/* Top Half: Live App Preview Browser, Code & Diff (full height flex-1) */}
+                                <div className="flex-1 min-h-0 overflow-hidden border-b border-slate-200">
+                                    <PreviewPane
+                                        initialUrl={project?.previewUrl || "/"}
+                                        verifyStatus={verify}
+                                        buildStatus={build}
+                                        riskTier={task.riskTier}
+                                        projectId={projectId}
+                                        taskId={task.id}
+                                        targetFiles={task.targetFiles}
+                                        deviceMode={deviceMode}
                                     />
+                                </div>
 
-                                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                                        <div className="lg:col-span-2">
+                                {/* Bottom Half: Advanced controls (timeline stages + tabbed logs/execution panel) */}
+                                <div className="h-[320px] shrink-0 flex flex-col bg-white min-h-0">
+                                    {/* 6-Stage Connected Pipeline Timeline Bar */}
+                                    <div className="px-4 py-2 border-b border-slate-200 bg-slate-50/50 shrink-0">
+                                        <TimelineStages
+                                            currentStage={task.currentStage}
+                                            activeStage={activeStage}
+                                            onSelectStage={setActiveStage}
+                                            status={task.status}
+                                        />
+                                    </div>
+
+                                    {/* Bottom panel tabs bar */}
+                                    <div className="flex items-center gap-4 px-4 border-b border-slate-200 bg-slate-50 shrink-0 h-9 select-none">
+                                        {([
+                                            { key: "workspace", label: "Active Stage Work" },
+                                            { key: "pipeline", label: "Pipeline Checks" },
+                                            { key: "changes", label: "Version Changes" },
+                                            { key: "logs", label: "Terminal Logs" }
+                                        ] as const).map((t) => {
+                                            const active = bottomTab === t.key;
+                                            return (
+                                                <button
+                                                    key={t.key}
+                                                    type="button"
+                                                    onClick={() => setBottomTab(t.key)}
+                                                    className={`relative -mb-px flex items-center h-full border-b-2 px-1 text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                                                        active
+                                                            ? "border-brand text-brand"
+                                                            : "border-transparent text-slate-500 hover:text-slate-700"
+                                                    }`}
+                                                >
+                                                    {t.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Scrollable active tab panel */}
+                                    <div className="flex-1 overflow-y-auto p-4 min-h-0 bg-white">
+                                        {bottomTab === "workspace" && (
+                                            <StageWorkspace
+                                                projectId={projectId}
+                                                task={task}
+                                                activeStage={activeStage}
+                                                onUpdateTask={handleUpdateTask}
+                                                onTriggerLog={triggerLogReload}
+                                            />
+                                        )}
+                                        {bottomTab === "pipeline" && (
                                             <AutoPipeline
                                                 projectId={projectId}
                                                 taskId={task.id}
                                                 onComplete={loadData}
                                                 onTriggerLog={triggerLogReload}
                                             />
-                                        </div>
-                                        <div className="lg:col-span-1">
-                                            <LogTerminal
-                                                projectId={projectId}
-                                                taskId={task.id}
-                                                triggerCount={triggerCount}
+                                        )}
+                                        {bottomTab === "changes" && (
+                                            <VersionTimeline 
+                                                projectId={projectId} 
+                                                refreshKey={triggerCount} 
                                             />
-                                        </div>
+                                        )}
+                                        {bottomTab === "logs" && (
+                                            <div className="h-full min-h-[180px]">
+                                                <LogTerminal
+                                                    projectId={projectId}
+                                                    taskId={task.id}
+                                                    triggerCount={triggerCount}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
-
-                                    <StageWorkspace
-                                        projectId={projectId}
-                                        task={task}
-                                        activeStage={activeStage}
-                                        onUpdateTask={handleUpdateTask}
-                                        onTriggerLog={triggerLogReload}
-                                    />
                                 </div>
-                            </>
+                            </div>
                         );
                     })()
                 }
             />
+                </div>
             </section>
         </div>
     );

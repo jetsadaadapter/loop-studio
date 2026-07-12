@@ -67,48 +67,47 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
     };
 
     return (
-        <div className="max-h-[136px] shrink-0 overflow-y-auto border-t border-[#24304b] bg-[#0d1526] p-3">
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                    <GitCommitHorizontal className="size-3.5 text-slate-500" />
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 font-sans">Changes</h3>
-                </div>
+        <div className="h-full min-h-0 overflow-y-auto bg-white select-text">
+            <div className="flex items-center justify-between gap-2 mb-2 pb-1 border-b border-slate-100 select-none">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
+                    Git Commit History
+                </span>
                 <button
                     type="button"
                     onClick={() => setReloadTick((t) => t + 1)}
                     aria-label="Refresh versions"
                     title="Refresh versions"
-                    className="flex size-6 items-center justify-center rounded-sm text-slate-500 hover:bg-white/5 hover:text-slate-300 cursor-pointer"
+                    className="flex size-6 items-center justify-center rounded-sm text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer transition-colors"
                 >
-                    <RotateCw className="size-3" />
+                    <RotateCw className="size-3.5" />
                 </button>
             </div>
 
-            {error && <div className="mt-2 rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">{error}</div>}
+            {error && <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>}
 
             {loading ? (
-                <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                    <Loader2 className="size-3.5 animate-spin" /> Loading history…
+                <div className="mt-3 flex items-center gap-2 text-xs text-slate-400 animate-pulse font-sans">
+                    <Loader2 className="size-3.5 animate-spin text-indigo-500" /> Loading history…
                 </div>
             ) : commits.length === 0 ? (
-                <p className="mt-3 text-xs text-slate-500">No commits yet.</p>
+                <p className="mt-3 text-xs text-slate-400 font-sans">No commits yet.</p>
             ) : (
                 <ol className="mt-2 space-y-0.5">
                     {commits.map((c, idx) => (
                         <li
                             key={c.hash}
-                            className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/5"
+                            className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-50 transition-colors"
                         >
-                            <span className={`size-1.5 shrink-0 rounded-full ${idx === 0 ? "bg-emerald-400" : "bg-slate-600"}`} />
+                            <span className={`size-1.5 shrink-0 rounded-full ${idx === 0 ? "bg-emerald-500" : "bg-slate-300"}`} />
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-xs text-slate-300">{c.subject}</p>
-                                <p className="flex items-center gap-2 text-xs font-sans text-slate-500">
-                                    <span className="rounded bg-white/5 px-1 py-px font-mono text-slate-400">{c.hash}</span>
+                                <p className="truncate text-xs text-slate-700 font-medium">{c.subject}</p>
+                                <p className="flex items-center gap-2 text-[10px] font-sans text-slate-400 mt-0.5">
+                                    <span className="rounded bg-slate-100 px-1 py-px font-sans text-slate-500">{c.hash}</span>
                                     <span>{c.relativeDate}</span>
-                                    {c.insertions > 0 && <span className="text-emerald-400">+{c.insertions}</span>}
-                                    {c.deletions > 0 && <span className="text-rose-400">-{c.deletions}</span>}
+                                    {c.insertions > 0 && <span className="text-emerald-600">+{c.insertions}</span>}
+                                    {c.deletions > 0 && <span className="text-rose-600">-{c.deletions}</span>}
                                     {idx === 0 && (
-                                        <span className="rounded bg-emerald-400/10 px-1 py-px font-mono text-emerald-400">current</span>
+                                        <span className="rounded bg-emerald-50 text-emerald-600 border border-emerald-100 px-1 py-px font-sans text-[9px]">current</span>
                                     )}
                                 </p>
                             </div>
@@ -117,7 +116,7 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                                 onClick={() => setConfirmCommit(c)}
                                 disabled={reverting !== null}
                                 title="Revert this commit (creates an undo commit)"
-                                className="flex items-center gap-1 rounded-sm border border-[#24304b] px-2 py-1 text-xs font-semibold text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/5 hover:text-slate-200 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1 rounded-sm border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-50 cursor-pointer shadow-3xs"
                             >
                                 {reverting === c.hash ? <Loader2 className="size-3 animate-spin" /> : <Undo2 className="size-3" />}
                                 Revert
@@ -134,10 +133,10 @@ export function VersionTimeline({ projectId, refreshKey = 0 }: VersionTimelinePr
                             <AlertTriangle className="size-5" />
                         </div>
                         <h3 className="text-sm font-semibold text-slate-800">Revert this commit?</h3>
-                        <p className="text-xs leading-relaxed text-slate-500">
+                        <p className="text-xs leading-relaxed text-slate-500 font-sans">
                             This creates a new commit that undoes{" "}
                             <span className="font-semibold text-slate-700">{confirmCommit?.subject}</span>{" "}
-                            (<span className="font-mono text-slate-500">{confirmCommit?.hash}</span>). Your history is
+                            (<span className="font-sans text-slate-500">{confirmCommit?.hash}</span>). Your history is
                             kept — nothing is deleted.
                         </p>
                     </div>

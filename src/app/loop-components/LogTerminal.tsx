@@ -59,7 +59,7 @@ export function LogTerminal({ projectId, taskId, triggerCount }: LogTerminalProp
     };
 
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 shadow-inner flex flex-col min-h-[250px] max-h-[400px] select-text">
+        <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 shadow-inner flex flex-col h-full min-h-0 select-text">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 select-none shrink-0">
                 <div className="flex items-center gap-1.5 text-slate-400 font-sans text-xs">
                     <Terminal className="size-3.5 text-indigo-500" />

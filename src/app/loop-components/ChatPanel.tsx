@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Users, Sparkles, AlertCircle, Coins, Plus, Zap, X, FileText } from "lucide-react";
+import { Send, Users, Sparkles, AlertCircle, Coins, Plus, Zap, X, FileText, Video, Phone, SendHorizontal, Paperclip, Maximize2, Minimize2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,9 @@ interface ChatPanelProps {
     chatHistory: ChatMessage[];
     onRefresh: () => void;
     onTriggerLog: () => void;
+    onCollapse?: () => void;
+    onExpand?: () => void;
+    isMaximized?: boolean;
 }
 
 function readFileAsAttachment(file: File): Promise<ChatAttachment> {
@@ -31,7 +34,7 @@ function readFileAsAttachment(file: File): Promise<ChatAttachment> {
     });
 }
 
-export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTriggerLog }: ChatPanelProps) {
+export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTriggerLog, onCollapse, onExpand, isMaximized }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [apiKey, setApiKey] = useState("");
@@ -228,42 +231,62 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
     const isDisabled = loading || collaborating;
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0d1526]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
             {/* Header / Cost summary */}
-            <div className="flex shrink-0 items-center justify-between border-b border-[#24304b] p-3">
-                <div className="flex items-center gap-1.5">
-                    <Users className="size-4 text-indigo-400" />
-                    <span className="text-xs font-semibold text-slate-200 font-sans">AI Developer Space</span>
+            <div className="flex shrink-0 items-center justify-between px-5 select-none bg-white h-14 border-b border-slate-200">
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-850 font-sans tracking-tight">Team Chat</span>
+                    <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-semibold text-amber-700 font-sans" title={`${Math.round((costSummary.input + costSummary.output)/1000)}k tokens`}>
+                        ${costSummary.cost.toFixed(3)}
+                    </span>
                 </div>
-                <div className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-xs font-semibold text-amber-300">
-                    <Coins className="size-3 text-amber-400" />
-                    <span>${costSummary.cost.toFixed(3)} ({Math.round((costSummary.input + costSummary.output)/1000)}k tokens)</span>
+                <div className="flex items-center gap-1">
+                    {onExpand && (
+                        <button
+                            type="button"
+                            onClick={onExpand}
+                            title={isMaximized ? "Restore Chat Size" : "Expand to Drawer"}
+                            className="flex size-7 cursor-pointer items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                        >
+                            {isMaximized ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={onCollapse}
+                        title="Close Chat"
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                    >
+                        <X className="size-3.5" />
+                    </button>
                 </div>
             </div>
 
-            {/* Bridge-mode notice (opt-in): requests are handed to the IDE agent */}
-            {useBridge && (
-                <div className="flex shrink-0 items-start gap-1.5 border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-2">
-                    <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-400" />
-                    <span className="text-xs leading-normal text-amber-200/90 font-sans">
-                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/agents" className="font-semibold underline hover:text-amber-100">AI Team Manager</Link> (or a server-configured key).
+            {/* Main Content Area with lavender background */}
+            <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fc]">
+                {/* Bridge-mode notice (opt-in): requests are handed to the IDE agent */}
+                {useBridge && (
+                <div className="flex shrink-0 items-start gap-1.5 border-b border-amber-200 bg-amber-50/50 px-3 py-2">
+                    <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-500" />
+                    <span className="text-xs leading-normal text-amber-800 font-sans">
+                        IDE Bridge is on — messages are handed to your IDE agent instead of replying here. Uncheck it to chat live with Somsri, using a key saved in the <Link href="/agents" className="font-semibold underline hover:text-indigo-600">AI Team Manager</Link> (or a server-configured key).
                     </span>
                 </div>
             )}
 
             {/* Pending Bridge Banner */}
             {isBridgedPending && (
-                <div className="flex shrink-0 items-start gap-2 border-b border-indigo-400/20 bg-indigo-400/[0.06] px-3 py-2.5">
-                    <Sparkles className="size-4 shrink-0 mt-0.5 animate-pulse text-indigo-400" />
-                    <div className="flex-1 text-xs leading-relaxed text-indigo-200/90 font-sans">
+                <div className="flex shrink-0 items-start gap-2 border-b border-indigo-100 bg-indigo-50/60 px-3 py-2.5">
+                    <Sparkles className="size-4 shrink-0 mt-0.5 animate-pulse text-indigo-600" />
+                    <div className="flex-1 text-xs leading-relaxed text-indigo-800 font-sans">
                         <span>Bridged to your IDE agent — waiting for a reply. In your IDE, run </span>
-                        <code className="rounded-lg border border-indigo-400/20 bg-indigo-400/10 px-1 py-0.5 text-xs font-semibold font-sans">run bridge</code>
+                        <code className="rounded-lg border border-indigo-100 bg-indigo-50/40 px-1 py-0.5 text-xs font-semibold font-sans">run bridge</code>
                         <span> (read .antigravity/bridge.json, do the work, write the reply back). Updates here automatically.</span>
                     </div>
                     <button
                         type="button"
                         onClick={cancelBridge}
-                        className="shrink-0 cursor-pointer rounded-sm border border-indigo-400/30 px-2 py-1 text-xs font-semibold text-indigo-300 hover:bg-indigo-400/10"
+                        className="shrink-0 cursor-pointer rounded-sm border border-indigo-200 px-2 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
                     >
                         Cancel
                     </button>
@@ -280,90 +303,91 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
             />
 
             {/* Input Form — one clean row; secondary controls cluster at the right */}
-            <form onSubmit={handleSend} className="shrink-0 border-t border-[#24304b] p-3">
+            <form onSubmit={handleSend} className="shrink-0 bg-white">
                 {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-1.5">
-                        {attachments.map((a) => (
-                            <span
-                                key={a.id}
-                                className="flex items-center gap-1.5 rounded-lg border border-[#24304b] bg-[#0b1322] py-1 pl-1.5 pr-1 text-xs text-slate-300 font-sans"
-                            >
-                                {a.mimeType.startsWith("image/") ? (
-                                    <Image src={a.dataUrl} alt={a.name} width={18} height={18} unoptimized className="size-4.5 rounded object-cover" />
-                                ) : (
-                                    <FileText className="size-3.5 text-slate-500" />
-                                )}
-                                <span className="max-w-24 truncate">{a.name}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => removeAttachment(a.id)}
-                                    aria-label={`Remove ${a.name}`}
-                                    className="flex size-4 items-center justify-center rounded-full text-slate-500 hover:bg-white/10 hover:text-slate-200 cursor-pointer"
+                    <div className="mb-2 px-4 pt-2 flex flex-wrap gap-1.5">
+                        {attachments.map((a) => {
+                            const isImage = a.mimeType.startsWith("image/");
+                            if (isImage) {
+                                return (
+                                    <div
+                                        key={a.id}
+                                        title={a.name}
+                                        className="relative size-14 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden group shadow-3xs select-none"
+                                    >
+                                        <Image
+                                            src={a.dataUrl}
+                                            alt={a.name}
+                                            width={56}
+                                            height={56}
+                                            unoptimized
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAttachment(a.id)}
+                                            aria-label={`Remove ${a.name}`}
+                                            className="absolute top-1 right-1 size-5 flex items-center justify-center rounded-full bg-slate-900/60 text-white hover:bg-slate-900 transition-colors cursor-pointer opacity-0 group-hover:opacity-100 z-10"
+                                        >
+                                            <X className="size-3" />
+                                        </button>
+                                        {/* Hover image name banner */}
+                                        <div className="absolute inset-x-0 bottom-0 bg-slate-900/80 text-[8px] leading-normal text-white px-1 py-0.5 truncate text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            {a.name}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <span
+                                    key={a.id}
+                                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 py-1 pl-1.5 pr-1 text-xs text-slate-700 font-sans shadow-3xs"
                                 >
-                                    <X className="size-3" />
-                                </button>
-                            </span>
-                        ))}
+                                    <FileText className="size-3.5 text-slate-500" />
+                                    <span className="max-w-24 truncate">{a.name}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeAttachment(a.id)}
+                                        aria-label={`Remove ${a.name}`}
+                                        className="flex size-4 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 cursor-pointer"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
+                                </span>
+                            );
+                        })}
                     </div>
                 )}
 
-                <div className="flex items-end gap-1.5 rounded-xl border border-[#24304b] bg-[#0b1322] px-2 py-1.5">
-                    <div className="relative shrink-0">
+                <div className="flex items-center gap-1.5 bg-white px-4 py-2.5 relative">
+                    <div className="relative shrink-0 flex items-center gap-1">
                         <button
                             type="button"
                             onClick={() => setAttachMenuOpen((o) => !o)}
                             aria-label="Attach files"
                             title="Attach files"
-                            className="flex size-6 items-center justify-center rounded-md text-slate-400 hover:bg-white/10 hover:text-slate-200 cursor-pointer"
+                            className="flex size-7 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 cursor-pointer transition-colors"
                         >
-                            <Plus className="size-4" />
+                            <Paperclip className="size-4" />
                         </button>
+                        
                         {attachMenuOpen && (
-                            <div className="absolute bottom-full left-0 z-10 mb-2 w-48 rounded-lg border border-[#24304b] bg-[#141e33] p-1 shadow-xl">
+                            <div className="absolute bottom-full left-0 z-10 mb-2 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         fileInputRef.current?.click();
                                         setAttachMenuOpen(false);
                                     }}
-                                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-white/10 cursor-pointer"
+                                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
                                 >
                                     <Plus className="size-3.5" />
                                     Upload from computer
                                 </button>
                             </div>
                         )}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept="image/*,.pdf,.txt,.md,.json"
-                            className="hidden"
-                            onChange={(e) => {
-                                if (e.target.files) void addFiles(e.target.files);
-                                e.target.value = "";
-                            }}
-                        />
-                    </div>
 
-                    <Textarea
-                        rows={1}
-                        disabled={isDisabled}
-                        placeholder={isDisabled ? "Select a mode or set API Key first..." : "Ask a follow-up…"}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onPaste={handlePaste}
-                        className="min-h-0 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-xs leading-relaxed text-slate-200 shadow-none placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                            }
-                        }}
-                    />
-
-                    {/* Secondary controls, clustered at the right corner */}
-                    <div className="flex shrink-0 items-center gap-1">
                         <button
                             type="button"
                             onClick={() => {
@@ -372,11 +396,11 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                             }}
                             aria-pressed={useBridge}
                             title="Use IDE Agent Bridge (Free)"
-                            className={`flex size-7 items-center justify-center rounded-md cursor-pointer ${
-                                useBridge ? "bg-amber-400/15 text-amber-300" : "text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                            className={`flex size-7 items-center justify-center rounded-full cursor-pointer transition-colors ${
+                                useBridge ? "bg-amber-100 text-amber-700 shadow-3xs" : "text-slate-400 hover:bg-slate-200 hover:text-slate-700"
                             }`}
                         >
-                            <Zap className="size-3.5" />
+                            <Zap className="size-4" />
                         </button>
 
                         <button
@@ -384,22 +408,51 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                             onClick={handleCollaborate}
                             disabled={isDisabled || !inputValue.trim()}
                             title="Delegate to the AI Agent Team (background)"
-                            className="flex size-7 items-center justify-center rounded-md text-indigo-300 hover:bg-indigo-400/15 disabled:opacity-40 cursor-pointer"
+                            className="flex size-7 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-40 cursor-pointer transition-colors"
                         >
-                            <Users className="size-3.5" />
-                        </button>
-
-                        <button
-                            type="submit"
-                            disabled={isDisabled || (!inputValue.trim() && attachments.length === 0)}
-                            title="Send"
-                            className="flex size-7 items-center justify-center rounded-md bg-brand text-white hover:bg-brand/90 disabled:opacity-40 cursor-pointer shadow-sm"
-                        >
-                            <Send className="size-3.5" />
+                            <Users className="size-4" />
                         </button>
                     </div>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*,.pdf,.txt,.md,.json"
+                        className="hidden"
+                        onChange={(e) => {
+                            if (e.target.files) void addFiles(e.target.files);
+                            e.target.value = "";
+                        }}
+                    />
+
+                    <Textarea
+                        rows={1}
+                        disabled={isDisabled}
+                        placeholder={isDisabled ? "Select mode first..." : "Type a message..."}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onPaste={handlePaste}
+                        className="min-h-0 flex-1 resize-none border-0 bg-transparent px-2 py-1 text-xs leading-relaxed text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={isDisabled || (!inputValue.trim() && attachments.length === 0)}
+                        title="Send"
+                        className="flex size-7 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40 cursor-pointer transition-colors"
+                    >
+                        <SendHorizontal className="size-4" />
+                    </button>
                 </div>
             </form>
+            </div>
         </div>
     );
 }
