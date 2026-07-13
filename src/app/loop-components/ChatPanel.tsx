@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Users, Sparkles, AlertCircle, Coins, Plus, Zap, X, FileText, Video, Phone, SendHorizontal, Paperclip, Maximize2, Minimize2 } from "lucide-react";
+import { Users, Sparkles, AlertCircle, Plus, Zap, X, FileText, SendHorizontal, Paperclip, Maximize2, Minimize2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";

@@ -27,16 +27,16 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
     const isTaskComplete = status === "completed";
 
     return (
-        <div className="w-full bg-slate-50/50 border border-slate-200/50 rounded-2xl p-6 select-none shadow-xs relative">
-            <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-2">
-                {/* Connecting track line for medium+ screens */}
-                <div className="hidden md:block absolute top-[22px] left-[8%] right-[8%] h-0.75 bg-slate-200 -z-10 rounded-full">
-                    <div 
-                        className="h-full bg-emerald-500 transition-all duration-500 ease-in-out rounded-full"
-                        style={{ 
-                            width: isTaskComplete 
-                                ? "100%" 
-                                : `${(currentIndex / (STAGES.length - 1)) * 100}%` 
+        <div className="w-full px-2 py-1.5 select-none relative">
+            <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-1">
+                {/* Connecting track line */}
+                <div className="hidden md:block absolute top-[11px] left-[8%] right-[8%] h-px bg-slate-200 z-0">
+                    <div
+                        className="h-full bg-emerald-500 transition-all duration-500 ease-in-out"
+                        style={{
+                            width: isTaskComplete
+                                ? "100%"
+                                : `${(currentIndex / (STAGES.length - 1)) * 100}%`
                         }}
                     />
                 </div>
@@ -49,12 +49,12 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                     let nodeColor = "bg-white border-slate-200 text-slate-400";
                     let ringClass = "";
                     if (isCompleted) {
-                        nodeColor = "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/10";
+                        nodeColor = "bg-emerald-500 border-emerald-500 text-white";
                     } else if (isCurrent) {
-                        nodeColor = "bg-brand border-brand text-white shadow-sm shadow-brand/10";
-                        ringClass = "ring-4 ring-brand/10 animate-pulse";
+                        nodeColor = "bg-brand border-brand text-white";
+                        ringClass = "ring-2 ring-brand/20 animate-pulse";
                     } else if (isActiveView) {
-                        nodeColor = "bg-white border-brand text-brand shadow-xs";
+                        nodeColor = "bg-white border-brand text-brand";
                     }
 
                     const Icon = item.icon;
@@ -63,42 +63,40 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                         <button
                             key={item.stage}
                             onClick={() => onSelectStage(item.stage)}
-                            className="flex-1 group flex flex-col items-center text-center focus:outline-none cursor-pointer z-10"
+                            className="flex-1 group flex flex-col items-center text-center focus:outline-none cursor-pointer relative z-10"
                         >
                             {/* Circle Node */}
-                            <div className={`relative flex size-11 items-center justify-center rounded-full border-2 transition-all duration-300 ${nodeColor} ${ringClass} group-hover:scale-105`}>
+                            <div className={`relative flex size-6 items-center justify-center rounded-full border transition-all duration-300 ${nodeColor} ${ringClass} group-hover:scale-105`}>
                                 {isCompleted ? (
-                                    <Check className="size-5 stroke-[3]" />
+                                    <Check className="size-3 stroke-[3]" />
                                 ) : (
-                                    <Icon className="size-5" />
+                                    <Icon className="size-3" />
                                 )}
-                                
-                                {/* Status dot on top right if it's the current executing stage */}
+
+                                {/* Ping dot for currently running stage */}
                                 {isCurrent && (
-                                    <span className="absolute -top-0.5 -right-0.5 flex size-2.5">
+                                    <span className="absolute -top-0.5 -right-0.5 flex size-1.5">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500"></span>
+                                        <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
                                     </span>
                                 )}
                             </div>
 
-                            {/* Label & Description */}
-                            <div className="mt-3 flex flex-col items-center">
-                                <span className={`text-xs font-bold font-sans transition-colors duration-150 ${
-                                    isActiveView ? "text-brand" : "text-slate-800 group-hover:text-slate-900"
+                            {/* Label & status */}
+                            <div className="mt-1 flex flex-col items-center gap-0.5">
+                                <span className={`text-[9px] font-semibold font-sans leading-none transition-colors ${
+                                    isActiveView ? "text-brand" : "text-slate-600 group-hover:text-slate-900"
                                 }`}>
                                     {item.label}
                                 </span>
-                                <span className={`text-[10px] mt-0.5 font-bold uppercase tracking-wider font-sans px-2.5 py-0.5 rounded-full border transition-colors ${
-                                    isCompleted 
-                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                                        : isCurrent 
-                                            ? "bg-brand/5 text-brand border-brand/10 animate-pulse" 
-                                            : isActiveView 
-                                                ? "bg-slate-100 text-slate-700 border-slate-200"
-                                                : "bg-slate-50 text-slate-400 border-slate-100"
+                                <span className={`text-[7px] leading-none font-bold uppercase tracking-wide font-sans transition-colors ${
+                                    isCompleted
+                                        ? "text-emerald-500"
+                                        : isCurrent
+                                            ? "text-brand animate-pulse"
+                                            : "text-slate-300"
                                 }`}>
-                                    {isCompleted ? "Completed" : isCurrent ? "Running" : "Pending"}
+                                    {isCompleted ? "Done" : isCurrent ? "Running" : "·"}
                                 </span>
                             </div>
                         </button>

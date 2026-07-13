@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, ChevronRight, Search, Pin, LayoutDashboard, Workflow } from "lucide-react";
+import { Users, Search, Pin, LayoutDashboard, Workflow } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectSidebarProps {
@@ -38,12 +38,12 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
     const navItemClass = (active: boolean) =>
         `relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold transition-all ${
             active
-                ? "bg-brand/5 text-slate-900 ring-1 ring-brand/15"
+                ? "bg-brand/5 text-slate-900"
                 : "text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-800"
         }`;
 
     return (
-        <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200/60 bg-slate-50/60">
+        <aside className="flex w-64 h-full shrink-0 flex-col border-r border-slate-200/60 bg-slate-50/60">
             {/* Brand header */}
             <div className="flex items-center gap-2.5 px-4 pt-5 pb-4">
                 <span className="flex size-9 items-center justify-center rounded-xl bg-brand text-white shadow-sm shadow-brand/20">
@@ -63,17 +63,14 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search workspaces…"
-                        className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-9 text-xs text-slate-700 placeholder:text-slate-400 focus:border-brand/40 focus:outline-none focus:ring-2 focus:ring-brand/10 font-sans"
+                        className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-brand/40 focus:outline-none focus:ring-2 focus:ring-brand/10 font-sans"
                     />
-                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-400 font-sans">
-                        ⌘K
-                    </span>
                 </div>
             </div>
 
             {/* Menu group */}
             <div className="px-3 pt-3">
-                <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400 font-sans">Menu</p>
+                <p className="px-2.5 pb-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400 font-sans">Menu</p>
                 <Link href="/" className={navItemClass(onDashboard)}>
                     <LayoutDashboard className={`size-4 ${onDashboard ? "text-brand" : "text-slate-400"}`} />
                     Dashboard
@@ -86,7 +83,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
 
             {/* Workspaces group */}
             <div className="flex-1 overflow-y-auto px-3 pt-4">
-                <p className="px-2.5 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400 font-sans">Workspaces</p>
+                <p className="px-2.5 pb-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400 font-sans">Workspaces</p>
                 <nav className="space-y-0.5">
                     {projects.length === 0 ? (
                         <p className="px-2.5 py-3 text-xs text-slate-400 font-sans">No workspaces registered yet.</p>
@@ -102,7 +99,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                                     href={`/${p.id}`}
                                     aria-current={isActive ? "page" : undefined}
                                     className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all ${
-                                        isActive ? "bg-brand/5 ring-1 ring-brand/15" : "hover:bg-white hover:shadow-sm"
+                                        isActive ? "bg-brand/5" : "hover:bg-white hover:shadow-sm"
                                     }`}
                                 >
                                     <span className={`size-2 shrink-0 rounded-full ${TEMPLATE_DOT[p.template] ?? TEMPLATE_DOT.generic}`} />
@@ -138,7 +135,6 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                             {projects.length} workspace{projects.length === 1 ? "" : "s"} · local
                         </p>
                     </div>
-                    <ChevronRight className="size-4 shrink-0 text-slate-300" />
                 </div>
             </div>
         </aside>

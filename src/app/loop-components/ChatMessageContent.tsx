@@ -61,7 +61,7 @@ const PROSE_CLASS = [
 // Markdown component overrides — font-mono is used only for code (allowed per DESIGN.md).
 const MD_COMPONENTS = {
     pre: ({ children }: { children?: React.ReactNode }) => (
-        <pre className="overflow-x-auto rounded-lg bg-slate-900 p-2.5 text-2xs leading-relaxed text-slate-100">{children}</pre>
+        <pre className="max-w-full overflow-x-auto rounded-lg bg-slate-900 p-2.5 text-2xs leading-relaxed text-slate-100">{children}</pre>
     ),
     code: ({ className, children }: { className?: string; children?: React.ReactNode }) => {
         const isBlock = (className || "").includes("language-") || String(children).includes("\n");
@@ -78,12 +78,12 @@ const MD_COMPONENTS = {
 
 function FileEditBlock({ path, code }: { path: string; code: string }) {
     return (
-        <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
-            <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-2.5 py-1.5">
+        <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900 max-w-full">
+            <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-2.5 py-1.5 min-w-0">
                 <FileCode className="size-3 shrink-0 text-indigo-300" />
-                <span className="truncate text-xs font-semibold text-slate-200 font-sans">{path}</span>
+                <span className="truncate text-xs font-semibold text-slate-200 font-sans min-w-0">{path}</span>
             </div>
-            <pre className="overflow-x-auto p-2.5 text-2xs leading-relaxed text-slate-100 font-mono">{code}</pre>
+            <pre className="overflow-x-auto p-2.5 text-2xs leading-relaxed text-slate-100 font-mono whitespace-pre max-w-full">{code}</pre>
         </div>
     );
 }
@@ -96,7 +96,7 @@ export function ChatMessageContent({ content, tone = "assistant" }: { content: s
 
     const segments = parseSegments(content);
     return (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 min-w-0 overflow-hidden">
             {segments.map((seg, i) => {
                 if (seg.type === "file") return <FileEditBlock key={i} path={seg.path} code={seg.code} />;
                 const text = seg.text.trim();

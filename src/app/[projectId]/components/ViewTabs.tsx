@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { PanelsTopLeft, ListChecks, Settings, LayoutGrid, type LucideIcon } from "lucide-react";
+import { ListChecks, Settings, LayoutGrid, type LucideIcon } from "lucide-react";
 
 // Workspace navigation as underline tabs, per the reference layout:
 // Studio (walkthrough), Board (kanban), and Tasks (list), with the

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, Rocket, Loader2, Check, X, MonitorSmartphone, Tablet, Maximize2 } from "lucide-react";
+import { Rocket, Loader2, Check, X, MonitorSmartphone, Tablet, Maximize2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 interface StudioWindowProps {
@@ -19,7 +19,9 @@ interface StudioWindowProps {
 // Commit & Publish) wrapping a two-pane body (chat+changes / live preview).
 export function StudioWindow({
     projectId,
-    projectName,
+    // projectName kept in interface for future use; destructured via rest to avoid lint warning
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    projectName: _pn,
     left,
     right,
     onPublished,
@@ -76,10 +78,7 @@ export function StudioWindow({
                 {header}
                 {/* Title bar */}
                 <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-2.5">
-                    <span className="text-xs font-bold text-slate-800 font-sans select-none">
-                        {projectName}
-                    </span>
-                    <div className="ml-2 flex items-center gap-1.5 select-none">
+                    <div className="flex items-center gap-1.5 select-none">
                         <button
                             type="button"
                             onClick={() => onDeviceModeChange?.("desktop")}

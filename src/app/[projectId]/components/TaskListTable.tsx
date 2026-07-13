@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, CheckCheck, Trash2, ExternalLink } from "lucide-react";
+import { CheckCheck, Trash2, ExternalLink } from "lucide-react";
 import {
     TableContainer,
     Table,

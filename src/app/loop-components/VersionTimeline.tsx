@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { GitCommitHorizontal, Undo2, Loader2, RotateCw, AlertTriangle } from "lucide-react";
+import { Undo2, Loader2, RotateCw, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface GitCommit {
