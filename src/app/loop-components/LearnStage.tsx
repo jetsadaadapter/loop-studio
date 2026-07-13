@@ -9,6 +9,7 @@ interface LearnStageProps {
     projectId: string;
     retroAnswers: RetroAnswers;
     onRetroAnswersChange: (answers: RetroAnswers) => void;
+    readOnly?: boolean;
     onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -50,7 +51,7 @@ function KnowledgePanel({ projectId }: { projectId: string }) {
     );
 }
 
-export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSubmit }: LearnStageProps) {
+export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, readOnly = false, onSubmit }: LearnStageProps) {
     return (
         <form onSubmit={onSubmit} className="space-y-4">
             <div className="flex items-center gap-2">
@@ -103,10 +104,16 @@ export function LearnStage({ projectId, retroAnswers, onRetroAnswersChange, onSu
 
             <button
                 type="submit"
-                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                disabled={readOnly}
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand"
             >
                 Submit Retro & Complete Task Loop
             </button>
+            {readOnly && (
+                <p className="text-center text-[10px] text-slate-400 font-sans">
+                    Viewing history — this action only applies to the task&apos;s current stage.
+                </p>
+            )}
         </form>
     );
 }

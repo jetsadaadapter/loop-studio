@@ -36,15 +36,22 @@ export function ManagerToolbar({
   };
 
   return (
-    <div className={`flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 mb-6 select-none ${className}`}>
-      <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-3 flex-1">
+    // flex-wrap at the top level, with the search+filters group set to
+    // grow-but-never-shrink (shrink-0): if trailing content (e.g. 4 action
+    // buttons) doesn't leave enough room, TRAILING wraps to its own new line
+    // rather than squeezing this group below its natural content width —
+    // that squeeze was what caused the filters to wrap into two mismatched
+    // sub-rows, with the search box centered between them and every icon
+    // (search, chevrons, reset) landing at a different height.
+    <div className={`flex flex-wrap items-start justify-between gap-4 mb-6 select-none ${className}`}>
+      <div className="flex flex-wrap items-center gap-3 grow shrink-0 basis-auto">
         <ManageSearchInput
           value={searchValue}
           onChange={onSearchChange}
           placeholder={searchPlaceholder}
         />
         {(filters.length > 0 || hasActiveFilter) && (
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <div className="flex flex-wrap items-center gap-3">
             {filters.map((filter) => (
               <ManageFilterSelect
                 key={filter.key}
@@ -61,7 +68,7 @@ export function ManagerToolbar({
                 variant="ghost"
                 size="icon"
                 onClick={handleReset}
-                className="size-8 rounded-sm border border-slate-200 hover:bg-slate-50 cursor-pointer text-slate-500 shadow-3xs flex items-center justify-center shrink-0"
+                className="size-8 rounded-lg border border-slate-200 hover:border-brand/30 hover:bg-brand/5 hover:text-brand cursor-pointer text-slate-500 shadow-3xs transition-colors flex items-center justify-center shrink-0"
                 title="Reset Filters"
               >
                 <SlidersHorizontal className="size-4" />
@@ -71,7 +78,7 @@ export function ManagerToolbar({
         )}
       </div>
       {trailing && (
-        <div className="flex items-center gap-3 justify-between xl:justify-end shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           {trailing}
         </div>
       )}

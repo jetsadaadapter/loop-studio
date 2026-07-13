@@ -8,6 +8,7 @@ import { Badge, type BadgeVariant } from "@/components/ui/badge";
 
 interface PlanStageProps {
     task: LoopTask;
+    readOnly?: boolean;
     onAdvance: () => void;
 }
 
@@ -18,7 +19,7 @@ const TIER_VARIANTS: Record<string, BadgeVariant> = {
     GREEN: "success",
 };
 
-export function PlanStage({ task, onAdvance }: PlanStageProps) {
+export function PlanStage({ task, readOnly = false, onAdvance }: PlanStageProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -50,10 +51,16 @@ export function PlanStage({ task, onAdvance }: PlanStageProps) {
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                disabled={readOnly}
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand"
             >
                 Approve Plan & Advance to Build
             </button>
+            {readOnly && (
+                <p className="text-center text-[10px] text-slate-400 font-sans">
+                    Viewing history — this action only applies to the task&apos;s current stage.
+                </p>
+            )}
         </div>
     );
 }

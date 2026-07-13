@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Sparkles, Check } from "lucide-react";
 import type { LoopAgent, LoopProject } from "@/core/interfaces/loop-projects.interface";
 import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
-import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
+import { AppRail, ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 import { Input } from "@/components/ui/input";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ManagerToolbar } from "@/components/manager-toolbar";
@@ -106,6 +106,7 @@ export default function AiTeamSpace() {
 
     return (
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
+            <AppRail />
             <ProjectSidebar projects={allProjects} />
 
             <section className="flex min-w-0 flex-1 flex-col overflow-y-auto">

@@ -22,7 +22,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs font-sans">
             <Link
                 href="/"
-                className="flex items-center gap-1 rounded-sm px-1 py-0.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-1 rounded-sm px-1 py-0.5 text-slate-400 transition-colors"
                 title="Dashboard"
             >
                 <Home className="size-3.5" />

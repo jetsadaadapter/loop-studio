@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info } from "lucide-react";
+import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info, MonitorSmartphone, Tablet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { CommitPublishButton } from "./CommitPublishButton";
 
 type CheckState = "pass" | "fail" | "idle";
 
@@ -21,8 +22,11 @@ interface PreviewPaneProps {
     riskTier?: RiskTier;
     projectId: string;
     taskId: string;
+    taskName?: string;
+    onPublished: () => void;
     targetFiles?: string[];
     deviceMode?: "desktop" | "mobile";
+    onDeviceModeChange?: (mode: "desktop" | "mobile") => void;
 }
 
 type PreviewTab = "preview" | "code" | "diff";
@@ -111,8 +115,11 @@ export function PreviewPane({
     riskTier,
     projectId,
     taskId,
+    taskName,
+    onPublished,
     targetFiles = [],
-    deviceMode = "desktop"
+    deviceMode = "desktop",
+    onDeviceModeChange
 }: PreviewPaneProps) {
     const [url, setUrl] = useState(initialUrl);
     const [inputUrl, setInputUrl] = useState(initialUrl);
@@ -366,8 +373,36 @@ export function PreviewPane({
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden bg-slate-50 h-full">
-            {/* Tab bar + pipeline status */}
+            {/* Merged toolbar: device mode, tabs, pipeline status, and publish —
+                one row instead of stacking a separate title bar above it. */}
             <div className="flex items-center gap-1.5 border-b border-slate-200 bg-white px-3 py-2 shrink-0">
+                <div className="flex items-center gap-1.5 pr-1.5 border-r border-slate-200 select-none">
+                    <button
+                        type="button"
+                        onClick={() => onDeviceModeChange?.("desktop")}
+                        title="Desktop View"
+                        className={`flex size-7 cursor-pointer items-center justify-center rounded-md border transition-all ${
+                            deviceMode === "desktop"
+                                ? "border-indigo-250 bg-indigo-50 text-indigo-600 shadow-3xs"
+                                : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                        }`}
+                    >
+                        <MonitorSmartphone className="size-3.5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onDeviceModeChange?.("mobile")}
+                        title="Mobile View"
+                        className={`flex size-7 cursor-pointer items-center justify-center rounded-md border transition-all ${
+                            deviceMode === "mobile"
+                                ? "border-indigo-250 bg-indigo-50 text-indigo-600 shadow-3xs"
+                                : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                        }`}
+                    >
+                        <Tablet className="size-3.5" />
+                    </button>
+                </div>
+
                 {visibleTabs.map(({ key, label, icon: Icon }) => {
                     const active = tab === key;
                     return (
@@ -398,6 +433,9 @@ export function PreviewPane({
                             </Badge>
                         </>
                     )}
+                    <span className="ml-1 pl-1.5 border-l border-slate-200">
+                        <CommitPublishButton projectId={projectId} taskName={taskName} onPublished={onPublished} />
+                    </span>
                 </div>
             </div>
 

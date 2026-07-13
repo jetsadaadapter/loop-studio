@@ -6,7 +6,7 @@ import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ProjectCard } from "./loop-components/ProjectCard";
-import { ProjectSidebar } from "./loop-components/ProjectSidebar";
+import { AppRail, ProjectSidebar } from "./loop-components/ProjectSidebar";
 import { RegisterModal } from "./loop-components/RegisterModal";
 import { BootstrapModal } from "./loop-components/BootstrapModal";
 import { EditProjectModal } from "./loop-components/EditProjectModal";
@@ -112,6 +112,7 @@ export default function LoopProjectsDashboard() {
 
     return (
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
+            <AppRail />
             <ProjectSidebar projects={projects} />
 
             <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">

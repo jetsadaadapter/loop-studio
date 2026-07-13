@@ -18,6 +18,11 @@ interface StageWorkspaceProps {
 }
 
 export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onTriggerLog }: StageWorkspaceProps) {
+    // Advancing only makes sense while viewing the task's actual live stage — an
+    // already-completed task, or a past/future stage node clicked just to preview
+    // its workspace, must not expose a live "advance" action that would silently
+    // regress or skip task.currentStage.
+    const readOnly = activeStage !== task.currentStage || task.status === "completed";
     const [runner, setRunner] = useState<"vitest" | "playwright">(task.testRunner || "vitest");
     const [runningAction, setRunningAction] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -77,13 +82,14 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
     return (
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-3xs">
             {activeStage === "PLAN" && (
-                <PlanStage task={task} onAdvance={() => handleNextStage("BUILD")} />
+                <PlanStage task={task} readOnly={readOnly} onAdvance={() => handleNextStage("BUILD")} />
             )}
 
             {activeStage === "BUILD" && (
                 <BuildStage
                     buildPrompt={buildPrompt}
                     copied={copied}
+                    readOnly={readOnly}
                     onCopyPrompt={handleCopyPrompt}
                     onAdvance={() => handleNextStage("VERIFY")}
                 />
@@ -95,6 +101,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
                     onRunnerChange={setRunner}
                     runningAction={runningAction}
                     onRunAction={handleAction}
+                    readOnly={readOnly}
                     onAdvance={() => handleNextStage("AUTOMATE")}
                 />
             )}
@@ -102,6 +109,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
             {activeStage === "AUTOMATE" && (
                 <AutomateStage
                     onRunAction={handleAction}
+                    readOnly={readOnly}
                     onAdvance={() => handleNextStage("OBSERVE")}
                 />
             )}
@@ -111,6 +119,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
                     projectId={projectId}
                     taskId={task.id}
                     onTriggerLog={onTriggerLog}
+                    readOnly={readOnly}
                     onAdvance={() => handleNextStage("LEARN")}
                 />
             )}
@@ -120,6 +129,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
                     projectId={projectId}
                     retroAnswers={retroAnswers}
                     onRetroAnswersChange={setRetroAnswers}
+                    readOnly={readOnly}
                     onSubmit={handleRetroSubmit}
                 />
             )}

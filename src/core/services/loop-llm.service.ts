@@ -82,14 +82,37 @@ export function resolveLoopLlm(userKey?: string | null): { provider: LlmProvider
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 529]);
 
 // POST with exponential backoff on transient errors (e.g. Gemini 503 "high demand").
-async function fetchWithRetry(url: string, init: RequestInit, attempts = 3): Promise<Response> {
+async function fetchWithRetry(url: string, init: RequestInit, attempts = 5): Promise<Response> {
     let res: Response | null = null;
     for (let i = 0; i < attempts; i++) {
         res = await fetch(url, init);
         if (res.ok || !RETRYABLE_STATUS.has(res.status)) return res;
-        if (i < attempts - 1) await new Promise((r) => setTimeout(r, 800 * 2 ** i));
+        if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
     }
     return res as Response;
+}
+
+function parseLlmError(provider: LlmProvider, status: number, bodyText: string): Error {
+    try {
+        const parsed = JSON.parse(bodyText);
+        const apiMessage = provider === "gemini" ? parsed.error?.message : parsed.error?.message;
+        
+        if (status === 503 || (apiMessage && (apiMessage.includes("experiencing high demand") || apiMessage.includes("UNAVAILABLE") || apiMessage.includes("temporary")))) {
+            return new Error("The AI service is currently experiencing extremely high demand. Please try again in a few moments, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
+        }
+        if (status === 429 || (apiMessage && (apiMessage.includes("quota") || apiMessage.includes("limit") || apiMessage.includes("exhausted") || apiMessage.includes("too many requests")))) {
+            return new Error("API rate limit or quota exceeded. Please wait a moment before trying again, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
+        }
+        if (status === 401 || status === 403 || (apiMessage && (apiMessage.includes("API key") || apiMessage.includes("invalid key") || apiMessage.includes("not found") || apiMessage.includes("unauthorized")))) {
+            return new Error("Invalid API key. Please check your API key settings in the AI Team Manager, or toggle the IDE Agent Bridge (⚡) to run locally.");
+        }
+        if (apiMessage) {
+            return new Error(`${provider === "gemini" ? "Gemini" : "Claude"} API error: ${apiMessage}`);
+        }
+    } catch {
+        // parsing failed, fall back
+    }
+    return new Error(`${provider === "gemini" ? "Gemini" : "Claude"} API error (${status}): ${bodyText.slice(0, 200)}`);
 }
 
 function toAnthropicContent(content: LlmContent) {
@@ -112,7 +135,10 @@ async function callAnthropic(apiKey: string, model: string, systemPrompt: string
             messages: messages.map((m) => ({ role: m.role, content: toAnthropicContent(m.content) })),
         }),
     });
-    if (!res.ok) throw new Error(`Claude API error: ${res.status} - ${await res.text()}`);
+    if (!res.ok) {
+        const errText = await res.text();
+        throw parseLlmError("anthropic", res.status, errText);
+    }
     const data = await res.json();
     const input = data.usage?.input_tokens || 0;
     const output = data.usage?.output_tokens || 0;
@@ -141,7 +167,10 @@ async function callGemini(apiKey: string, model: string, systemPrompt: string, m
             generationConfig: { maxOutputTokens: maxTokens },
         }),
     });
-    if (!res.ok) throw new Error(`Gemini API error: ${res.status} - ${await res.text()}`);
+    if (!res.ok) {
+        const errText = await res.text();
+        throw parseLlmError("gemini", res.status, errText);
+    }
     const data = await res.json();
     const text = (data.candidates?.[0]?.content?.parts || []).map((p: { text?: string }) => p.text || "").join("");
     const input = data.usageMetadata?.promptTokenCount || 0;

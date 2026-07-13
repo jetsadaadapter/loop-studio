@@ -6,7 +6,7 @@ import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles, Clock } from "lucid
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { StickyCrumbs } from "../loop-components/StickyCrumbs";
-import { ProjectSidebar } from "../loop-components/ProjectSidebar";
+import { AppRail, ProjectSidebar } from "../loop-components/ProjectSidebar";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
 import { AutoRunProgress } from "../loop-components/AutoRunProgress";
@@ -39,6 +39,9 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const [isAutoRunOpen, setIsAutoRunOpen] = useState(false);
     const [isScheduleOpen, setIsScheduleOpen] = useState(false);
     const [viewTab, setViewTab] = useState<WorkspaceViewTab>("board");
+    // Only show the sticky header's shadow once the page has actually scrolled
+    // past the top — at scrollTop 0 there's nothing "underneath" it to separate from.
+    const [isScrolled, setIsScrolled] = useState(false);
 
     const loadData = async () => {
         setLoading(true);
@@ -168,16 +171,32 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
 
     return (
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
+            <AppRail />
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
-            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 pb-6">
+            <section
+                className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 pb-6"
+                onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 0)}
+            >
                 <StickyCrumbs items={[{ label: project.name }]} />
 
-                <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
+                {/* Sticky workspace header + auto-run banner + view tabs — pinned
+                    below StickyCrumbs (45px, its measured rendered height) so this
+                    block stays visible while the board/task list scrolls under it.
+                    pt-6/pb-4 bake the breathing room in as padding (not margin) —
+                    space-y-6's margin-top on this box collapses away once it's
+                    actually stuck, which left it flush against the crumbs bar
+                    above. The shadow only renders once isScrolled is true, so it
+                    doesn't show at scrollTop 0 where there's nothing to separate from. */}
+                <div className={`sticky top-[45px] z-20 -mx-6 space-y-6 bg-white px-6 pt-6 pb-4 transition-shadow duration-200 ${
+                    isScrolled ? "shadow-[0_4px_6px_-4px_rgba(15,23,42,0.08)]" : ""
+                }`}>
+                    <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
 
-                <AutoRunProgress projectId={projectId} onRefresh={loadData} />
+                    <AutoRunProgress projectId={projectId} onRefresh={loadData} />
 
-                <ViewTabs viewTab={viewTab} onChange={setViewTab} />
+                    <ViewTabs viewTab={viewTab} onChange={setViewTab} />
+                </div>
 
                 {viewTab === "task" && (
                     <>

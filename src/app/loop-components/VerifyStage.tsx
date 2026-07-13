@@ -8,10 +8,11 @@ interface VerifyStageProps {
     onRunnerChange: (runner: "vitest" | "playwright") => void;
     runningAction: string | null;
     onRunAction: (type: string) => void;
+    readOnly?: boolean;
     onAdvance: () => void;
 }
 
-export function VerifyStage({ runner, onRunnerChange, runningAction, onRunAction, onAdvance }: VerifyStageProps) {
+export function VerifyStage({ runner, onRunnerChange, runningAction, onRunAction, readOnly = false, onAdvance }: VerifyStageProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -56,10 +57,16 @@ export function VerifyStage({ runner, onRunnerChange, runningAction, onRunAction
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-sm border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-3xs"
+                disabled={readOnly}
+                className="w-full rounded-sm border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer shadow-3xs disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
             >
                 Advance to Automate
             </button>
+            {readOnly && (
+                <p className="text-center text-[10px] text-slate-400 font-sans">
+                    Viewing history — this action only applies to the task&apos;s current stage.
+                </p>
+            )}
         </div>
     );
 }

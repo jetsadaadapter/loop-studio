@@ -26,7 +26,7 @@ const OPTIONS = [
 ];
 
 describe("ManageFilterSelect", () => {
-  it("renders the label", () => {
+  it("exposes the label as an aria-label instead of a visible chip", () => {
     render(
       <ManageFilterSelect
         label="Status"
@@ -35,7 +35,8 @@ describe("ManageFilterSelect", () => {
         onChange={vi.fn()}
       />,
     );
-    expect(screen.getByText("Status")).toBeInTheDocument();
+    expect(screen.getByLabelText("Status")).toBeInTheDocument();
+    expect(screen.queryByText("Status")).not.toBeInTheDocument();
   });
 
   it("shows the placeholder when no value is selected", () => {

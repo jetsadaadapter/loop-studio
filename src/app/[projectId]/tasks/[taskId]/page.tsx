@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Clock, Coins, CheckCircle2, ChevronUp, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Clock, Coins, CheckCircle2, PanelBottomOpen, PanelBottomClose, Maximize2, Minimize2 } from "lucide-react";
 import type { LoopProject, LoopTask, TaskStage } from "@/core/interfaces/loop-projects.interface";
 import { TimelineStages } from "@/app/loop-components/TimelineStages";
 import { StageWorkspace } from "@/app/loop-components/StageWorkspace";
@@ -12,7 +12,7 @@ import { PreviewPane } from "@/app/loop-components/PreviewPane";
 import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
 import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
 import { StudioWindow } from "@/app/loop-components/StudioWindow";
-import { ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
+import { AppRail, ProjectSidebar } from "@/app/loop-components/ProjectSidebar";
 
 interface TaskWorkspaceProps {
     params: Promise<{ projectId: string; taskId: string }>;
@@ -41,7 +41,6 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
     const [loading, setLoading] = useState(true);
     const [triggerCount, setTriggerCount] = useState(0);
     const [bottomPanelState, setBottomPanelState] = useState<"collapsed" | "standard" | "expanded">("standard");
-    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     const loadData = async () => {
         try {
@@ -121,37 +120,17 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
 
     return (
         <div className="flex min-h-0 flex-1 overflow-hidden bg-white motion-hero-enter">
-            {/* Collapsible sidebar */}
-            <div className={`shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${
-                sidebarOpen ? "w-64" : "w-0"
-            }`}>
-                <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
-            </div>
+            <AppRail />
+            <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
             <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-slate-50">
                 {/* Studio workspace: stretches 100% height and width to the remaining viewport */}
                 <div className="flex-1 min-h-0 relative">
                     <StudioWindow
-                        projectId={projectId}
-                        projectName={project?.name || task.name}
-                        taskName={task.name}
-                        onPublished={loadData}
-                        deviceMode={deviceMode}
-                        onDeviceModeChange={setDeviceMode}
                         header={
                             /* Header section (clean, compact, with bottom border) */
                             <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shrink-0 h-14 select-none">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSidebarOpen((v) => !v)}
-                                        title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-                                        className="flex size-7 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-all cursor-pointer"
-                                    >
-                                        {sidebarOpen
-                                            ? <PanelLeftClose className="size-4" />
-                                            : <PanelLeftOpen className="size-4" />}
-                                    </button>
                                     <div className="min-w-0">
                                         <h1 className="flex items-center gap-2 text-sm font-bold tracking-tight text-slate-800">
                                             <span className="truncate">{task.name}</span>
@@ -198,8 +177,11 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                         riskTier={task.riskTier}
                                         projectId={projectId}
                                         taskId={task.id}
+                                        taskName={task.name}
+                                        onPublished={loadData}
                                         targetFiles={task.targetFiles}
                                         deviceMode={deviceMode}
+                                        onDeviceModeChange={setDeviceMode}
                                     />
                                 </div>
 
@@ -228,10 +210,10 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                             <button
                                                 type="button"
                                                 onClick={() => setBottomPanelState("standard")}
-                                                title="Expand pipeline & logs"
+                                                title="Expand panel"
                                                 className="flex size-7 items-center justify-center rounded-md text-slate-400 hover:text-slate-750 hover:bg-slate-250/50 transition-all cursor-pointer"
                                             >
-                                                <ChevronUp className="size-4.5" />
+                                                <PanelBottomOpen className="size-4.5" />
                                             </button>
                                         </div>
                                     ) : (
@@ -250,10 +232,10 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => setBottomPanelState("collapsed")}
-                                                        title="Minimize panel"
+                                                        title="Collapse panel"
                                                         className="flex size-7 items-center justify-center rounded-md text-slate-400 hover:text-slate-750 hover:bg-slate-100 transition-all cursor-pointer"
                                                     >
-                                                        <ChevronDown className="size-4.5" />
+                                                        <PanelBottomClose className="size-4.5" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -288,10 +270,10 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => setBottomPanelState(bottomPanelState === "expanded" ? "standard" : "expanded")}
-                                                        title={bottomPanelState === "expanded" ? "Restore to standard" : "Maximize panel"}
+                                                        title={bottomPanelState === "expanded" ? "Restore to standard size" : "Maximize panel"}
                                                         className="flex size-7 items-center justify-center rounded-md text-slate-400 hover:text-slate-750 hover:bg-slate-100 transition-all cursor-pointer"
                                                     >
-                                                        {bottomPanelState === "expanded" ? <ChevronDown className="size-4.5" /> : <ChevronUp className="size-4.5" />}
+                                                        {bottomPanelState === "expanded" ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
                                                     </button>
                                                 </div>
                                             </div>

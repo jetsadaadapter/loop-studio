@@ -5,10 +5,11 @@ import { ShieldCheck } from "lucide-react";
 
 interface AutomateStageProps {
     onRunAction: (type: string) => void;
+    readOnly?: boolean;
     onAdvance: () => void;
 }
 
-export function AutomateStage({ onRunAction, onAdvance }: AutomateStageProps) {
+export function AutomateStage({ onRunAction, readOnly = false, onAdvance }: AutomateStageProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -48,10 +49,16 @@ export function AutomateStage({ onRunAction, onAdvance }: AutomateStageProps) {
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                disabled={readOnly}
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand"
             >
                 CI Tests Passed & Advance to Observe
             </button>
+            {readOnly && (
+                <p className="text-center text-[10px] text-slate-400 font-sans">
+                    Viewing history — this action only applies to the task&apos;s current stage.
+                </p>
+            )}
         </div>
     );
 }

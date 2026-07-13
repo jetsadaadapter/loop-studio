@@ -6,11 +6,12 @@ import { Sparkles, Check, Copy } from "lucide-react";
 interface BuildStageProps {
     buildPrompt: string;
     copied: boolean;
+    readOnly?: boolean;
     onCopyPrompt: () => void;
     onAdvance: () => void;
 }
 
-export function BuildStage({ buildPrompt, copied, onCopyPrompt, onAdvance }: BuildStageProps) {
+export function BuildStage({ buildPrompt, copied, readOnly = false, onCopyPrompt, onAdvance }: BuildStageProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -40,10 +41,16 @@ export function BuildStage({ buildPrompt, copied, onCopyPrompt, onAdvance }: Bui
 
             <button
                 onClick={onAdvance}
-                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm"
+                disabled={readOnly}
+                className="w-full rounded-sm bg-brand py-2 text-xs font-semibold text-white hover:bg-brand/90 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-brand"
             >
                 Code Written & Advance to Verify
             </button>
+            {readOnly && (
+                <p className="text-center text-[10px] text-slate-400 font-sans">
+                    Viewing history — this action only applies to the task&apos;s current stage.
+                </p>
+            )}
         </div>
     );
 }
