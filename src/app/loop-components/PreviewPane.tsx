@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 
 type CheckState = "pass" | "fail" | "idle";
 
@@ -32,11 +33,11 @@ const ALL_TABS: { key: PreviewTab; label: string; icon: typeof Monitor }[] = [
     { key: "diff", label: "Diff", icon: GitCompare },
 ];
 
-const TIER_COLOR: Record<RiskTier, string> = {
-    RED: "text-red-400",
-    ORANGE: "text-orange-400",
-    YELLOW: "text-amber-400",
-    GREEN: "text-emerald-400",
+const TIER_VARIANTS: Record<RiskTier, BadgeVariant> = {
+    RED: "error",
+    ORANGE: "orange",
+    YELLOW: "warning",
+    GREEN: "success",
 };
 
 const STATUS_INFO: Record<string, { title: string; pass: string; fail: string }> = {
@@ -71,10 +72,10 @@ function StatusBadge({ label, state }: { label: string; state: CheckState }) {
                 onMouseLeave={() => setShow(false)}
                 onFocus={(e) => { setRect(e.currentTarget.getBoundingClientRect()); setShow(true); }}
                 onBlur={() => setShow(false)}
-                className={`inline-flex items-center gap-1 font-sans text-xs rounded px-1.5 py-0.5 transition-colors cursor-help ${
+                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold font-sans uppercase border transition-colors cursor-help select-none ${
                     state === "pass"
-                        ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                        : "text-red-600 bg-red-50 hover:bg-red-100"
+                        ? "text-[#499A13] bg-[#499A13]/5 border-[#499A13]/20 hover:bg-[#499A13]/10"
+                        : "text-red-700 bg-red-50 border-red-200/60 hover:bg-red-100/60"
                 }`}
             >
                 {state === "pass" ? <Check className="size-3" /> : <AlertTriangle className="size-3" />}
@@ -334,8 +335,8 @@ export function PreviewPane({
         const ext = effectiveSelectedFile.split(".").pop()?.toLowerCase() ?? "ts";
         return codeText.split("\n").map((line, idx) => (
             <div key={idx} className="flex hover:bg-white/5 px-1 rounded-xs transition-colors py-[1px] group">
-                <span className="w-10 select-none text-slate-600 text-right pr-3 font-mono font-normal text-[10px] leading-5 group-hover:text-slate-500">{idx + 1}</span>
-                <span className="flex-1 whitespace-pre font-mono text-[11px] leading-5">{highlightLine(line, ext)}</span>
+                <span className="w-10 select-none text-slate-600 text-right pr-3 font-sans font-normal text-[10px] leading-5 group-hover:text-slate-500">{idx + 1}</span>
+                <span className="flex-1 whitespace-pre font-sans text-[11px] leading-5">{highlightLine(line, ext)}</span>
             </div>
         ));
     };
@@ -392,7 +393,9 @@ export function PreviewPane({
                     {riskTier && (
                         <>
                             <span className="text-slate-300">·</span>
-                            <span className={`font-sans text-xs font-semibold ${TIER_COLOR[riskTier]}`}>{riskTier}</span>
+                            <Badge variant={TIER_VARIANTS[riskTier]}>
+                                {riskTier}
+                            </Badge>
                         </>
                     )}
                 </div>
@@ -488,7 +491,7 @@ export function PreviewPane({
                         </div>
                     )}
 
-                    <div className="flex-1 min-h-0 overflow-auto p-4 bg-slate-950 font-mono text-xs text-slate-300 select-text">
+                    <div className="flex-1 min-h-0 overflow-auto p-4 bg-slate-950 font-sans text-xs text-slate-300 select-text">
                         {loadingCode ? (
                             <div className="flex h-full items-center justify-center gap-2 text-slate-500 animate-pulse font-sans">
                                 <Loader2 className="size-4 animate-spin text-indigo-500" /> Loading file content...
@@ -503,7 +506,7 @@ export function PreviewPane({
                     </div>
                 </>
             ) : (
-                <div className="flex-1 min-h-0 overflow-auto p-4 bg-slate-950 font-mono text-xs text-slate-300 select-text">
+                <div className="flex-1 min-h-0 overflow-auto p-4 bg-slate-950 font-sans text-xs text-slate-300 select-text">
                     {loadingDiff ? (
                         <div className="flex h-full items-center justify-center gap-2 text-slate-500 animate-pulse font-sans">
                             <Loader2 className="size-4 animate-spin text-indigo-500" /> Loading git diff...

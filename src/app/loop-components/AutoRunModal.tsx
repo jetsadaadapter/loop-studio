@@ -8,6 +8,8 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui
 import type { EnrichedPlannedTask } from "@/core/services/loop-planner.service";
 import { PlanFromGoalSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+
 interface AutoRunModalProps {
     isOpen: boolean;
     projectId: string;
@@ -16,11 +18,12 @@ interface AutoRunModalProps {
     onSuccess: (startedAutoRun: boolean) => void;
 }
 
-const riskColor = (tier: string) =>
-    tier === "RED" ? "bg-red-50 text-red-700 border-red-200/60"
-    : tier === "ORANGE" ? "bg-orange-50 text-orange-700 border-orange-200/60"
-    : tier === "YELLOW" ? "bg-amber-50 text-amber-700 border-amber-200/60"
-    : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
+const TIER_VARIANTS: Record<string, BadgeVariant> = {
+    RED: "error",
+    ORANGE: "orange",
+    YELLOW: "warning",
+    GREEN: "success",
+};
 
 function apiKeyHeader(): Record<string, string> {
     const key = typeof window !== "undefined" ? localStorage.getItem("loop_anthropic_api_key") : null;
@@ -134,10 +137,10 @@ export function AutoRunModal({ isOpen, projectId, onClose, onSuccess }: AutoRunM
                                         <p className="text-xs font-semibold text-slate-800">{d.name}</p>
                                         <p className="truncate text-xs text-slate-500" title={d.targetFiles.join(", ")}>{d.targetFiles.join(", ")}</p>
                                         <div className="mt-1 flex flex-wrap items-center gap-1">
-                                            <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold font-sans ${riskColor(d.riskTier)}`}>{d.riskTier}</span>
-                                            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-sans text-slate-600">group {d.groupNumber}</span>
+                                            <Badge variant={TIER_VARIANTS[d.riskTier]}>{d.riskTier}</Badge>
+                                            <Badge variant="default">group {d.groupNumber}</Badge>
                                             {d.tags.map((t) => (
-                                                <span key={t} className="rounded-full border border-indigo-200/60 bg-indigo-50 px-2 py-0.5 text-xs font-sans text-indigo-700">{t}</span>
+                                                <Badge key={t} variant="info">{t}</Badge>
                                             ))}
                                         </div>
                                     </div>

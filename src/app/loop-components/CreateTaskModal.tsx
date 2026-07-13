@@ -10,6 +10,8 @@ import { TagInput } from "@/components/ui/tag-input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
 import { CreateTaskSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+
 interface CreateTaskModalProps {
     isOpen: boolean;
     projectId: string;
@@ -23,11 +25,11 @@ interface RiskPreview {
     safetyNets: string[];
 }
 
-const RISK_STYLES: Record<RiskTier, string> = {
-    RED: "bg-red-50 text-red-700 border-red-200/60",
-    ORANGE: "bg-orange-50 text-orange-700 border-orange-200/60",
-    YELLOW: "bg-amber-50 text-amber-700 border-amber-200/60",
-    GREEN: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+const TIER_VARIANTS: Record<RiskTier, BadgeVariant> = {
+    RED: "error",
+    ORANGE: "orange",
+    YELLOW: "warning",
+    GREEN: "success",
 };
 
 export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: CreateTaskModalProps) {
@@ -207,9 +209,9 @@ export function CreateTaskModal({ isOpen, projectId, onClose, onSuccess }: Creat
                         <div className="space-y-2.5 rounded-lg border border-slate-200/60 bg-slate-50/50 p-3">
                             <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-semibold text-slate-600">Task Risk Tier</span>
-                                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase ${RISK_STYLES[risk.tier]}`}>
+                                <Badge variant={TIER_VARIANTS[risk.tier]}>
                                     {risk.tier}
-                                </span>
+                                </Badge>
                             </div>
                             <p className="text-xs text-slate-500">
                                 <span className="font-semibold text-slate-700">{primaryFile}</span> is imported in{" "}

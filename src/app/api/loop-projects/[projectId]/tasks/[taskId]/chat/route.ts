@@ -85,7 +85,7 @@ export async function POST(
         // 2. Setup Somsri Developer Agent system prompt
         const systemPrompt = `You are Somsri (Lead Developer), an expert React/Next.js/TypeScript developer in our Loop Engineering team.
 Your task is to write clean, modular code following the user's requirements.
-Strict typography rule: Always use font-sans. The ONLY exception is for raw code blocks, pre-formatted logs, or technical syntax highlights. Using font-mono for UI elements, buttons, headers, or tags is STRICTLY FORBIDDEN.
+Strict typography rule: Always use font-sans. The use of font-mono is STRICTLY FORBIDDEN in any context, including code blocks, pre-formatted logs, or technical syntax highlights. Always output font-sans.
 
 HOW TO EDIT FILES:
 If you need to edit or create files, output the full file contents inside XML-style tags like this:

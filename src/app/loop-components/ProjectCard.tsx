@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Folder, GitBranch, Coins, Trash2, Pencil, ArrowRight } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
+import { Badge } from "@/components/ui/badge";
 
 interface ProjectCardProps {
     project: LoopProject;
@@ -43,16 +44,17 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors duration-200">{project.name}</h3>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/60 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700 font-sans mt-0.5 uppercase">
+                        <Badge variant="default" className="mt-0.5">
                             {project.template.replace("-", " ")}
-                        </span>
+                        </Badge>
                         {project.isHost && (
-                            <span
-                                className="ml-1 inline-flex items-center gap-1 rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 font-sans mt-0.5 uppercase"
+                            <Badge
+                                variant="warning"
+                                className="ml-1 mt-0.5"
                                 title="This is the running Loop Studio app itself — build, dev, and auto-commit are disabled to protect the live server."
                             >
                                 Host App
-                            </span>
+                            </Badge>
                         )}
                     </div>
                 </div>

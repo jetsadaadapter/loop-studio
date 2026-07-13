@@ -32,7 +32,7 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                 {/* Connecting track line */}
                 <div className="hidden md:block absolute top-[11px] left-[8%] right-[8%] h-px bg-slate-200 z-0">
                     <div
-                        className="h-full bg-emerald-500 transition-all duration-500 ease-in-out"
+                        className="h-full bg-[#5D8736] transition-all duration-500 ease-in-out"
                         style={{
                             width: isTaskComplete
                                 ? "100%"
@@ -49,7 +49,7 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                     let nodeColor = "bg-white border-slate-200 text-slate-400";
                     let ringClass = "";
                     if (isCompleted) {
-                        nodeColor = "bg-emerald-500 border-emerald-500 text-white";
+                        nodeColor = "bg-[#5D8736] border-[#5D8736] text-white";
                     } else if (isCurrent) {
                         nodeColor = "bg-brand border-brand text-white";
                         ringClass = "ring-2 ring-brand/20 animate-pulse";
@@ -76,8 +76,8 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                                 {/* Ping dot for currently running stage */}
                                 {isCurrent && (
                                     <span className="absolute -top-0.5 -right-0.5 flex size-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5D8736] opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full size-1.5 bg-[#5D8736]"></span>
                                     </span>
                                 )}
                             </div>
@@ -91,7 +91,7 @@ export function TimelineStages({ currentStage, activeStage, onSelectStage, statu
                                 </span>
                                 <span className={`text-[7px] leading-none font-bold uppercase tracking-wide font-sans transition-colors ${
                                     isCompleted
-                                        ? "text-emerald-500"
+                                        ? "text-[#5D8736]"
                                         : isCurrent
                                             ? "text-brand animate-pulse"
                                             : "text-slate-300"

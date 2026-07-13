@@ -34,23 +34,23 @@ function resolveAgentIdentity(senderName: string, role: "user" | "assistant" | "
 /** Animated "typing…" bubble shown while waiting for a chat response */
 function TypingIndicator({ collaborating }: { collaborating: boolean }) {
     return (
-        <div className="flex items-end gap-2.5 mr-auto">
+        <div className="flex items-start gap-3 mr-auto">
             <AgentAvatar
                 seed="agent-somsri"
                 name="Somsri (Developer)"
-                size={28}
+                size={30}
                 gender="female"
-                className="shadow-4xs border border-slate-100 bg-white shrink-0"
+                className="shadow-3xs border border-slate-100 bg-white shrink-0 mt-0.5"
             />
             <div className="flex flex-col items-start gap-1 min-w-0">
-                <div className="rounded-[16px] rounded-tl-[4px] bg-white border border-slate-200 shadow-4xs px-3 py-2.5 flex items-center gap-2">
+                <div className="rounded-[18px] rounded-tl-[4px] bg-white border border-slate-200/80 shadow-3xs px-4 py-3 flex items-center gap-2.5">
                     {/* Bouncing dots */}
                     <span className="flex items-center gap-1">
                         <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.3s]" />
                         <span className="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]" />
                         <span className="size-1.5 rounded-full bg-slate-400 animate-bounce" />
                     </span>
-                    <span className="text-[10px] text-slate-400 font-sans select-none">
+                    <span className="text-xs text-slate-400 font-sans select-none">
                         {collaborating ? "Delegating to agent team…" : "Somsri is typing…"}
                     </span>
                 </div>
@@ -64,12 +64,12 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
 
     return (
         <div className="flex-1 bg-[#f8f9fc] overflow-y-auto min-h-0 flex flex-col">
-            <div className="flex-1 flex flex-col justify-end px-4 py-4 gap-4">
+            <div className="flex-1 flex flex-col justify-end px-5 py-5 gap-6">
                 {messages.length === 0 && !isWaiting ? (
-                    <div className="flex flex-col flex-1 items-center justify-center text-center p-4 select-none">
-                        <Sparkles className="size-7 text-indigo-500 mb-1.5 animate-pulse" />
+                    <div className="flex flex-col flex-1 items-center justify-center text-center p-6 select-none">
+                        <Sparkles className="size-7 text-indigo-500 mb-2 animate-pulse" />
                         <h4 className="text-xs font-semibold text-slate-700">Chat Workspace Ready</h4>
-                        <p className="text-[11px] text-slate-400 font-sans mt-0.5 max-w-[200px]">
+                        <p className="text-[11.5px] text-slate-400 font-sans mt-1 max-w-[220px] leading-relaxed">
                             Type instructions to Chat with Somsri (Developer) or delegate the work to the AI Agent Team.
                         </p>
                     </div>
@@ -84,7 +84,7 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
                             if (isSystem) {
                                 return (
                                     <div key={m.id} className="w-full flex justify-start">
-                                        <div className="bg-white/80 border border-slate-200/50 rounded-xl px-3 py-1.5 text-[10px] text-slate-500 text-left font-sans shadow-4xs max-w-[90%] min-w-0 overflow-hidden">
+                                        <div className="bg-white/80 border border-slate-200/50 rounded-2xl px-4.5 py-3 text-[10px] text-slate-500 text-left font-sans shadow-4xs max-w-[90%] min-w-0 overflow-hidden leading-relaxed">
                                             <ChatMessageContent content={m.content} tone={tone} />
                                         </div>
                                     </div>
@@ -95,17 +95,17 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
                             return (
                                 <div
                                     key={m.id}
-                                    className={`flex items-end gap-2 min-w-0 ${isUser ? "flex-row-reverse ml-6" : "flex-row mr-6"}`}
+                                    className={`flex items-start gap-3 min-w-0 ${isUser ? "flex-row-reverse ml-8" : "flex-row mr-8"}`}
                                 >
                                     <AgentAvatar
                                         seed={identity.seed}
                                         name={m.senderName}
-                                        size={28}
+                                        size={30}
                                         gender={identity.gender}
-                                        className="shadow-4xs border border-slate-100 bg-white shrink-0"
+                                        className="shadow-3xs border border-slate-100 bg-white shrink-0 mt-0.5"
                                     />
                                     {/* Bubble column */}
-                                    <div className={`flex flex-col min-w-0 max-w-full gap-1 ${isUser ? "items-end" : "items-start"}`}>
+                                    <div className={`flex flex-col min-w-0 max-w-full gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
                                         {/* Attachments */}
                                         {m.attachments && m.attachments.length > 0 && (
                                             <div className={`flex flex-wrap gap-1.5 ${isUser ? "justify-end" : "justify-start"}`}>
@@ -118,12 +118,12 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
                                                             width={96}
                                                             height={96}
                                                             unoptimized
-                                                            className="size-24 rounded-lg border border-slate-200 object-cover"
+                                                            className="size-24 rounded-lg border border-slate-200 object-cover shadow-3xs"
                                                         />
                                                     ) : (
                                                         <span
                                                             key={a.id}
-                                                            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 font-sans shadow-4xs"
+                                                            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 font-sans shadow-3xs"
                                                         >
                                                             <FileText className="size-3.5 text-slate-450 shrink-0" />
                                                             <span className="truncate max-w-[120px]">{a.name}</span>
@@ -135,17 +135,17 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
 
                                         {/* Message bubble */}
                                         <div
-                                            className={`rounded-[16px] px-3 py-2 text-xs select-text leading-relaxed shadow-4xs min-w-0 overflow-hidden ${
+                                            className={`rounded-[18px] px-4.5 py-3 text-xs select-text leading-relaxed shadow-3xs min-w-0 overflow-hidden ${
                                                 isUser
-                                                    ? "rounded-tr-[4px] bg-brand text-white"
-                                                    : "rounded-tl-[4px] bg-white text-slate-800 border border-slate-100"
+                                                    ? "rounded-tr-[4px] bg-[#5D8736] text-white font-sans"
+                                                    : "rounded-tl-[4px] bg-white text-slate-800 border border-slate-200/60"
                                             } ${hasCode ? "w-full" : "max-w-full"}`}
                                         >
                                             <ChatMessageContent content={m.content} tone={tone} />
                                         </div>
 
                                         {/* Timestamp */}
-                                        <span className="text-[9px] text-slate-400 px-1 font-sans select-none">
+                                        <span className="text-[10px] text-slate-400 px-1 font-sans select-none mt-0.5">
                                             {m.timestamp
                                                 ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                                                 : "just now"}
@@ -162,8 +162,8 @@ export function ChatMessageList({ messages, loading, collaborating, isBridgedPen
 
                 {/* Standalone loading state when messages exist but waiting */}
                 {messages.length > 0 && isWaiting && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-sans select-none ml-10">
-                        <Loader2 className="size-3 animate-spin" />
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-sans select-none ml-11">
+                        <Loader2 className="size-3.5 animate-spin" />
                         {collaborating ? "Delegating task to AI team…" : "Waiting for Somsri…"}
                     </div>
                 )}

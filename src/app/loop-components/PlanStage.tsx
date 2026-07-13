@@ -4,19 +4,19 @@ import React from "react";
 import { AlertTriangle, Check } from "lucide-react";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+
 interface PlanStageProps {
     task: LoopTask;
     onAdvance: () => void;
 }
 
-function getRiskBadge(tier?: string) {
-    switch (tier) {
-        case "RED": return "text-red-700 bg-red-50 border-red-200/60";
-        case "ORANGE": return "text-orange-700 bg-orange-50 border-orange-200/60";
-        case "YELLOW": return "text-amber-700 bg-amber-50 border-amber-200/60";
-        default: return "text-emerald-700 bg-emerald-50 border-emerald-200/60";
-    }
-}
+const TIER_VARIANTS: Record<string, BadgeVariant> = {
+    RED: "error",
+    ORANGE: "orange",
+    YELLOW: "warning",
+    GREEN: "success",
+};
 
 export function PlanStage({ task, onAdvance }: PlanStageProps) {
     return (
@@ -31,9 +31,9 @@ export function PlanStage({ task, onAdvance }: PlanStageProps) {
                 <code className="text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 font-sans font-medium text-slate-700">
                     {task.targetFiles[0]}
                 </code>
-                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold font-sans uppercase ${getRiskBadge(task.riskTier)}`}>
+                <Badge variant={TIER_VARIANTS[task.riskTier || "GREEN"]}>
                     {task.riskTier || "GREEN"} Tier
-                </span>
+                </Badge>
             </div>
 
             <div className="space-y-2 border-t border-slate-100 pt-3">

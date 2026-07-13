@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCheck, Trash2, ExternalLink } from "lucide-react";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import {
     TableContainer,
     Table,
@@ -22,23 +23,18 @@ interface TaskListTableProps {
     onRefresh?: () => void;
 }
 
-function getRiskColor(tier?: string) {
-    switch (tier) {
-        case "RED": return "bg-red-50 text-red-700 border-red-200/60";
-        case "ORANGE": return "bg-orange-50 text-orange-700 border-orange-200/60";
-        case "YELLOW": return "bg-amber-50 text-amber-700 border-amber-200/60";
-        default: return "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-    }
-}
+const TIER_VARIANTS: Record<string, BadgeVariant> = {
+    RED: "error",
+    ORANGE: "orange",
+    YELLOW: "warning",
+    GREEN: "success",
+};
 
-function getStatusColor(status: string) {
-    switch (status) {
-        case "running": return "bg-indigo-50 text-indigo-700 border-indigo-200/60 animate-pulse";
-        case "completed": return "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-        case "failed": return "bg-red-50 text-red-700 border-red-200/60";
-        default: return "bg-slate-50 text-slate-700 border-slate-200/60";
-    }
-}
+const STATUS_VARIANTS: Record<string, BadgeVariant> = {
+    running: "info",
+    completed: "success",
+    failed: "error",
+};
 
 // An auto-run leaves ORANGE/RED tasks completed at OBSERVE, still in the
 // "in_progress" kanban column — that combination means "review, then approve".
@@ -92,7 +88,7 @@ export function TaskListTable({ projectId, tasks, onRefresh }: TaskListTableProp
 
     return (
         <>
-            <TableContainer>
+            <TableContainer className="max-h-[calc(100vh-280px)] overflow-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -110,22 +106,23 @@ export function TaskListTable({ projectId, tasks, onRefresh }: TaskListTableProp
                             <TableRow key={t.id}>
                                 <TableCell className="font-semibold text-slate-800 max-w-[220px]" title={t.name}>
                                     <span className="block truncate">{t.name}</span>
+                                    <span className="block text-[9.5px] text-slate-400 font-sans mt-0.5 select-all font-normal">ID: {t.id}</span>
                                     {t.kanbanColumn === "backlog" && (
-                                        <span className="mt-0.5 inline-block rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-sans text-slate-500">backlog</span>
+                                        <Badge variant="default" className="mt-0.5">backlog</Badge>
                                     )}
                                     {isAwaitingApproval(t) && (
-                                        <span className="mt-0.5 inline-block rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-xs font-sans text-amber-700">awaiting approval</span>
+                                        <Badge variant="warning" className="mt-0.5">awaiting approval</Badge>
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold font-sans ${getRiskColor(t.riskTier)}`}>
+                                    <Badge variant={TIER_VARIANTS[t.riskTier || "GREEN"]}>
                                         {t.riskTier || "GREEN"}
-                                    </span>
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1 max-w-[140px]">
                                         {(t.tags ?? []).map((tag) => (
-                                            <span key={tag} className="rounded-full border border-indigo-200/60 bg-indigo-50 px-2 py-0.5 text-xs font-sans text-indigo-700">{tag}</span>
+                                            <Badge key={tag} variant="info">{tag}</Badge>
                                         ))}
                                     </div>
                                 </TableCell>
@@ -136,9 +133,12 @@ export function TaskListTable({ projectId, tasks, onRefresh }: TaskListTableProp
                                     {t.currentStage}
                                 </TableCell>
                                 <TableCell>
-                                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold capitalize font-sans ${getStatusColor(t.status)}`}>
+                                    <Badge
+                                        variant={STATUS_VARIANTS[t.status] || "default"}
+                                        className={t.status === "running" ? "animate-pulse" : ""}
+                                    >
                                         {t.status}
-                                    </span>
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end">

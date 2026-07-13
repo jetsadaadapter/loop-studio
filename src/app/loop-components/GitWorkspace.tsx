@@ -111,7 +111,7 @@ export function GitWorkspace({ projectId, taskId, onTriggerLog }: GitWorkspacePr
         }
 
         return (
-            <div key={index} className={`font-mono text-2xs py-0.5 px-2 leading-relaxed select-text truncate ${lineClass}`}>
+            <div key={index} className={`font-sans text-2xs py-0.5 px-2 leading-relaxed select-text truncate ${lineClass}`}>
                 {line}
             </div>
         );

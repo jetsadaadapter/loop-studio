@@ -5,6 +5,8 @@ import Link from "next/link";
 import { MessageSquare, Activity, Flag, Plus, FileCode2 } from "lucide-react";
 import type { LoopTask, KanbanColumn, TaskPriority } from "@/core/interfaces/loop-projects.interface";
 
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+
 interface BoardViewProps {
     projectId: string;
     tasks: LoopTask[];
@@ -28,23 +30,23 @@ function columnOf(t: LoopTask): KanbanColumn {
 }
 
 // Status chip per the reference cards (colored dot + label).
-function statusChip(t: LoopTask): { label: string; className: string } {
+function statusChip(t: LoopTask): { label: string; variant: BadgeVariant } {
     if (t.kanbanColumn === "in_progress" && t.status === "completed" && t.currentStage === "OBSERVE") {
-        return { label: "Awaiting Approval", className: "bg-amber-50 text-amber-700" };
+        return { label: "Awaiting Approval", variant: "warning" };
     }
     switch (t.status) {
-        case "running": return { label: "On Track", className: "bg-violet-50 text-violet-700" };
-        case "completed": return { label: "Complete", className: "bg-emerald-50 text-emerald-700" };
-        case "failed": return { label: "Failed", className: "bg-red-50 text-red-700" };
-        default: return { label: "Not Started", className: "bg-slate-100 text-slate-600" };
+        case "running": return { label: "On Track", variant: "info" };
+        case "completed": return { label: "Complete", variant: "success" };
+        case "failed": return { label: "Failed", variant: "error" };
+        default: return { label: "Not Started", variant: "default" };
     }
 }
 
-const PRIORITY_CHIP: Record<TaskPriority, string> = {
-    low: "bg-emerald-50 text-emerald-700",
-    medium: "bg-amber-50 text-amber-700",
-    high: "bg-orange-50 text-orange-700",
-    critical: "bg-red-50 text-red-700",
+const PRIORITY_CHIP: Record<TaskPriority, BadgeVariant> = {
+    low: "success",
+    medium: "warning",
+    high: "orange",
+    critical: "error",
 };
 
 function shortDate(iso: string): string {
@@ -64,12 +66,13 @@ function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
             href={`/${projectId}/tasks/${task.id}`}
             className="group block rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-slate-300/70"
         >
-            <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold font-sans ${status.className}`}>
+            <Badge variant={status.variant} className={task.status === "running" ? "animate-pulse" : ""}>
                 <span className="size-1.5 rounded-full bg-current" />
                 {status.label}
-            </span>
+            </Badge>
 
             <p className="mt-2 text-sm font-semibold text-slate-800 group-hover:text-brand transition-colors">{task.name}</p>
+            <p className="text-[9.5px] text-slate-400 font-sans mt-0.5 select-all">ID: {task.id}</p>
 
             <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 font-sans truncate" title={task.targetFiles.join(", ")}>
                 <FileCode2 className="size-3 shrink-0 text-slate-400" />
@@ -82,9 +85,9 @@ function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
                     <Flag className="size-3 text-slate-400" />
                     {shortDate(task.updatedAt)}
                 </span>
-                <span className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize font-sans ${PRIORITY_CHIP[priority]}`}>
+                <Badge variant={PRIORITY_CHIP[priority]}>
                     {priority}
-                </span>
+                </Badge>
             </div>
 
             <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-2.5 text-xs text-slate-400 font-sans">

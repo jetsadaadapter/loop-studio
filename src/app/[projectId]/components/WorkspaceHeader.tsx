@@ -10,6 +10,8 @@ interface WorkspaceHeaderProps {
     totalCost: number;
 }
 
+import { Badge } from "@/components/ui/badge";
+
 // Clean page header per the reference layout: big title + one-line
 // description on the left, compact meta chips on the right.
 export function WorkspaceHeader({ project, gitInfo, totalCost }: WorkspaceHeaderProps) {
@@ -23,9 +25,9 @@ export function WorkspaceHeader({ project, gitInfo, totalCost }: WorkspaceHeader
                 <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-800 truncate">
                     {project?.name}
                     {project?.isHost && (
-                        <span className="rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-xs font-semibold uppercase text-amber-700 font-sans">
+                        <Badge variant="warning">
                             Host App
-                        </span>
+                        </Badge>
                     )}
                 </h1>
                 <p className="mt-1 text-xs text-slate-500 font-sans select-all truncate max-w-xl" title={project?.path}>

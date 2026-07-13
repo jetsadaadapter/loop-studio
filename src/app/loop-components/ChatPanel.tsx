@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessageList } from "./ChatMessageList";
 import { resolveBridge } from "./bridge-client";
+import { Badge } from "@/components/ui/badge";
 import type { ChatMessage, ChatAttachment } from "@/core/interfaces/loop-projects.interface";
 
 interface ChatPanelProps {
@@ -236,9 +237,9 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
             <div className="flex shrink-0 items-center justify-between px-5 select-none bg-white h-14 border-b border-slate-200">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-850 font-sans tracking-tight">Team Chat</span>
-                    <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-semibold text-amber-700 font-sans" title={`${Math.round((costSummary.input + costSummary.output)/1000)}k tokens`}>
+                    <Badge variant="warning" title={`${Math.round((costSummary.input + costSummary.output)/1000)}k tokens`}>
                         ${costSummary.cost.toFixed(3)}
-                    </span>
+                    </Badge>
                 </div>
                 <div className="flex items-center gap-1">
                     {onExpand && (
