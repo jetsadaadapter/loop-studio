@@ -134,6 +134,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                     <StudioWindow
                         projectId={projectId}
                         projectName={project?.name || task.name}
+                        taskName={task.name}
                         onPublished={loadData}
                         deviceMode={deviceMode}
                         onDeviceModeChange={setDeviceMode}

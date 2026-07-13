@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 interface StudioWindowProps {
     projectId: string;
     projectName: string;
+    taskName?: string;
     left: React.ReactNode;
     right: React.ReactNode;
     onPublished: () => void;
@@ -22,6 +23,7 @@ export function StudioWindow({
     // projectName kept in interface for future use; destructured via rest to avoid lint warning
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     projectName: _pn,
+    taskName,
     left,
     right,
     onPublished,
@@ -30,11 +32,18 @@ export function StudioWindow({
     header
 }: StudioWindowProps) {
     const [open, setOpen] = useState(false);
-    const [message, setMessage] = useState("");
+    const defaultMessage = taskName ? `feat: ${taskName}` : "";
+    const [message, setMessage] = useState(defaultMessage);
     const [busy, setBusy] = useState(false);
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
     const [isChatExpanded, setIsChatExpanded] = useState(true);
     const [isChatMaximized, setIsChatMaximized] = useState(false);
+
+    const openPopup = () => {
+        setResult(null);
+        setMessage(defaultMessage); // reset to auto-fill every time popup opens
+        setOpen((o) => !o);
+    };
 
     const publish = async () => {
         if (!message.trim()) return;
@@ -62,7 +71,7 @@ export function StudioWindow({
                 return;
             }
             setResult({ ok: true, text: "Committed and pushed." });
-            setMessage("");
+            setMessage(defaultMessage); // reset to default (not empty) for next publish
             onPublished();
         } catch {
             setResult({ ok: false, text: "Publish failed due to a network error." });
@@ -108,7 +117,7 @@ export function StudioWindow({
                     <div className="relative ml-auto">
                         <button
                             type="button"
-                            onClick={() => setOpen((o) => !o)}
+                            onClick={openPopup}
                             className="flex h-7 items-center gap-1.5 rounded-md bg-brand px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand/90 cursor-pointer"
                         >
                             <Rocket className="size-3.5" />
@@ -116,19 +125,26 @@ export function StudioWindow({
                         </button>
 
                         {open && (
-                            <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-700 font-sans">
-                                    Commit workspace changes
+                            <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-4 shadow-2xl">
+                                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700 font-sans">
+                                    Commit &amp; Push
                                 </p>
+                                {taskName && (
+                                    <p className="mb-2 text-[10px] text-slate-400 font-sans truncate">
+                                        Task: {taskName}
+                                    </p>
+                                )}
                                 <Textarea
-                                    rows={2}
+                                    rows={3}
                                     autoFocus
-                                    placeholder="feat: add rounding option to Button"
+                                    placeholder="feat: describe your changes"
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
+                                    onFocus={(e) => e.currentTarget.select()}
                                     disabled={busy}
                                     className="min-h-0 resize-none rounded-lg border-slate-200 bg-slate-50 px-2.5 py-2 text-xs text-slate-850 placeholder:text-slate-400 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30"
                                 />
+                                <p className="mt-1 text-[10px] text-slate-400 font-sans">Edit or overtype — then press Publish.</p>
                                 {result && (
                                     <p className={`mt-2 flex items-center gap-1.5 text-xs font-sans ${result.ok ? "text-emerald-600" : "text-red-650"}`}>
                                         {result.ok ? <Check className="size-3" /> : <X className="size-3" />}

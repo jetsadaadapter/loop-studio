@@ -26,7 +26,7 @@ interface PreviewPaneProps {
 
 type PreviewTab = "preview" | "code" | "diff";
 
-const TABS: { key: PreviewTab; label: string; icon: typeof Monitor }[] = [
+const ALL_TABS: { key: PreviewTab; label: string; icon: typeof Monitor }[] = [
     { key: "preview", label: "Preview", icon: Monitor },
     { key: "code", label: "Code", icon: Code2 },
     { key: "diff", label: "Diff", icon: GitCompare },
@@ -133,6 +133,27 @@ export function PreviewPane({
     const effectiveSelectedFile = targetFiles.includes(selectedFile)
         ? selectedFile
         : (targetFiles[0] ?? "");
+
+    // Determine which tabs have data to show
+    const hasCodeFiles = targetFiles.length > 0;
+    const hasDiffData = verifyStatus !== "idle" || buildStatus !== "idle";
+
+    const visibleTabs = ALL_TABS.filter((t) => {
+        if (t.key === "code") return hasCodeFiles;
+        if (t.key === "diff") return hasDiffData;
+        return true;
+    });
+
+    // If the current tab becomes hidden (e.g. files cleared), fall back to preview
+    useEffect(() => {
+        const checkFallback = () => {
+            if (!visibleTabs.some((t) => t.key === tab)) {
+                setTab("preview");
+            }
+        };
+        checkFallback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasCodeFiles, hasDiffData]);
 
     // Fetch code content
     useEffect(() => {
@@ -346,7 +367,7 @@ export function PreviewPane({
         <div className="flex flex-1 flex-col overflow-hidden bg-slate-50 h-full">
             {/* Tab bar + pipeline status */}
             <div className="flex items-center gap-1.5 border-b border-slate-200 bg-white px-3 py-2 shrink-0">
-                {TABS.map(({ key, label, icon: Icon }) => {
+                {visibleTabs.map(({ key, label, icon: Icon }) => {
                     const active = tab === key;
                     return (
                         <button
