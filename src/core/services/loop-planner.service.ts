@@ -1,6 +1,7 @@
 import { AVAILABLE_SKILLS, type LoopTask, type RiskTier, type TaskPriority } from "@/core/interfaces/loop-projects.interface";
 import { GoalPlanSchema, type GoalPlan, type PlannedTask } from "@/core/validators/loop-projects.validator";
 import { getProjects, saveProjects, calculateRiskTier, getSafetyNets } from "@/core/services/loop-projects.service";
+import path from "path";
 
 // Goal → plan decomposition. The Architect agent returns a JSON plan; this
 // service validates it, enriches every planned task (auto-tags from file paths,
@@ -140,6 +141,18 @@ export interface EnrichedPlannedTask extends PlannedTask {
 /** Enrich a validated plan with tags, conflict-safe groups, and risk tiers. */
 export async function enrichPlan(projectPath: string, plan: GoalPlan): Promise<EnrichedPlannedTask[]> {
     const groups = groupTasks(plan.tasks);
+
+    // Sanitize targetFiles: if any path starts with the project folder name + "/", strip it!
+    const projectFolderName = path.basename(projectPath);
+    plan.tasks.forEach((t) => {
+        t.targetFiles = t.targetFiles.map((file) => {
+            if (file.startsWith(projectFolderName + "/")) {
+                return file.slice(projectFolderName.length + 1);
+            }
+            return file;
+        });
+    });
+
     return Promise.all(
         plan.tasks.map(async (t, i) => {
             const { tier } = await calculateRiskTier(projectPath, t.targetFiles[0]);

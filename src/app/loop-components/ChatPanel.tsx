@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Users, Sparkles, AlertCircle, Plus, Zap, X, FileText, SendHorizontal, Paperclip, Maximize2, Minimize2 } from "lucide-react";
+import { Users, Sparkles, AlertCircle, Zap, X, FileText, SendHorizontal, Paperclip, Maximize2, Minimize2, FileJson, FileCode, AtSign, Terminal, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,11 +21,46 @@ interface ChatPanelProps {
     isMaximized?: boolean;
 }
 
+const CHAT_ACTIONS = [
+    { name: "/collaborate", desc: "Delegate to AI Agent Team" },
+    { name: "/clear", desc: "Clear input box" },
+];
+
+function getFileIcon(filePath: string, className = "size-3.5") {
+    const ext = filePath.split(".").pop()?.toLowerCase();
+    const cn = `${className} shrink-0`;
+    if (ext === "json") return <FileJson className={`${cn} text-amber-500`} />;
+    if (ext === "md" || ext === "mdx") return <FileText className={`${cn} text-blue-500`} />;
+    if (["ts", "tsx", "js", "jsx", "mjs", "cjs"].includes(ext || "")) {
+        return <FileCode className={`${cn} text-emerald-500`} />;
+    }
+    return <FileText className={`${cn} text-slate-400`} />;
+}
+
+function renderSuggestionItem(pathStr: string) {
+    const parts = pathStr.split("/");
+    const fileName = parts.pop() || "";
+    const dirPath = parts.join("/");
+    return (
+        <div className="flex items-center gap-2 w-full min-w-0">
+            {getFileIcon(pathStr)}
+            <div className="flex flex-col min-w-0 leading-tight">
+                <span className="font-medium text-xs text-slate-700 truncate">{fileName}</span>
+                {dirPath && <span className="text-[10px] text-slate-400 truncate">{dirPath}</span>}
+            </div>
+        </div>
+    );
+}
+
+function generateUniqueId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function readFileAsAttachment(file: File): Promise<ChatAttachment> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve({
-            id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            id: generateUniqueId("att"),
             name: file.name,
             mimeType: file.type || "application/octet-stream",
             dataUrl: reader.result as string,
@@ -36,7 +71,7 @@ function readFileAsAttachment(file: File): Promise<ChatAttachment> {
 }
 
 export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTriggerLog, onCollapse, onExpand, isMaximized }: ChatPanelProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+        const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [apiKey, setApiKey] = useState("");
     const [useBridge, setUseBridge] = useState(false);
@@ -49,6 +84,178 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const bridgeAbortRef = useRef<AbortController | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-complete files and actions states
+    const [projectFiles, setProjectFiles] = useState<string[]>([]);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [triggerIndex, setTriggerIndex] = useState(-1);
+    const [triggerType, setTriggerType] = useState<"@" | "/">("@");
+
+    useEffect(() => {
+        fetch(`/api/loop-projects/${projectId}/files`)
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.success) {
+                    setProjectFiles(data.data || []);
+                }
+            })
+            .catch(console.error);
+    }, [projectId]);
+
+    const handleSelectionChange = (val: string, selectionStart: number) => {
+        if (!val) {
+            setShowSuggestions(false);
+            return;
+        }
+        const textBeforeCursor = val.slice(0, selectionStart);
+        const lastSlash = textBeforeCursor.lastIndexOf("/");
+        const lastAt = textBeforeCursor.lastIndexOf("@");
+        const lastTrigger = Math.max(lastSlash, lastAt);
+        
+        if (lastTrigger !== -1) {
+            const textBetween = textBeforeCursor.slice(lastTrigger + 1);
+            if (!textBetween.includes(" ") && !textBetween.includes("\n")) {
+                setTriggerIndex(lastTrigger);
+                const isSlash = lastSlash > lastAt;
+                setTriggerType(isSlash ? "/" : "@");
+                
+                const query = textBetween.toLowerCase();
+                if (isSlash) {
+                    const filtered = CHAT_ACTIONS.filter((act) => act.name.toLowerCase().includes(query));
+                    setSuggestions(filtered.map((act) => act.name));
+                    setShowSuggestions(filtered.length > 0);
+                    setActiveIndex(0);
+                } else {
+                    const filtered = projectFiles.filter((f) => f.toLowerCase().includes(query));
+                    setSuggestions(filtered.slice(0, 10));
+                    setShowSuggestions(filtered.length > 0);
+                    setActiveIndex(0);
+                }
+                return;
+            }
+        }
+        setShowSuggestions(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (showSuggestions && suggestions.length > 0) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setActiveIndex((prev) => (prev + 1) % suggestions.length);
+                return;
+            }
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+                return;
+            }
+            if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                void selectSuggestion(suggestions[activeIndex]);
+                return;
+            }
+            if (e.key === "Escape") {
+                e.preventDefault();
+                setShowSuggestions(false);
+                return;
+            }
+        }
+
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    const selectSuggestion = async (selected: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const val = inputValue;
+        const selectionStart = textarea.selectionStart;
+        const before = val.slice(0, triggerIndex);
+        const after = val.slice(selectionStart);
+
+        if (triggerType === "@") {
+            // It's a file mention: we add the file as a ChatAttachment!
+            const newVal = before + after;
+            setInputValue(newVal);
+            setShowSuggestions(false);
+            
+            try {
+                const res = await fetch(`/api/loop-projects/${projectId}/files?file=${encodeURIComponent(selected)}`);
+                const data = await res.json();
+                if (data.success) {
+                    const content = data.data;
+                    const fileName = selected.split("/").pop() || "";
+                    const base64Data = typeof window !== "undefined" ? window.btoa(unescape(encodeURIComponent(content))) : "";
+                    const dataUrl = `data:text/plain;base64,${base64Data}`;
+                    const newAttachment: ChatAttachment = {
+                        id: generateUniqueId("att"),
+                        name: fileName,
+                        mimeType: "text/plain",
+                        dataUrl: dataUrl,
+                    };
+                    setAttachments((prev) => {
+                        if (prev.some((a) => a.name === fileName)) return prev;
+                        return [...prev, newAttachment];
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            // It's an action command
+            if (selected === "/clear") {
+                setInputValue("");
+            } else if (selected === "/collaborate") {
+                setInputValue("");
+                void handleCollaborate();
+            } else {
+                const newVal = before + selected + " " + after;
+                setInputValue(newVal);
+            }
+            setShowSuggestions(false);
+        }
+
+        setTimeout(() => {
+            textarea.focus();
+            if (triggerType === "@") {
+                textarea.setSelectionRange(triggerIndex, triggerIndex);
+            } else {
+                const newPos = triggerIndex + selected.length + 1;
+                textarea.setSelectionRange(newPos, newPos);
+            }
+        }, 0);
+    };
+
+    const triggerMention = () => {
+        setInputValue((prev) => prev + "@");
+        setTimeout(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                const len = textareaRef.current.value.length;
+                textareaRef.current.setSelectionRange(len, len);
+                handleSelectionChange(textareaRef.current.value, len);
+            }
+        }, 50);
+    };
+
+    const triggerAction = () => {
+        setInputValue((prev) => prev + "/");
+        setTimeout(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                const len = textareaRef.current.value.length;
+                textareaRef.current.setSelectionRange(len, len);
+                handleSelectionChange(textareaRef.current.value, len);
+            }
+        }, 50);
+    };
 
     const addFiles = async (files: FileList | File[]) => {
         const read = await Promise.all(Array.from(files).map(readFileAsAttachment));
@@ -139,7 +346,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
         if ((!inputValue.trim() && attachments.length === 0) || loading || collaborating) return;
 
         const userMsg: ChatMessage = {
-            id: `msg-temp-${Date.now()}`,
+            id: generateUniqueId("msg-temp"),
             role: "user",
             senderName: "User",
             content: inputValue,
@@ -361,8 +568,40 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                     </div>
                 )}
 
-                <div className="flex h-[52px] items-center gap-1.5 bg-white px-4 relative">
-                    <div className="relative shrink-0 flex items-center gap-1">
+                <div className="flex h-[52px] items-center gap-1.5 bg-white px-4 relative overflow-visible">
+                    {/* Autocomplete dropdown suggestions */}
+                    {showSuggestions && suggestions.length > 0 && (
+                        <ul className="absolute bottom-full left-4 right-4 z-35 mb-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200/80 bg-white py-1 shadow-xl shadow-slate-900/10 focus:outline-none divide-y divide-slate-50">
+                            {suggestions.map((s, idx) => (
+                                <li
+                                    key={s}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => void selectSuggestion(s)}
+                                    className={`cursor-pointer px-2.5 py-1.5 transition-all ${
+                                        idx === activeIndex
+                                            ? "bg-slate-50 border-l-2 border-brand pl-2"
+                                            : "hover:bg-slate-50/50 pl-2.5"
+                                    }`}
+                                >
+                                    {triggerType === "@" ? (
+                                        renderSuggestionItem(s)
+                                    ) : (
+                                        <div className="flex items-center gap-2 w-full min-w-0">
+                                            <Terminal className="size-3.5 text-brand shrink-0" />
+                                            <div className="flex flex-col min-w-0 leading-tight">
+                                                <span className="font-semibold text-xs text-slate-700 truncate">{s}</span>
+                                                <span className="text-[10px] text-slate-400 truncate">
+                                                    {CHAT_ACTIONS.find((act) => act.name === s)?.desc || ""}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <div className="relative shrink-0 flex items-center gap-1 overflow-visible">
                         <button
                             type="button"
                             onClick={() => setAttachMenuOpen((o) => !o)}
@@ -374,18 +613,45 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                         </button>
                         
                         {attachMenuOpen && (
-                            <div className="absolute bottom-full left-0 z-10 mb-2 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        fileInputRef.current?.click();
-                                        setAttachMenuOpen(false);
-                                    }}
-                                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
-                                >
-                                    <Plus className="size-3.5" />
-                                    Upload from computer
-                                </button>
+                            <div className="absolute bottom-full left-0 z-30 mb-2 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl shadow-slate-900/10 divide-y divide-slate-50 select-none">
+                                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                    Add Context
+                                </div>
+                                <div className="py-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            fileInputRef.current?.click();
+                                            setAttachMenuOpen(false);
+                                        }}
+                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+                                    >
+                                        <ImageIcon className="size-4 text-slate-400" />
+                                        Media
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAttachMenuOpen(false);
+                                            triggerMention();
+                                        }}
+                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+                                    >
+                                        <AtSign className="size-4 text-slate-400" />
+                                        Mentions
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAttachMenuOpen(false);
+                                            triggerAction();
+                                        }}
+                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+                                    >
+                                        <Terminal className="size-4 text-slate-400" />
+                                        Actions
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -428,18 +694,21 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                     />
 
                     <Textarea
+                        ref={textareaRef}
                         rows={1}
                         disabled={isDisabled}
                         placeholder={isDisabled ? "Select mode first..." : "Type a message..."}
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={(e) => {
+                            setInputValue(e.target.value);
+                            handleSelectionChange(e.target.value, e.target.selectionStart || 0);
+                        }}
                         onPaste={handlePaste}
                         className="min-h-0 flex-1 resize-none border-0 bg-transparent px-2 py-1 text-xs leading-relaxed text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                            }
+                        onKeyDown={handleKeyDown}
+                        onKeyUp={(e) => {
+                            const target = e.target as HTMLTextAreaElement;
+                            handleSelectionChange(target.value, target.selectionStart || 0);
                         }}
                     />
 

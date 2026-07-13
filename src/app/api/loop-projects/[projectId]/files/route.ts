@@ -16,10 +16,23 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
         }
 
+        const projectsDir = path.join(process.cwd(), ".projects");
+
         if (fileParam) {
-            // Resolve and verify traversal bounds
-            const resolvedPath = path.resolve(project.path, fileParam);
-            if (!resolvedPath.startsWith(path.resolve(project.path))) {
+            // Resolve and verify traversal bounds.
+            // If fileParam is relative to .projects/ (e.g. crm-thai-oil/src/app/page.tsx), 
+            // we should try to resolve it from the .projects folder as well.
+            let resolvedPath = path.resolve(project.path, fileParam);
+            
+            // If it doesn't exist, try resolving relative to .projects/
+            if (!fs.existsSync(resolvedPath)) {
+                const altPath = path.resolve(projectsDir, fileParam);
+                if (altPath.startsWith(projectsDir + path.sep)) {
+                    resolvedPath = altPath;
+                }
+            }
+
+            if (!resolvedPath.startsWith(path.resolve(project.path)) && !resolvedPath.startsWith(projectsDir + path.sep)) {
                 return NextResponse.json({ success: false, error: "Access denied: outside project bounds" }, { status: 403 });
             }
 
@@ -32,7 +45,15 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
         }
 
         const files = await listProjectFiles(project.path);
-        return NextResponse.json({ success: true, data: files });
+        const mappedFiles = files.map((file) => {
+            const absoluteFilePath = path.resolve(project.path, file);
+            if (absoluteFilePath.startsWith(projectsDir + path.sep)) {
+                return path.relative(projectsDir, absoluteFilePath);
+            }
+            return file;
+        });
+
+        return NextResponse.json({ success: true, data: mappedFiles });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         return NextResponse.json({ success: false, error: message }, { status: 500 });

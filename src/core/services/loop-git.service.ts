@@ -86,17 +86,47 @@ export async function getRecentCommits(projectPath: string, limit = 20): Promise
     }
 }
 
+import fs from "fs";
+
+const SKIP_DIRS = new Set(["node_modules", ".git", ".next", "dist", "out", "build"]);
+const CODE_FILE_EXT = /\.(tsx?|jsx?|mjs|cjs|css|scss|json|mdx?|html?|ya?ml)$/i;
+
+async function listFilesRecursive(dir: string, baseDir = dir): Promise<string[]> {
+    const results: string[] = [];
+    try {
+        const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const resPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                if (!SKIP_DIRS.has(entry.name)) {
+                    const subFiles = await listFilesRecursive(resPath, baseDir);
+                    results.push(...subFiles);
+                }
+            } else if (CODE_FILE_EXT.test(entry.name)) {
+                results.push(path.relative(baseDir, resPath));
+            }
+        }
+    } catch {
+        // ignore
+    }
+    return results;
+}
+
 // Returns git-tracked, editable source files (relative paths) for the target-file
-// picker. Uses `git ls-files` so it respects .gitignore and stays fast.
+// picker. Uses `git ls-files` so it respects .gitignore and stays fast, with recursive fallback.
 export async function listProjectFiles(projectPath: string): Promise<string[]> {
     try {
         const out = await executeGitCommand(projectPath, ["ls-files"]);
-        const CODE_FILE = /\.(tsx?|jsx?|mjs|cjs|css|scss|json|mdx?|html?|ya?ml)$/i;
-        return out
+        const files = out
             .split("\n")
             .map((f) => f.trim())
-            .filter((f) => f && CODE_FILE.test(f));
+            .filter((f) => f && CODE_FILE_EXT.test(f));
+        
+        if (files.length === 0) {
+            return await listFilesRecursive(projectPath);
+        }
+        return files;
     } catch {
-        return [];
+        return await listFilesRecursive(projectPath);
     }
 }
