@@ -38,6 +38,23 @@ export function messageHasCode(content: string): boolean {
     return content.includes("<file_edit");
 }
 
+// Some models wrap their Markdown answer in structural HTML (e.g.
+// `<div style="font-family: system-ui, …">…</div>`). Without rehype-raw those tags
+// render as literal text in the bubble. Strip layout-only wrapper tags so the
+// Markdown inside renders as a clean preview — but never touch fenced or inline
+// code, where the assistant may be legitimately showing HTML as an example.
+const HTML_WRAPPER_RE = /<\/?(?:div|span|section|article|main|header|footer|aside|figure|figcaption|center|font|p|body|html)(?:\s[^>]*)?>/gi;
+const HTML_BR_RE = /<br\s*\/?>/gi;
+const CODE_SPLIT_RE = /(```[\s\S]*?```|`[^`\n]*`)/g;
+
+export function stripHtmlWrappers(text: string): string {
+    return text
+        .split(CODE_SPLIT_RE)
+        .map((chunk, i) => (i % 2 === 1 ? chunk : chunk.replace(HTML_BR_RE, "\n").replace(HTML_WRAPPER_RE, "")))
+        .join("")
+        .replace(/\n{3,}/g, "\n\n");
+}
+
 // Readable chat typography with a clear hierarchy: headings step down in size,
 // h2 gets a divider for section separation, h3 uses the indigo accent, lists get
 // visible markers, and body copy has comfortable spacing.
@@ -102,7 +119,7 @@ export function ChatMessageContent({ content, tone = "assistant" }: { content: s
         <div className="space-y-1.5 min-w-0 overflow-hidden">
             {segments.map((seg, i) => {
                 if (seg.type === "file") return <FileEditBlock key={i} path={seg.path} code={seg.code} />;
-                const text = seg.text.trim();
+                const text = stripHtmlWrappers(seg.text).trim();
                 if (!text) return null;
                 return (
                     <div key={i} className={PROSE_CLASS}>

@@ -215,7 +215,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
 
                 {viewTab === "board" && (
                     tasks.length === 0 ? emptyTasks : (
-                        <BoardView projectId={projectId} tasks={tasks} onAddTask={() => setIsCreateOpen(true)} />
+                        <BoardView projectId={projectId} tasks={tasks} onAddTask={() => setIsCreateOpen(true)} onRefresh={loadData} />
                     )
                 )}
 

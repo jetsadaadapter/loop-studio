@@ -59,6 +59,7 @@ export function StageWorkspace({ projectId, task, activeStage, onUpdateTask, onT
         onUpdateTask({
             currentStage: "LEARN",
             status: "completed",
+            kanbanColumn: "done",
             retroAnswers: retroAnswers
         });
     };

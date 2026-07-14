@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
+import { getProjects, runProjectCommand, isHostProject, extractPreviewPort } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -56,10 +56,20 @@ export async function POST(
             "utf8"
         );
 
+        // Pin `dev` to the port this project's own previewUrl claims (e.g.
+        // "http://localhost:3001" → PORT=3001) — `next dev`/most dev servers
+        // fall back to PORT when no explicit --port/-p flag is set in the
+        // project's own script, so this is what actually keeps two projects'
+        // dev servers from both binding the same default port and colliding.
+        const extraEnv = type === "dev" ? (() => {
+            const port = extractPreviewPort(project.previewUrl);
+            return port ? { PORT: String(port) } : undefined;
+        })() : undefined;
+
         // Run async (fire-and-forget). Streams live output into the log file.
         void runProjectCommand(processKey, project.path, cmd, args, (chunk) => {
             fs.appendFileSync(logFilePath, chunk);
-        }).then((code) => {
+        }, extraEnv).then((code) => {
             fs.appendFileSync(logFilePath, `\n--- Run "${type}" finished with exit code ${code} ---\n`);
         });
 

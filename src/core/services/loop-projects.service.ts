@@ -32,6 +32,61 @@ export function isHostProject(projectPath: string): boolean {
     return path.resolve(projectPath) === process.cwd();
 }
 
+/**
+ * Probes whether something is listening at `url`. Runs server-side (Node has
+ * no CSP) so the browser's `connect-src 'self'` policy — which blocks a
+ * client-side fetch to another localhost port — never gets in the way. Used
+ * by the preview pane to tell "dev server not started yet" apart from a
+ * normal page load, instead of letting the browser's own error page render
+ * inside the iframe.
+ */
+/**
+ * Reads back the port a project's own `previewUrl` claims (e.g.
+ * "http://localhost:3001" → 3001). Returns undefined for a relative path or
+ * a URL with no explicit port — nothing to pin the dev server to in that case.
+ */
+export function extractPreviewPort(previewUrl?: string): number | undefined {
+    if (!previewUrl) return undefined;
+    try {
+        const port = new URL(previewUrl).port;
+        return port ? Number(port) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Picks a free port for a newly bootstrapped project, distinct from every
+ * other registered project's previewUrl and from this host app's own port
+ * (3000) — so two projects run concurrently never fight over the same
+ * default `next dev`/`vite` port.
+ */
+export function allocatePreviewPort(projects: LoopProject[]): number {
+    const used = new Set<number>([3000]);
+    for (const p of projects) {
+        const port = extractPreviewPort(p.previewUrl);
+        if (port) used.add(port);
+    }
+    let port = 3001;
+    while (used.has(port)) port++;
+    return port;
+}
+
+export async function checkUrlReachable(url: string, timeoutMs = 2500): Promise<boolean> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { signal: controller.signal, redirect: "manual" });
+        // Any HTTP response (even a 4xx/5xx from the app itself) means a server
+        // is listening — only a network-level failure counts as "offline".
+        return res.status > 0;
+    } catch {
+        return false;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 const RISK_SCAN_SKIP_DIRS = new Set(["node_modules", ".next", ".git", "dist"]);
 
 // Trace fan-out (import references) of a file to determine Risk Tier.
@@ -133,7 +188,8 @@ export function runProjectCommand(
     projectPath: string,
     command: string,
     args: string[],
-    onData: (data: string) => void
+    onData: (data: string) => void,
+    extraEnv?: Record<string, string>
 ): Promise<number> {
     return new Promise((resolve) => {
         // Kill existing process (and its whole tree) for task if any
@@ -147,7 +203,7 @@ export function runProjectCommand(
         // prerendering /_global-error ("Cannot read properties of null (reading 'useContext')").
         // Strip NODE_ENV so each command sets its own correct mode (build→production,
         // dev→development), matching a clean terminal run.
-        const childEnv = { ...process.env };
+        const childEnv = { ...process.env, ...extraEnv };
         delete (childEnv as Record<string, string | undefined>).NODE_ENV;
 
         // detached: own process group, so killProcessTree can take out shell + children

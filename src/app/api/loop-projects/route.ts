@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject, allocatePreviewPort } from "@/core/services/loop-projects.service";
 import type { LoopProject, ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
 import { RegisterProjectSchema, BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
 import fs from "fs";
@@ -167,12 +167,18 @@ export async function POST(req: Request) {
 
 function registerBootstrappedProject(name: string, projectPath: string, template: ProjectTemplate) {
     const projects = getProjects();
+    // A generic scaffold (mkdir-only, no dev server) has no port to preview.
+    // Everything else gets its own free port up front, distinct from every
+    // other registered project and the host app — so its dev server has a
+    // home to bind to instead of colliding with whatever else is running.
+    const previewUrl = template === "generic" ? undefined : `http://localhost:${allocatePreviewPort(projects)}`;
     const newProj: LoopProject = {
         id: `proj-${Date.now()}`,
         name: name,
         path: projectPath,
         template: template || "generic",
         tasks: [],
+        ...(previewUrl ? { previewUrl } : {}),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };

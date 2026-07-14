@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { MessageSquare, Activity, Flag, Plus, FileCode2 } from "lucide-react";
+import { MessageSquare, Activity, Flag, Plus, FileCode2, GripVertical } from "lucide-react";
 import type { LoopTask, KanbanColumn, TaskPriority } from "@/core/interfaces/loop-projects.interface";
 
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -12,6 +12,19 @@ interface BoardViewProps {
     tasks: LoopTask[];
     /** Opens the create-task modal (the reference design's per-column "+"). */
     onAddTask?: () => void;
+    /** Refetch after a drag-and-drop move so the board reflects the saved state. */
+    onRefresh?: () => void;
+}
+
+// Persists a card's new column via the same PATCH the board already relied on
+// for status/kanbanColumn coherence (src/.../tasks/reorder/route.ts derives a
+// matching `status` server-side, so callers never duplicate that mapping).
+async function moveTaskToColumn(projectId: string, taskId: string, kanbanColumn: KanbanColumn) {
+    await fetch(`/api/loop-projects/${projectId}/tasks/reorder`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, kanbanColumn }),
+    });
 }
 
 const COLUMNS: { key: KanbanColumn; label: string; dot: string; badge: string }[] = [
@@ -55,7 +68,13 @@ function shortDate(iso: string): string {
     return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
+function TaskCard({ projectId, task, dragging, onDragStart, onDragEnd }: {
+    projectId: string;
+    task: LoopTask;
+    dragging: boolean;
+    onDragStart: (e: React.DragEvent) => void;
+    onDragEnd: () => void;
+}) {
     const comments = task.chatHistory?.length ?? 0;
     const activities = task.activities?.length ?? 0;
     const status = statusChip(task);
@@ -64,12 +83,20 @@ function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
     return (
         <Link
             href={`/${projectId}/tasks/${task.id}`}
-            className="group block rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-slate-300/70"
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className={`group block rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-slate-300/70 cursor-grab active:cursor-grabbing ${
+                dragging ? "opacity-40" : ""
+            }`}
         >
-            <Badge variant={status.variant} className={task.status === "running" ? "animate-pulse" : ""}>
-                <span className="size-1.5 rounded-full bg-current" />
-                {status.label}
-            </Badge>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+                <Badge variant={status.variant} className={task.status === "running" ? "animate-pulse" : ""}>
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {status.label}
+                </Badge>
+                <GripVertical className="size-3.5 shrink-0 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
 
             <p className="mt-2 text-sm font-semibold text-slate-800 group-hover:text-brand transition-colors">{task.name}</p>
             <p className="text-[9.5px] text-slate-400 font-sans mt-0.5 select-all">ID: {task.id}</p>
@@ -101,13 +128,39 @@ function TaskCard({ projectId, task }: { projectId: string; task: LoopTask }) {
 
 // Kanban board per the reference layout: column header with colored dot,
 // count badge, and a "+" quick-add; card stacks with status/priority chips.
-export function BoardView({ projectId, tasks, onAddTask }: BoardViewProps) {
+// Cards are draggable between columns (native HTML5 DnD — no extra
+// dependency needed for a single board with four drop zones).
+export function BoardView({ projectId, tasks, onAddTask, onRefresh }: BoardViewProps) {
+    const [draggingId, setDraggingId] = useState<string | null>(null);
+    const [dragOverCol, setDragOverCol] = useState<KanbanColumn | null>(null);
+
+    const handleDrop = async (e: React.DragEvent, col: KanbanColumn) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData("text/plain") || draggingId;
+        setDragOverCol(null);
+        setDraggingId(null);
+        if (!taskId) return;
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task || columnOf(task) === col) return;
+        await moveTaskToColumn(projectId, taskId, col);
+        onRefresh?.();
+    };
+
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {COLUMNS.map((col) => {
                 const items = tasks.filter((t) => columnOf(t) === col.key);
+                const isDragOver = dragOverCol === col.key;
                 return (
-                    <div key={col.key} className="rounded-2xl bg-slate-50/70 border border-slate-200/50 p-3">
+                    <div
+                        key={col.key}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverCol(col.key); }}
+                        onDragLeave={() => setDragOverCol((c) => (c === col.key ? null : c))}
+                        onDrop={(e) => handleDrop(e, col.key)}
+                        className={`rounded-2xl bg-slate-50/70 border p-3 transition-colors ${
+                            isDragOver ? "border-brand/50 bg-brand/5 ring-2 ring-brand/20" : "border-slate-200/50"
+                        }`}
+                    >
                         <div className="flex items-center gap-2 px-1 pb-3">
                             <span className={`size-2 rounded-full ${col.dot}`} />
                             <h3 className="text-sm font-semibold text-slate-700">{col.label}</h3>
@@ -126,11 +179,26 @@ export function BoardView({ projectId, tasks, onAddTask }: BoardViewProps) {
                         </div>
                         <div className="space-y-3">
                             {items.length === 0 ? (
-                                <p className="rounded-xl border border-dashed border-slate-200 bg-white/50 px-3 py-6 text-center text-xs text-slate-400 font-sans">
-                                    No tasks
+                                <p className={`rounded-xl border border-dashed px-3 py-6 text-center text-xs font-sans transition-colors ${
+                                    isDragOver ? "border-brand/40 bg-white text-brand" : "border-slate-200 bg-white/50 text-slate-400"
+                                }`}>
+                                    {isDragOver ? "Drop here" : "No tasks"}
                                 </p>
                             ) : (
-                                items.map((t) => <TaskCard key={t.id} projectId={projectId} task={t} />)
+                                items.map((t) => (
+                                    <TaskCard
+                                        key={t.id}
+                                        projectId={projectId}
+                                        task={t}
+                                        dragging={draggingId === t.id}
+                                        onDragStart={(e) => {
+                                            e.dataTransfer.effectAllowed = "move";
+                                            e.dataTransfer.setData("text/plain", t.id);
+                                            setDraggingId(t.id);
+                                        }}
+                                        onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                                    />
+                                ))
                             )}
                         </div>
                     </div>

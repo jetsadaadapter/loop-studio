@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info, MonitorSmartphone, Tablet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { CommitPublishButton } from "./CommitPublishButton";
+import { PreviewOfflineState } from "./PreviewOfflineState";
 
 type CheckState = "pass" | "fail" | "idle";
 
@@ -125,6 +126,56 @@ export function PreviewPane({
     const [inputUrl, setInputUrl] = useState(initialUrl);
     const [tab, setTab] = useState<PreviewTab>("preview");
     const [reloadKey, setReloadKey] = useState(0);
+
+    // Reachability of the preview target. null/true render the live iframe
+    // optimistically (the common case); only a confirmed `false` swaps in the
+    // offline empty state — avoids flashing it on every normal load.
+    const [reachable, setReachable] = useState<boolean | null>(null);
+    const wasUnreachableRef = useRef(false);
+
+    const checkReachability = async (): Promise<boolean> => {
+        try {
+            const res = await fetch(`/api/loop-projects/${projectId}/preview-status?url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            return Boolean(data.success && data.data?.reachable);
+        } catch {
+            return false;
+        }
+    };
+
+    // Relative paths (this app's own routes, e.g. the "/" fallback) are always
+    // same-origin — only probe absolute http(s) targets, which is what a
+    // project's own dev server preview URL looks like.
+    useEffect(() => {
+        if (tab !== "preview" || !/^https?:\/\//.test(url)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setReachable(true);
+            return;
+        }
+
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        const poll = async () => {
+            const ok = await checkReachability();
+            if (cancelled) return;
+            if (ok && wasUnreachableRef.current) {
+                // Server just came back — force the iframe to remount so it
+                // doesn't keep showing the browser's stale error page.
+                setReloadKey((k) => k + 1);
+            }
+            wasUnreachableRef.current = !ok;
+            setReachable(ok);
+            if (!ok) timer = setTimeout(poll, 3000);
+        };
+
+        void poll();
+        return () => {
+            cancelled = true;
+            if (timer) clearTimeout(timer);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tab, url, projectId]);
 
     // Code viewing states
     const [selectedFile, setSelectedFile] = useState(targetFiles[0] || "");
@@ -461,7 +512,12 @@ export function PreviewPane({
                         </button>
                         <button
                             type="button"
-                            onClick={() => setReloadKey((k) => k + 1)}
+                            onClick={async () => {
+                                setReloadKey((k) => k + 1);
+                                const ok = await checkReachability();
+                                wasUnreachableRef.current = !ok;
+                                setReachable(ok);
+                            }}
                             aria-label="Reload preview"
                             title="Reload preview"
                             className="flex size-7 items-center justify-center rounded-sm border border-slate-200 text-slate-500 bg-white transition-colors hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
@@ -481,27 +537,39 @@ export function PreviewPane({
                     </form>
 
                     {/* Live app iframe — full bleed, no padding */}
-                    {deviceMode === "mobile" ? (
-                        <div className="relative flex-1 min-h-0 bg-slate-200 flex items-center justify-center overflow-hidden">
-                            <div className="w-[375px] h-[95%] border-[12px] border-slate-800 rounded-[32px] overflow-hidden shadow-2xl">
-                                <iframe
-                                    key={reloadKey}
-                                    src={url}
-                                    title="Live app preview"
-                                    className="size-full border-0 bg-white"
-                                />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="relative flex-1 min-h-0 overflow-hidden">
+                    {(() => {
+                        const body = reachable === false ? (
+                            <PreviewOfflineState
+                                url={url}
+                                projectId={projectId}
+                                onRetry={async () => {
+                                    const ok = await checkReachability();
+                                    if (ok) setReloadKey((k) => k + 1);
+                                    wasUnreachableRef.current = !ok;
+                                    setReachable(ok);
+                                }}
+                            />
+                        ) : (
                             <iframe
                                 key={reloadKey}
                                 src={url}
                                 title="Live app preview"
                                 className="size-full border-0 bg-white"
                             />
-                        </div>
-                    )}
+                        );
+
+                        return deviceMode === "mobile" ? (
+                            <div className="relative flex-1 min-h-0 bg-slate-200 flex items-center justify-center overflow-hidden">
+                                <div className="w-[375px] h-[95%] border-[12px] border-slate-800 rounded-[32px] overflow-hidden shadow-2xl flex flex-col">
+                                    {body}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="relative flex-1 min-h-0 overflow-hidden flex flex-col">
+                                {body}
+                            </div>
+                        );
+                    })()}
                 </>
             ) : tab === "code" ? (
                 <>

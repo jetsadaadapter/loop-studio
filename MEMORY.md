@@ -99,3 +99,9 @@ Agent/tool: Claude Code
 What: Set up `.claude/hooks/` (pre-tool-use 300-line + CSP guard, post-tool-use eslint-on-save, stop typecheck advisory), `.claude/agents/verifier.md`, and this MEMORY.md — closing gaps found comparing against a reference "loopkit" agent-vault structure.
 Files: `.claude/settings.json`, `.claude/hooks/*.sh`, `.claude/agents/verifier.md`, `MEMORY.md`
 Follow-up: `stop.sh` is advisory-only (won't block) until the current `tsc --noEmit` baseline is confirmed clean — tighten it to blocking after that.
+
+## 2026-07-14 — Fixed raw-HTML tags leaking into chat bubbles
+Agent/tool: Claude Code
+What: Assistant replies sometimes showed literal `<div style="font-family:…">…</div>` in Team Chat. Root cause: the chat system prompt's aggressive "Always use font-sans / font-mono FORBIDDEN" rule made the model wrap replies in a styled HTML `<div>`, which react-markdown (no rehype-raw) renders as literal text. Fix = prompt + defense-in-depth: (1) scoped the font-sans rule to generated code and told the model to reply in GFM Markdown, no HTML wrappers; (2) added `stripHtmlWrappers()` in ChatMessageContent that removes layout-only wrapper tags (div/span/p/section/…, `<br>`→newline) but skips fenced/inline code so HTML shown as an example stays intact. Single render path (ChatMessageContent) covers chat + collaboration/planner outputs.
+Files: `src/app/api/loop-projects/[projectId]/tasks/[taskId]/chat/route.ts`, `src/app/loop-components/ChatMessageContent.tsx` (+ `.test.tsx`, 6 tests)
+Follow-up: rehype-raw is in deps but unused; if true HTML preview is ever wanted, add rehype-sanitize first (no raw LLM HTML without it, per CSP posture).

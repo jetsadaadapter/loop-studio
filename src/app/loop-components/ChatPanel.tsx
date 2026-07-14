@@ -42,12 +42,14 @@ function renderSuggestionItem(pathStr: string) {
     const fileName = parts.pop() || "";
     const dirPath = parts.join("/");
     return (
-        <div className="flex items-center gap-2 w-full min-w-0">
-            {getFileIcon(pathStr)}
-            <div className="flex flex-col min-w-0 leading-tight">
-                <span className="font-medium text-xs text-slate-700 truncate">{fileName}</span>
-                {dirPath && <span className="text-[10px] text-slate-400 truncate">{dirPath}</span>}
-            </div>
+        <div className="flex items-center gap-2 w-full min-w-0 text-xs">
+            {getFileIcon(pathStr, "size-3.5")}
+            <span className="font-medium text-slate-800 truncate shrink-0">{fileName}</span>
+            {dirPath && (
+                <span className="text-[11px] text-slate-400 truncate font-normal">
+                    {dirPath}
+                </span>
+            )}
         </div>
     );
 }
@@ -577,7 +579,7 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                                     key={s}
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => void selectSuggestion(s)}
-                                    className={`cursor-pointer px-2.5 py-1.5 transition-all ${
+                                    className={`cursor-pointer px-2.5 py-1 transition-all ${
                                         idx === activeIndex
                                             ? "bg-slate-50 border-l-2 border-brand pl-2"
                                             : "hover:bg-slate-50/50 pl-2.5"
@@ -586,14 +588,12 @@ export function ChatPanel({ projectId, taskId, chatHistory, onRefresh, onTrigger
                                     {triggerType === "@" ? (
                                         renderSuggestionItem(s)
                                     ) : (
-                                        <div className="flex items-center gap-2 w-full min-w-0">
-                                            <Terminal className="size-3.5 text-brand shrink-0" />
-                                            <div className="flex flex-col min-w-0 leading-tight">
-                                                <span className="font-semibold text-xs text-slate-700 truncate">{s}</span>
-                                                <span className="text-[10px] text-slate-400 truncate">
-                                                    {CHAT_ACTIONS.find((act) => act.name === s)?.desc || ""}
-                                                </span>
-                                            </div>
+                                        <div className="flex items-center gap-2 w-full min-w-0 text-xs">
+                                            <Terminal className="size-3.5 text-slate-400 shrink-0" />
+                                            <span className="font-semibold text-slate-800 shrink-0">{s}</span>
+                                            <span className="text-[11px] text-slate-400 truncate font-normal">
+                                                {CHAT_ACTIONS.find((act) => act.name === s)?.desc || ""}
+                                            </span>
                                         </div>
                                     )}
                                 </li>

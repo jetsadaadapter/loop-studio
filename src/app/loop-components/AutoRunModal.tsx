@@ -46,12 +46,14 @@ function renderSuggestionItem(pathStr: string) {
     const fileName = parts.pop() || "";
     const dirPath = parts.join("/");
     return (
-        <div className="flex items-center gap-2 w-full min-w-0">
-            {getFileIcon(pathStr)}
-            <div className="flex flex-col min-w-0 leading-tight">
-                <span className="font-medium text-xs text-slate-700 truncate">{fileName}</span>
-                {dirPath && <span className="text-[10px] text-slate-400 truncate">{dirPath}</span>}
-            </div>
+        <div className="flex items-center gap-2 w-full min-w-0 text-xs">
+            {getFileIcon(pathStr, "size-3.5")}
+            <span className="font-medium text-slate-800 truncate shrink-0">{fileName}</span>
+            {dirPath && (
+                <span className="text-[11px] text-slate-400 truncate font-normal">
+                    {dirPath}
+                </span>
+            )}
         </div>
     );
 }
