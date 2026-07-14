@@ -7,6 +7,7 @@ import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ProjectCard } from "./loop-components/ProjectCard";
 import { AppRail, ProjectSidebar } from "./loop-components/ProjectSidebar";
+import { TopBar } from "./loop-components/TopBar";
 import { RegisterModal } from "./loop-components/RegisterModal";
 import { BootstrapModal } from "./loop-components/BootstrapModal";
 import { EditProjectModal } from "./loop-components/EditProjectModal";
@@ -85,14 +86,8 @@ export default function LoopProjectsDashboard() {
         }
     ];
 
-    const toolbarTrailing = (
-        <div className="flex items-center gap-2">
-            <ManageRefreshButton
-                isLoading={loading}
-                isRefreshing={loading}
-                onRefresh={loadProjects}
-                title="Refresh Projects"
-            />
+    const topBarActions = (
+        <>
             <button
                 onClick={() => setIsRegisterOpen(true)}
                 className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-3xs"
@@ -107,7 +102,7 @@ export default function LoopProjectsDashboard() {
                 <Plus className="size-4" />
                 Bootstrap Project
             </button>
-        </div>
+        </>
     );
 
     return (
@@ -115,18 +110,20 @@ export default function LoopProjectsDashboard() {
             <AppRail />
             <ProjectSidebar projects={projects} />
 
-            <section className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 py-6">
-                <div className="border-b border-slate-100 pb-4">
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Local Loop Studio</h1>
-                    <p className="text-xs text-slate-500 font-sans mt-0.5">Manage multiple workspaces, trace dependencies, and delegate tasks to AI Agents</p>
-                </div>
+            <section className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+                <TopBar
+                    title="Local Loop Studio"
+                    subtitle="Manage multiple workspaces, trace dependencies, and delegate tasks to AI Agents"
+                    actions={topBarActions}
+                />
 
+                <div className="flex min-w-0 flex-1 flex-col space-y-6 px-6 py-6">
                 <ManagerToolbar
                     searchValue={searchValue}
                     onSearchChange={setSearchValue}
                     searchPlaceholder="Search projects by name or path..."
                     filters={filters}
-                    trailing={toolbarTrailing}
+                    trailing={<ManageRefreshButton isLoading={loading} isRefreshing={loading} onRefresh={loadProjects} title="Refresh Projects" />}
                 />
 
                 {loading && projects.length === 0 ? (
@@ -151,6 +148,7 @@ export default function LoopProjectsDashboard() {
                         ))}
                     </div>
                 )}
+                </div>
             </section>
 
             <RegisterModal

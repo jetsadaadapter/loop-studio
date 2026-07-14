@@ -10,7 +10,7 @@ import { ManagerDeleteConfirm } from "@/components/manager-delete-confirm";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
 import { AddAgentModal } from "./AddAgentModal";
-import { Breadcrumbs } from "@/app/loop-components/Breadcrumbs";
+import { TopBar } from "@/app/loop-components/TopBar";
 import { AppFooter } from "@/app/loop-components/AppFooter";
 import { TaskVolumeHeatmap } from "./components/TaskVolumeHeatmap";
 import { SuccessTrendChart } from "./components/SuccessTrendChart";
@@ -110,10 +110,7 @@ export default function AiTeamSpace() {
             <ProjectSidebar projects={allProjects} />
 
             <section className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-                {/* Sticky breadcrumb bar — stays visible while the content scrolls */}
-                <div className="sticky top-0 z-20 border-b border-slate-100 bg-white px-6 py-3">
-                    <Breadcrumbs items={[{ label: "AI Developer Team" }]} />
-                </div>
+                <TopBar crumbs={[{ label: "AI Developer Team" }]} />
 
                 <div className="flex w-full flex-1 flex-col px-6 py-5">
                     <div className="flex flex-col space-y-6">

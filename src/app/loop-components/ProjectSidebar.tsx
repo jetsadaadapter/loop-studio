@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Search, Pin, LayoutDashboard, Workflow, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Users, Search, Pin, LayoutDashboard, Layers3, Workflow, Folder, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
 
 const COLLAPSE_STORAGE_KEY = "loop_sidebar_collapsed";
@@ -14,8 +14,8 @@ interface ProjectSidebarProps {
     activeProjectId?: string;
 }
 
-// Colored identity dot per framework template, mirroring the reference
-// design's per-project bullet colors.
+// Colored identity chip background per framework template, mirroring the
+// reference design's per-project bullet colors (icon inside stays constant).
 const TEMPLATE_DOT: Record<string, string> = {
     "nextjs-app": "bg-violet-500",
     "nextjs-pages": "bg-indigo-500",
@@ -34,17 +34,22 @@ export function AppRail() {
     const onAgents = pathname === "/agents";
 
     const railItemClass = (active: boolean) =>
-        `flex size-9 items-center justify-center rounded-lg transition-all ${
-            active
-                ? "bg-brand/10 text-brand"
-                : "text-slate-400 hover:bg-white hover:text-slate-700 hover:shadow-sm"
+        `flex size-8 items-center justify-center rounded-lg transition-colors ${
+            active ? "bg-brand/10 text-brand" : "text-slate-400 hover:text-slate-700"
         }`;
 
     return (
-        <nav className="flex w-14 h-full shrink-0 flex-col items-center gap-1 border-r border-slate-200/60 bg-white pt-5">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-sm shadow-brand/20">
-                <Workflow className="size-4" />
-            </span>
+        <nav className="flex w-12 h-full shrink-0 flex-col items-center border-r border-slate-200/60 bg-white">
+            {/* h-[45px] + border-b match ProjectSidebar's own header band so this mark
+                sits on the same horizontal line as the wordmark row next to it, with
+                the divider continuing unbroken across both columns. */}
+            <Link
+                href="/"
+                title="Loop Studio"
+                className="flex h-[45px] w-full shrink-0 items-center justify-center border-b border-slate-200/60 text-slate-800 transition-transform hover:scale-105"
+            >
+                <Layers3 className="size-4" />
+            </Link>
             <div className="mt-4 flex flex-col items-center gap-1">
                 <Link href="/" title="Dashboard" aria-current={onDashboard ? "page" : undefined} className={railItemClass(onDashboard)}>
                     <LayoutDashboard className="size-4" />
@@ -65,6 +70,7 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
     // Collapsed = icon-only rail. Persisted so it stays put across the 4 pages
     // this sidebar is shared by, rather than resetting on every navigation.
     const [collapsed, setCollapsed] = useState(false);
+    const searchRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (localStorage.getItem(COLLAPSE_STORAGE_KEY) === "true") {
@@ -72,6 +78,22 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
             setCollapsed(true);
         }
     }, []);
+
+    // "/" focuses workspace search from anywhere — skipped while typing in
+    // another field. No visual hint in the box itself; a plain, undocumented
+    // convenience shortcut.
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement | null;
+            const isTyping = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+            if (e.key === "/" && !isTyping && !collapsed) {
+                e.preventDefault();
+                searchRef.current?.focus();
+            }
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [collapsed]);
 
     const toggleCollapsed = () => {
         setCollapsed((prev) => {
@@ -87,15 +109,25 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
 
     return (
         <aside className={`flex h-full shrink-0 flex-col border-r border-slate-200/60 bg-slate-50/60 transition-all duration-300 ease-in-out ${
-            collapsed ? "w-16" : "w-64"
+            collapsed ? "w-12" : "w-64"
         }`}>
-            {/* Collapse / expand toggle — always in the same spot regardless of state */}
-            <div className={`flex h-[45px] shrink-0 items-center px-3 ${collapsed ? "justify-center" : "justify-end"}`}>
+            {/* Brand wordmark row — the icon mark itself lives in AppRail; this is the
+                workspace-panel name label, kept separate so collapsing this panel never
+                hides the always-visible AppRail mark. */}
+            <div className={`flex h-[45px] shrink-0 items-center gap-2 border-b border-slate-200/60 px-3 ${collapsed ? "justify-center" : "justify-between"}`}>
+                {!collapsed && (
+                    <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand text-white">
+                            <Workflow className="size-3.5" />
+                        </span>
+                        <span className="truncate text-sm font-bold tracking-tight text-slate-800 font-sans">Loop Studio</span>
+                    </span>
+                )}
                 <button
                     type="button"
                     onClick={toggleCollapsed}
                     title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                    className="flex size-6 items-center justify-center rounded-md text-slate-400 transition-all hover:bg-white hover:text-slate-700 cursor-pointer"
+                    className="flex size-6 shrink-0 items-center justify-center rounded-md text-slate-400 transition-all hover:bg-white hover:text-slate-700 cursor-pointer"
                 >
                     {collapsed ? <PanelLeftOpen className="size-3.5" /> : <PanelLeftClose className="size-3.5" />}
                 </button>
@@ -103,10 +135,11 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
 
             {/* Workspace search */}
             {!collapsed && (
-                <div className="px-3 pb-1">
+                <div className="px-3 pb-1 pt-3">
                     <div className="relative">
                         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
                         <input
+                            ref={searchRef}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search workspaces…"
@@ -140,7 +173,9 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                                         isActive ? "bg-brand/5" : "hover:bg-white hover:shadow-sm"
                                     }`}
                                 >
-                                    <span className={`size-2 shrink-0 rounded-full ${TEMPLATE_DOT[p.template] ?? TEMPLATE_DOT.generic}`} />
+                                    <span className={`flex size-5 shrink-0 items-center justify-center rounded-md ${TEMPLATE_DOT[p.template] ?? TEMPLATE_DOT.generic}`}>
+                                        <Folder className="size-3 text-white" />
+                                    </span>
                                     {!collapsed && (
                                         <span className={`min-w-0 flex-1 truncate text-xs font-semibold ${
                                             isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
@@ -169,23 +204,22 @@ export function ProjectSidebar({ projects, activeProjectId }: ProjectSidebarProp
                 </nav>
             </div>
 
-            {/* Footer identity card — fixed to h-[52px] so it lines up with the
-                other two bottom bars in this 3-column layout: the collapsed
-                pipeline/logs bar and the chat input row, both also h-[52px]. */}
-            <div className={`flex h-[52px] shrink-0 items-center gap-2.5 border-t border-slate-200/60 ${collapsed ? "justify-center px-0" : "px-3"}`}>
+            {/* Footer status row — fixed to h-[52px] so it lines up with the other
+                two bottom bars in this 3-column layout: the collapsed pipeline/logs
+                bar and the chat input row, both also h-[52px]. A live-local status
+                dot (no wordmark here — that now lives in the top brand row). */}
+            <div className={`flex h-[52px] shrink-0 items-center gap-2 border-t border-slate-200/60 ${collapsed ? "justify-center px-0" : "px-3"}`}>
                 <span
-                    title={collapsed ? `${projects.length} workspace${projects.length === 1 ? "" : "s"} · local` : undefined}
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand"
+                    title={`${projects.length} workspace${projects.length === 1 ? "" : "s"} · running locally`}
+                    className="relative flex size-2 shrink-0"
                 >
-                    <Workflow className="size-4" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                 </span>
                 {!collapsed && (
-                    <div className="min-w-0 flex-1 leading-tight">
-                        <p className="truncate text-xs font-semibold text-slate-800">Loop Studio</p>
-                        <p className="truncate text-xs text-slate-400 font-sans">
-                            {projects.length} workspace{projects.length === 1 ? "" : "s"} · local
-                        </p>
-                    </div>
+                    <p className="min-w-0 flex-1 truncate text-xs text-slate-500 font-sans">
+                        {projects.length} workspace{projects.length === 1 ? "" : "s"} · local
+                    </p>
                 )}
             </div>
         </aside>

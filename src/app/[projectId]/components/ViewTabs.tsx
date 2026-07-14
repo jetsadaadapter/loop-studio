@@ -22,7 +22,7 @@ interface ViewTabsProps {
 
 export function ViewTabs({ viewTab, onChange, variant = "light" }: ViewTabsProps) {
     const onGrad = variant === "onGradient";
-    const rowCls = `flex items-center gap-5 border-b shrink-0 select-none overflow-x-auto ${
+    const rowCls = `flex items-center gap-5 border-b shrink-0 select-none ${
         onGrad ? "border-white/25" : "border-slate-200/70"
     }`;
     const activeCls = onGrad ? "border-white text-white" : "border-brand text-brand";

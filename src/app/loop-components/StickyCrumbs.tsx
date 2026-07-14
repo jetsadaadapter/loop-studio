@@ -13,7 +13,7 @@ interface StickyCrumbsProps {
 // the scrollport (text at 12px, matching the other shells) while content scrolls under.
 export function StickyCrumbs({ items }: StickyCrumbsProps) {
     return (
-        <div className="sticky top-0 z-20 -mx-6 border-b border-slate-100 bg-white px-6 py-3">
+        <div className="sticky top-0 z-20 -mx-6 border-b border-slate-100 bg-white px-3 py-3">
             <Breadcrumbs items={items} />
         </div>
     );
