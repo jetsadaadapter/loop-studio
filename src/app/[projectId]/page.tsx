@@ -213,7 +213,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                             trailing={toolbarTrailing}
                         />
                         {filteredTasks.length === 0 ? emptyTasks : (
-                            <TaskView projectId={projectId} tasks={filteredTasks} onRefresh={loadData} />
+                            <TaskView projectId={projectId} tasks={filteredTasks} onAddTask={() => setIsCreateOpen(true)} onRefresh={loadData} />
                         )}
                     </div>
                 )}

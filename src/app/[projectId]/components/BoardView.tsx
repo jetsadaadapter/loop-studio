@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { MessageSquare, Activity, Flag, Plus, FileCode2, GripVertical } from "lucide-react";
-import type { LoopTask, KanbanColumn, TaskPriority } from "@/core/interfaces/loop-projects.interface";
+import type { LoopTask, KanbanColumn } from "@/core/interfaces/loop-projects.interface";
 
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { COLUMNS, columnOf, PRIORITY_CHIP, shortDate } from "./task-grouping";
 
 interface BoardViewProps {
     projectId: string;
@@ -27,21 +28,6 @@ async function moveTaskToColumn(projectId: string, taskId: string, kanbanColumn:
     });
 }
 
-const COLUMNS: { key: KanbanColumn; label: string; dot: string; badge: string }[] = [
-    { key: "backlog", label: "Backlog", dot: "bg-slate-400", badge: "bg-slate-100 text-slate-600" },
-    { key: "todo", label: "To Do", dot: "bg-sky-500", badge: "bg-sky-100 text-sky-700" },
-    { key: "in_progress", label: "In Progress", dot: "bg-violet-500", badge: "bg-violet-100 text-violet-700" },
-    { key: "done", label: "Done", dot: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700" },
-];
-
-// Tasks created before the kanban field existed derive their column from status.
-function columnOf(t: LoopTask): KanbanColumn {
-    if (t.kanbanColumn) return t.kanbanColumn;
-    if (t.status === "completed") return "done";
-    if (t.status === "running") return "in_progress";
-    return "todo";
-}
-
 // Status chip per the reference cards (colored dot + label).
 function statusChip(t: LoopTask): { label: string; variant: BadgeVariant } {
     if (t.kanbanColumn === "in_progress" && t.status === "completed" && t.currentStage === "OBSERVE") {
@@ -53,19 +39,6 @@ function statusChip(t: LoopTask): { label: string; variant: BadgeVariant } {
         case "failed": return { label: "Failed", variant: "error" };
         default: return { label: "Not Started", variant: "default" };
     }
-}
-
-const PRIORITY_CHIP: Record<TaskPriority, BadgeVariant> = {
-    low: "success",
-    medium: "warning",
-    high: "orange",
-    critical: "error",
-};
-
-function shortDate(iso: string): string {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function TaskCard({ projectId, task, dragging, onDragStart, onDragEnd }: {
