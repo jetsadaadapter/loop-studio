@@ -176,6 +176,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
                                         buildStatus={build}
                                         riskTier={task.riskTier}
                                         projectId={projectId}
+                                        projectTemplate={project?.template}
                                         taskId={task.id}
                                         taskName={task.name}
                                         onPublished={loadData}

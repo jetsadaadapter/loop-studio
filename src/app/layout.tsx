@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { ToastProvider } from "@/components/toast-provider";
 import { AlertDialogToastProvider } from "@/components/ui/alert-dialog-toast";
@@ -118,11 +117,6 @@ const geist = localFont({
   ],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "Loop Studio",
   description: "Task management for AI coding agents",
@@ -140,7 +134,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexSansThai.variable} ${sukhumvitSet.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${ibmPlexSansThai.variable} ${sukhumvitSet.variable} ${geist.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

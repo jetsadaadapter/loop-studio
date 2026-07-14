@@ -16,7 +16,7 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
         }
 
-        const projectsDir = path.join(process.cwd(), ".projects");
+        const projectsDir = path.join(process.cwd(), "projects");
 
         if (fileParam) {
             // Resolve and verify traversal bounds.

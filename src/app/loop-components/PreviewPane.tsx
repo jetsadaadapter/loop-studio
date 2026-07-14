@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info, MonitorSmartphone, Tablet } from "lucide-react";
+import { Monitor, Code2, GitCompare, RotateCw, ExternalLink, ArrowRight, Check, Loader2, AlertTriangle, Info, MonitorSmartphone, Tablet, Server } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { RiskTier } from "@/core/interfaces/loop-projects.interface";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { CommitPublishButton } from "./CommitPublishButton";
 import { PreviewOfflineState } from "./PreviewOfflineState";
+import { ApiConsole } from "./ApiConsole";
 
 type CheckState = "pass" | "fail" | "idle";
 
@@ -22,6 +23,9 @@ interface PreviewPaneProps {
     buildStatus?: CheckState;
     riskTier?: RiskTier;
     projectId: string;
+    // Project template (e.g. "vite-react", "nodejs") — a signal for auto-picking
+    // App vs API preview mode. Optional; detection falls back to a content probe.
+    projectTemplate?: string;
     taskId: string;
     taskName?: string;
     onPublished: () => void;
@@ -109,12 +113,21 @@ function StatusBadge({ label, state }: { label: string; state: CheckState }) {
 }
 
 
+// Backend templates default to the API console; frontend templates to the live
+// iframe. "generic"/unknown returns null → fall through to a content-type probe.
+function kindFromTemplate(t?: string): "app" | "api" | null {
+    if (t === "nodejs") return "api";
+    if (t === "nextjs-app" || t === "nextjs-pages" || t === "vite-react") return "app";
+    return null;
+}
+
 export function PreviewPane({
     initialUrl = "/",
     verifyStatus = "idle",
     buildStatus = "idle",
     riskTier,
     projectId,
+    projectTemplate,
     taskId,
     taskName,
     onPublished,
@@ -125,6 +138,9 @@ export function PreviewPane({
     const [url, setUrl] = useState(initialUrl);
     const [inputUrl, setInputUrl] = useState(initialUrl);
     const [tab, setTab] = useState<PreviewTab>("preview");
+    // Preview body mode: "app" = live iframe (frontend), "api" = request console
+    // (backend). Opt-in toggle so existing behaviour is unchanged by default.
+    const [previewKind, setPreviewKind] = useState<"app" | "api">("app");
     const [reloadKey, setReloadKey] = useState(0);
 
     // Reachability of the preview target. null/true render the live iframe
@@ -132,6 +148,8 @@ export function PreviewPane({
     // offline empty state — avoids flashing it on every normal load.
     const [reachable, setReachable] = useState<boolean | null>(null);
     const wasUnreachableRef = useRef(false);
+    // Once the user picks a mode, detection stops overriding their choice.
+    const manualKindRef = useRef(false);
 
     const checkReachability = async (): Promise<boolean> => {
         try {
@@ -176,6 +194,46 @@ export function PreviewPane({
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tab, url, projectId]);
+
+    // Auto-pick App vs API mode: template first, else probe the target's content
+    // type (through our proxy). A manual toggle wins and disables detection.
+    useEffect(() => {
+        if (manualKindRef.current) return;
+        const fromTemplate = kindFromTemplate(projectTemplate);
+        if (fromTemplate) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setPreviewKind(fromTemplate);
+            return;
+        }
+        if (reachable !== true || !/^https?:\/\//.test(url)) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const r = await fetch(`/api/loop-projects/${projectId}/api-request`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url, method: "GET" }),
+                });
+                const j = await r.json();
+                if (cancelled || !j.success) return;
+                const ct = String(j.data.contentType || "").toLowerCase();
+                const head = String(j.data.body || "").slice(0, 400).toLowerCase();
+                const isApi = ct.includes("json") || (!ct.includes("html") && !head.includes("<html") && !head.includes("<!doctype"));
+                if (!manualKindRef.current) setPreviewKind(isApi ? "api" : "app");
+            } catch {
+                /* keep current mode */
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [reachable, url, projectId, projectTemplate]);
+
+    // Only surface the App/API toggle when the project can plausibly serve an API
+    // (backend template, "generic", or detected/selected as API). A pure frontend
+    // shows just the live preview — no empty "API" mode to click into.
+    const apiCapable = projectTemplate === "nodejs" || projectTemplate === "generic" || previewKind === "api";
+    const bodyKind: "app" | "api" = apiCapable ? previewKind : "app";
 
     // Code viewing states
     const [selectedFile, setSelectedFile] = useState(targetFiles[0] || "");
@@ -534,10 +592,38 @@ export function PreviewPane({
                         >
                             <ExternalLink className="size-3.5" />
                         </a>
+                        {/* App (live iframe) vs API (request console). Shown only for
+                            API-capable projects; a pure frontend just gets the preview. */}
+                        {apiCapable && (
+                            <div className="ml-1 flex shrink-0 items-center gap-0.5 rounded-md border border-slate-200 bg-slate-100 p-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => { manualKindRef.current = true; setPreviewKind("app"); }}
+                                    aria-pressed={previewKind === "app"}
+                                    title="Live app preview"
+                                    className={`flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-semibold font-sans transition-colors cursor-pointer ${previewKind === "app" ? "bg-white text-indigo-700 shadow-xs" : "text-slate-500 hover:text-slate-700"}`}
+                                >
+                                    <Monitor className="size-3.5" /> App
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { manualKindRef.current = true; setPreviewKind("api"); }}
+                                    aria-pressed={previewKind === "api"}
+                                    title="API request console"
+                                    className={`flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-semibold font-sans transition-colors cursor-pointer ${previewKind === "api" ? "bg-white text-indigo-700 shadow-xs" : "text-slate-500 hover:text-slate-700"}`}
+                                >
+                                    <Server className="size-3.5" /> API
+                                </button>
+                            </div>
+                        )}
                     </form>
 
-                    {/* Live app iframe — full bleed, no padding */}
-                    {(() => {
+                    {/* API console (backend) or live app iframe (frontend), full bleed */}
+                    {bodyKind === "api" ? (
+                        <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
+                            <ApiConsole baseUrl={url} projectId={projectId} />
+                        </div>
+                    ) : (() => {
                         const body = reachable === false ? (
                             <PreviewOfflineState
                                 url={url}

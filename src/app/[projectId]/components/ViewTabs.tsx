@@ -5,8 +5,8 @@ import Link from "next/link";
 import { ListChecks, Settings, LayoutGrid, type LucideIcon } from "lucide-react";
 
 // Workspace navigation as underline tabs, per the reference layout:
-// Studio (walkthrough), Board (kanban), and Tasks (list), with the
-// Settings shortcut kept on the right of the same row.
+// Board (kanban) and Tasks (list), with the Settings shortcut kept on the right
+// of the same row. `variant` = "onGradient" restyles for the coloured header.
 export type WorkspaceViewTab = "board" | "task";
 
 const TABS: { key: WorkspaceViewTab; label: string; icon: LucideIcon }[] = [
@@ -17,33 +17,34 @@ const TABS: { key: WorkspaceViewTab; label: string; icon: LucideIcon }[] = [
 interface ViewTabsProps {
     viewTab: WorkspaceViewTab;
     onChange: (tab: WorkspaceViewTab) => void;
+    variant?: "light" | "onGradient";
 }
 
-export function ViewTabs({ viewTab, onChange }: ViewTabsProps) {
+export function ViewTabs({ viewTab, onChange, variant = "light" }: ViewTabsProps) {
+    const onGrad = variant === "onGradient";
+    const rowCls = `flex items-center gap-5 border-b shrink-0 select-none overflow-x-auto ${
+        onGrad ? "border-white/25" : "border-slate-200/70"
+    }`;
+    const activeCls = onGrad ? "border-white text-white" : "border-brand text-brand";
+    const inactiveCls = onGrad
+        ? "border-transparent text-white/70 hover:text-white"
+        : "border-transparent text-slate-500 hover:text-slate-700";
+    const settingsCls = onGrad ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-700";
+    const item = "relative -mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2 pt-1 text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap";
+
     return (
-        <div className="flex items-center gap-6 border-b border-slate-200/70 shrink-0 select-none overflow-x-auto">
+        <div className={rowCls}>
             {TABS.map(({ key, label, icon: Icon }) => {
                 const active = viewTab === key;
                 return (
-                    <button
-                        key={key}
-                        onClick={() => onChange(key)}
-                        className={`relative -mb-px flex items-center gap-1.5 border-b-2 px-1 pb-2.5 pt-1 text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                            active
-                                ? "border-brand text-brand"
-                                : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                    >
+                    <button key={key} onClick={() => onChange(key)} className={`${item} ${active ? activeCls : inactiveCls}`}>
                         <Icon className="size-3.5" />
                         {label}
                     </button>
                 );
             })}
 
-            <Link
-                href="/agents"
-                className="-mb-px ml-auto flex items-center gap-1.5 border-b-2 border-transparent px-1 pb-2.5 pt-1 text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors cursor-pointer whitespace-nowrap"
-            >
+            <Link href="/agents" className={`${item} ml-auto border-transparent ${settingsCls}`}>
                 <Settings className="size-3.5" />
                 Settings
             </Link>

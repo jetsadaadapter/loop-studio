@@ -5,18 +5,18 @@ import Link from "next/link";
 import { Plus, HelpCircle, AlertTriangle, Loader2, Sparkles, Clock } from "lucide-react";
 import { ManagerToolbar } from "@/components/manager-toolbar";
 import { ManageRefreshButton } from "@/components/ui/manage-refresh-button";
-import { StickyCrumbs } from "../loop-components/StickyCrumbs";
 import { AppRail, ProjectSidebar } from "../loop-components/ProjectSidebar";
+import { StickyCrumbs } from "../loop-components/StickyCrumbs";
 import { CreateTaskModal } from "../loop-components/CreateTaskModal";
 import { AutoRunModal } from "../loop-components/AutoRunModal";
 import { AutoRunProgress } from "../loop-components/AutoRunProgress";
 import { ScheduleModal } from "../loop-components/ScheduleModal";
 import { AVAILABLE_SKILLS } from "@/core/interfaces/loop-projects.interface";
 import { WorkspaceHeader } from "./components/WorkspaceHeader";
-import { ViewTabs, type WorkspaceViewTab } from "./components/ViewTabs";
+import { type WorkspaceViewTab } from "./components/ViewTabs";
 import { TaskView } from "./components/TaskView";
 import { BoardView } from "./components/BoardView";
-import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
+import type { LoopProject, LoopAgent } from "@/core/interfaces/loop-projects.interface";
 
 interface ProjectWorkspaceProps {
     params: Promise<{ projectId: string }>;
@@ -26,6 +26,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
     const { projectId } = use(params);
     const [project, setProject] = useState<LoopProject | null>(null);
     const [allProjects, setAllProjects] = useState<LoopProject[]>([]);
+    const [agents, setAgents] = useState<LoopAgent[]>([]);
     const [gitInfo, setGitInfo] = useState<{ branch: string; commit: string; modifiedFiles: string[] }>({
         branch: "...",
         commit: "...",
@@ -57,6 +58,10 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
             const allRes = await fetch(`/api/loop-projects`);
             const allData = await allRes.json();
             if (allData.success) setAllProjects(allData.data || []);
+
+            const agRes = await fetch(`/api/loop-agents`);
+            const agData = await agRes.json();
+            if (agData.success) setAgents(agData.data || []);
         } catch (e) {
             console.error("Failed to load workspace data:", e);
         } finally {
@@ -175,31 +180,31 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
             <ProjectSidebar projects={allProjects} activeProjectId={projectId} />
 
             <section
-                className="flex min-w-0 flex-1 flex-col space-y-6 overflow-y-auto px-6 pb-6"
+                className="flex min-w-0 flex-1 flex-col overflow-y-auto px-6 pb-6"
                 onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 0)}
             >
                 <StickyCrumbs items={[{ label: project.name }]} />
 
-                {/* Sticky workspace header + auto-run banner + view tabs — pinned
-                    below StickyCrumbs (45px, its measured rendered height) so this
-                    block stays visible while the board/task list scrolls under it.
-                    pt-6/pb-4 bake the breathing room in as padding (not margin) —
-                    space-y-6's margin-top on this box collapses away once it's
-                    actually stuck, which left it flush against the crumbs bar
-                    above. The shadow only renders once isScrolled is true, so it
-                    doesn't show at scrollTop 0 where there's nothing to separate from. */}
-                <div className={`sticky top-[45px] z-20 -mx-6 space-y-6 bg-white px-6 pt-6 pb-4 transition-shadow duration-200 ${
+                {/* Gradient header banner, pinned below the breadcrumbs bar (45px).
+                    Near-flush side padding (px-2) lets the card fill the content width
+                    per the reference. The shadow only shows once scrolled. */}
+                <div className={`sticky top-[45px] z-20 -mx-6 space-y-2 bg-white px-3 pt-3 pb-3 transition-shadow duration-200 ${
                     isScrolled ? "shadow-[0_4px_6px_-4px_rgba(15,23,42,0.08)]" : ""
                 }`}>
-                    <WorkspaceHeader project={project} gitInfo={gitInfo} totalCost={totalCost} />
+                    <WorkspaceHeader
+                        project={project}
+                        gitInfo={gitInfo}
+                        totalCost={totalCost}
+                        agents={agents}
+                        viewTab={viewTab}
+                        onViewTabChange={setViewTab}
+                    />
 
                     <AutoRunProgress projectId={projectId} onRefresh={loadData} />
-
-                    <ViewTabs viewTab={viewTab} onChange={setViewTab} />
                 </div>
 
                 {viewTab === "task" && (
-                    <>
+                    <div className="space-y-2">
                         <ManagerToolbar
                             searchValue={searchValue}
                             onSearchChange={setSearchValue}
@@ -210,7 +215,7 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                         {filteredTasks.length === 0 ? emptyTasks : (
                             <TaskView projectId={projectId} tasks={filteredTasks} onRefresh={loadData} />
                         )}
-                    </>
+                    </div>
                 )}
 
                 {viewTab === "board" && (

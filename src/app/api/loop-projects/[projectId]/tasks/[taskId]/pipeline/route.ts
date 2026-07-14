@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
+import { getApiChecks, runApiChecks } from "@/core/services/loop-preview.service";
 import fs from "fs";
 import path from "path";
 
@@ -52,7 +53,24 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
             if (!ok) break;
         }
 
-        const allPassed = results.length === steps.length && results.every((r) => r.ok);
+        let allPassed = results.length === steps.length && results.every((r) => r.ok);
+
+        // Saved API checks run as a final Verify gate — only when the command steps
+        // are green and the project actually has checks saved (opt-in per project).
+        const savedChecks = getApiChecks(projectId);
+        if (allPassed && savedChecks.length > 0) {
+            fs.appendFileSync(logFilePath, `\n▶ API checks (${savedChecks.length})\n`);
+            const checkResults = await runApiChecks(projectId);
+            for (const cr of checkResults) {
+                fs.appendFileSync(logFilePath, `  ${cr.ok ? "✓" : "✗"} ${cr.method} ${cr.name} — ${cr.error ?? cr.status} (${cr.timeMs}ms)\n`);
+            }
+            const passed = checkResults.filter((r) => r.ok).length;
+            const ok = checkResults.every((r) => r.ok);
+            results.push({ key: "api-checks", label: `API checks (${passed}/${checkResults.length})`, exitCode: ok ? 0 : 1, ok });
+            fs.appendFileSync(logFilePath, `\n${ok ? "✓" : "✗"} API checks — ${passed}/${checkResults.length} passed\n`);
+            allPassed = ok;
+        }
+
         if (host) {
             results.push({ key: "build", label: "Build (skipped — host app)", exitCode: 0, ok: allPassed, skipped: true });
         }

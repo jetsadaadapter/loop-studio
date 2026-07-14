@@ -66,7 +66,7 @@ export async function POST(req: Request) {
             // named after the project (kebab-case). Keeps bootstrapped projects
             // in one predictable, gitignored place.
             const slug = String(name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "new-project";
-            const defaultRoot = path.join(process.cwd(), ".projects");
+            const defaultRoot = path.join(process.cwd(), "projects");
             const targetPath: string = parsed.data.path?.trim() ? parsed.data.path : path.join(defaultRoot, slug);
 
             const parentDir = path.dirname(targetPath);

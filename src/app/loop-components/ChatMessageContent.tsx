@@ -55,6 +55,32 @@ export function stripHtmlWrappers(text: string): string {
         .replace(/\n{3,}/g, "\n\n");
 }
 
+// Some models dump a large code blob as plain prose (no ``` fence), which Markdown
+// then reflows into an unreadable wall. Detect a code-dominant, unfenced run and
+// wrap it in a fenced block so it renders as a scrollable code block. Existing
+// fenced blocks and short/prose (incl. Thai) text are left untouched.
+const FENCE_SPLIT_RE = /(```[\s\S]*?```)/g;
+
+function looksLikeCode(text: string): boolean {
+    const s = text.trim();
+    if (s.length < 200) return false;
+    const codeHits = (s.match(/=>|\bconst\b|\bfunction\b|\breturn\b|\breq\.|\bres\.|\bapp\.(?:get|post|put|delete)|JSON\.|\);|\},\s*\{|:\s*'|'\s*,/g) || []).length;
+    const thai = (s.match(/[฀-๿]/g) || []).length;
+    return codeHits >= 8 && thai < 30;
+}
+
+export function formatCodeBlobs(text: string): string {
+    return text
+        .split(FENCE_SPLIT_RE)
+        .map((chunk, i) => {
+            if (i % 2 === 1) return chunk; // already a fenced block — leave it
+            if (!looksLikeCode(chunk)) return chunk;
+            const cleaned = chunk.trim().replace(/`([^`\n]+)`/g, "$1"); // drop stray inline-code markers
+            return `\n\n\`\`\`\n${cleaned}\n\`\`\`\n\n`;
+        })
+        .join("");
+}
+
 // Readable chat typography with a clear hierarchy: headings step down in size,
 // h2 gets a divider for section separation, h3 uses the indigo accent, lists get
 // visible markers, and body copy has comfortable spacing.
@@ -78,7 +104,7 @@ const PROSE_CLASS = [
 // Markdown component overrides — font-mono is used only for code (allowed per DESIGN.md).
 const MD_COMPONENTS = {
     pre: ({ children }: { children?: React.ReactNode }) => (
-        <pre className="max-w-full overflow-x-auto rounded-lg bg-slate-900 p-3.5 text-2xs leading-relaxed text-slate-100 font-sans shadow-xs my-3">{children}</pre>
+        <pre className="max-w-full overflow-x-auto rounded-lg bg-slate-900 p-3.5 text-2xs leading-relaxed text-slate-100 font-mono shadow-xs my-3">{children}</pre>
     ),
     code: ({ className, children }: { className?: string; children?: React.ReactNode }) => {
         const isBlock = (className || "").includes("language-") || String(children).includes("\n");
@@ -103,7 +129,7 @@ function FileEditBlock({ path, code }: { path: string; code: string }) {
                 <FileCode className="size-3.5 shrink-0 text-indigo-300" />
                 <span className="truncate text-xs font-semibold text-slate-200 font-sans min-w-0">{path}</span>
             </div>
-            <pre className="overflow-x-auto p-3.5 text-2xs leading-relaxed text-slate-100 font-sans whitespace-pre max-w-full">{code}</pre>
+            <pre className="overflow-x-auto p-3.5 text-2xs leading-relaxed text-slate-100 font-mono whitespace-pre max-w-full">{code}</pre>
         </div>
     );
 }
@@ -119,7 +145,7 @@ export function ChatMessageContent({ content, tone = "assistant" }: { content: s
         <div className="space-y-1.5 min-w-0 overflow-hidden">
             {segments.map((seg, i) => {
                 if (seg.type === "file") return <FileEditBlock key={i} path={seg.path} code={seg.code} />;
-                const text = stripHtmlWrappers(seg.text).trim();
+                const text = formatCodeBlobs(stripHtmlWrappers(seg.text)).trim();
                 if (!text) return null;
                 return (
                     <div key={i} className={PROSE_CLASS}>

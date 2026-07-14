@@ -134,5 +134,6 @@ pnpm-debug.log*
 testsprite_tests/tmp/
 .antigravity/archive/
 
-# Bootstrapped workspace projects (each is its own repo)
-.projects/
+# Bootstrapped workspace projects (each is its own repo) — visible (not hidden),
+# still git-ignored so they don't pollute this repo.
+projects/

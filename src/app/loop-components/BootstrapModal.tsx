@@ -156,7 +156,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                                 <Input
                                     type="text"
                                     aria-invalid={!!fieldErrors.path}
-                                    placeholder="Leave blank to create in .projects/"
+                                    placeholder="Leave blank to create in projects/"
                                     value={pathValue}
                                     onChange={(e) => {
                                         setPathValue(e.target.value);
@@ -170,7 +170,7 @@ export function BootstrapModal({ isOpen, onClose, onSuccess }: BootstrapModalPro
                                 }} />
                             </div>
                             <FieldDescription>
-                                Optional. Blank creates the folder under Loop Studio&apos;s <span className="font-semibold">.projects/</span> workspace, named after the project.
+                                Optional. Blank creates the folder under Loop Studio&apos;s <span className="font-semibold">projects/</span> workspace, named after the project.
                             </FieldDescription>
                             <FieldError errors={fieldErrors.path ? [{ message: fieldErrors.path }] : []} />
                         </Field>
