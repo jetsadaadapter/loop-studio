@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getProjects, saveProjects, writeBridgeRequest } from "@/core/services/loop-projects.service";
 import { resolveLoopLlm } from "@/core/services/loop-llm.service";
 import { runCollaborationLoop } from "@/core/services/loop-collaboration.service";
+import { autoFulfillBridge } from "@/core/services/loop-bridge-worker.service";
 
 // POST /api/loop-projects/[projectId]/tasks/[taskId]/collaborate
 // Kick off the AI-team pipeline (Architect → Developer → QA → DevOps → Auditor)
@@ -21,6 +22,8 @@ export async function POST(
         const llm = forceBridge ? null : resolveLoopLlm(userKey);
         if (!llm) {
             const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "collaborate", prompt: instructions });
+            // Opt-in (LOOP_BRIDGE_AUTO): auto-fulfill with a local agent. Fire-and-forget.
+            void autoFulfillBridge(bridgeId).catch(() => { /* worker logs its own errors */ });
             return NextResponse.json({
                 success: true,
                 bridged: true,

@@ -70,6 +70,26 @@ export function readBridgeRequest(): BridgeRequest | null {
     }
 }
 
+/**
+ * Write an agent's reply back into the bridge request (id-guarded). Used by the
+ * auto-fulfill worker to finalize a request the same way a human running
+ * `run bridge` would: set `status` to "done" with a `response`, or "error".
+ * A no-op if the current bridge id no longer matches (a newer request replaced
+ * it in this single-slot file), so a slow worker can't clobber a fresh request.
+ */
+export function writeBridgeResponse(
+    id: string,
+    result: { status: "done" | "error"; response?: string; error?: string }
+): void {
+    const current = readBridgeRequest();
+    if (!current || current.id !== id) return;
+    current.status = result.status;
+    if (result.response !== undefined) current.response = result.response;
+    if (result.error !== undefined) current.error = result.error;
+    current.updatedAt = new Date().toISOString();
+    writeJsonStore(BRIDGE_FILE_PATH, current);
+}
+
 /** Mark the bridge request consumed so it is not applied twice. */
 export function markBridgeConsumed(id: string): void {
     const current = readBridgeRequest();

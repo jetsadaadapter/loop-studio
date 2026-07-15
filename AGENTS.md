@@ -150,6 +150,8 @@ Loop Studio chat has a **free, key-less mode** ("Use IDE Agent Bridge"). Instead
 
 The `instructions` field inside the file restates this. The bridge is single-slot (one pending request at a time); the app times out polling after ~5 minutes but leaves the file for later fulfillment.
 
+**Auto-fulfill mode (opt-in).** Setting the server env `LOOP_BRIDGE_AUTO=claude` makes `loop-bridge-worker.service.ts` fulfill a pending request without a human: it spawns the named CLI (allow-listed — `claude` only for now) **read-only** (`--permission-mode dontAsk --allowedTools Read,Grep,Glob`, no `--bare` so it uses the machine's Claude login and needs no API key), captures the reply, and sets `status:"done"`. The read-only mode means the agent never writes project files itself — it returns `<file_edit>` blocks that the existing bridge POST route applies through the guarded `applyFileEdits`, so all edit guards (config lock, test-file policy) still hold. Unset = wait for a human (default). Only allow-listed binaries are ever spawned; the prompt is passed as a discrete argv element (no shell).
+
 ## 8. Agent Guardrail Automation
 
 Some rules above are also enforced mechanically, so they hold even if a session forgets to self-check:

@@ -3,13 +3,12 @@ import path from "path";
 import { spawn, type ChildProcess } from "child_process";
 import type { LoopProject, RiskTier } from "@/core/interfaces/loop-projects.interface";
 import { readJsonStore, writeJsonStore } from "./json-store";
+import { notifyLogListeners } from "./loop-logs.service";
 
 const PROJECTS_FILE_PATH = path.join(process.cwd(), ".antigravity", "loop-projects.json");
 
 // In-memory registry of running child processes
 export const ACTIVE_PROCESSES = new Map<string, ChildProcess>();
-// In-memory stream listeners for logs
-const LOG_LISTENERS = new Map<string, ((data: string) => void)[]>();
 
 // A fresh store starts empty — projects are registered/bootstrapped by the user.
 // Read/save semantics (corrupt-file backup, atomic writes, throwing on
@@ -213,8 +212,7 @@ export function runProjectCommand(
         const handleData = (chunk: Buffer) => {
             const str = chunk.toString();
             onData(str);
-            const listeners = LOG_LISTENERS.get(taskId) || [];
-            listeners.forEach((l) => l(str));
+            notifyLogListeners(taskId, str);
         };
 
         proc.stdout.on("data", handleData);
@@ -233,17 +231,8 @@ export function runProjectCommand(
     });
 }
 
-export function subscribeToLogs(taskId: string, callback: (data: string) => void) {
-    if (!LOG_LISTENERS.has(taskId)) {
-        LOG_LISTENERS.set(taskId, []);
-    }
-    LOG_LISTENERS.get(taskId)!.push(callback);
-    return () => {
-        const list = LOG_LISTENERS.get(taskId) || [];
-        const filtered = list.filter((l) => l !== callback);
-        LOG_LISTENERS.set(taskId, filtered);
-    };
-}
+// Log stream fan-out (LOG_LISTENERS, subscribeToLogs, notifyLogListeners,
+// publishTaskLog) lives in ./loop-logs.service and is re-exported below.
 
 // Verifier/build configuration — these files ARE the gate (they decide what
 // "passing" means). No AI role may rewrite them: an agent that can edit the
@@ -346,3 +335,4 @@ export function applyFileEdits(
 // (300-line rule); existing importers keep working through this module.
 export * from "./loop-git.service";
 export * from "./loop-bridge.service";
+export * from "./loop-logs.service";

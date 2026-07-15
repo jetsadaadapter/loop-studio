@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProjects, saveProjects, applyFileEdits, writeBridgeRequest } from "@/core/services/loop-projects.service";
 import { resolveLoopLlm, callLoopLlm, type LlmContent, type LlmImageBlock } from "@/core/services/loop-llm.service";
+import { autoFulfillBridge } from "@/core/services/loop-bridge-worker.service";
 import type { ChatMessage, ChatAttachment } from "@/core/interfaces/loop-projects.interface";
 import fs from "fs";
 import path from "path";
@@ -44,6 +45,9 @@ export async function POST(
                 bridgePrompt += `\n\nAttached files (read these with your file tool):\n${savedPaths.map((p) => `- ${p}`).join("\n")}`;
             }
             const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "chat", prompt: bridgePrompt, history: history || [] });
+            // Opt-in (LOOP_BRIDGE_AUTO): fulfill the bridge with a local agent
+            // instead of waiting for a human. Fire-and-forget — the client polls.
+            void autoFulfillBridge(bridgeId).catch(() => { /* worker logs its own errors */ });
             return NextResponse.json({
                 success: true,
                 bridged: true,
