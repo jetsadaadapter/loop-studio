@@ -5,5 +5,8 @@ export async function register() {
     if (process.env.NEXT_RUNTIME === "nodejs") {
         const { startScheduler } = await import("@/core/services/loop-scheduler.service");
         startScheduler();
+        // Finalize any tmux auto-fulfill runs orphaned by a previous restart.
+        const { recoverTmuxBridges } = await import("@/core/services/loop-bridge-worker.service");
+        recoverTmuxBridges();
     }
 }

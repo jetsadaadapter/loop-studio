@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import { readBridgeRequest, writeBridgeResponse } from "./loop-bridge.service";
 import { publishTaskLog } from "./loop-logs.service";
 import { getProjects } from "./loop-projects.service";
-import { runAgentInTmux, tmuxAvailable } from "./loop-tmux.service";
+import { runAgentInTmux, tmuxAvailable, pollTmuxRun, listTmuxRunDirs, readTmuxMeta, readTmuxOutcome, tmuxSessionAlive, cleanupTmuxRun } from "./loop-tmux.service";
 
 type RunResult = { exitCode: number; stdout: string; timedOut: boolean };
 
@@ -166,10 +166,15 @@ export async function autoFulfillBridge(taskId: string, bridgeId: string): Promi
     publishTaskLog(taskId, `\n[auto-bridge] ${adapter.bin} (read-only${useTmux ? ", tmux" : ""}) fulfilling ${bridge.requestType} request…\n`);
 
     const result = useTmux
-        ? await runAgentInTmux({ taskId, bin: adapter.bin, args, cwd: project.path, timeoutMs: TIMEOUT_MS, onLog })
+        ? await runAgentInTmux({ taskId, bin: adapter.bin, args, cwd: project.path, timeoutMs: TIMEOUT_MS, onLog, meta: { projectId: project.id, bridgeId, agent: agentName } })
         : await runAgentDirect(adapter.bin, args, project.path, TIMEOUT_MS, onLog);
 
-    // Shared finalize — identical for both runners.
+    finalizeAgentRun(taskId, bridgeId, adapter, result);
+}
+
+/** Turn a runner result into a bridge response — shared by fresh runs and by
+ *  post-restart recovery. id-guarded write, so a stale/superseded run can't clobber. */
+function finalizeAgentRun(taskId: string, bridgeId: string, adapter: AgentAdapter, result: RunResult): void {
     if (result.timedOut) {
         writeBridgeResponse(taskId, bridgeId, { status: "error", error: "Auto-bridge timed out." });
         return;
@@ -186,5 +191,47 @@ export async function autoFulfillBridge(taskId: string, bridgeId: string): Promi
     } catch (e) {
         writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Could not parse ${adapter.bin} output: ${errMsg(e)}` });
         publishTaskLog(taskId, `[auto-bridge] parse error: ${errMsg(e)}\n`);
+    }
+}
+
+/**
+ * On boot, finalize tmux auto-fulfill runs orphaned by an app restart. Each run
+ * dir under .antigravity/tmux carries a meta.json {taskId,projectId,bridgeId,agent};
+ * the dir only survives if the process died before finalize. For each still-pending
+ * bridge: if the agent finished (exit file) apply its reply; if its tmux session is
+ * still alive, resume polling; otherwise mark it interrupted. Stale/superseded runs
+ * are dropped.
+ */
+export function recoverTmuxBridges(): void {
+    for (const dir of listTmuxRunDirs()) {
+        const meta = readTmuxMeta(dir);
+        if (!meta) continue;
+        const { taskId, bridgeId, agent } = meta;
+
+        const bridge = readBridgeRequest(taskId);
+        if (!bridge || bridge.id !== bridgeId || bridge.status !== "pending") {
+            cleanupTmuxRun(taskId); // already handled or superseded
+            continue;
+        }
+        const adapter = ADAPTERS[agent];
+        if (!adapter) {
+            writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Auto-bridge agent "${agent}" is no longer registered.` });
+            cleanupTmuxRun(taskId);
+            continue;
+        }
+
+        const onLog = (s: string) => publishTaskLog(taskId, s);
+        const outcome = readTmuxOutcome(taskId);
+        if (outcome.hasExit) {
+            publishTaskLog(taskId, `\n[auto-bridge] recovered a completed ${adapter.bin} run after restart.\n`);
+            finalizeAgentRun(taskId, bridgeId, adapter, { exitCode: outcome.exitCode, stdout: outcome.stdout, timedOut: false });
+            cleanupTmuxRun(taskId);
+        } else if (tmuxSessionAlive(taskId)) {
+            publishTaskLog(taskId, `\n[auto-bridge] resuming a live ${adapter.bin} tmux run after restart…\n`);
+            void pollTmuxRun(taskId, TIMEOUT_MS, onLog).then((result) => finalizeAgentRun(taskId, bridgeId, adapter, result));
+        } else {
+            writeBridgeResponse(taskId, bridgeId, { status: "error", error: "Auto-bridge interrupted by an app restart." });
+            cleanupTmuxRun(taskId);
+        }
     }
 }

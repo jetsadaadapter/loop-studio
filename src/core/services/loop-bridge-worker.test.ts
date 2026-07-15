@@ -20,8 +20,24 @@ vi.mock("./loop-logs.service", () => ({ publishTaskLog: vi.fn() }));
 let projectsFixture: Array<{ id: string; path: string; autoAgent?: string }> = [];
 vi.mock("./loop-projects.service", () => ({ getProjects: () => projectsFixture }));
 
-// Direct-spawn path is exercised here; tmux is off (env unset) so stub the module.
-vi.mock("./loop-tmux.service", () => ({ tmuxAvailable: () => false, runAgentInTmux: vi.fn() }));
+// Direct-spawn path is exercised for autoFulfillBridge (tmux off); the tmux
+// service is stubbed with fixtures the recovery tests drive.
+let tmuxRunDirs: string[] = [];
+let tmuxMetaByDir: Record<string, { taskId: string; projectId: string; bridgeId: string; agent: string } | null> = {};
+let tmuxOutcomeByTask: Record<string, { hasExit: boolean; exitCode: number; stdout: string }> = {};
+let tmuxSessionAliveFlag = false;
+const cleanupTmuxMock = vi.fn();
+const pollTmuxMock = vi.fn(async () => ({ exitCode: 0, stdout: "", timedOut: false }));
+vi.mock("./loop-tmux.service", () => ({
+    tmuxAvailable: () => false,
+    runAgentInTmux: vi.fn(),
+    listTmuxRunDirs: () => tmuxRunDirs,
+    readTmuxMeta: (dir: string) => tmuxMetaByDir[dir] ?? null,
+    readTmuxOutcome: (taskId: string) => tmuxOutcomeByTask[taskId] ?? { hasExit: false, exitCode: 1, stdout: "" },
+    tmuxSessionAlive: () => tmuxSessionAliveFlag,
+    cleanupTmuxRun: (t: string) => cleanupTmuxMock(t),
+    pollTmuxRun: (...a: unknown[]) => pollTmuxMock(...(a as [])),
+}));
 
 // Fake child process we can drive. spawnMock via vi.hoisted so it exists when the
 // (hoisted) vi.mock factory runs; child_process mock needs a `default` export.
@@ -42,7 +58,7 @@ const lastProc = (): FakeProc => {
 };
 const spawnedBin = (): string => (spawnMock.mock.calls.at(-1) as unknown as [string])[0];
 
-import { autoFulfillBridge, bridgeAutoAgent } from "./loop-bridge-worker.service";
+import { autoFulfillBridge, bridgeAutoAgent, recoverTmuxBridges } from "./loop-bridge-worker.service";
 
 const pendingBridge = (): BridgeRequest => ({
     status: "pending",
@@ -160,5 +176,51 @@ describe("bridgeAutoAgent", () => {
         expect(bridgeAutoAgent()).toBeNull();
         process.env.LOOP_BRIDGE_AUTO = " claude ";
         expect(bridgeAutoAgent()).toBe("claude");
+    });
+});
+
+describe("recoverTmuxBridges", () => {
+    const claudeReply = (text: string) => JSON.stringify([{ type: "result", is_error: false, result: text }]);
+    beforeEach(() => {
+        bridgeFixture = pendingBridge(); // id bridge-1, taskId t1
+        writeResponses.length = 0;
+        tmuxRunDirs = ["/tmux/t1"];
+        tmuxMetaByDir = { "/tmux/t1": { taskId: "t1", projectId: "p1", bridgeId: "bridge-1", agent: "claude" } };
+        tmuxOutcomeByTask = {};
+        tmuxSessionAliveFlag = false;
+        cleanupTmuxMock.mockClear();
+        pollTmuxMock.mockClear();
+    });
+
+    it("finalizes a run that completed during downtime (exit file present)", () => {
+        tmuxOutcomeByTask = { t1: { hasExit: true, exitCode: 0, stdout: claudeReply("recovered reply") } };
+        recoverTmuxBridges();
+        expect(writeResponses[0].result).toMatchObject({ status: "done", response: "recovered reply" });
+        expect(cleanupTmuxMock).toHaveBeenCalledWith("t1");
+    });
+
+    it("marks a run interrupted when there is no exit file and no live session", () => {
+        tmuxOutcomeByTask = { t1: { hasExit: false, exitCode: 1, stdout: "" } };
+        tmuxSessionAliveFlag = false;
+        recoverTmuxBridges();
+        expect(writeResponses[0].result).toMatchObject({ status: "error" });
+        expect(cleanupTmuxMock).toHaveBeenCalledWith("t1");
+    });
+
+    it("resumes polling a still-running session, then finalizes", async () => {
+        tmuxOutcomeByTask = { t1: { hasExit: false, exitCode: 1, stdout: "" } };
+        tmuxSessionAliveFlag = true;
+        pollTmuxMock.mockResolvedValueOnce({ exitCode: 0, stdout: claudeReply("resumed reply"), timedOut: false });
+        recoverTmuxBridges();
+        expect(pollTmuxMock).toHaveBeenCalled();
+        await Promise.resolve(); await Promise.resolve();
+        expect(writeResponses[0].result).toMatchObject({ status: "done", response: "resumed reply" });
+    });
+
+    it("skips + cleans up a stale/superseded run without writing a response", () => {
+        bridgeFixture = { ...pendingBridge(), id: "bridge-999" }; // no longer matches meta.bridgeId
+        recoverTmuxBridges();
+        expect(writeResponses).toHaveLength(0);
+        expect(cleanupTmuxMock).toHaveBeenCalledWith("t1");
     });
 });
