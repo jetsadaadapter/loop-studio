@@ -22,6 +22,7 @@ When these files diverge, update both in the same change.
 - Core standards & guidelines: `.antigravity/standard.md`
 - Coding best practices & automation: `.antigravity/best-practices.md`
 - UI/UX & Design system standards: `DESIGN.md`
+- Loop methodology & risk-tier rubric: `LOOP-ENGINEERING.md` — the six-stage playbook and the fan-out risk tiers (RED/ORANGE/YELLOW/GREEN) that the UI-primitive safety-net tests cite
 - Cross-session shift log: `MEMORY.md` — skim recent entries before non-trivial work, append one after
 
 ## 2. Repository Analysis Policy (Mandatory Pre-Analysis)
