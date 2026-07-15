@@ -292,3 +292,18 @@ What: Three changes after a fresh `/graphify --update` (graph rebuilt Jul 15 20:
 Checks: `npx tsc --noEmit` exit 0; `npm run lint` clean (the crm-thai-oil errors are gone via the ignore); `npx vitest run src/app/loop-components/` 23 passed / 4 files; `npm run build` clean. Remaining >300-line files (untouched this pass): PreviewPane.tsx 721, AutoRunModal.tsx 411, loop-projects.service.ts 348, tasks/[taskId]/page.tsx 329.
 Files: `eslint.config.mjs` (M), `src/app/loop-components/ChatPanel.tsx` (M), `src/components/ui/sidebar.tsx` (D), + new: `chat-helpers.tsx`, `useChatMessaging.ts`, `useChatComposer.ts`, `ChatComposer.tsx`, `ChatAttachmentBar.tsx`.
 Follow-up: `button-gallery` was explicitly KEPT (user decision) — it is an active Playwright visual-regression fixture for the Button component, NOT dead code (`tests/visual/button-gallery.visual.spec.ts` + snapshots depend on `/button-gallery`); do not "clean it up" in a future pass. These changes join the same large uncommitted stack flagged in the entries above — still nothing committed. Next hygiene targets if wanted: PreviewPane.tsx (721) is the largest remaining violation.
+
+## 2026-07-15 — Code-hygiene pass #2: split PreviewPane.tsx (721 → 103) into hook + helper + subviews
+Agent/tool: Claude Code (Opus 4.8), main session (same session as pass #1 above)
+What: Refactored the next-largest 300-line violation, `PreviewPane.tsx` 721 → 103 lines. Public `PreviewPaneProps` unchanged; only consumer is `src/app/[projectId]/tasks/[taskId]/page.tsx`. Split into:
+    preview-highlight.tsx   148  pure render helpers: highlightLine (TS/CSS tokenizer), formatCode(text, fileName), formatDiff
+    PreviewStatusBadge.tsx   70  StatusBadge pill + STATUS_INFO + exports the CheckState type (now the canonical home for it)
+    usePreviewPane.ts       280  controller hook: URL/reachability polling, App-vs-API detection, tab visibility, lazy code/diff fetch; exports PreviewTab + ALL_TABS; returns reload()/retry()/loadUrl()/selectApp()/selectApi() handlers so subviews take plain callbacks
+    PreviewToolbar.tsx      108  device toggle + tab switcher + pipeline status + CommitPublishButton; owns TIER_VARIANTS
+    PreviewAppView.tsx      136  the Preview tab: URL bar, App/API toggle, iframe / ApiConsole / PreviewOfflineState body + device frame
+    PreviewSourceViews.tsx   92  PreviewCodeView + PreviewDiffView (Code and Diff tabs)
+    PreviewPane.tsx         103  shell: calls the hook, renders toolbar + the active tab body
+One type fix during the split: PreviewAppView's onRetry prop is `() => Promise<void>` (PreviewOfflineState requires it), not `() => void`. Behavior preserved: all effect deps + the three `eslint-disable react-hooks/*` comments carried over verbatim into the hook.
+Checks: `npx tsc --noEmit` exit 0; `npm run lint` clean; `npx vitest run src/app/loop-components/` 23 passed / 4 files; `npm run build` clean.
+Files: `src/app/loop-components/PreviewPane.tsx` (M) + new: preview-highlight.tsx, PreviewStatusBadge.tsx, usePreviewPane.ts, PreviewToolbar.tsx, PreviewAppView.tsx, PreviewSourceViews.tsx.
+Follow-up: remaining >300-line files (untouched): `AutoRunModal.tsx` 411, `loop-projects.service.ts` 348, `tasks/[taskId]/page.tsx` 329 — all now under the ChatPanel/PreviewPane tier. This pass is uncommitted at time of writing (pass #1 was committed as 66791bf and merged to main).
