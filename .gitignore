@@ -125,6 +125,8 @@ pnpm-debug.log*
 .antigravity/loop-agents.json
 .antigravity/bridge*.json
 .antigravity/api-checks-*.json
+# Transient tmux run dirs (auto-fulfill agent wrapper/out/exit) — LOOP_BRIDGE_TMUX
+.antigravity/tmux/
 
 # -------------------------------------------------------
 # Temporary files

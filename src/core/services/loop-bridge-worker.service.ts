@@ -2,6 +2,35 @@ import { spawn } from "child_process";
 import { readBridgeRequest, writeBridgeResponse } from "./loop-bridge.service";
 import { publishTaskLog } from "./loop-logs.service";
 import { getProjects } from "./loop-projects.service";
+import { runAgentInTmux, tmuxAvailable } from "./loop-tmux.service";
+
+type RunResult = { exitCode: number; stdout: string; timedOut: boolean };
+
+/** LOOP_BRIDGE_TMUX opt-in: run the agent inside a tmux session (attachable,
+ *  survives an app restart) instead of as a direct child. Falls back to a direct
+ *  spawn if tmux isn't installed. */
+function tmuxModeEnabled(): boolean {
+    const v = (process.env.LOOP_BRIDGE_TMUX || "").trim();
+    return (v === "1" || v === "true") && tmuxAvailable();
+}
+
+/** Run the agent as a direct child, capturing stdout; stderr streams to onLog. */
+function runAgentDirect(bin: string, args: string[], cwd: string, timeoutMs: number, onLog: (s: string) => void): Promise<RunResult> {
+    return new Promise((resolve) => {
+        let stdout = "";
+        let settled = false;
+        const done = (r: RunResult) => { if (!settled) { settled = true; resolve(r); } };
+        const proc = spawn(bin, args, { cwd, shell: false });
+        const timer = setTimeout(() => {
+            try { proc.kill("SIGTERM"); } catch { /* gone */ }
+            done({ exitCode: 1, stdout: "", timedOut: true });
+        }, timeoutMs);
+        proc.stdout?.on("data", (c: Buffer) => { stdout += c.toString(); });
+        proc.stderr?.on("data", (c: Buffer) => onLog(c.toString()));
+        proc.on("error", (err) => { clearTimeout(timer); onLog(`[auto-bridge] spawn error: ${err.message}\n`); done({ exitCode: 1, stdout: "", timedOut: false }); });
+        proc.on("close", (code) => { clearTimeout(timer); done({ exitCode: code ?? 0, stdout, timedOut: false }); });
+    });
+}
 
 // Auto-fulfill the IDE bridge: when a chat/collaborate request is written to
 // .antigravity/bridge-<taskId>.json (keyless mode) and an agent is selected —
@@ -131,47 +160,31 @@ export async function autoFulfillBridge(taskId: string, bridgeId: string): Promi
     }
 
     const prompt = buildPrompt(bridge.prompt, bridge.history);
-    publishTaskLog(taskId, `\n[auto-bridge] ${adapter.bin} (read-only) fulfilling ${bridge.requestType} request…\n`);
+    const args = adapter.buildArgs(prompt, WORKER_SYSTEM);
+    const onLog = (s: string) => publishTaskLog(taskId, s);
+    const useTmux = tmuxModeEnabled();
+    publishTaskLog(taskId, `\n[auto-bridge] ${adapter.bin} (read-only${useTmux ? ", tmux" : ""}) fulfilling ${bridge.requestType} request…\n`);
 
-    let stdout = "";
-    let stderr = "";
-    await new Promise<void>((resolve) => {
-        const proc = spawn(adapter.bin, adapter.buildArgs(prompt, WORKER_SYSTEM), { cwd: project.path, shell: false });
+    const result = useTmux
+        ? await runAgentInTmux({ taskId, bin: adapter.bin, args, cwd: project.path, timeoutMs: TIMEOUT_MS, onLog })
+        : await runAgentDirect(adapter.bin, args, project.path, TIMEOUT_MS, onLog);
 
-        const timer = setTimeout(() => {
-            publishTaskLog(taskId, `[auto-bridge] timed out after ${TIMEOUT_MS / 1000}s — killing ${adapter.bin}.\n`);
-            try { proc.kill("SIGTERM"); } catch { /* already gone */ }
-            writeBridgeResponse(taskId, bridgeId, { status: "error", error: "Auto-bridge timed out." });
-            resolve();
-        }, TIMEOUT_MS);
-
-        let settled = false;
-        const finish = () => { if (settled) return; settled = true; clearTimeout(timer); resolve(); };
-
-        proc.stdout?.on("data", (c: Buffer) => { stdout += c.toString(); });
-        proc.stderr?.on("data", (c: Buffer) => { const s = c.toString(); stderr += s; publishTaskLog(taskId, s); });
-
-        proc.on("error", (err) => {
-            writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Failed to run ${adapter.bin}: ${err.message}` });
-            publishTaskLog(taskId, `[auto-bridge] spawn error: ${err.message}\n`);
-            finish();
-        });
-
-        proc.on("close", (code) => {
-            if (code !== 0) {
-                writeBridgeResponse(taskId, bridgeId, { status: "error", error: `${adapter.bin} exited with code ${code}. ${stderr.slice(0, 500)}` });
-                publishTaskLog(taskId, `[auto-bridge] ${adapter.bin} exited ${code}.\n`);
-                return finish();
-            }
-            try {
-                const response = adapter.parse(stdout);
-                writeBridgeResponse(taskId, bridgeId, { status: "done", response });
-                publishTaskLog(taskId, `[auto-bridge] done — reply ready.\n`);
-            } catch (e) {
-                writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Could not parse ${adapter.bin} output: ${errMsg(e)}` });
-                publishTaskLog(taskId, `[auto-bridge] parse error: ${errMsg(e)}\n`);
-            }
-            finish();
-        });
-    });
+    // Shared finalize — identical for both runners.
+    if (result.timedOut) {
+        writeBridgeResponse(taskId, bridgeId, { status: "error", error: "Auto-bridge timed out." });
+        return;
+    }
+    if (result.exitCode !== 0) {
+        writeBridgeResponse(taskId, bridgeId, { status: "error", error: `${adapter.bin} exited with code ${result.exitCode}.` });
+        publishTaskLog(taskId, `[auto-bridge] ${adapter.bin} exited ${result.exitCode}.\n`);
+        return;
+    }
+    try {
+        const response = adapter.parse(result.stdout);
+        writeBridgeResponse(taskId, bridgeId, { status: "done", response });
+        publishTaskLog(taskId, `[auto-bridge] done — reply ready.\n`);
+    } catch (e) {
+        writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Could not parse ${adapter.bin} output: ${errMsg(e)}` });
+        publishTaskLog(taskId, `[auto-bridge] parse error: ${errMsg(e)}\n`);
+    }
 }

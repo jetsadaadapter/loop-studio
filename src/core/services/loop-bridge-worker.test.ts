@@ -20,6 +20,9 @@ vi.mock("./loop-logs.service", () => ({ publishTaskLog: vi.fn() }));
 let projectsFixture: Array<{ id: string; path: string; autoAgent?: string }> = [];
 vi.mock("./loop-projects.service", () => ({ getProjects: () => projectsFixture }));
 
+// Direct-spawn path is exercised here; tmux is off (env unset) so stub the module.
+vi.mock("./loop-tmux.service", () => ({ tmuxAvailable: () => false, runAgentInTmux: vi.fn() }));
+
 // Fake child process we can drive. spawnMock via vi.hoisted so it exists when the
 // (hoisted) vi.mock factory runs; child_process mock needs a `default` export.
 type FakeProc = EventEmitter & { stdout: EventEmitter; stderr: EventEmitter; kill: () => void };
