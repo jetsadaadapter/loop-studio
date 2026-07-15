@@ -196,7 +196,7 @@ export function ApiConsole({ baseUrl, projectId }: { baseUrl: string; projectId:
 
                 <div className="flex min-w-0 flex-1 flex-col">
                     <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 py-2">
-                        <div className="flex items-center overflow-hidden rounded-sm border border-slate-200">
+                        <div className="flex items-center overflow-hidden rounded-full border border-slate-200">
                             {METHODS.map((m) => (
                                 <button
                                     key={m}
@@ -215,13 +215,13 @@ export function ApiConsole({ baseUrl, projectId }: { baseUrl: string; projectId:
                             onChange={(e) => setPath(e.target.value)}
                             spellCheck={false}
                             placeholder="/api/rewards"
-                            className="h-7 flex-1 rounded-sm border border-slate-200 bg-slate-50 px-2.5 text-xs font-sans text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+                            className="h-7 flex-1 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-sans text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
                         />
                         <button
                             type="button"
                             onClick={send}
                             disabled={loading}
-                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-sm bg-indigo-600 px-3 text-xs font-semibold font-sans text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
+                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-full bg-indigo-600 px-3.5 text-xs font-semibold font-sans text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
                         >
                             {loading ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowRight className="size-3.5" />} Send
                         </button>
