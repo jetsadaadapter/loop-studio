@@ -307,3 +307,15 @@ One type fix during the split: PreviewAppView's onRetry prop is `() => Promise<v
 Checks: `npx tsc --noEmit` exit 0; `npm run lint` clean; `npx vitest run src/app/loop-components/` 23 passed / 4 files; `npm run build` clean.
 Files: `src/app/loop-components/PreviewPane.tsx` (M) + new: preview-highlight.tsx, PreviewStatusBadge.tsx, usePreviewPane.ts, PreviewToolbar.tsx, PreviewAppView.tsx, PreviewSourceViews.tsx.
 Follow-up: remaining >300-line files (untouched): `AutoRunModal.tsx` 411, `loop-projects.service.ts` 348, `tasks/[taskId]/page.tsx` 329 — all now under the ChatPanel/PreviewPane tier. This pass is uncommitted at time of writing (pass #1 was committed as 66791bf and merged to main).
+
+## 2026-07-15 — Code-hygiene pass #3: split AutoRunModal.tsx (411 → 195) into helper + hook + shell
+Agent/tool: Claude Code (Opus 4.8), main session (same session as passes #1–2)
+What: Refactored `AutoRunModal.tsx` (the Plan-from-Goal modal) 411 → 195 lines. Public `AutoRunModalProps` unchanged; only consumer is `src/app/[projectId]/page.tsx`. Split into:
+    autorun-helpers.tsx   43   apiKeyHeader, TIER_VARIANTS, getFileIcon, renderSuggestionItem
+    useAutoRunPlan.ts     235  hook: goal + @/ file autocomplete state, generatePlan, applyPlan (create tasks + optional auto-run), reset/close
+    AutoRunModal.tsx      195  shell: Dialog + JSX wired to the hook
+Behavior preserved verbatim (goal enrichment string, plan→apply→auto-run flow, backspace-removes-last-pill, textarea autosize effect).
+Known duplication (intentional, NOT a regression): `getFileIcon`/`renderSuggestionItem` in autorun-helpers.tsx are byte-identical to the same fns in `chat-helpers.tsx`. This duplication PRE-EXISTED (both ChatPanel and AutoRunModal had their own inline copies before this session) — net copy count unchanged at 2. Deliberately did NOT unify into a shared module to avoid churning the already-committed chat files / an out-of-scope refactor (AGENTS.md §4 "avoid unrelated refactors"). If a future pass wants to de-dup: create `file-suggestions.tsx`, have both import from it.
+Checks: `npx tsc --noEmit` exit 0; `npm run lint` clean; `npx vitest run src/app/loop-components/` 23 passed / 4 files; `npm run build` clean.
+Files: `src/app/loop-components/AutoRunModal.tsx` (M) + new: autorun-helpers.tsx, useAutoRunPlan.ts.
+Follow-up: 300-line violations remaining after this pass: `loop-projects.service.ts` 348 (the core service — a bigger/riskier split, touches fs + process runner + SSE pub/sub), `tasks/[taskId]/page.tsx` 329 (route page). ChatPanel(728→116), PreviewPane(721→103), AutoRunModal(411→195), sidebar.tsx(deleted) all done. Passes #1 (66791bf) + #2 (09f6042) committed & merged to main; #3 uncommitted at time of writing.
