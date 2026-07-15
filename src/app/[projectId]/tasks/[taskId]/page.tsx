@@ -40,7 +40,7 @@ export default function TaskWorkspace({ params }: TaskWorkspaceProps) {
     const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
     const [loading, setLoading] = useState(true);
     const [triggerCount, setTriggerCount] = useState(0);
-    const [bottomPanelState, setBottomPanelState] = useState<"collapsed" | "standard" | "expanded">("standard");
+    const [bottomPanelState, setBottomPanelState] = useState<"collapsed" | "standard" | "expanded">("collapsed");
 
     const loadData = async () => {
         try {

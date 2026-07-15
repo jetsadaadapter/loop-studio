@@ -13,7 +13,7 @@ interface StudioWindowProps {
 // (chat+changes / live preview). Device toggle and Commit & Publish now live
 // inline in PreviewPane's tab bar instead of a dedicated title-bar row here.
 export function StudioWindow({ left, right, header }: StudioWindowProps) {
-    const [isChatExpanded, setIsChatExpanded] = useState(true);
+    const [isChatExpanded, setIsChatExpanded] = useState(false);
     const [isChatMaximized, setIsChatMaximized] = useState(false);
 
     return (
