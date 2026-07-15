@@ -1,6 +1,6 @@
 "use client";
 
-import { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
+import type { AgentWithMetrics } from "@/core/services/loop-agent-metrics.service";
 import {
     WEEKDAY_LABELS,
     heatCellStyle,
