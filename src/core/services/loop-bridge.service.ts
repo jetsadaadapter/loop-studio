@@ -68,6 +68,26 @@ export function writeBridgeRequest(input: {
     return id;
 }
 
+/** All bridge requests currently on disk (one per task). Used to surface pending
+ *  requests to an external fulfiller (e.g. the MCP server's list_pending_bridges). */
+export function listBridgeRequests(): BridgeRequest[] {
+    const dir = path.join(process.cwd(), ".antigravity");
+    try {
+        return fs.readdirSync(dir)
+            .filter((f) => /^bridge-.+\.json$/.test(f))
+            .map((f) => {
+                try {
+                    return JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as BridgeRequest;
+                } catch {
+                    return null;
+                }
+            })
+            .filter((b): b is BridgeRequest => b !== null);
+    } catch {
+        return [];
+    }
+}
+
 /** Read the current bridge request for a task (or null if none/unreadable). */
 export function readBridgeRequest(taskId: string): BridgeRequest | null {
     try {

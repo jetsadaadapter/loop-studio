@@ -162,3 +162,15 @@ Some rules above are also enforced mechanically, so they hold even if a session 
 - `.claude/agents/verifier.md` — a subagent that checks a diff against Section 6 before you call a change done; invoke it before handing off substantial work
 
 These are a backstop, not a replacement for following Sections 5–7 directly.
+
+## 9. MCP Server (external agent tools → Loop Studio)
+
+`scripts/mcp-server.ts` is a stdio Model Context Protocol server (run `npm run mcp`) that lets an external MCP client — Claude Desktop, Cursor, Claude Code — connect to Loop Studio. It is the reverse of the bridge auto-fulfill (§7): instead of Loop Studio spawning an agent, an agent connects in and works.
+
+- **Capabilities: read + fulfill only.** Read tools (`list_projects`, `get_project`, `get_task`, `read_task_logs`) and bridge-fulfill tools (`list_pending_bridges`, `get_bridge`, `submit_bridge_reply`). No create-task / advance-stage / trigger-run.
+- `submit_bridge_reply` routes through the shared `finalizeBridgeReply` (`src/core/services/loop-bridge-apply.service.ts`) — the same guarded `applyFileEdits` path as the bridge POST route, so config-lock / test-file guards still apply to a connected agent's `<file_edit>` blocks.
+- **stdio/local only** — no HTTP surface. It reads the same `.antigravity/` JSON store as the app (works whether or not `next dev` is running). Runs via `tsx` with relative imports (not the `@/` alias).
+- Connect:
+  - Claude Code: `claude mcp add loop-studio -- npx tsx <abs>/scripts/mcp-server.ts`
+  - Claude Desktop: `{ "mcpServers": { "loop-studio": { "command": "npx", "args": ["tsx", "<abs>/scripts/mcp-server.ts"] } } }`
+- Add a read tool by registering it against a service getter; keep the server thin (tools delegate to services). Never write to stdout in the server (it is the JSON-RPC channel) — diagnostics go to stderr.
