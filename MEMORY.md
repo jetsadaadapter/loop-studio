@@ -382,3 +382,6 @@ Confirmed pre-existing (not from this diff): `loop-projects.service.ts` was 338 
 Confirmed scope: this diff does NOT include the unrelated Phase 3 MCP files also sitting uncommitted in the working tree (AGENTS.md/CLAUDE.md/package.json/bridge route/loop-bridge.service.ts/scripts/) — matches the other session's own note above; no contradiction, no double-count.
 Documentation Sync Policy: not triggered — this restores an existing intended invariant (bug fix), no new documented behavior/setup to sync.
 Verdict: READY.
+
+## FOLLOW-UP (open) — bump Next.js to a stable 16.3.x when it ships
+As of 2026-07-15 loop-studio is on `next@16.2.10` (commit `fba6fb5`). That cleared all HIGH advisories, but **2 moderate advisories have no stable fix** — patched only in 16.3.0 pre-releases/canary. Do NOT `npm audit fix --force` (its only "fix" is a breaking downgrade to next@9.3.3). When a stable 16.3.x is out (`npm view next version` shows ≥16.3), `npm install --save-exact next@<latest-16.3>`, confirm `npm audit` is clean, and re-run gates (lint/tsc/build/vitest) + a dev boot smoke (routes 200 + proxy.ts cross-site guard still 403s a cross-origin POST — some fixed advisories were middleware/proxy bypasses). Low urgency: the app is local + no-auth.
