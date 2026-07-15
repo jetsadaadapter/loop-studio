@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import type { LoopProject } from "@/core/interfaces/loop-projects.interface";
+import { AUTO_AGENTS } from "@/core/interfaces/loop-projects.interface";
 
 interface EditProjectModalProps {
     project: LoopProject | null;
@@ -48,6 +49,9 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
     const [path, setPath] = useState(project.path);
     const [template, setTemplate] = useState<string>(project.template);
     const [previewUrl, setPreviewUrl] = useState(project.previewUrl ?? "");
+    // "off" is a UI sentinel (Radix Select forbids an empty-string value); it maps
+    // to "" in the PATCH body, which clears project.autoAgent.
+    const [autoAgent, setAutoAgent] = useState<string>(project.autoAgent ?? "off");
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
@@ -72,7 +76,7 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
             const res = await fetch(`/api/loop-projects/${project.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, path, template, previewUrl }),
+                body: JSON.stringify({ name, path, template, previewUrl, autoAgent: autoAgent === "off" ? "" : autoAgent }),
             });
             const data = await res.json();
             if (data.success) {
@@ -164,6 +168,24 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
                                 ))}
                             </SelectContent>
                         </Select>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel htmlFor="edit-proj-agent">Auto agent (IDE bridge)</FieldLabel>
+                        <Select value={autoAgent} onValueChange={(v) => setAutoAgent(v ?? "off")}>
+                            <SelectTrigger id="edit-proj-agent" className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="off">Off — wait for a human</SelectItem>
+                                {AUTO_AGENTS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FieldDescription>
+                            When set, keyless chat/collaborate is auto-fulfilled by this local agent (read-only) instead of waiting for a human. Overrides the server default.
+                        </FieldDescription>
                     </Field>
 
                     {error && <FieldError>{error}</FieldError>}

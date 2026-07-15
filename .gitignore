@@ -123,7 +123,7 @@ pnpm-debug.log*
 # bridge-watcher.js under .antigravity/ are docs+tooling and stay tracked.
 .antigravity/loop-projects.json
 .antigravity/loop-agents.json
-.antigravity/bridge.json
+.antigravity/bridge*.json
 .antigravity/api-checks-*.json
 
 # -------------------------------------------------------

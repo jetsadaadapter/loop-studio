@@ -83,6 +83,8 @@ export const UpdateProjectSchema = z
         path: absolutePath.optional(),
         template: z.string().trim().min(1, "Template is required.").optional(),
         previewUrl: previewUrlField,
+        // "" clears the setting (off); "claude"/"gemini" select an auto-fulfill agent.
+        autoAgent: z.enum(["claude", "gemini", ""]).optional(),
     })
     .refine((data) => Object.values(data).some((v) => v !== undefined), { message: "No fields to update." });
 

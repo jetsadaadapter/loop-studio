@@ -47,7 +47,7 @@ export async function POST(
             const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "chat", prompt: bridgePrompt, history: history || [] });
             // Opt-in (LOOP_BRIDGE_AUTO): fulfill the bridge with a local agent
             // instead of waiting for a human. Fire-and-forget — the client polls.
-            void autoFulfillBridge(bridgeId).catch(() => { /* worker logs its own errors */ });
+            void autoFulfillBridge(taskId, bridgeId).catch(() => { /* worker logs its own errors */ });
             return NextResponse.json({
                 success: true,
                 bridged: true,

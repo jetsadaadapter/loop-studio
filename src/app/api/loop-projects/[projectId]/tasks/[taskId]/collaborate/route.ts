@@ -23,7 +23,7 @@ export async function POST(
         if (!llm) {
             const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "collaborate", prompt: instructions });
             // Opt-in (LOOP_BRIDGE_AUTO): auto-fulfill with a local agent. Fire-and-forget.
-            void autoFulfillBridge(bridgeId).catch(() => { /* worker logs its own errors */ });
+            void autoFulfillBridge(taskId, bridgeId).catch(() => { /* worker logs its own errors */ });
             return NextResponse.json({
                 success: true,
                 bridged: true,

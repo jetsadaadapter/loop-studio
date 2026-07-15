@@ -164,6 +164,14 @@ export interface ProjectSchedule {
     lastResult?: string;
 }
 
+// Local agent CLIs that can auto-fulfill the IDE bridge (read-only). Kept as a
+// const list so UI option menus and the worker's allow-list stay in sync.
+export type AutoAgent = "claude" | "gemini";
+export const AUTO_AGENTS: { value: AutoAgent; label: string }[] = [
+    { value: "claude", label: "Claude Code" },
+    { value: "gemini", label: "Gemini CLI" },
+];
+
 export interface LoopProject {
     id: string;
     name: string;
@@ -171,6 +179,9 @@ export interface LoopProject {
     template: ProjectTemplate;
     tasks: LoopTask[];
     schedule?: ProjectSchedule;
+    // Which local agent auto-fulfills this project's bridged chat/collaborate
+    // requests. Unset = off (wait for a human, or fall back to LOOP_BRIDGE_AUTO).
+    autoAgent?: AutoAgent;
     // Where this project's app runs, used by the Studio preview pane — usually the
     // project's own dev server URL (e.g. "http://localhost:3001"). A relative path
     // works for a project that is this same repo.

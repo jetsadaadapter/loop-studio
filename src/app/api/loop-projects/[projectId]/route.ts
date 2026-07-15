@@ -61,6 +61,10 @@ export async function PATCH(req: Request, context: { params: Promise<{ projectId
             if (input.previewUrl) project.previewUrl = input.previewUrl;
             else delete project.previewUrl;
         }
+        if (input.autoAgent !== undefined) {
+            if (input.autoAgent) project.autoAgent = input.autoAgent;
+            else delete project.autoAgent;
+        }
 
         project.updatedAt = new Date().toISOString();
         saveProjects(projects);

@@ -3,14 +3,22 @@ import path from "path";
 import { writeJsonStore } from "./json-store";
 
 // IDE Agent Bridge — a free, key-less path: instead of calling a paid LLM, the
-// request is written to .antigravity/bridge.json for an IDE coding agent
+// request is written to .antigravity/bridge-<taskId>.json for an IDE coding agent
 // (Antigravity/Cursor/Claude Code) to fulfill. The agent writes its reply back
 // into the same file; the app polls, applies any <file_edit> blocks, and shows
 // the reply in chat. See AGENTS.md "Loop Studio IDE Bridge" for the protocol.
 // Split out of loop-projects.service.ts (300-line rule); that module re-exports
 // everything here.
+//
+// One file PER TASK so several tasks can be bridged/auto-fulfilled concurrently
+// (an auto-run backlog, say) without clobbering a single shared slot.
 
-const BRIDGE_FILE_PATH = path.join(process.cwd(), ".antigravity", "bridge.json");
+// Task ids are controlled (`task-<ts>-<n>`), but sanitize defensively so a
+// crafted id can never escape the .antigravity dir.
+function bridgeFilePath(taskId: string): string {
+    const safe = String(taskId).replace(/[^A-Za-z0-9._-]/g, "_");
+    return path.join(process.cwd(), ".antigravity", `bridge-${safe}.json`);
+}
 
 export type BridgeStatus = "pending" | "done" | "error" | "consumed";
 
@@ -35,7 +43,7 @@ const BRIDGE_INSTRUCTIONS =
     "\"error\" with an `error` message). To have the app render/apply code, include full " +
     "file bodies as <file_edit path=\"relative/path\">...</file_edit> blocks inside `response`.";
 
-/** Write a pending bridge request to .antigravity/bridge.json. Returns the request id. */
+/** Write a pending bridge request to .antigravity/bridge-<taskId>.json. Returns the request id. */
 export function writeBridgeRequest(input: {
     taskId: string;
     projectId: string;
@@ -56,47 +64,49 @@ export function writeBridgeRequest(input: {
         updatedAt: new Date().toISOString(),
     };
     // Atomic write: the IDE agent on the other side may read this file at any moment.
-    writeJsonStore(BRIDGE_FILE_PATH, payload);
+    writeJsonStore(bridgeFilePath(input.taskId), payload);
     return id;
 }
 
-/** Read the current bridge request (or null if none/unreadable). */
-export function readBridgeRequest(): BridgeRequest | null {
+/** Read the current bridge request for a task (or null if none/unreadable). */
+export function readBridgeRequest(taskId: string): BridgeRequest | null {
     try {
-        if (!fs.existsSync(BRIDGE_FILE_PATH)) return null;
-        return JSON.parse(fs.readFileSync(BRIDGE_FILE_PATH, "utf8")) as BridgeRequest;
+        const file = bridgeFilePath(taskId);
+        if (!fs.existsSync(file)) return null;
+        return JSON.parse(fs.readFileSync(file, "utf8")) as BridgeRequest;
     } catch {
         return null;
     }
 }
 
 /**
- * Write an agent's reply back into the bridge request (id-guarded). Used by the
- * auto-fulfill worker to finalize a request the same way a human running
+ * Write an agent's reply back into a task's bridge request (id-guarded). Used by
+ * the auto-fulfill worker to finalize a request the same way a human running
  * `run bridge` would: set `status` to "done" with a `response`, or "error".
  * A no-op if the current bridge id no longer matches (a newer request replaced
- * it in this single-slot file), so a slow worker can't clobber a fresh request.
+ * it), so a slow worker can't clobber a fresh request.
  */
 export function writeBridgeResponse(
+    taskId: string,
     id: string,
     result: { status: "done" | "error"; response?: string; error?: string }
 ): void {
-    const current = readBridgeRequest();
+    const current = readBridgeRequest(taskId);
     if (!current || current.id !== id) return;
     current.status = result.status;
     if (result.response !== undefined) current.response = result.response;
     if (result.error !== undefined) current.error = result.error;
     current.updatedAt = new Date().toISOString();
-    writeJsonStore(BRIDGE_FILE_PATH, current);
+    writeJsonStore(bridgeFilePath(taskId), current);
 }
 
-/** Mark the bridge request consumed so it is not applied twice. */
-export function markBridgeConsumed(id: string): void {
-    const current = readBridgeRequest();
+/** Mark a task's bridge request consumed so it is not applied twice. */
+export function markBridgeConsumed(taskId: string, id: string): void {
+    const current = readBridgeRequest(taskId);
     if (!current || current.id !== id) return;
     current.status = "consumed";
     current.updatedAt = new Date().toISOString();
     // Throws on failure: silently failing here would let the same bridge
     // response (and its file edits) be applied twice.
-    writeJsonStore(BRIDGE_FILE_PATH, current);
+    writeJsonStore(bridgeFilePath(taskId), current);
 }

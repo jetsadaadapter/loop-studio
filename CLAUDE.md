@@ -29,7 +29,7 @@ After every change run lint + typecheck + build (AGENTS.md rule); hooks in `.cla
 **No database.** All state is JSON files under `.antigravity/` at the repo root, read/written synchronously by the service layer:
 - `loop-projects.json` — registered projects, their tasks, chat history, activities
 - `loop-agents.json` — the AI agent roster (auto-seeded with defaults on first read)
-- `bridge.json` — single-slot IDE-bridge request (protocol in AGENTS.md §7)
+- `bridge-<taskId>.json` — per-task IDE-bridge request (protocol in AGENTS.md §7); one file per task so several tasks can be bridged/auto-fulfilled concurrently
 - `knowledge-<projectId>.json` — accumulated learnings, injected into planner/collab prompts
 - `autorun-<projectId>.json` — auto-run state mirror (survives restarts; interrupted runs recovered)
 - `log-<taskId>.txt` — per-task process output, streamed to the UI
@@ -69,7 +69,7 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
 
 **Heartbeat.** A per-project schedule (`schedule` on `LoopProject`, edited via the Schedule modal → `PATCH .../schedule`) lets the backlog drain on a cadence. `loop-scheduler.service.ts` runs one server-side tick a minute (started by `src/instrumentation.ts` on boot); a due project with pending backlog and a **server env API key** (`ANTHROPIC_API_KEY`/`GEMINI_API_KEY` — there is no per-user key server-side) triggers `startAutoRun`. With no env key the tick records "skipped" rather than spinning.
 
-**Chat & LLM keys.** `ChatPanel` sends `POST .../chat` with an `X-Anthropic-API-Key` header read from `localStorage["loop_anthropic_api_key"]` (saved on `/agents`; Google keys are auto-detected by prefix and routed to Gemini). Server falls back to env keys (`.env.example`), and with no key at all the request goes to the IDE bridge instead — chat is never blocked client-side. Optionally, setting `LOOP_BRIDGE_AUTO=claude` makes `loop-bridge-worker.service.ts` fulfill bridged requests automatically: it spawns the local `claude` CLI in **read-only** mode (no `--bare`, so it uses the machine's login — keyless), captures its `<file_edit>`-block reply, and writes it back so the normal bridge poll + guarded `applyFileEdits` apply it. Off by default (waits for a human).
+**Chat & LLM keys.** `ChatPanel` sends `POST .../chat` with an `X-Anthropic-API-Key` header read from `localStorage["loop_anthropic_api_key"]` (saved on `/agents`; Google keys are auto-detected by prefix and routed to Gemini). Server falls back to env keys (`.env.example`), and with no key at all the request goes to the IDE bridge instead — chat is never blocked client-side. Optionally, a bridged request is auto-fulfilled by a local agent instead of waiting for a human: `loop-bridge-worker.service.ts` holds an adapter registry (`claude` | `gemini`) and spawns the selected CLI in **read-only** mode, captures its `<file_edit>`-block reply, and writes it back so the normal bridge poll + guarded `applyFileEdits` apply it. The agent is chosen per-project (`LoopProject.autoAgent`, set in the Edit Project modal) or, failing that, by the `LOOP_BRIDGE_AUTO` server env default; unset = wait for a human. `claude` runs keyless (machine login, no `--bare`); `gemini` uses `--approval-mode plan --skip-trust` and `GEMINI_API_KEY`.
 
 **Component placement.** Three tiers, by scope:
 - `src/components/ui/` + `src/components/manager-*` — shared design-system primitives (see `src/components/COMPONENTS.md`, `DESIGN.md`); colocated `*.test.tsx`

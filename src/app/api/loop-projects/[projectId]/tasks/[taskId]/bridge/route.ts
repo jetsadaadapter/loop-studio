@@ -18,7 +18,7 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
         const { taskId } = await context.params;
         const url = new URL(req.url);
         const id = url.searchParams.get("id");
-        const bridge = readBridgeRequest();
+        const bridge = readBridgeRequest(taskId);
         if (!bridge || bridge.taskId !== taskId || (id && bridge.id !== id)) {
             return NextResponse.json({ status: "none" });
         }
@@ -42,7 +42,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         const { projectId, taskId } = await context.params;
         const { id } = await req.json();
 
-        const bridge = readBridgeRequest();
+        const bridge = readBridgeRequest(taskId);
         if (!bridge || bridge.id !== id || bridge.taskId !== taskId) {
             return NextResponse.json({ success: false, error: "Bridge request not found" }, { status: 404 });
         }
@@ -97,7 +97,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
             }
         }
 
-        markBridgeConsumed(id);
+        markBridgeConsumed(taskId, id);
         return NextResponse.json({ success: true, data: agentMsg, editedFiles });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
