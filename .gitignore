@@ -117,6 +117,14 @@ pnpm-debug.log*
 # Per-project runtime state — knowledge accrues at runtime, auto-run mirror is transient
 .antigravity/knowledge-*.json
 .antigravity/autorun-*.json
+# Core runtime state (per-machine data, not source): registered projects/tasks/chat,
+# the agent roster (auto-seeded on first read), the single-slot IDE-bridge request,
+# and per-project API-console check history. NOTE: standard.md / best-practices.md /
+# bridge-watcher.js under .antigravity/ are docs+tooling and stay tracked.
+.antigravity/loop-projects.json
+.antigravity/loop-agents.json
+.antigravity/bridge.json
+.antigravity/api-checks-*.json
 
 # -------------------------------------------------------
 # Temporary files
