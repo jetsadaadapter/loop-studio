@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Tooling/runtime dir (IDE bridge scripts, logs, project data) — not app source.
     ".antigravity/**",
+    // Claude Code tooling — agent worktrees under .claude/worktrees/** are full repo
+    // checkouts; linting them double-counts (and breaks) the whole tree.
+    ".claude/**",
     // Bootstrapped/registered projects live in their own repos — never lint them here.
     ".projects/**",
     "projects/**",
