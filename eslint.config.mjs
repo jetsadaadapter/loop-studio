@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     ".antigravity/**",
     // Bootstrapped/registered projects live in their own repos — never lint them here.
     ".projects/**",
+    "projects/**",
   ]),
 ]);
 
