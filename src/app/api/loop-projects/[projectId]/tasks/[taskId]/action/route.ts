@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -35,6 +35,7 @@ export async function POST(
 
         const task = project.tasks[tIdx];
         task.status = "running";
+        task.kanbanColumn = kanbanColumnForStatus("running");
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
 
@@ -96,6 +97,7 @@ export async function POST(
             
             if (rt) {
                 rt.status = code === 0 ? "completed" : "failed";
+                rt.kanbanColumn = kanbanColumnForStatus(rt.status);
                 rt.updatedAt = new Date().toISOString();
                 
                 rt.activities.push({

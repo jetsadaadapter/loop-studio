@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawn, type ChildProcess } from "child_process";
-import type { LoopProject, RiskTier } from "@/core/interfaces/loop-projects.interface";
+import type { LoopProject, RiskTier, TaskStatus, KanbanColumn } from "@/core/interfaces/loop-projects.interface";
 import { readJsonStore, writeJsonStore } from "./json-store";
 import { notifyLogListeners } from "./loop-logs.service";
 
@@ -19,6 +19,23 @@ export function getProjects(): LoopProject[] {
 
 export function saveProjects(projects: LoopProject[]): void {
     writeJsonStore(PROJECTS_FILE_PATH, projects);
+}
+
+/**
+ * The board's `kanbanColumn` is a separate field from `status` (so drag-and-drop
+ * can reposition a card without an AI action forcing it back), but every place
+ * that changes `status` server-side must keep them in sync — otherwise a task
+ * already sitting in a column (e.g. "backlog" from creation) never visually
+ * moves to "Done" when it completes. Mirrors the reverse mapping in the
+ * reorder route (kanbanColumn -> status).
+ */
+export function kanbanColumnForStatus(status: TaskStatus): KanbanColumn {
+    switch (status) {
+        case "completed": return "done";
+        case "running": return "in_progress";
+        case "failed": return "todo";
+        case "pending": return "backlog";
+    }
 }
 
 /**

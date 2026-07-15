@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
 import { callLoopLlm, type LlmProvider, type LlmMessage } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
@@ -244,6 +244,7 @@ export function updateTaskStatus(projectId: string, taskId: string, status: Task
     if (task) {
         task.status = status;
         task.currentStage = stage;
+        task.kanbanColumn = kanbanColumnForStatus(status);
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
     }

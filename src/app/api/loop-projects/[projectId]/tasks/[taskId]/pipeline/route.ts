@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand, isHostProject } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
 import { getApiChecks, runApiChecks } from "@/core/services/loop-preview.service";
 import fs from "fs";
 import path from "path";
@@ -25,6 +25,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         }
 
         task.status = "running";
+        task.kanbanColumn = kanbanColumnForStatus("running");
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
 
@@ -80,6 +81,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         const rt = reloaded.find((p) => p.id === projectId)?.tasks?.find((t) => t.id === taskId);
         if (rt) {
             rt.status = allPassed ? "completed" : "failed";
+            rt.kanbanColumn = kanbanColumnForStatus(rt.status);
             // Advance past Verify + Automate to Observe once the guard is green.
             if (allPassed && (rt.currentStage === "VERIFY" || rt.currentStage === "AUTOMATE" || rt.currentStage === "BUILD")) {
                 rt.currentStage = "OBSERVE";

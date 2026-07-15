@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, writeBridgeRequest } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, writeBridgeRequest, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
 import { resolveLoopLlm } from "@/core/services/loop-llm.service";
 import { runCollaborationLoop } from "@/core/services/loop-collaboration.service";
 import { autoFulfillBridge } from "@/core/services/loop-bridge-worker.service";
@@ -42,6 +42,7 @@ export async function POST(
 
         // Set status to running
         task.status = "running";
+        task.kanbanColumn = kanbanColumnForStatus("running");
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
 
