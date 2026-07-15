@@ -15,7 +15,8 @@ describe('Card Components', () => {
     render(<Card>Test Card Content</Card>);
     const cardElement = screen.getByText('Test Card Content');
     expect(cardElement).toBeInTheDocument();
-    expect(cardElement).toHaveClass('rounded-xl border bg-card text-card-foreground shadow'); // Check default classes
+    expect(cardElement).toHaveAttribute('data-slot', 'card');
+    expect(cardElement).toHaveClass('rounded-xl', 'bg-card', 'text-card-foreground', 'ring-1'); // Check default classes
   });
 
   it('should apply custom class names to Card', () => {
@@ -29,7 +30,8 @@ describe('Card Components', () => {
     render(<CardHeader>Card Header Text</CardHeader>);
     const headerElement = screen.getByText('Card Header Text');
     expect(headerElement).toBeInTheDocument();
-    expect(headerElement).toHaveClass('flex flex-col space-y-1.5 p-6');
+    expect(headerElement).toHaveAttribute('data-slot', 'card-header');
+    expect(headerElement).toHaveClass('grid', 'gap-1', 'px-4');
   });
 
   it('should apply custom class names to CardHeader', () => {
@@ -43,8 +45,9 @@ describe('Card Components', () => {
     render(<CardTitle>Card Title Text</CardTitle>);
     const titleElement = screen.getByText('Card Title Text');
     expect(titleElement).toBeInTheDocument();
-    expect(titleElement.tagName).toBe('H3'); // Default tag is h3
-    expect(titleElement).toHaveClass('font-semibold leading-none tracking-tight');
+    expect(titleElement.tagName).toBe('DIV'); // Rendered as a div with data-slot="card-title"
+    expect(titleElement).toHaveAttribute('data-slot', 'card-title');
+    expect(titleElement).toHaveClass('font-heading', 'font-medium');
   });
 
   it('should apply custom class names to CardTitle', () => {
@@ -58,8 +61,9 @@ describe('Card Components', () => {
     render(<CardDescription>Card Description Text</CardDescription>);
     const descriptionElement = screen.getByText('Card Description Text');
     expect(descriptionElement).toBeInTheDocument();
-    expect(descriptionElement.tagName).toBe('P'); // Default tag is p
-    expect(descriptionElement).toHaveClass('text-sm text-muted-foreground');
+    expect(descriptionElement.tagName).toBe('DIV'); // Rendered as a div with data-slot="card-description"
+    expect(descriptionElement).toHaveAttribute('data-slot', 'card-description');
+    expect(descriptionElement).toHaveClass('text-sm', 'text-muted-foreground');
   });
 
   it('should apply custom class names to CardDescription', () => {
@@ -73,7 +77,8 @@ describe('Card Components', () => {
     render(<CardContent>Card Content Section</CardContent>);
     const contentElement = screen.getByText('Card Content Section');
     expect(contentElement).toBeInTheDocument();
-    expect(contentElement).toHaveClass('p-6 pt-0');
+    expect(contentElement).toHaveAttribute('data-slot', 'card-content');
+    expect(contentElement).toHaveClass('px-4');
   });
 
   it('should apply custom class names to CardContent', () => {
@@ -87,7 +92,8 @@ describe('Card Components', () => {
     render(<CardFooter>Card Footer Text</CardFooter>);
     const footerElement = screen.getByText('Card Footer Text');
     expect(footerElement).toBeInTheDocument();
-    expect(footerElement).toHaveClass('flex items-center p-6 pt-0');
+    expect(footerElement).toHaveAttribute('data-slot', 'card-footer');
+    expect(footerElement).toHaveClass('flex', 'items-center', 'p-4');
   });
 
   it('should apply custom class names to CardFooter', () => {
@@ -121,8 +127,8 @@ describe('Card Components', () => {
     expect(screen.getByText('Complete Card Footer')).toBeInTheDocument();
 
     // Check nesting and proper element types
-    expect(screen.getByText('Complete Card Title').tagName).toBe('H3');
-    expect(screen.getByText('Complete Card Description').tagName).toBe('P');
+    expect(screen.getByText('Complete Card Title').tagName).toBe('DIV');
+    expect(screen.getByText('Complete Card Description').tagName).toBe('DIV');
     expect(completeCard).toContainElement(screen.getByText('Complete Card Title'));
     expect(completeCard).toContainElement(screen.getByText('Complete Card Description'));
     expect(completeCard).toContainElement(screen.getByText('This is the main content of the card.'));
