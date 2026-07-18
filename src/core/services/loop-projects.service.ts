@@ -289,6 +289,34 @@ export interface ApplyFileEditsOptions {
      * Verifier *configuration* stays blocked regardless of this flag.
      */
     allowTestFiles?: boolean;
+    /**
+     * Restrict edits to the task's declared scope (its `targetFiles`). When set
+     * and non-empty, an edit is refused unless its path is one of these files —
+     * or (when `allowTestFiles` is set) a test/spec/snapshot file covering one of
+     * them, so QA can still write `foo.test.ts` for an in-scope `foo.ts`.
+     * An empty/undefined list means "no scope declared" → no restriction, so
+     * tasks that never set targetFiles behave exactly as before.
+     */
+    allowedPaths?: string[];
+}
+
+// Normalize a project-relative path for scope comparison (posix, no leading "./").
+function normalizeRel(p: string): string {
+    return path.posix.normalize(p.replace(/\\/g, "/")).replace(/^\.\//, "");
+}
+
+// Reduce a path to "dir/basename" without its extension or test/spec/snapshot
+// infix, so "a/b.test.tsx", "a/b.test.tsx.snap" and "a/b.tsx" all share the stem
+// "a/b" — lets a test file be matched to the target file it covers.
+function pathStem(p: string): string {
+    const norm = normalizeRel(p);
+    const dir = path.posix.dirname(norm);
+    const base = path.posix
+        .basename(norm)
+        .replace(/\.snap$/, "")
+        .replace(/\.(test|spec)\.[^.]+$/, "")
+        .replace(/\.[^.]+$/, "");
+    return dir === "." ? base : `${dir}/${base}`;
 }
 
 export interface FileEditResult {
@@ -333,6 +361,23 @@ export function applyFileEdits(
         if (kind === "test" && !options.allowTestFiles) {
             blocked.push({ path: relativePath, reason: "test files are protected from the implementer (only QA may write them)" });
             continue;
+        }
+
+        // Scope guard: keep an agent inside the task's declared targetFiles so a
+        // wandering edit (e.g. a QA test for an unrelated component) can't land.
+        // An in-scope target's test/spec/snapshot sibling is allowed for QA.
+        if (options.allowedPaths && options.allowedPaths.length > 0) {
+            const rel = normalizeRel(relativePath);
+            const allowed = options.allowedPaths.map(normalizeRel);
+            const inScope =
+                allowed.includes(rel) ||
+                (kind === "test" &&
+                    !!options.allowTestFiles &&
+                    allowed.some((a) => pathStem(a) === pathStem(rel)));
+            if (!inScope) {
+                blocked.push({ path: relativePath, reason: `outside task scope (targetFiles: ${allowed.join(", ")})` });
+                continue;
+            }
         }
 
         try {

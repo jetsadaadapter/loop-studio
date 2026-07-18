@@ -61,6 +61,11 @@ export async function runCollaborationLoop(
     let testsPassed = false;
     let typecheckPassed = false;
 
+    // The task's declared scope — every agent edit below is confined to these
+    // files (empty = no scope declared, so no restriction). Read once up front.
+    const scopeTask = getProjects().find((p) => p.id === projectId)?.tasks?.find((t) => t.id === taskId);
+    const allowedPaths = scopeTask?.targetFiles ?? [];
+
     try {
         const agents = getAgents();
         const somchai = agents.find(a => a.id === "agent-somchai");
@@ -93,7 +98,7 @@ export async function runCollaborationLoop(
         const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
         const somsriRes = await callAgentLLM(llm, somsriPrompt, [{ role: "user", content: "Implement the required files." }]);
         // Implementer role: cannot write test or verifier-config files (default policy).
-        const devEdit = applyFileEdits(projectPath, somsriRes.text);
+        const devEdit = applyFileEdits(projectPath, somsriRes.text, { allowedPaths });
         const editedFiles = devEdit.written;
 
         appendHistoryMessage(projectId, taskId, "Somsri (Developer)", somsriRes.text, somsriRes.input, somsriRes.output, somsriRes.cost);
@@ -106,57 +111,65 @@ export async function runCollaborationLoop(
 
         // --- STEP 3: Wichai (QA) Writes and Runs Unit Test ---
         writeLog(`\n[Step 3/5] Wichai (QA) is writing tests and verifying...`);
-        const targetFile = editedFiles[0] || "src/components/ui/card.tsx";
+        const targetFile = editedFiles[0] || allowedPaths[0] || "";
         const testFile = targetFile.replace(/\.(tsx|ts|jsx|js)$/, ".test.$1");
 
-        const qaPrompt = `${wichai.systemPrompt}\n\nWrite a basic unit test file in Vitest for the modified file: ${targetFile}. Save it using <file_edit path="${testFile}">...</file_edit> tags.`;
-        const qaRes = await callAgentLLM(llm, qaPrompt, [{ role: "user", content: "Write test cases." }]);
-        // QA role: the one path allowed to author test files (still not config).
-        const qaEdit = applyFileEdits(projectPath, qaRes.text, { allowTestFiles: true });
-
-        appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
-        writeLog(`[Wichai (QA)] Test file created: ${qaEdit.written.join(", ")}`);
-        logBlockedEdits(writeLog, "Wichai (QA)", qaEdit.blocked);
-
-        // Run the vitest test, keeping the output tail: a failing run is fed
-        // back to the developer verbatim — "the tests failed" alone made the
-        // fix loop guess; the actual assertion diff lets it fix the real bug.
-        let testOutput = "";
-        const runTests = () => {
-            testOutput = "";
-            return runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
-                fs.appendFileSync(logFilePath, chunk);
-                testOutput = (testOutput + chunk).slice(-MAX_TEST_OUTPUT_CHARS);
-            });
-        };
-
-        writeLog(`[Wichai (QA)] Executing Vitest runner...`);
-        let testResultCode = await runTests();
-
-        if (testResultCode === 0) {
-            testsPassed = true;
-            writeLog(`[Wichai (QA)] SUCCESS: All Vitest unit tests passed!`);
+        if (!targetFile) {
+            // No file was written and the task declared no targetFiles — there is
+            // nothing concrete to test, so skip QA rather than invent a test for a
+            // made-up path (the old hardcoded card.tsx default did exactly that).
+            writeLog(`[Wichai (QA)] No in-scope target file to test — skipping test authoring.`);
         } else {
-            for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS && testResultCode !== 0; attempt++) {
-                writeLog(`[Wichai (QA)] FAILED (exit ${testResultCode}). Fix attempt ${attempt}/${MAX_FIX_ATTEMPTS}: sending the failing output to Somsri...`);
-                const fixRes = await callAgentLLM(
-                    llm,
-                    `${somsri.systemPrompt}${knowledgeBlock}\n\nThe tests for ${targetFile} failed.\n` +
-                    `Failing test output (tail):\n${testOutput}\n\n` +
-                    `Fix the IMPLEMENTATION only — do not edit the test file, it is the gate you must satisfy. ` +
-                    `Return the full corrected implementation file(s) in <file_edit> blocks.`,
-                    [{ role: "user", content: "Fix the unit test failures." }]
-                );
-                // Fix loop is still the implementer: test/config edits stay blocked.
-                const fixEdit = applyFileEdits(projectPath, fixRes.text);
-                appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
-                logBlockedEdits(writeLog, `Somsri (Developer) - Fix ${attempt}`, fixEdit.blocked);
-                testResultCode = await runTests();
+            const qaPrompt = `${wichai.systemPrompt}\n\nWrite a basic unit test file in Vitest for the modified file: ${targetFile}. Save it using <file_edit path="${testFile}">...</file_edit> tags.`;
+            const qaRes = await callAgentLLM(llm, qaPrompt, [{ role: "user", content: "Write test cases." }]);
+            // QA role: the one path allowed to author test files (still not config),
+            // and only for a test that covers an in-scope target.
+            const qaEdit = applyFileEdits(projectPath, qaRes.text, { allowTestFiles: true, allowedPaths });
+
+            appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
+            writeLog(`[Wichai (QA)] Test file created: ${qaEdit.written.join(", ")}`);
+            logBlockedEdits(writeLog, "Wichai (QA)", qaEdit.blocked);
+
+            // Run the vitest test, keeping the output tail: a failing run is fed
+            // back to the developer verbatim — "the tests failed" alone made the
+            // fix loop guess; the actual assertion diff lets it fix the real bug.
+            let testOutput = "";
+            const runTests = () => {
+                testOutput = "";
+                return runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
+                    fs.appendFileSync(logFilePath, chunk);
+                    testOutput = (testOutput + chunk).slice(-MAX_TEST_OUTPUT_CHARS);
+                });
+            };
+
+            writeLog(`[Wichai (QA)] Executing Vitest runner...`);
+            let testResultCode = await runTests();
+
+            if (testResultCode === 0) {
+                testsPassed = true;
+                writeLog(`[Wichai (QA)] SUCCESS: All Vitest unit tests passed!`);
+            } else {
+                for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS && testResultCode !== 0; attempt++) {
+                    writeLog(`[Wichai (QA)] FAILED (exit ${testResultCode}). Fix attempt ${attempt}/${MAX_FIX_ATTEMPTS}: sending the failing output to Somsri...`);
+                    const fixRes = await callAgentLLM(
+                        llm,
+                        `${somsri.systemPrompt}${knowledgeBlock}\n\nThe tests for ${targetFile} failed.\n` +
+                        `Failing test output (tail):\n${testOutput}\n\n` +
+                        `Fix the IMPLEMENTATION only — do not edit the test file, it is the gate you must satisfy. ` +
+                        `Return the full corrected implementation file(s) in <file_edit> blocks.`,
+                        [{ role: "user", content: "Fix the unit test failures." }]
+                    );
+                    // Fix loop is still the implementer: test/config edits stay blocked, scope stays enforced.
+                    const fixEdit = applyFileEdits(projectPath, fixRes.text, { allowedPaths });
+                    appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
+                    logBlockedEdits(writeLog, `Somsri (Developer) - Fix ${attempt}`, fixEdit.blocked);
+                    testResultCode = await runTests();
+                }
+                testsPassed = testResultCode === 0;
+                writeLog(testsPassed
+                    ? `[Wichai (QA)] SUCCESS: Tests pass after the fix loop.`
+                    : `[Wichai (QA)] Tests still failing after ${MAX_FIX_ATTEMPTS} fix attempts (exit ${testResultCode}).`);
             }
-            testsPassed = testResultCode === 0;
-            writeLog(testsPassed
-                ? `[Wichai (QA)] SUCCESS: Tests pass after the fix loop.`
-                : `[Wichai (QA)] Tests still failing after ${MAX_FIX_ATTEMPTS} fix attempts (exit ${testResultCode}).`);
         }
 
         // --- STEP 4: Mana (DevOps) Typechecks and Simulates CI ---
