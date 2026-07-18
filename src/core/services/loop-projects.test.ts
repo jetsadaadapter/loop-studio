@@ -143,4 +143,32 @@ describe("applyFileEdits verifier guard", () => {
         expect(res.written).toEqual([]);
         expect(res.blocked[0].reason).toContain("outside");
     });
+
+    it("blocks an off-scope edit when allowedPaths is set", () => {
+        const res = applyFileEdits("/fake/path", block("src/components/ui/card.test.tsx"), {
+            allowTestFiles: true,
+            allowedPaths: ["server.js"],
+        });
+        expect(res.written).toEqual([]);
+        expect(res.blocked[0].reason).toContain("scope");
+    });
+
+    it("allows an edit whose path is in allowedPaths", () => {
+        const res = applyFileEdits("/fake/path", block("server.js"), { allowedPaths: ["server.js"] });
+        expect(res.written).toEqual(["server.js"]);
+        expect(res.blocked).toEqual([]);
+    });
+
+    it("allows QA to write a test sibling of an in-scope target", () => {
+        const res = applyFileEdits("/fake/path", block("server.test.js"), {
+            allowTestFiles: true,
+            allowedPaths: ["server.js"],
+        });
+        expect(res.written).toEqual(["server.test.js"]);
+    });
+
+    it("does not restrict scope when allowedPaths is empty (backward compatible)", () => {
+        const res = applyFileEdits("/fake/path", block("src/anything.ts"), { allowedPaths: [] });
+        expect(res.written).toEqual(["src/anything.ts"]);
+    });
 });

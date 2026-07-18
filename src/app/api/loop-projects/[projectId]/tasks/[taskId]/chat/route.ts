@@ -164,7 +164,7 @@ Please address the user request and provide code edits if needed.`;
         // 5. Apply any file edits returned by Claude. Interactive chat is
         // human-in-the-loop (the user reads every reply), so test files are
         // allowed here; verifier/build config stays protected.
-        const { written: editedFiles, blocked } = applyFileEdits(project.path, responseContent, { allowTestFiles: true });
+        const { written: editedFiles, blocked } = applyFileEdits(project.path, responseContent, { allowTestFiles: true, allowedPaths: task.targetFiles });
 
         // Log changes into task logs
         const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);

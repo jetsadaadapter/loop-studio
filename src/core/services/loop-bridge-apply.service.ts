@@ -54,7 +54,7 @@ export function finalizeBridgeReply(
     // Apply edits only if the reply returned <file_edit> blocks (no-op otherwise).
     // Bridge replies are reviewed in chat, so test files are allowed; verifier/build
     // config stays protected.
-    const { written: editedFiles, blocked } = applyFileEdits(project.path, responseText, { allowTestFiles: true });
+    const { written: editedFiles, blocked } = applyFileEdits(project.path, responseText, { allowTestFiles: true, allowedPaths: task.targetFiles });
 
     const message: ChatMessage = {
         id: `msg-bridge-${Date.now()}`,
