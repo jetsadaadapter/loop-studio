@@ -44,6 +44,26 @@ export async function POST(
                 });
                 bridgePrompt += `\n\nAttached files (read these with your file tool):\n${savedPaths.map((p) => `- ${p}`).join("\n")}`;
             }
+            // Persist the user's message to the task chat immediately, mirroring the
+            // LLM path below. Without this a bridged message lives only in the transient
+            // bridge file: finalizeBridgeReply appends only the assistant reply, so the
+            // user's message vanishes from the chat once the bridge is consumed.
+            const bridgeProjects = getProjects();
+            const bridgeTask = bridgeProjects
+                .find((p) => p.id === projectId)
+                ?.tasks?.find((t) => t.id === taskId);
+            if (bridgeTask) {
+                bridgeTask.chatHistory.push({
+                    id: `msg-u-${Date.now()}`,
+                    role: "user",
+                    senderName: "User",
+                    content: message,
+                    timestamp: new Date().toISOString(),
+                    ...(attachments.length > 0 ? { attachments } : {}),
+                });
+                bridgeTask.updatedAt = new Date().toISOString();
+                saveProjects(bridgeProjects);
+            }
             const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "chat", prompt: bridgePrompt, history: history || [] });
             // Opt-in (LOOP_BRIDGE_AUTO): fulfill the bridge with a local agent
             // instead of waiting for a human. Fire-and-forget — the client polls.
