@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
-import { resolveTaskCwd } from "@/core/services/loop-worktree.service";
+import { resolveTaskCwd, checkpoint } from "@/core/services/loop-worktree.service";
 import { callLoopLlm, type LlmProvider, type LlmMessage } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
@@ -71,7 +71,21 @@ export async function runCollaborationLoop(
         // Where the agent reads/edits/runs: the task's worktree when the project
         // opted into useWorktree, else the repo path itself (legacy). Resolved once.
         const cwd = await resolveTaskCwd(taskId);
-        if (cwd !== projectPath) writeLog(`[Collaboration] Working in task worktree: ${cwd}`);
+        const useWorktree = cwd !== projectPath;
+        if (useWorktree) writeLog(`[Collaboration] Working in task worktree: ${cwd}`);
+
+        // Commit a checkpoint (rollback target) after each guarded edit batch, but
+        // only when the task runs in its own worktree. No-op otherwise (legacy
+        // direct edits have nothing to checkpoint). Never throws into the pipeline.
+        const maybeCheckpoint = async (stage: TaskStage, label: string) => {
+            if (!useWorktree) return;
+            try {
+                const cp = await checkpoint(taskId, { stage, label });
+                if (cp) writeLog(`[Checkpoint] ${cp.sha.slice(0, 7)} — ${label}`);
+            } catch (e) {
+                writeLog(`[Checkpoint] skipped — ${e instanceof Error ? e.message : String(e)}`);
+            }
+        };
 
         const agents = getAgents();
         const somchai = agents.find(a => a.id === "agent-somchai");
@@ -114,6 +128,7 @@ export async function runCollaborationLoop(
             writeLog(`[Somsri (Developer)] Code suggestion completed (no files written).`);
         }
         logBlockedEdits(writeLog, "Somsri (Developer)", devEdit.blocked);
+        if (editedFiles.length > 0) await maybeCheckpoint("BUILD", `Developer: ${editedFiles.join(", ")}`);
 
         // --- STEP 3: Wichai (QA) Writes and Runs Unit Test ---
         writeLog(`\n[Step 3/5] Wichai (QA) is writing tests and verifying...`);
@@ -135,6 +150,7 @@ export async function runCollaborationLoop(
             appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
             writeLog(`[Wichai (QA)] Test file created: ${qaEdit.written.join(", ")}`);
             logBlockedEdits(writeLog, "Wichai (QA)", qaEdit.blocked);
+            if (qaEdit.written.length > 0) await maybeCheckpoint("VERIFY", `QA test: ${qaEdit.written.join(", ")}`);
 
             // Run the vitest test, keeping the output tail: a failing run is fed
             // back to the developer verbatim — "the tests failed" alone made the
@@ -169,6 +185,7 @@ export async function runCollaborationLoop(
                     const fixEdit = applyFileEdits(cwd, fixRes.text, { allowedPaths });
                     appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
                     logBlockedEdits(writeLog, `Somsri (Developer) - Fix ${attempt}`, fixEdit.blocked);
+                    if (fixEdit.written.length > 0) await maybeCheckpoint("VERIFY", `Fix ${attempt}: ${fixEdit.written.join(", ")}`);
                     testResultCode = await runTests();
                 }
                 testsPassed = testResultCode === 0;
