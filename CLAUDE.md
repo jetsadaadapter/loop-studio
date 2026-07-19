@@ -69,8 +69,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         single place that returns the worktree dir (opted in) vs the
                                         repo path (legacy/non-git fallback); the collaboration pipeline
                                         edits/verifies in that cwd and checkpoints after each edit batch.
-                                        recoverTaskWorktrees() (run from instrumentation.ts on boot)
-                                        reconciles worktrees orphaned by a restart (resume/re-add/stale).
+                                        On boot (instrumentation.ts) recoverTaskWorktrees() reconciles
+                                        worktrees orphaned by a restart (resume/re-add/stale), then
+                                        gcTaskWorktrees() reclaims dirs no task references anymore.
                                         Step 1 of the Agent SDK plan — see docs/branch-per-task-checkpoint.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
