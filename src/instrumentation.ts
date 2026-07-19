@@ -8,5 +8,8 @@ export async function register() {
         // Finalize any tmux auto-fulfill runs orphaned by a previous restart.
         const { recoverTmuxBridges } = await import("@/core/services/loop-bridge-worker.service");
         recoverTmuxBridges();
+        // Reconcile per-task git worktrees orphaned by a previous restart.
+        const { recoverTaskWorktrees } = await import("@/core/services/loop-worktree.service");
+        void recoverTaskWorktrees();
     }
 }

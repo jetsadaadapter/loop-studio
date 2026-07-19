@@ -8,10 +8,11 @@ let branchExists = false;
 let dirty = "";
 let isRepo = true;
 let optIn = false;
+let wtExists = false;
 const gitCalls: string[][] = [];
 
 vi.mock("fs", () => ({
-    default: { existsSync: vi.fn(() => false), mkdirSync: vi.fn() },
+    default: { existsSync: () => wtExists, mkdirSync: () => {} },
 }));
 
 vi.mock("@/core/services/loop-projects.service", () => ({
@@ -57,6 +58,7 @@ beforeEach(() => {
     branchExists = false;
     dirty = "";
     isRepo = true;
+    wtExists = false;
     gitCalls.length = 0;
 });
 
@@ -170,6 +172,52 @@ describe("rollbackTo", () => {
         };
         const { rollbackTo } = await svc();
         await expect(rollbackTo("t1", "nope")).rejects.toThrow(/Unknown checkpoint/);
+    });
+});
+
+describe("recoverTaskWorktrees", () => {
+    const withGit = () => {
+        projectsFixture[0].tasks[0].git = {
+            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
+        };
+    };
+
+    it("resumes when branch + worktree are both present", async () => {
+        withGit();
+        branchExists = true;
+        wtExists = true;
+        const { recoverTaskWorktrees } = await svc();
+        const r = await recoverTaskWorktrees();
+        expect(r.resumed).toEqual(["t1"]);
+        expect(projectsFixture[0].tasks[0].git).not.toBeNull();
+        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "add")).toBe(false);
+    });
+
+    it("re-adds the worktree when the branch is present but the dir is gone", async () => {
+        withGit();
+        branchExists = true;
+        wtExists = false;
+        const { recoverTaskWorktrees } = await svc();
+        const r = await recoverTaskWorktrees();
+        expect(r.readded).toEqual(["t1"]);
+        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "add")).toBe(true);
+        expect(projectsFixture[0].tasks[0].git).not.toBeNull();
+    });
+
+    it("clears git state when the branch is gone (stale)", async () => {
+        withGit();
+        branchExists = false;
+        const { recoverTaskWorktrees } = await svc();
+        const r = await recoverTaskWorktrees();
+        expect(r.stale).toEqual(["t1"]);
+        expect(projectsFixture[0].tasks[0].git).toBeNull();
+    });
+
+    it("skips tasks with no git state", async () => {
+        projectsFixture[0].tasks[0].git = null;
+        const { recoverTaskWorktrees } = await svc();
+        const r = await recoverTaskWorktrees();
+        expect(r).toEqual({ resumed: [], readded: [], stale: [] });
     });
 });
 
