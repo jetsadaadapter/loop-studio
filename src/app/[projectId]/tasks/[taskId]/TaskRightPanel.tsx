@@ -9,6 +9,7 @@ import { LogTerminal } from "@/app/loop-components/LogTerminal";
 import { PreviewPane } from "@/app/loop-components/PreviewPane";
 import { AutoPipeline } from "@/app/loop-components/AutoPipeline";
 import { VersionTimeline } from "@/app/loop-components/VersionTimeline";
+import { WorktreePanel } from "./components/WorktreePanel";
 
 type CheckState = "pass" | "fail" | "idle";
 
@@ -46,7 +47,7 @@ export function TaskRightPanel({
     triggerLogReload,
     triggerCount,
 }: TaskRightPanelProps) {
-    const [bottomTab, setBottomTab] = useState<"workspace" | "pipeline" | "logs" | "changes">("workspace");
+    const [bottomTab, setBottomTab] = useState<"workspace" | "pipeline" | "logs" | "changes" | "worktree">("workspace");
     const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
     const [bottomPanelState, setBottomPanelState] = useState<"collapsed" | "standard" | "expanded">("collapsed");
 
@@ -133,6 +134,7 @@ export function TaskRightPanel({
                                 { key: "workspace", label: "Active Stage Work" },
                                 { key: "pipeline", label: "Pipeline Checks" },
                                 { key: "changes", label: "Version Changes" },
+                                { key: "worktree", label: "Worktree" },
                                 { key: "logs", label: "Terminal Logs" }
                             ] as const).map((t) => {
                                 const active = bottomTab === t.key;
@@ -189,6 +191,9 @@ export function TaskRightPanel({
                                     projectId={projectId}
                                     refreshKey={triggerCount}
                                 />
+                            )}
+                            {bottomTab === "worktree" && (
+                                <WorktreePanel projectId={projectId} taskId={task.id} />
                             )}
                             {bottomTab === "logs" && (
                                 <div className="h-full min-h-[180px]">
