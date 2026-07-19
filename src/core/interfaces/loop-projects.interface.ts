@@ -119,6 +119,31 @@ export interface KnowledgeEntry {
     updatedAt: string;
 }
 
+/** A Loop-Studio-authored commit on a task's branch — a rollback target. */
+export interface TaskCheckpoint {
+    sha: string;
+    label: string;
+    stage: TaskStage;
+    createdAt: string;
+}
+
+/**
+ * Per-task git isolation (see docs/branch-per-task-checkpoint.md). Each task gets
+ * its own worktree + branch so agent edits are isolated, checkpointed, and
+ * undoable. Absent = the task edits the target repo directly (legacy behavior /
+ * non-git targets).
+ */
+export interface TaskGit {
+    /** Absolute path to the task's dedicated git worktree. */
+    worktreeDir: string;
+    /** Branch name, `loop/task-<taskId>`. */
+    branch: string;
+    /** Commit the task branched from. */
+    baseSha: string;
+    checkpoints: TaskCheckpoint[];
+    integration?: { mode: "leave-branch" | "open-pr" | "merge"; ref?: string; prUrl?: string } | null;
+}
+
 export interface LoopTask {
     id: string;
     projectId: string;
@@ -127,6 +152,8 @@ export interface LoopTask {
     currentStage: TaskStage;
     targetFiles: string[];
     riskTier?: RiskTier;
+    /** Git worktree + checkpoints for this task (opt-in). */
+    git?: TaskGit | null;
     safetyNets?: string[];
     logs?: string;
     testRunner?: "vitest" | "playwright";
