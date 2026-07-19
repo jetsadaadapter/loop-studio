@@ -25,12 +25,31 @@ export function taskBranchName(taskId: string): string {
 }
 
 /** Locate the project + task for a taskId (git ops need the target repo path). */
-function findTask(taskId: string): { projectPath: string; task: { id: string; git?: TaskGit | null } } | null {
+function findTask(taskId: string): { projectPath: string; useWorktree: boolean; task: { id: string; git?: TaskGit | null } } | null {
     for (const project of getProjects()) {
         const task = project.tasks?.find((t) => t.id === taskId);
-        if (task) return { projectPath: project.path, task };
+        if (task) return { projectPath: project.path, useWorktree: !!project.useWorktree, task };
     }
     return null;
+}
+
+/**
+ * The directory a task's agent should read/edit/run in: the task's worktree when
+ * its project opted into `useWorktree` (created on first use), otherwise the repo
+ * path itself. Always falls back to the repo path on any error (non-git target,
+ * git failure) so a task never gets blocked — matching the legacy direct-edit path.
+ */
+export async function resolveTaskCwd(taskId: string): Promise<string> {
+    const found = findTask(taskId);
+    if (!found) throw new Error(`Task not found: ${taskId}`);
+    if (!found.useWorktree) return found.projectPath;
+    try {
+        const git = await ensureTaskWorktree(taskId);
+        return git.worktreeDir;
+    } catch (e) {
+        console.error(`[worktree] falling back to direct edits for ${taskId}:`, e instanceof Error ? e.message : e);
+        return found.projectPath;
+    }
 }
 
 /** Persist a task's git state back to the store. */

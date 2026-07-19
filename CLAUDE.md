@@ -61,11 +61,14 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
       loop-knowledge.service.ts         per-project knowledge store: LEARN retros + auto-run
                                         failures accumulate and are injected back into
                                         planner/collaboration prompts (knowledge-<id>.json)
-      loop-worktree.service.ts          per-task git isolation (opt-in): a dedicated worktree +
-                                        `loop/task-<id>` branch with Loop-authored checkpoint commits
-                                        (rollback targets), built on executeGitCommand; worktrees
-                                        live under .antigravity/worktrees/ so the target repo stays
-                                        pristine. Step 1 of the Agent SDK plan — see
+      loop-worktree.service.ts          per-task git isolation (opt-in via LoopProject.useWorktree):
+                                        a dedicated worktree + `loop/task-<id>` branch with
+                                        Loop-authored checkpoint commits (rollback targets), built on
+                                        executeGitCommand; worktrees live under .antigravity/worktrees/
+                                        so the target repo stays pristine. resolveTaskCwd(taskId) is the
+                                        single place that returns the worktree dir (opted in) vs the
+                                        repo path (legacy/non-git fallback); the collaboration pipeline
+                                        edits/verifies in that cwd. Step 1 of the Agent SDK plan — see
                                         docs/branch-per-task-checkpoint.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
+import { resolveTaskCwd } from "@/core/services/loop-worktree.service";
 import { callLoopLlm, type LlmProvider, type LlmMessage } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
@@ -67,6 +68,11 @@ export async function runCollaborationLoop(
     const allowedPaths = scopeTask?.targetFiles ?? [];
 
     try {
+        // Where the agent reads/edits/runs: the task's worktree when the project
+        // opted into useWorktree, else the repo path itself (legacy). Resolved once.
+        const cwd = await resolveTaskCwd(taskId);
+        if (cwd !== projectPath) writeLog(`[Collaboration] Working in task worktree: ${cwd}`);
+
         const agents = getAgents();
         const somchai = agents.find(a => a.id === "agent-somchai");
         const somsri = agents.find(a => a.id === "agent-somsri");
@@ -98,7 +104,7 @@ export async function runCollaborationLoop(
         const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
         const somsriRes = await callAgentLLM(llm, somsriPrompt, [{ role: "user", content: "Implement the required files." }]);
         // Implementer role: cannot write test or verifier-config files (default policy).
-        const devEdit = applyFileEdits(projectPath, somsriRes.text, { allowedPaths });
+        const devEdit = applyFileEdits(cwd, somsriRes.text, { allowedPaths });
         const editedFiles = devEdit.written;
 
         appendHistoryMessage(projectId, taskId, "Somsri (Developer)", somsriRes.text, somsriRes.input, somsriRes.output, somsriRes.cost);
@@ -124,7 +130,7 @@ export async function runCollaborationLoop(
             const qaRes = await callAgentLLM(llm, qaPrompt, [{ role: "user", content: "Write test cases." }]);
             // QA role: the one path allowed to author test files (still not config),
             // and only for a test that covers an in-scope target.
-            const qaEdit = applyFileEdits(projectPath, qaRes.text, { allowTestFiles: true, allowedPaths });
+            const qaEdit = applyFileEdits(cwd, qaRes.text, { allowTestFiles: true, allowedPaths });
 
             appendHistoryMessage(projectId, taskId, "Wichai (QA)", qaRes.text, qaRes.input, qaRes.output, qaRes.cost);
             writeLog(`[Wichai (QA)] Test file created: ${qaEdit.written.join(", ")}`);
@@ -136,7 +142,7 @@ export async function runCollaborationLoop(
             let testOutput = "";
             const runTests = () => {
                 testOutput = "";
-                return runProjectCommand(taskId, projectPath, "npx", ["vitest", "run", testFile], (chunk) => {
+                return runProjectCommand(taskId, cwd, "npx", ["vitest", "run", testFile], (chunk) => {
                     fs.appendFileSync(logFilePath, chunk);
                     testOutput = (testOutput + chunk).slice(-MAX_TEST_OUTPUT_CHARS);
                 });
@@ -160,7 +166,7 @@ export async function runCollaborationLoop(
                         [{ role: "user", content: "Fix the unit test failures." }]
                     );
                     // Fix loop is still the implementer: test/config edits stay blocked, scope stays enforced.
-                    const fixEdit = applyFileEdits(projectPath, fixRes.text, { allowedPaths });
+                    const fixEdit = applyFileEdits(cwd, fixRes.text, { allowedPaths });
                     appendHistoryMessage(projectId, taskId, `Somsri (Developer) - Fix ${attempt}`, fixRes.text, fixRes.input, fixRes.output, fixRes.cost);
                     logBlockedEdits(writeLog, `Somsri (Developer) - Fix ${attempt}`, fixEdit.blocked);
                     testResultCode = await runTests();
@@ -174,7 +180,7 @@ export async function runCollaborationLoop(
 
         // --- STEP 4: Mana (DevOps) Typechecks and Simulates CI ---
         writeLog(`\n[Step 4/5] Mana (DevOps) is running CI verification (tsc typecheck)...`);
-        const devopsResultCode = await runProjectCommand(`${taskId}-ci`, projectPath, "npx", ["tsc", "--noEmit"], (chunk) => {
+        const devopsResultCode = await runProjectCommand(`${taskId}-ci`, cwd, "npx", ["tsc", "--noEmit"], (chunk) => {
             fs.appendFileSync(logFilePath, chunk);
         });
 
@@ -187,9 +193,9 @@ export async function runCollaborationLoop(
 
         // --- STEP 5: Preecha (Auditor) Audits Git Diff ---
         writeLog(`\n[Step 5/5] Preecha (Auditor) is performing security and diff audits...`);
-        const gitInfo = await getGitInfo(projectPath);
+        const gitInfo = await getGitInfo(cwd);
         writeLog(`[Preecha (Auditor)] Auditing branch "${gitInfo.branch}" @ ${gitInfo.commit} (${gitInfo.modifiedFiles.length} modified file(s))`);
-        const gitDiff = await executeGitDiff(projectPath, targetFile);
+        const gitDiff = await executeGitDiff(cwd, targetFile);
 
         const auditorPrompt = `${preecha.systemPrompt}\n\nReview this Git Diff for security issues:\n${gitDiff}`;
         const auditorRes = await callAgentLLM(llm, auditorPrompt, [{ role: "user", content: "Review git diff." }]);
