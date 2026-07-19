@@ -168,3 +168,58 @@ export async function disposeTaskWorktree(
     }
     saveTaskGit(taskId, null);
 }
+
+async function branchExists(projectPath: string, branch: string): Promise<boolean> {
+    return executeGitCommand(projectPath, ["rev-parse", "--verify", "--quiet", branch])
+        .then(() => true)
+        .catch(() => false);
+}
+
+/**
+ * Reconcile persisted task worktrees after an app restart (called on boot, like
+ * recoverTmuxBridges). For each task that recorded git state:
+ *  - worktree dir + branch present → resume (no-op);
+ *  - branch present but worktree dir gone → re-add the worktree from the branch;
+ *  - branch gone / non-git target → clear the task's git state (stale).
+ * Best-effort and never throws — a recovery failure must not block boot.
+ */
+export async function recoverTaskWorktrees(): Promise<{ resumed: string[]; readded: string[]; stale: string[] }> {
+    const summary = { resumed: [] as string[], readded: [] as string[], stale: [] as string[] };
+    try {
+        const projects = getProjects();
+        let changed = false;
+        for (const project of projects) {
+            for (const task of project.tasks ?? []) {
+                const git = task.git;
+                if (!git) continue;
+                const pp = project.path;
+
+                if (!(await isOwnGitRepo(pp)) || !(await branchExists(pp, git.branch))) {
+                    await executeGitCommand(pp, ["worktree", "remove", "--force", git.worktreeDir]).catch(() => {});
+                    task.git = null;
+                    changed = true;
+                    summary.stale.push(task.id);
+                    continue;
+                }
+                if (fs.existsSync(git.worktreeDir)) {
+                    summary.resumed.push(task.id);
+                    continue;
+                }
+                // Branch present but the worktree dir is gone → re-add from the branch.
+                await executeGitCommand(pp, ["worktree", "prune"]).catch(() => {});
+                try {
+                    await executeGitCommand(pp, ["worktree", "add", git.worktreeDir, git.branch]);
+                    summary.readded.push(task.id);
+                } catch {
+                    task.git = null;
+                    changed = true;
+                    summary.stale.push(task.id);
+                }
+            }
+        }
+        if (changed) saveProjects(projects);
+    } catch (e) {
+        console.error("[worktree] recovery pass failed:", e instanceof Error ? e.message : e);
+    }
+    return summary;
+}

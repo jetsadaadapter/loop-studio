@@ -68,8 +68,10 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         so the target repo stays pristine. resolveTaskCwd(taskId) is the
                                         single place that returns the worktree dir (opted in) vs the
                                         repo path (legacy/non-git fallback); the collaboration pipeline
-                                        edits/verifies in that cwd. Step 1 of the Agent SDK plan — see
-                                        docs/branch-per-task-checkpoint.md
+                                        edits/verifies in that cwd and checkpoints after each edit batch.
+                                        recoverTaskWorktrees() (run from instrumentation.ts on boot)
+                                        reconciles worktrees orphaned by a restart (resume/re-add/stale).
+                                        Step 1 of the Agent SDK plan — see docs/branch-per-task-checkpoint.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```
