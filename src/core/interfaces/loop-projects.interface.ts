@@ -209,6 +209,13 @@ export interface LoopProject {
     // Which local agent auto-fulfills this project's bridged chat/collaborate
     // requests. Unset = off (wait for a human, or fall back to LOOP_BRIDGE_AUTO).
     autoAgent?: AutoAgent;
+    /**
+     * Opt-in: run each task's agent work inside a dedicated git worktree + branch
+     * (see loop-worktree.service.ts / docs/branch-per-task-checkpoint.md) instead
+     * of editing this repo's working tree directly. Unset/false = legacy direct
+     * edits. Ignored for non-git targets (falls back to direct edits).
+     */
+    useWorktree?: boolean;
     // Where this project's app runs, used by the Studio preview pane — usually the
     // project's own dev server URL (e.g. "http://localhost:3001"). A relative path
     // works for a project that is this same repo.

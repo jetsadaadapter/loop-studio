@@ -3,10 +3,11 @@ import path from "path";
 import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 
 // Mutable state driving the mocked git primitive + store.
-let projectsFixture: { id: string; path: string; tasks: LoopTask[] }[] = [];
+let projectsFixture: { id: string; path: string; useWorktree?: boolean; tasks: LoopTask[] }[] = [];
 let branchExists = false;
 let dirty = "";
 let isRepo = true;
+let optIn = false;
 const gitCalls: string[][] = [];
 
 vi.mock("fs", () => ({
@@ -51,7 +52,8 @@ async function svc() {
 }
 
 beforeEach(() => {
-    projectsFixture = [{ id: "p1", path: "/repo", tasks: [task()] }];
+    optIn = false;
+    projectsFixture = [{ id: "p1", path: "/repo", useWorktree: optIn, tasks: [task()] }];
     branchExists = false;
     dirty = "";
     isRepo = true;
@@ -65,6 +67,29 @@ describe("loop-worktree naming", () => {
         expect(taskWorktreeDir("t1")).toBe(
             path.join(process.cwd(), ".antigravity", "worktrees", "t1"),
         );
+    });
+});
+
+describe("resolveTaskCwd", () => {
+    it("returns the repo path when the project has not opted in", async () => {
+        projectsFixture[0].useWorktree = false;
+        const { resolveTaskCwd } = await svc();
+        expect(await resolveTaskCwd("t1")).toBe("/repo");
+        expect(gitCalls.length).toBe(0); // no worktree created
+    });
+
+    it("returns the worktree dir when the project opted in", async () => {
+        projectsFixture[0].useWorktree = true;
+        const { resolveTaskCwd, taskWorktreeDir } = await svc();
+        expect(await resolveTaskCwd("t1")).toBe(taskWorktreeDir("t1"));
+        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "add")).toBe(true);
+    });
+
+    it("falls back to the repo path when the target is not a git repo", async () => {
+        projectsFixture[0].useWorktree = true;
+        isRepo = false;
+        const { resolveTaskCwd } = await svc();
+        expect(await resolveTaskCwd("t1")).toBe("/repo");
     });
 });
 
