@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getProjects, calculateRiskTier, isHostProject, classifyProtectedPath, applyFileEdits } from "./loop-projects.service";
+import { getProjects, calculateRiskTier, isHostProject, classifyProtectedPath, applyFileEdits, evaluateEdit } from "./loop-projects.service";
 
 vi.mock("fs", () => {
     const mockData = JSON.stringify([
@@ -170,5 +170,31 @@ describe("applyFileEdits verifier guard", () => {
     it("does not restrict scope when allowedPaths is empty (backward compatible)", () => {
         const res = applyFileEdits("/fake/path", block("src/anything.ts"), { allowedPaths: [] });
         expect(res.written).toEqual(["src/anything.ts"]);
+    });
+});
+
+// evaluateEdit is the pure policy shared by applyFileEdits and (later) the Agent
+// SDK PreToolUse hook — so the two guards can never drift.
+describe("evaluateEdit", () => {
+    it("allows ordinary source", () => {
+        expect(evaluateEdit("src/components/ui/button.tsx")).toEqual({ decision: "allow", kind: null });
+    });
+
+    it("denies verifier config for everyone", () => {
+        const v = evaluateEdit("package.json", { allowTestFiles: true });
+        expect(v.decision).toBe("deny");
+        expect(v.kind).toBe("config");
+        expect(v.reason).toContain("configuration");
+    });
+
+    it("denies test files to the implementer, allows them for QA", () => {
+        expect(evaluateEdit("src/lib/utils.test.ts").decision).toBe("deny");
+        expect(evaluateEdit("src/lib/utils.test.ts", { allowTestFiles: true }).decision).toBe("allow");
+    });
+
+    it("denies off-scope edits and allows in-scope + QA test siblings", () => {
+        expect(evaluateEdit("src/other.ts", { allowedPaths: ["server.js"] }).decision).toBe("deny");
+        expect(evaluateEdit("server.js", { allowedPaths: ["server.js"] }).decision).toBe("allow");
+        expect(evaluateEdit("server.test.js", { allowTestFiles: true, allowedPaths: ["server.js"] }).decision).toBe("allow");
     });
 });
