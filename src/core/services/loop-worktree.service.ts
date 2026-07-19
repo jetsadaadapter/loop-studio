@@ -150,6 +150,25 @@ export function listCheckpoints(taskId: string): TaskCheckpoint[] {
 }
 
 /**
+ * Record how a finished task's branch is integrated back. `leave-branch` (the
+ * default, non-destructive) just records the decision — the branch already holds
+ * the work for the operator to merge. `open-pr` / `merge` are not implemented yet
+ * (they need a remote/gh runner and conflict handling — a follow-up).
+ */
+export async function integrateTask(
+    taskId: string,
+    mode: "leave-branch" | "open-pr" | "merge",
+): Promise<NonNullable<TaskGit["integration"]>> {
+    const found = findTask(taskId);
+    if (!found?.task.git) throw new Error(`No worktree for task: ${taskId}`);
+    if (mode !== "leave-branch") throw new Error(`Integration mode not implemented yet: ${mode}`);
+
+    const integration = { mode, ref: found.task.git.branch } as const;
+    saveTaskGit(taskId, { ...found.task.git, integration });
+    return integration;
+}
+
+/**
  * Remove the task's worktree (and optionally its branch). Safe to call when no
  * worktree exists. Clears the task's git state.
  */
