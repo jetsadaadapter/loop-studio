@@ -72,6 +72,8 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         On boot (instrumentation.ts) recoverTaskWorktrees() reconciles
                                         worktrees orphaned by a restart (resume/re-add/stale), then
                                         gcTaskWorktrees() reclaims dirs no task references anymore.
+                                        GET/POST .../tasks/[taskId]/worktree exposes the git state +
+                                        rollback + integrateTask (leave-branch; open-pr/merge TBD).
                                         Step 1 of the Agent SDK plan — see docs/branch-per-task-checkpoint.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)

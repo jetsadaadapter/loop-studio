@@ -62,6 +62,14 @@ async function svc() {
     return await import("./loop-worktree.service");
 }
 
+// Give task t1 a git state (rollback tests override checkpoints).
+const setGit = (overrides: Partial<NonNullable<LoopTask["git"]>> = {}) => {
+    projectsFixture[0].tasks[0].git = {
+        worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
+        ...overrides,
+    };
+};
+
 beforeEach(() => {
     optIn = false;
     projectsFixture = [{ id: "p1", path: "/repo", useWorktree: optIn, tasks: [task()] }];
@@ -137,9 +145,7 @@ describe("ensureTaskWorktree", () => {
 
 describe("checkpoint", () => {
     it("commits when dirty and appends a checkpoint", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
+        setGit();
         dirty = " M server.js";
         const { checkpoint } = await svc();
         const cp = await checkpoint("t1", { stage: "BUILD", label: "add health endpoint" });
@@ -150,9 +156,7 @@ describe("checkpoint", () => {
     });
 
     it("returns null (no commit) when the worktree is clean", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
+        setGit();
         dirty = "";
         const { checkpoint } = await svc();
         const cp = await checkpoint("t1", { stage: "BUILD", label: "noop" });
@@ -163,15 +167,11 @@ describe("checkpoint", () => {
 
 describe("rollbackTo", () => {
     it("resets to a checkpoint and drops later ones", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b",
-            checkpoints: [
-                { sha: "a", label: "1", stage: "BUILD", createdAt: "" },
-                { sha: "b2", label: "2", stage: "BUILD", createdAt: "" },
-                { sha: "c", label: "3", stage: "BUILD", createdAt: "" },
-            ],
-            integration: null,
-        };
+        setGit({ checkpoints: [
+            { sha: "a", label: "1", stage: "BUILD", createdAt: "" },
+            { sha: "b2", label: "2", stage: "BUILD", createdAt: "" },
+            { sha: "c", label: "3", stage: "BUILD", createdAt: "" },
+        ] });
         const { rollbackTo } = await svc();
         await rollbackTo("t1", "b2");
         expect(gitCalls.some((a) => a[0] === "reset" && a.includes("b2"))).toBe(true);
@@ -179,23 +179,15 @@ describe("rollbackTo", () => {
     });
 
     it("throws on an unknown checkpoint", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
+        setGit();
         const { rollbackTo } = await svc();
         await expect(rollbackTo("t1", "nope")).rejects.toThrow(/Unknown checkpoint/);
     });
 });
 
 describe("recoverTaskWorktrees", () => {
-    const withGit = () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
-    };
-
     it("resumes when branch + worktree are both present", async () => {
-        withGit();
+        setGit();
         branchExists = true;
         wtExists = true;
         const { recoverTaskWorktrees } = await svc();
@@ -206,7 +198,7 @@ describe("recoverTaskWorktrees", () => {
     });
 
     it("re-adds the worktree when the branch is present but the dir is gone", async () => {
-        withGit();
+        setGit();
         branchExists = true;
         wtExists = false;
         const { recoverTaskWorktrees } = await svc();
@@ -217,7 +209,7 @@ describe("recoverTaskWorktrees", () => {
     });
 
     it("clears git state when the branch is gone (stale)", async () => {
-        withGit();
+        setGit();
         branchExists = false;
         const { recoverTaskWorktrees } = await svc();
         const r = await recoverTaskWorktrees();
@@ -263,11 +255,32 @@ describe("gcTaskWorktrees", () => {
     });
 });
 
+describe("integrateTask", () => {
+    it("records a leave-branch integration referencing the task branch", async () => {
+        setGit();
+        const { integrateTask } = await svc();
+        const r = await integrateTask("t1", "leave-branch");
+        expect(r).toEqual({ mode: "leave-branch", ref: "loop/task-t1" });
+        expect(projectsFixture[0].tasks[0].git?.integration).toEqual({ mode: "leave-branch", ref: "loop/task-t1" });
+    });
+
+    it("rejects not-yet-implemented modes", async () => {
+        setGit();
+        const { integrateTask } = await svc();
+        await expect(integrateTask("t1", "open-pr")).rejects.toThrow(/not implemented/);
+        await expect(integrateTask("t1", "merge")).rejects.toThrow(/not implemented/);
+    });
+
+    it("throws when the task has no worktree", async () => {
+        projectsFixture[0].tasks[0].git = null;
+        const { integrateTask } = await svc();
+        await expect(integrateTask("t1", "leave-branch")).rejects.toThrow(/No worktree/);
+    });
+});
+
 describe("disposeTaskWorktree", () => {
     it("removes the worktree + branch and clears git state", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
+        setGit();
         const { disposeTaskWorktree } = await svc();
         await disposeTaskWorktree("t1");
         expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "remove")).toBe(true);
@@ -276,9 +289,7 @@ describe("disposeTaskWorktree", () => {
     });
 
     it("keeps the branch when keepBranch is set", async () => {
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: "/wt", branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
+        setGit();
         const { disposeTaskWorktree } = await svc();
         await disposeTaskWorktree("t1", { keepBranch: true });
         expect(gitCalls.some((a) => a[0] === "branch" && a.includes("-D"))).toBe(false);
