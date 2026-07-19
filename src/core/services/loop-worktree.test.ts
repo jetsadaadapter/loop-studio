@@ -9,10 +9,20 @@ let dirty = "";
 let isRepo = true;
 let optIn = false;
 let wtExists = false;
+let fsEntries: string[] = [];
+const removedDirs: string[] = [];
 const gitCalls: string[][] = [];
 
 vi.mock("fs", () => ({
-    default: { existsSync: () => wtExists, mkdirSync: () => {} },
+    default: {
+        existsSync: () => wtExists,
+        mkdirSync: () => {},
+        readdirSync: () => {
+            if (fsEntries.length === 0) throw new Error("ENOENT");
+            return fsEntries;
+        },
+        rmSync: (p: string) => { removedDirs.push(p); },
+    },
 }));
 
 vi.mock("@/core/services/loop-projects.service", () => ({
@@ -59,6 +69,8 @@ beforeEach(() => {
     dirty = "";
     isRepo = true;
     wtExists = false;
+    fsEntries = [];
+    removedDirs.length = 0;
     gitCalls.length = 0;
 });
 
@@ -218,6 +230,36 @@ describe("recoverTaskWorktrees", () => {
         const { recoverTaskWorktrees } = await svc();
         const r = await recoverTaskWorktrees();
         expect(r).toEqual({ resumed: [], readded: [], stale: [] });
+    });
+});
+
+describe("gcTaskWorktrees", () => {
+    it("removes an orphaned dir no task references", async () => {
+        const { gcTaskWorktrees, taskWorktreeDir } = await svc();
+        fsEntries = ["ghost"]; // no task with id "ghost"
+        const r = await gcTaskWorktrees();
+        expect(r.removed).toEqual(["ghost"]);
+        expect(removedDirs).toContain(taskWorktreeDir("ghost"));
+        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "prune")).toBe(true);
+    });
+
+    it("keeps a dir still referenced by a task's git state", async () => {
+        const { gcTaskWorktrees, taskWorktreeDir } = await svc();
+        projectsFixture[0].tasks[0].git = {
+            worktreeDir: taskWorktreeDir("t1"), branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
+        };
+        fsEntries = ["t1"];
+        const r = await gcTaskWorktrees();
+        expect(r.kept).toEqual(["t1"]);
+        expect(r.removed).toEqual([]);
+        expect(removedDirs).toEqual([]);
+    });
+
+    it("no-ops when the worktrees root does not exist", async () => {
+        const { gcTaskWorktrees } = await svc();
+        fsEntries = []; // readdirSync throws → treated as empty
+        const r = await gcTaskWorktrees();
+        expect(r).toEqual({ removed: [], kept: [] });
     });
 });
 

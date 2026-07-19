@@ -223,3 +223,50 @@ export async function recoverTaskWorktrees(): Promise<{ resumed: string[]; readd
     }
     return summary;
 }
+
+/**
+ * Reclaim disk from ORPHANED worktree dirs — a dir under .antigravity/worktrees/
+ * that no task's git state references (task deleted, or its git state cleared by
+ * recovery). Deliberately conservative: dirs still referenced by a task (open OR
+ * closed) are kept, so this never conflicts with the recovery pass and never
+ * removes a branch. Disposal of a finished task's worktree is the integrate/LEARN
+ * step's job, not GC's. Best-effort; never throws.
+ */
+export async function gcTaskWorktrees(): Promise<{ removed: string[]; kept: string[] }> {
+    const summary = { removed: [] as string[], kept: [] as string[] };
+    const root = worktreesRoot();
+    let entries: string[];
+    try {
+        entries = fs.readdirSync(root);
+    } catch {
+        return summary; // no worktrees root yet → nothing to GC
+    }
+
+    const projects = getProjects();
+    const referenced = new Set<string>();
+    for (const project of projects) {
+        for (const task of project.tasks ?? []) {
+            if (task.git?.worktreeDir) referenced.add(task.git.worktreeDir);
+        }
+    }
+
+    for (const name of entries) {
+        const dir = path.join(root, name);
+        if (referenced.has(dir)) {
+            summary.kept.push(name);
+            continue;
+        }
+        try {
+            fs.rmSync(dir, { recursive: true, force: true });
+        } catch { /* best-effort */ }
+        summary.removed.push(name);
+    }
+
+    // Clean any stale worktree registrations the removed dirs left behind.
+    if (summary.removed.length > 0) {
+        for (const project of projects) {
+            await executeGitCommand(project.path, ["worktree", "prune"]).catch(() => {});
+        }
+    }
+    return summary;
+}
