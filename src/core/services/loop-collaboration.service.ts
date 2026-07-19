@@ -1,50 +1,30 @@
 import fs from "fs";
 import path from "path";
-import { getProjects, saveProjects, applyFileEdits, runProjectCommand, getGitInfo, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
+import { getProjects, applyFileEdits, runProjectCommand, getGitInfo } from "@/core/services/loop-projects.service";
 import { resolveTaskCwd, checkpoint } from "@/core/services/loop-worktree.service";
-import { callLoopLlm, type LlmProvider, type LlmMessage } from "@/core/services/loop-llm.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
-import type { TaskStatus, TaskStage } from "@/core/interfaces/loop-projects.interface";
+import type { TaskStage } from "@/core/interfaces/loop-projects.interface";
+import {
+    callAgentLLM,
+    logBlockedEdits,
+    executeGitDiff,
+    appendHistoryMessage,
+    updateTaskStatus,
+    MAX_FIX_ATTEMPTS,
+    MAX_TEST_OUTPUT_CHARS,
+    type ResolvedLlm,
+    type CollaborationResult,
+} from "@/core/services/loop-collaboration.helpers";
+
+// Re-exported so existing importers (loop-autorun, collaborate route) are unaffected.
+export type { ResolvedLlm, CollaborationResult };
+export { appendHistoryMessage, updateTaskStatus };
 
 // The per-task AI-team pipeline (Architect plan → Developer code → QA test →
 // DevOps typecheck → Auditor diff review). Extracted from the collaborate route
 // so both the one-off "Delegate to AI Agent Team" button and the Auto-Run
 // orchestrator drive the exact same steps.
-
-export type ResolvedLlm = { provider: LlmProvider; apiKey: string; model: string };
-
-export interface CollaborationResult {
-    success: boolean;
-    error?: string;
-    /** Vitest run exit code was 0 (after at most one fix loop). */
-    testsPassed: boolean;
-    /** `tsc --noEmit` exit code was 0. */
-    typecheckPassed: boolean;
-}
-
-// Failing tests get re-fixed at most this many times before the pipeline gives up.
-const MAX_FIX_ATTEMPTS = 2;
-// Tail of vitest output fed back to the developer on failure (prompt-size cap).
-const MAX_TEST_OUTPUT_CHARS = 4000;
-
-// All agent personas share one resolved provider (Claude or Gemini) to keep setup simple.
-async function callAgentLLM(llm: ResolvedLlm, systemPrompt: string, messages: LlmMessage[]) {
-    return callLoopLlm(llm.provider, llm.apiKey, llm.model, systemPrompt, messages, 3000);
-}
-
-// Surface refused edits in the task log so a blocked attempt to touch the
-// verifier is visible, not silent — the human reviewing the run should know
-// an agent tried to edit a protected test/config file.
-function logBlockedEdits(
-    writeLog: (text: string) => void,
-    role: string,
-    blocked: { path: string; reason: string }[],
-) {
-    for (const b of blocked) {
-        writeLog(`[${role}] BLOCKED edit to ${b.path} — ${b.reason}.`);
-    }
-}
 
 export async function runCollaborationLoop(
     projectId: string,
@@ -229,59 +209,5 @@ export async function runCollaborationLoop(
         writeLog(`\n[Collaboration] ERROR: ${message}`);
         updateTaskStatus(projectId, taskId, "failed", "PLAN");
         return { success: false, error: message, testsPassed, typecheckPassed };
-    }
-}
-
-async function executeGitDiff(projectPath: string, file: string): Promise<string> {
-    const { spawn } = await import("child_process");
-    return new Promise((resolve) => {
-        const proc = spawn("git", ["diff", "--", file], { cwd: projectPath });
-        let out = "";
-        proc.stdout.on("data", (d) => { out += d.toString(); });
-        proc.on("error", () => resolve("No diff (git unavailable)"));
-        proc.on("close", () => resolve(out || "No diff"));
-    });
-}
-
-export function appendHistoryMessage(
-    projectId: string,
-    taskId: string,
-    senderName: string,
-    content: string,
-    input: number,
-    output: number,
-    cost: number
-) {
-    const projects = getProjects();
-    const project = projects.find((p) => p.id === projectId);
-    const task = project?.tasks?.find((t) => t.id === taskId);
-    if (task) {
-        task.chatHistory.push({
-            id: `msg-col-${Date.now()}`,
-            role: "assistant",
-            senderName,
-            content,
-            timestamp: new Date().toISOString(),
-            tokensUsed: { input, output, cost }
-        });
-
-        task.tokensUsed.input += input;
-        task.tokensUsed.output += output;
-        task.tokensUsed.cost += cost;
-        task.updatedAt = new Date().toISOString();
-        saveProjects(projects);
-    }
-}
-
-export function updateTaskStatus(projectId: string, taskId: string, status: TaskStatus, stage: TaskStage) {
-    const projects = getProjects();
-    const project = projects.find((p) => p.id === projectId);
-    const task = project?.tasks?.find((t) => t.id === taskId);
-    if (task) {
-        task.status = status;
-        task.currentStage = stage;
-        task.kanbanColumn = kanbanColumnForStatus(status);
-        task.updatedAt = new Date().toISOString();
-        saveProjects(projects);
     }
 }
