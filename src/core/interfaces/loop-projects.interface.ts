@@ -140,6 +140,8 @@ export interface TaskGit {
     branch: string;
     /** Commit the task branched from. */
     baseSha: string;
+    /** Branch the task was cut from (for `merge` integration); "" if detached. */
+    baseBranch?: string;
     checkpoints: TaskCheckpoint[];
     integration?: { mode: "leave-branch" | "open-pr" | "merge"; ref?: string; prUrl?: string } | null;
 }

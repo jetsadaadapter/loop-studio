@@ -76,7 +76,9 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         worktrees orphaned by a restart (resume/re-add/stale), then
                                         gcTaskWorktrees() reclaims dirs no task references anymore.
                                         GET/POST .../tasks/[taskId]/worktree exposes the git state +
-                                        rollback + integrateTask (leave-branch; open-pr/merge TBD).
+                                        rollback + integrateTask (leave-branch / open-pr via gh /
+                                        fast-forward-only merge into baseBranch). Boot-maintenance
+                                        (recover + GC) lives in loop-worktree-recovery.ts (300-line split).
                                         Step 1 of the Agent SDK plan — see docs/branch-per-task-checkpoint.md
       loop-agent-tools.ts               Step 2 (guarded tools): editFile (writeGuardedFile → checkpoint)
                                         + runVerification handler logic, kept SDK-free so the Agent SDK

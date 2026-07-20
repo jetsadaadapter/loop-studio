@@ -9,6 +9,8 @@ let dirty = "";
 let isRepo = true;
 let optIn = false;
 let wtExists = false;
+let remotes = "origin";
+let fetchFails = false;
 let fsEntries: string[] = [];
 const removedDirs: string[] = [];
 const gitCalls: string[][] = [];
@@ -39,7 +41,14 @@ vi.mock("@/core/services/loop-projects.service", () => ({
         if (args[0] === "rev-parse") return "basesha";
         if (args[0] === "status") return dirty;
         if (args[0] === "commit") return "";
+        if (args[0] === "remote") return remotes;
+        if (args[0] === "fetch") { if (fetchFails) throw new Error("non-ff"); return ""; }
+        if (args[0] === "branch" && args.includes("--show-current")) return "main";
         return "";
+    }),
+    executeGhCommand: vi.fn(async (_cwd: string, args: string[]) => {
+        gitCalls.push(["gh", ...args]);
+        return "https://github.com/x/y/pull/7";
     }),
 }));
 
@@ -78,6 +87,8 @@ beforeEach(() => {
     isRepo = true;
     wtExists = false;
     fsEntries = [];
+    remotes = "origin";
+    fetchFails = false;
     removedDirs.length = 0;
     gitCalls.length = 0;
 });
@@ -185,76 +196,6 @@ describe("rollbackTo", () => {
     });
 });
 
-describe("recoverTaskWorktrees", () => {
-    it("resumes when branch + worktree are both present", async () => {
-        setGit();
-        branchExists = true;
-        wtExists = true;
-        const { recoverTaskWorktrees } = await svc();
-        const r = await recoverTaskWorktrees();
-        expect(r.resumed).toEqual(["t1"]);
-        expect(projectsFixture[0].tasks[0].git).not.toBeNull();
-        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "add")).toBe(false);
-    });
-
-    it("re-adds the worktree when the branch is present but the dir is gone", async () => {
-        setGit();
-        branchExists = true;
-        wtExists = false;
-        const { recoverTaskWorktrees } = await svc();
-        const r = await recoverTaskWorktrees();
-        expect(r.readded).toEqual(["t1"]);
-        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "add")).toBe(true);
-        expect(projectsFixture[0].tasks[0].git).not.toBeNull();
-    });
-
-    it("clears git state when the branch is gone (stale)", async () => {
-        setGit();
-        branchExists = false;
-        const { recoverTaskWorktrees } = await svc();
-        const r = await recoverTaskWorktrees();
-        expect(r.stale).toEqual(["t1"]);
-        expect(projectsFixture[0].tasks[0].git).toBeNull();
-    });
-
-    it("skips tasks with no git state", async () => {
-        projectsFixture[0].tasks[0].git = null;
-        const { recoverTaskWorktrees } = await svc();
-        const r = await recoverTaskWorktrees();
-        expect(r).toEqual({ resumed: [], readded: [], stale: [] });
-    });
-});
-
-describe("gcTaskWorktrees", () => {
-    it("removes an orphaned dir no task references", async () => {
-        const { gcTaskWorktrees, taskWorktreeDir } = await svc();
-        fsEntries = ["ghost"]; // no task with id "ghost"
-        const r = await gcTaskWorktrees();
-        expect(r.removed).toEqual(["ghost"]);
-        expect(removedDirs).toContain(taskWorktreeDir("ghost"));
-        expect(gitCalls.some((a) => a[0] === "worktree" && a[1] === "prune")).toBe(true);
-    });
-
-    it("keeps a dir still referenced by a task's git state", async () => {
-        const { gcTaskWorktrees, taskWorktreeDir } = await svc();
-        projectsFixture[0].tasks[0].git = {
-            worktreeDir: taskWorktreeDir("t1"), branch: "loop/task-t1", baseSha: "b", checkpoints: [], integration: null,
-        };
-        fsEntries = ["t1"];
-        const r = await gcTaskWorktrees();
-        expect(r.kept).toEqual(["t1"]);
-        expect(r.removed).toEqual([]);
-        expect(removedDirs).toEqual([]);
-    });
-
-    it("no-ops when the worktrees root does not exist", async () => {
-        const { gcTaskWorktrees } = await svc();
-        fsEntries = []; // readdirSync throws → treated as empty
-        const r = await gcTaskWorktrees();
-        expect(r).toEqual({ removed: [], kept: [] });
-    });
-});
-
 describe("integrateTask", () => {
     it("records a leave-branch integration referencing the task branch", async () => {
         setGit();
@@ -264,11 +205,35 @@ describe("integrateTask", () => {
         expect(projectsFixture[0].tasks[0].git?.integration).toEqual({ mode: "leave-branch", ref: "loop/task-t1" });
     });
 
-    it("rejects not-yet-implemented modes", async () => {
+    it("open-pr pushes the branch and creates a PR", async () => {
         setGit();
         const { integrateTask } = await svc();
-        await expect(integrateTask("t1", "open-pr")).rejects.toThrow(/not implemented/);
-        await expect(integrateTask("t1", "merge")).rejects.toThrow(/not implemented/);
+        const r = await integrateTask("t1", "open-pr");
+        expect(r).toEqual({ mode: "open-pr", prUrl: "https://github.com/x/y/pull/7" });
+        expect(gitCalls.some((a) => a[0] === "push" && a.includes("loop/task-t1"))).toBe(true);
+        expect(gitCalls.some((a) => a[0] === "gh" && a[1] === "pr" && a[2] === "create")).toBe(true);
+    });
+
+    it("open-pr errors when there is no remote", async () => {
+        setGit();
+        remotes = "";
+        const { integrateTask } = await svc();
+        await expect(integrateTask("t1", "open-pr")).rejects.toThrow(/remote/);
+    });
+
+    it("merge fast-forwards the base branch", async () => {
+        setGit({ baseBranch: "main" });
+        const { integrateTask } = await svc();
+        const r = await integrateTask("t1", "merge");
+        expect(r).toEqual({ mode: "merge", ref: "main" });
+        expect(gitCalls.some((a) => a[0] === "fetch" && a.includes("loop/task-t1:main"))).toBe(true);
+    });
+
+    it("merge errors when it cannot fast-forward", async () => {
+        setGit({ baseBranch: "main" });
+        fetchFails = true;
+        const { integrateTask } = await svc();
+        await expect(integrateTask("t1", "merge")).rejects.toThrow(/fast-forward/);
     });
 
     it("throws when the task has no worktree", async () => {

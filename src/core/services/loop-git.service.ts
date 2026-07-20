@@ -19,6 +19,22 @@ export async function executeGitCommand(projectPath: string, args: string[]): Pr
     });
 }
 
+/** Run a `gh` (GitHub CLI) command in a project dir — used for open-pr integration.
+ *  Rejects (with stderr) if gh is missing, unauthenticated, or the command fails. */
+export async function executeGhCommand(projectPath: string, args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const proc = spawn("gh", args, { cwd: projectPath });
+        let out = "";
+        proc.stdout.on("data", (d) => { out += d.toString(); });
+        proc.stderr.on("data", (d) => { out += d.toString(); });
+        proc.on("error", (err) => reject(err));
+        proc.on("close", (code) => {
+            if (code === 0) resolve(out.trim());
+            else reject(new Error(out.trim() || `gh exited with code ${code}`));
+        });
+    });
+}
+
 /**
  * True only when the project directory is the ROOT of its own git repo.
  * A project nested inside another repo (e.g. a git-less folder under the

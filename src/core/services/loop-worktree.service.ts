@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import {
     executeGitCommand,
+    executeGhCommand,
     isOwnGitRepo,
     getProjects,
     saveProjects,
@@ -86,6 +87,8 @@ export async function ensureTaskWorktree(taskId: string, base?: string): Promise
     const dir = taskWorktreeDir(taskId);
     const branch = taskBranchName(taskId);
     const baseSha = await executeGitCommand(projectPath, ["rev-parse", base || "HEAD"]);
+    // The branch we cut from, for `merge` integration ("" when detached HEAD).
+    const baseBranch = base || (await executeGitCommand(projectPath, ["branch", "--show-current"]).catch(() => ""));
 
     fs.mkdirSync(worktreesRoot(), { recursive: true });
 
@@ -98,7 +101,7 @@ export async function ensureTaskWorktree(taskId: string, base?: string): Promise
         : ["worktree", "add", dir, "-b", branch, baseSha];
     await executeGitCommand(projectPath, addArgs);
 
-    const git: TaskGit = { worktreeDir: dir, branch, baseSha, checkpoints: [], integration: null };
+    const git: TaskGit = { worktreeDir: dir, branch, baseSha, baseBranch, checkpoints: [], integration: null };
     saveTaskGit(taskId, git);
     return git;
 }
@@ -161,10 +164,31 @@ export async function integrateTask(
 ): Promise<NonNullable<TaskGit["integration"]>> {
     const found = findTask(taskId);
     if (!found?.task.git) throw new Error(`No worktree for task: ${taskId}`);
-    if (mode !== "leave-branch") throw new Error(`Integration mode not implemented yet: ${mode}`);
+    const { projectPath } = found;
+    const git = found.task.git;
 
-    const integration = { mode, ref: found.task.git.branch } as const;
-    saveTaskGit(taskId, { ...found.task.git, integration });
+    // integrateTask is operator-initiated (via the worktree route), so a chosen
+    // merge is an explicit decision — the "never AUTO-merge RED/ORANGE" rule applies
+    // to the auto paths, which never call this with a destructive mode.
+    let integration: NonNullable<TaskGit["integration"]>;
+    if (mode === "leave-branch") {
+        integration = { mode, ref: git.branch };
+    } else if (mode === "open-pr") {
+        const remotes = await executeGitCommand(projectPath, ["remote"]).catch(() => "");
+        if (!remotes.trim()) throw new Error("open-pr needs a git remote; none is configured.");
+        await executeGitCommand(projectPath, ["push", "-u", "origin", git.branch]);
+        const prUrl = (await executeGhCommand(projectPath, ["pr", "create", "--head", git.branch, "--fill"])).trim();
+        integration = { mode, prUrl };
+    } else {
+        // merge: fast-forward ONLY into the base branch — never auto-resolve a
+        // divergence. `fetch . <task>:<base>` updates the base ref iff it's a FF.
+        if (!git.baseBranch) throw new Error("merge needs a known base branch (worktree predates baseBranch tracking).");
+        await executeGitCommand(projectPath, ["fetch", ".", `${git.branch}:${git.baseBranch}`])
+            .catch(() => { throw new Error(`Cannot fast-forward ${git.baseBranch} (it moved, or is checked out) — merge manually.`); });
+        integration = { mode, ref: git.baseBranch };
+    }
+
+    saveTaskGit(taskId, { ...git, integration });
     return integration;
 }
 
@@ -188,104 +212,5 @@ export async function disposeTaskWorktree(
     saveTaskGit(taskId, null);
 }
 
-async function branchExists(projectPath: string, branch: string): Promise<boolean> {
-    return executeGitCommand(projectPath, ["rev-parse", "--verify", "--quiet", branch])
-        .then(() => true)
-        .catch(() => false);
-}
-
-/**
- * Reconcile persisted task worktrees after an app restart (called on boot, like
- * recoverTmuxBridges). For each task that recorded git state:
- *  - worktree dir + branch present → resume (no-op);
- *  - branch present but worktree dir gone → re-add the worktree from the branch;
- *  - branch gone / non-git target → clear the task's git state (stale).
- * Best-effort and never throws — a recovery failure must not block boot.
- */
-export async function recoverTaskWorktrees(): Promise<{ resumed: string[]; readded: string[]; stale: string[] }> {
-    const summary = { resumed: [] as string[], readded: [] as string[], stale: [] as string[] };
-    try {
-        const projects = getProjects();
-        let changed = false;
-        for (const project of projects) {
-            for (const task of project.tasks ?? []) {
-                const git = task.git;
-                if (!git) continue;
-                const pp = project.path;
-
-                if (!(await isOwnGitRepo(pp)) || !(await branchExists(pp, git.branch))) {
-                    await executeGitCommand(pp, ["worktree", "remove", "--force", git.worktreeDir]).catch(() => {});
-                    task.git = null;
-                    changed = true;
-                    summary.stale.push(task.id);
-                    continue;
-                }
-                if (fs.existsSync(git.worktreeDir)) {
-                    summary.resumed.push(task.id);
-                    continue;
-                }
-                // Branch present but the worktree dir is gone → re-add from the branch.
-                await executeGitCommand(pp, ["worktree", "prune"]).catch(() => {});
-                try {
-                    await executeGitCommand(pp, ["worktree", "add", git.worktreeDir, git.branch]);
-                    summary.readded.push(task.id);
-                } catch {
-                    task.git = null;
-                    changed = true;
-                    summary.stale.push(task.id);
-                }
-            }
-        }
-        if (changed) saveProjects(projects);
-    } catch (e) {
-        console.error("[worktree] recovery pass failed:", e instanceof Error ? e.message : e);
-    }
-    return summary;
-}
-
-/**
- * Reclaim disk from ORPHANED worktree dirs — a dir under .antigravity/worktrees/
- * that no task's git state references (task deleted, or its git state cleared by
- * recovery). Deliberately conservative: dirs still referenced by a task (open OR
- * closed) are kept, so this never conflicts with the recovery pass and never
- * removes a branch. Disposal of a finished task's worktree is the integrate/LEARN
- * step's job, not GC's. Best-effort; never throws.
- */
-export async function gcTaskWorktrees(): Promise<{ removed: string[]; kept: string[] }> {
-    const summary = { removed: [] as string[], kept: [] as string[] };
-    const root = worktreesRoot();
-    let entries: string[];
-    try {
-        entries = fs.readdirSync(root);
-    } catch {
-        return summary; // no worktrees root yet → nothing to GC
-    }
-
-    const projects = getProjects();
-    const referenced = new Set<string>();
-    for (const project of projects) {
-        for (const task of project.tasks ?? []) {
-            if (task.git?.worktreeDir) referenced.add(task.git.worktreeDir);
-        }
-    }
-
-    for (const name of entries) {
-        const dir = path.join(root, name);
-        if (referenced.has(dir)) {
-            summary.kept.push(name);
-            continue;
-        }
-        try {
-            fs.rmSync(dir, { recursive: true, force: true });
-        } catch { /* best-effort */ }
-        summary.removed.push(name);
-    }
-
-    // Clean any stale worktree registrations the removed dirs left behind.
-    if (summary.removed.length > 0) {
-        for (const project of projects) {
-            await executeGitCommand(project.path, ["worktree", "prune"]).catch(() => {});
-        }
-    }
-    return summary;
-}
+// Boot-time worktree maintenance lives in ./loop-worktree-recovery (300-line cap).
+export { recoverTaskWorktrees, gcTaskWorktrees } from "./loop-worktree-recovery";
