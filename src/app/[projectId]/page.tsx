@@ -192,12 +192,14 @@ export default function ProjectWorkspace({ params }: ProjectWorkspaceProps) {
                     isScrolled ? "shadow-[0_4px_6px_-4px_rgba(15,23,42,0.08)]" : ""
                 }`}>
                     <WorkspaceHeader
+                        projectId={projectId}
                         project={project}
                         gitInfo={gitInfo}
                         totalCost={totalCost}
                         agents={agents}
                         viewTab={viewTab}
                         onViewTabChange={setViewTab}
+                        onConnected={loadData}
                     />
 
                     <AutoRunProgress projectId={projectId} onRefresh={loadData} />

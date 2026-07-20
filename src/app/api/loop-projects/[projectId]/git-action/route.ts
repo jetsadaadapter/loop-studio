@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getProjects, executeGitCommand, getGitInfo, isOwnGitRepo } from "@/core/services/loop-projects.service";
+import { getProjects, executeGitCommand, getGitInfo, isOwnGitRepo, isHostProject } from "@/core/services/loop-projects.service";
 
 export async function POST(req: Request, context: { params: Promise<{ projectId: string }> }) {
     try {
         const { projectId } = await context.params;
         const body = await req.json();
-        const { action, commitMessage, hash } = body;
+        const { action, commitMessage, hash, remoteUrl, initialCommit } = body;
 
         const projects = getProjects();
         const project = projects.find((p) => p.id === projectId);
@@ -13,12 +13,47 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
             return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
         }
 
+        // "init" is the ONE action valid before the project has its own repo — it
+        // creates one. Everything else requires the repo to already exist.
+        if (action === "init") {
+            if (isHostProject(project.path)) {
+                return NextResponse.json({ success: false, error: "The host app already has its own git repository." }, { status: 400 });
+            }
+            if (await isOwnGitRepo(project.path)) {
+                return NextResponse.json({ success: false, error: "This project is already a git repository." }, { status: 400 });
+            }
+            await executeGitCommand(project.path, ["init", "-b", "main"]);
+            const steps: string[] = ["Initialized an empty git repository on branch main."];
+            let warning: string | undefined;
+            if (initialCommit) {
+                try {
+                    // `git add -A` respects the project's .gitignore, so node_modules
+                    // and build output stay out of the first commit.
+                    await executeGitCommand(project.path, ["add", "-A"]);
+                    await executeGitCommand(project.path, ["commit", "-m", (typeof commitMessage === "string" && commitMessage.trim()) || "Initial commit"]);
+                    steps.push("Created the initial commit.");
+                } catch {
+                    warning = "Repository initialized, but the initial commit failed — set your git user.name / user.email, then commit from the Version Changes tab.";
+                }
+            }
+            if (typeof remoteUrl === "string" && remoteUrl.trim()) {
+                try {
+                    await executeGitCommand(project.path, ["remote", "add", "origin", remoteUrl.trim()]);
+                    steps.push(`Linked remote origin → ${remoteUrl.trim()}`);
+                } catch {
+                    warning = `${warning ? warning + " " : ""}Could not add the remote (is one already set?).`;
+                }
+            }
+            const gitInfo = await getGitInfo(project.path);
+            return NextResponse.json({ success: true, message: "Git connected.", data: { steps, gitInfo }, warning });
+        }
+
         // A project without its own git root resolves git commands against a
         // PARENT repo (e.g. a git-less folder under the host's .projects/) —
         // committing/pushing there would hit the wrong repository.
         if (!(await isOwnGitRepo(project.path))) {
             return NextResponse.json(
-                { success: false, error: "This project has no git repository of its own. Run `git init` in the project folder first." },
+                { success: false, error: "This project has no git repository of its own. Connect Git first." },
                 { status: 400 },
             );
         }
