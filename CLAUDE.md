@@ -96,6 +96,10 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         hook + maxTurns/maxBudgetUsd caps, streams to the task log, and
                                         returns a summary + git-diffed editedFiles. Registered as the
                                         `claude-sdk` adapter (lazy-imported). See docs/sdk-adapter-wiring.md
+      loop-sdk-runs.ts                  Step 3.5 durability: runAgentSdk drops a run marker
+                                        (.antigravity/agent-runs/<taskId>) while in flight and clears it on
+                                        exit; recoverSdkRuns() (boot, from instrumentation.ts) marks any
+                                        run left pending by a restart as failed so its bridge isn't stuck.
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```

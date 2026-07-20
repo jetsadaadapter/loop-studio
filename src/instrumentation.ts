@@ -12,5 +12,8 @@ export async function register() {
         // any worktree dirs no task references anymore (recovery may create some).
         const { recoverTaskWorktrees, gcTaskWorktrees } = await import("@/core/services/loop-worktree.service");
         void recoverTaskWorktrees().then(() => gcTaskWorktrees());
+        // Unstick SDK agentic runs interrupted mid-flight by the restart.
+        const { recoverSdkRuns } = await import("@/core/services/loop-sdk-runs");
+        recoverSdkRuns();
     }
 }
