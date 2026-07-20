@@ -92,16 +92,29 @@ async function fetchWithRetry(url: string, init: RequestInit, attempts = 5): Pro
     return res as Response;
 }
 
+/** Tag for LLM errors caused by capacity limits (overload / rate limit / quota) —
+ *  distinct from a bug or a bad key. These are worth handing off to the keyless
+ *  IDE bridge instead of failing the task, since a different fulfiller can finish
+ *  the same work without the exhausted key. */
+function capacityError(message: string): Error {
+    return Object.assign(new Error(message), { llmErrorKind: "capacity" as const });
+}
+
+/** True when an error came from `callLoopLlm` hitting a provider capacity limit. */
+export function isLlmCapacityError(e: unknown): boolean {
+    return !!(e && typeof e === "object" && (e as { llmErrorKind?: string }).llmErrorKind === "capacity");
+}
+
 function parseLlmError(provider: LlmProvider, status: number, bodyText: string): Error {
     try {
         const parsed = JSON.parse(bodyText);
         const apiMessage = provider === "gemini" ? parsed.error?.message : parsed.error?.message;
-        
+
         if (status === 503 || (apiMessage && (apiMessage.includes("experiencing high demand") || apiMessage.includes("UNAVAILABLE") || apiMessage.includes("temporary")))) {
-            return new Error("The AI service is currently experiencing extremely high demand. Please try again in a few moments, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
+            return capacityError("The AI service is currently experiencing extremely high demand. Please try again in a few moments, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
         }
         if (status === 429 || (apiMessage && (apiMessage.includes("quota") || apiMessage.includes("limit") || apiMessage.includes("exhausted") || apiMessage.includes("too many requests")))) {
-            return new Error("API rate limit or quota exceeded. Please wait a moment before trying again, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
+            return capacityError("API rate limit or quota exceeded. Please wait a moment before trying again, or toggle the IDE Agent Bridge (⚡) in the bottom-left of the chat panel to run locally.");
         }
         if (status === 401 || status === 403 || (apiMessage && (apiMessage.includes("API key") || apiMessage.includes("invalid key") || apiMessage.includes("not found") || apiMessage.includes("unauthorized")))) {
             return new Error("Invalid API key. Please check your API key settings in the AI Team Manager, or toggle the IDE Agent Bridge (⚡) to run locally.");

@@ -12,6 +12,8 @@ const {
     getAgentsMock,
     callAgentLLMMock,
     applyFileEditsMock,
+    writeBridgeRequestMock,
+    autoFulfillBridgeMock,
 } = vi.hoisted(() => ({
     getProjectsMock: vi.fn(),
     runProjectCommandMock: vi.fn(),
@@ -22,6 +24,8 @@ const {
     getAgentsMock: vi.fn(),
     callAgentLLMMock: vi.fn(),
     applyFileEditsMock: vi.fn(),
+    writeBridgeRequestMock: vi.fn(),
+    autoFulfillBridgeMock: vi.fn(),
 }));
 
 vi.mock("fs", () => ({ default: { appendFileSync: () => {} } }));
@@ -31,7 +35,12 @@ vi.mock("@/core/services/loop-projects.service", () => ({
     applyFileEdits: applyFileEditsMock,
     runProjectCommand: runProjectCommandMock,
     getGitInfo: () => ({ branch: "main", commit: "abc1234", modifiedFiles: [] }),
+    writeBridgeRequest: writeBridgeRequestMock,
 }));
+
+// isLlmCapacityError is the REAL guard (pure marker check) — the tests throw a
+// tagged error to exercise it. autoFulfillBridge is dynamically imported.
+vi.mock("@/core/services/loop-bridge-worker.service", () => ({ autoFulfillBridge: autoFulfillBridgeMock }));
 
 vi.mock("@/core/services/loop-worktree.service", () => ({
     resolveTaskCwd: resolveTaskCwdMock,
@@ -78,6 +87,7 @@ beforeEach(() => {
     runProjectCommandMock.mockResolvedValue(0);
     callAgentLLMMock.mockResolvedValue({ text: "ok", input: 0, output: 0, cost: 0 });
     applyFileEditsMock.mockReturnValue({ written: [], blocked: [] });
+    writeBridgeRequestMock.mockReturnValue("bridge-xyz");
 });
 
 const CORE_AGENTS = [
@@ -101,6 +111,46 @@ describe("runCollaborationLoop — Developer step output contract", () => {
         const devPrompt = callAgentLLMMock.mock.calls[1][1] as string;
         expect(devPrompt).toContain("<file_edit path=");
         expect(devPrompt).toContain("src/App.tsx");
+    });
+});
+
+describe("runCollaborationLoop — LLM capacity handoff to the IDE bridge", () => {
+    function capacityError(): Error {
+        return Object.assign(new Error("API rate limit or quota exceeded."), { llmErrorKind: "capacity" });
+    }
+
+    beforeEach(() => {
+        getProjectsMock.mockReturnValue([{ id: "p1", tasks: [{ id: "t1", targetFiles: ["src/App.tsx"] }] }]);
+        getAgentsMock.mockReturnValue(CORE_AGENTS);
+        autoFulfillBridgeMock.mockResolvedValue(undefined); // async in real code — must be awaitable/.catch-able
+    });
+
+    it("hands off to the bridge (not failed) when the LLM hits a capacity limit", async () => {
+        callAgentLLMMock.mockRejectedValueOnce(capacityError());
+
+        const r = await runCollaborationLoop("p1", "t1", "/repo", llm, "build the app");
+
+        // A collaborate bridge request is queued and auto-fulfill kicked off.
+        expect(writeBridgeRequestMock).toHaveBeenCalledWith(
+            expect.objectContaining({ taskId: "t1", projectId: "p1", requestType: "collaborate", prompt: "build the app" }),
+        );
+        expect(autoFulfillBridgeMock).toHaveBeenCalledWith("t1", "bridge-xyz");
+        // Task is "running" (bridge working), NOT "failed".
+        expect(updateStatusMock).toHaveBeenCalledWith("p1", "t1", "running", "BUILD");
+        expect(updateStatusMock).not.toHaveBeenCalledWith("p1", "t1", "failed", "PLAN");
+        expect(r.bridged).toBe(true);
+        expect(r.success).toBe(false);
+    });
+
+    it("still fails for a non-capacity error (real bug), with no bridge handoff", async () => {
+        callAgentLLMMock.mockRejectedValueOnce(new Error("TypeError: undefined is not a function"));
+
+        const r = await runCollaborationLoop("p1", "t1", "/repo", llm, "build the app");
+
+        expect(writeBridgeRequestMock).not.toHaveBeenCalled();
+        expect(updateStatusMock).toHaveBeenCalledWith("p1", "t1", "failed", "PLAN");
+        expect(r.bridged).toBeUndefined();
+        expect(r.success).toBe(false);
     });
 });
 
