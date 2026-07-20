@@ -80,6 +80,58 @@ function pathStem(p: string): string {
     return dir === "." ? base : `${dir}/${base}`;
 }
 
+export interface EditPolicyOptions {
+    /** QA-only: allow writing test/spec/snapshot files. */
+    allowTestFiles?: boolean;
+    /** Confine edits to the task's declared targetFiles (empty = no restriction). */
+    allowedPaths?: string[];
+}
+
+export interface EditDecision {
+    decision: "allow" | "deny";
+    /** Why an edit was refused (present only when denied). */
+    reason?: string;
+    /** How the path was classified (config/test/ordinary). */
+    kind: "config" | "test" | null;
+}
+
+/**
+ * Pure policy check for a single project-relative edit path — the shared source
+ * of truth for the guard. `applyFileEdits` calls this before writing, and the
+ * Agent SDK PreToolUse hook will call the same function at the tool-call boundary
+ * (see docs/guarded-tools-pretooluse.md) so the two can never drift. No fs, no
+ * path-traversal check (that needs the resolved project root — it stays in
+ * applyFileEdits).
+ */
+export function evaluateEdit(relativePath: string, options: EditPolicyOptions = {}): EditDecision {
+    const kind = classifyProtectedPath(relativePath);
+
+    if (kind === "config") {
+        return { decision: "deny", reason: "verifier/build configuration is protected from AI edits", kind };
+    }
+    if (kind === "test" && !options.allowTestFiles) {
+        return { decision: "deny", reason: "test files are protected from the implementer (only QA may write them)", kind };
+    }
+
+    // Scope guard: keep an agent inside the task's declared targetFiles so a
+    // wandering edit (e.g. a QA test for an unrelated component) can't land. An
+    // in-scope target's test/spec/snapshot sibling is allowed for QA.
+    if (options.allowedPaths && options.allowedPaths.length > 0) {
+        const rel = normalizeRel(relativePath);
+        const allowed = options.allowedPaths.map(normalizeRel);
+        const inScope =
+            allowed.includes(rel) ||
+            (kind === "test" &&
+                !!options.allowTestFiles &&
+                allowed.some((a) => pathStem(a) === pathStem(rel)));
+        if (!inScope) {
+            return { decision: "deny", reason: `outside task scope (targetFiles: ${allowed.join(", ")})`, kind };
+        }
+    }
+
+    return { decision: "allow", kind };
+}
+
 // File Edits Parser for Claude Chat Responses.
 // Defaults to the strict implementer policy (no test files, no config) so an
 // unaudited caller can never silently edit the gate.
@@ -107,31 +159,13 @@ export function applyFileEdits(
             continue;
         }
 
-        const kind = classifyProtectedPath(relativePath);
-        if (kind === "config") {
-            blocked.push({ path: relativePath, reason: "verifier/build configuration is protected from AI edits" });
+        const verdict = evaluateEdit(relativePath, {
+            allowTestFiles: options.allowTestFiles,
+            allowedPaths: options.allowedPaths,
+        });
+        if (verdict.decision === "deny") {
+            blocked.push({ path: relativePath, reason: verdict.reason! });
             continue;
-        }
-        if (kind === "test" && !options.allowTestFiles) {
-            blocked.push({ path: relativePath, reason: "test files are protected from the implementer (only QA may write them)" });
-            continue;
-        }
-
-        // Scope guard: keep an agent inside the task's declared targetFiles so a
-        // wandering edit (e.g. a QA test for an unrelated component) can't land.
-        // An in-scope target's test/spec/snapshot sibling is allowed for QA.
-        if (options.allowedPaths && options.allowedPaths.length > 0) {
-            const rel = normalizeRel(relativePath);
-            const allowed = options.allowedPaths.map(normalizeRel);
-            const inScope =
-                allowed.includes(rel) ||
-                (kind === "test" &&
-                    !!options.allowTestFiles &&
-                    allowed.some((a) => pathStem(a) === pathStem(rel)));
-            if (!inScope) {
-                blocked.push({ path: relativePath, reason: `outside task scope (targetFiles: ${allowed.join(", ")})` });
-                continue;
-            }
         }
 
         try {
