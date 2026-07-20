@@ -5,15 +5,49 @@ import os from "os";
 import { FolderActionSchema } from "@/core/validators/loop-projects.validator";
 
 // Lists sub-directories of an absolute path so the Register/Bootstrap modals can
-// browse the server's local filesystem instead of hand-typing a path. Guarded by
-// the app auth proxy + the Loop Studio (super-admin) route guard.
+// browse the server's local filesystem instead of hand-typing a path.
+//
+// This is NOT auth-gated — Loop Studio has no auth (§3). Its protection is the
+// same as the rest of the API: bound to localhost, with src/proxy.ts enforcing a
+// Host allowlist (defeats DNS rebinding) and a same-origin check on the POST
+// mutations below. The GET listing is intentional (the folder picker) and exposes
+// no more of the filesystem than the local user's own shell already can.
+//
+// LOOP_BROWSE_ROOT (optional) confines the picker to one subtree — set it when
+// running on a shared machine to stop the picker from wandering outside a
+// workspace dir. Unset = browse anywhere under the user's account (the default).
+
+/** Resolved LOOP_BROWSE_ROOT, or null when unset (no confinement). */
+export function browseRootFromEnv(): string | null {
+    const raw = process.env.LOOP_BROWSE_ROOT?.trim();
+    return raw ? path.resolve(raw) : null;
+}
+
+/** Reject null bytes and (when a root is configured) any path outside it.
+ *  Throws Error — callers turn it into a 400/403. Pure, so it's unit-testable. */
+export function assertBrowsePathAllowed(target: string, root: string | null): void {
+    if (target.includes("\0")) throw new Error("Invalid path.");
+    if (!root) return;
+    const resolved = path.resolve(target);
+    if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+        throw new Error("Path is outside the allowed browse root (LOOP_BROWSE_ROOT).");
+    }
+}
+
 export async function GET(req: Request) {
     try {
+        const root = browseRootFromEnv();
         const requested = new URL(req.url).searchParams.get("path")?.trim();
-        const current = requested && requested.length > 0 ? requested : os.homedir();
+        // Default start: the configured root, else the user's home dir.
+        const current = requested && requested.length > 0 ? requested : (root ?? os.homedir());
 
         if (!path.isAbsolute(current)) {
             return NextResponse.json({ success: false, error: "Path must be absolute." }, { status: 400 });
+        }
+        try {
+            assertBrowsePathAllowed(current, root);
+        } catch (e) {
+            return NextResponse.json({ success: false, error: e instanceof Error ? e.message : "Path not allowed." }, { status: 403 });
         }
         if (!fs.existsSync(current) || !fs.statSync(current).isDirectory()) {
             return NextResponse.json({ success: false, error: "Directory does not exist." }, { status: 400 });
@@ -31,10 +65,12 @@ export async function GET(req: Request) {
             .map((entry) => ({ name: entry.name, path: path.join(current, entry.name) }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        const parent = path.dirname(current);
+        // No "up" link past the filesystem root or the configured browse root.
+        const parentDir = path.dirname(current);
+        const atRoot = parentDir === current || (root !== null && current === root);
         return NextResponse.json({
             success: true,
-            data: { current, parent: parent === current ? null : parent, dirs },
+            data: { current, parent: atRoot ? null : parentDir, dirs },
         });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -52,6 +88,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
         }
         const input = parsed.data;
+
+        // Every mutation operates on input.path (and, for mkdir/rename, a child of
+        // it), so confining input.path to the browse root confines the whole op.
+        const root = browseRootFromEnv();
+        try {
+            assertBrowsePathAllowed(input.path, root);
+        } catch (e) {
+            return NextResponse.json({ success: false, error: e instanceof Error ? e.message : "Path not allowed." }, { status: 403 });
+        }
 
         if (input.action === "mkdir") {
             const target = path.join(input.path, input.name);
