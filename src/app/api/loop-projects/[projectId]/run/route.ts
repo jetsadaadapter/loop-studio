@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
-import { getProjects, runProjectCommand, isHostProject, extractPreviewPort, runLogPath } from "@/core/services/loop-projects.service";
+import { getProjects, runProjectCommand, isHostProject, extractPreviewPort, runLogPath, stopProjectCommand } from "@/core/services/loop-projects.service";
+import { killProcessOnPort } from "@/core/services/loop-port.service";
 import fs from "fs";
 import path from "path";
+
+/** Only fall back to port-killing for a localhost preview URL — never act on a
+ *  port number derived from a remote host. */
+function localPreviewPort(previewUrl?: string): number | undefined {
+    if (!previewUrl) return undefined;
+    try {
+        const { hostname } = new URL(previewUrl);
+        if (hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "[::1]") return undefined;
+    } catch {
+        return undefined;
+    }
+    return extractPreviewPort(previewUrl);
+}
 
 type RunType = "build" | "lint" | "test" | "e2e" | "dev";
 
@@ -94,6 +108,34 @@ export async function POST(
         });
 
         return NextResponse.json({ success: true, message: `Started command: ${cmd} ${args.join(" ")}` });
+    } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
+    }
+}
+
+// Stop this project's Live Run (the `run-<projectId>` process — usually the dev
+// server). `stopped` is false when nothing was tracked (already down, or started
+// before an app restart cleared the in-memory process registry).
+export async function DELETE(
+    _req: Request,
+    context: { params: Promise<{ projectId: string }> },
+) {
+    try {
+        const { projectId } = await context.params;
+        const project = getProjects().find((p) => p.id === projectId);
+        if (!project) {
+            return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+        }
+        // First try the tracked process; if it isn't in the in-memory registry
+        // (e.g. started before an app restart), fall back to killing whatever is
+        // listening on the project's own localhost preview port.
+        let stopped = stopProjectCommand(`run-${projectId}`);
+        if (!stopped) {
+            const port = localPreviewPort(project.previewUrl);
+            if (port) stopped = killProcessOnPort(port);
+        }
+        return NextResponse.json({ success: true, stopped });
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         return NextResponse.json({ success: false, error: message }, { status: 500 });

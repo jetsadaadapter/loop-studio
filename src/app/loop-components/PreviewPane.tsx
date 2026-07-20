@@ -77,6 +77,7 @@ export function PreviewPane({
                     onLoadUrl={p.loadUrl}
                     onReload={p.reload}
                     onRetry={p.retry}
+                    onStopServer={p.stopServer}
                     reloadKey={p.reloadKey}
                     reachable={p.reachable}
                     apiCapable={p.apiCapable}

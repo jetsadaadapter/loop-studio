@@ -198,6 +198,18 @@ function killProcessTree(proc: ChildProcess): void {
     proc.kill();
 }
 
+/** Stop a running command (dev server, build, …) tracked under `processKey`,
+ *  killing its whole process group. Returns true when a live process was found
+ *  and signalled, false when nothing was tracked (already stopped, or started
+ *  before an app restart that cleared the in-memory registry). */
+export function stopProjectCommand(processKey: string): boolean {
+    const proc = ACTIVE_PROCESSES.get(processKey);
+    if (!proc) return false;
+    killProcessTree(proc);
+    ACTIVE_PROCESSES.delete(processKey);
+    return true;
+}
+
 // Process Runner
 export function runProjectCommand(
     taskId: string,
