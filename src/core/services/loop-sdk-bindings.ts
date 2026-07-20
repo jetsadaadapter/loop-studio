@@ -1,4 +1,4 @@
-import { tool, createSdkMcpServer, type PreToolUseHookInput } from "@anthropic-ai/claude-agent-sdk";
+import { tool, createSdkMcpServer, type HookInput } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
 import { editFile, runVerification, type AgentToolContext } from "./loop-agent-tools";
 import { evaluateToolCall, type ToolGuardContext } from "./loop-pretooluse-guard";
@@ -49,8 +49,12 @@ export function createLoopToolServer(ctx: AgentToolContext) {
  * (deny) when headless — auto-fulfill has no operator to review the request.
  */
 export function createPreToolUseHook(ctx: ToolGuardContext, opts: { headless?: boolean } = {}) {
-    return async (input: PreToolUseHookInput) => {
-        const decision = evaluateToolCall(input.tool_name, (input.tool_input ?? {}) as Record<string, unknown>, ctx);
+    // Typed as the broad HookInput union (what HookCallback requires); at runtime
+    // the SDK only invokes this for PreToolUse, which carries tool_name/tool_input.
+    return async (input: HookInput) => {
+        const toolName = (input as { tool_name?: string }).tool_name ?? "";
+        const toolInput = (input as { tool_input?: unknown }).tool_input ?? {};
+        const decision = evaluateToolCall(toolName, toolInput as Record<string, unknown>, ctx);
         const permissionDecision =
             decision.decision === "ask" && opts.headless ? "deny" : decision.decision;
         return {
