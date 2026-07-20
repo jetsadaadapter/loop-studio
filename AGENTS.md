@@ -60,7 +60,10 @@ it's leftover — flag it for removal rather than building on it.
 - No auth system — every route is public to the local user. `src/proxy.ts` sets
   CSP/security headers (per-request nonce) and rejects cross-site requests
   (Host allowlist + same-origin check on state-changing methods; extend hosts
-  via `LOOP_ALLOWED_HOSTS`). It does not authenticate anyone.
+  via `LOOP_ALLOWED_HOSTS`). It does not authenticate anyone. The
+  Register/Bootstrap folder picker (`/api/loop-projects/browse`) browses the
+  local filesystem by design; it can be confined to one subtree with
+  `LOOP_BROWSE_ROOT` (unset = anywhere under the user's account).
 - No global notification system — `NotificationProvider`/`NotificationPanel`
   were removed along with the App Store backend they polled.
 - `.claude/hooks/pre-tool-use.sh` still blocks edits to `src/proxy.ts` that add
