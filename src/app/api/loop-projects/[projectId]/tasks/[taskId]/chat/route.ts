@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, applyFileEdits, writeBridgeRequest } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, applyFileEdits, writeBridgeRequest, taskLogPath } from "@/core/services/loop-projects.service";
 import { resolveLoopLlm, callLoopLlm, type LlmContent, type LlmImageBlock } from "@/core/services/loop-llm.service";
 import { autoFulfillBridge } from "@/core/services/loop-bridge-worker.service";
 import type { ChatMessage, ChatAttachment } from "@/core/interfaces/loop-projects.interface";
@@ -167,7 +167,7 @@ Please address the user request and provide code edits if needed.`;
         const { written: editedFiles, blocked } = applyFileEdits(project.path, responseContent, { allowTestFiles: true, allowedPaths: task.targetFiles });
 
         // Log changes into task logs
-        const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
+        const logFilePath = taskLogPath(taskId);
         fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
 
         let editLog = "";

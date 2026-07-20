@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getProjects, saveProjects, applyFileEdits } from "./loop-projects.service";
 import { readBridgeRequest, writeBridgeResponse, markBridgeConsumed } from "./loop-bridge.service";
+import { taskLogPath } from "./loop-logs.service";
 import type { ChatMessage } from "@/core/interfaces/loop-projects.interface";
 
 // Finalize a bridged reply: apply its <file_edit> blocks through the GUARDED
@@ -86,7 +87,7 @@ export function finalizeBridgeReply(
     saveProjects(projects);
 
     if (editedFiles.length > 0 || blocked.length > 0) {
-        const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
+        const logFilePath = taskLogPath(taskId);
         try {
             fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
             if (editedFiles.length > 0) {

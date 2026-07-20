@@ -1,7 +1,7 @@
 import fs from "fs";
-import path from "path";
 import { getProjects, applyFileEdits, runProjectCommand, getGitInfo } from "@/core/services/loop-projects.service";
 import { resolveTaskCwd, checkpoint } from "@/core/services/loop-worktree.service";
+import { taskLogPath } from "@/core/services/loop-logs.service";
 import { getAgents } from "@/core/services/loop-agents.service";
 import { knowledgeForPrompt } from "@/core/services/loop-knowledge.service";
 import type { TaskStage } from "@/core/interfaces/loop-projects.interface";
@@ -33,7 +33,7 @@ export async function runCollaborationLoop(
     llm: ResolvedLlm,
     instructions: string,
 ): Promise<CollaborationResult> {
-    const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
+    const logFilePath = taskLogPath(taskId);
 
     const writeLog = (text: string) => {
         fs.appendFileSync(logFilePath, text + "\n");

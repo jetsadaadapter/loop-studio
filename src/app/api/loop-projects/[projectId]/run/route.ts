@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, runProjectCommand, isHostProject, extractPreviewPort } from "@/core/services/loop-projects.service";
+import { getProjects, runProjectCommand, isHostProject, extractPreviewPort, runLogPath } from "@/core/services/loop-projects.service";
 import fs from "fs";
 import path from "path";
 
@@ -46,7 +46,7 @@ export async function POST(
         const processKey = `run-${projectId}`;
 
         // Setup log path
-        const logFilePath = path.join(process.cwd(), ".antigravity", `log-run-${projectId}.txt`);
+        const logFilePath = runLogPath(projectId);
         fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
 
         // Initialize log file with a header line
