@@ -22,7 +22,9 @@ function assistantText(message: unknown): string {
 export async function runAgentSdk(args: {
     taskId: string;
     projectId: string;
-    bridgeId: string;
+    /** Bridge-driven runs pass this for the durability marker; the collaboration
+     *  pipeline delegates without a bridge, so it's optional (no marker then). */
+    bridgeId?: string;
     prompt: string;
     onLog: (s: string) => void;
 }): Promise<SdkRunResult> {
@@ -37,9 +39,9 @@ export async function runAgentSdk(args: {
     const cwd = git.worktreeDir;
     const targetFiles = task.targetFiles ?? [];
 
-    // Drop a durability marker so a restart mid-run can unstick the bridge
-    // (recoverSdkRuns); cleared in the finally below on any exit.
-    writeRunMeta({ taskId, projectId, bridgeId, worktreeDir: cwd, startedAt: new Date().toISOString() });
+    // Drop a durability marker (bridge-driven runs only) so a restart mid-run can
+    // unstick the bridge (recoverSdkRuns); cleared in the finally below on any exit.
+    if (bridgeId) writeRunMeta({ taskId, projectId, bridgeId, worktreeDir: cwd, startedAt: new Date().toISOString() });
     try {
 
     // One agent both implements and tests here, so allow test files; config stays
@@ -86,6 +88,6 @@ export async function runAgentSdk(args: {
 
         return { summary: summary || "(no summary)", editedFiles };
     } finally {
-        clearRunMeta(taskId);
+        if (bridgeId) clearRunMeta(taskId);
     }
 }
