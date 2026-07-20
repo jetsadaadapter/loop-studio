@@ -133,6 +133,44 @@ export function evaluateEdit(relativePath: string, options: EditPolicyOptions = 
 }
 
 // File Edits Parser for Claude Chat Responses.
+/**
+ * Write ONE project-relative file through the full guard: path-traversal check,
+ * then the shared evaluateEdit policy (config/test/scope), then the write. The
+ * single guarded-write primitive — used both by applyFileEdits (for `<file_edit>`
+ * blocks) and by the Agent SDK `edit_file` tool.
+ */
+export function writeGuardedFile(
+    projectPath: string,
+    relativePath: string,
+    content: string,
+    options: EditPolicyOptions = {},
+): { written?: string; blocked?: { path: string; reason: string } } {
+    const projectRoot = path.resolve(projectPath);
+    const fullPath = path.resolve(projectRoot, relativePath);
+
+    // The path comes from LLM/bridge output — never let it escape the registered
+    // project directory (e.g. via "../" or an absolute path).
+    if (!fullPath.startsWith(projectRoot + path.sep)) {
+        console.error(`Refused file edit outside project root: ${relativePath}`);
+        return { blocked: { path: relativePath, reason: "resolves outside the project root" } };
+    }
+
+    const verdict = evaluateEdit(relativePath, options);
+    if (verdict.decision === "deny") {
+        return { blocked: { path: relativePath, reason: verdict.reason! } };
+    }
+
+    try {
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, content, "utf8");
+        return { written: relativePath };
+    } catch (e) {
+        console.error(`Failed to write file ${relativePath}:`, e);
+        return { blocked: { path: relativePath, reason: e instanceof Error ? e.message : String(e) } };
+    }
+}
+
+// File Edits Parser for Claude Chat Responses.
 // Defaults to the strict implementer policy (no test files, no config) so an
 // unaudited caller can never silently edit the gate.
 export function applyFileEdits(
@@ -144,38 +182,14 @@ export function applyFileEdits(
     let match;
     const written: string[] = [];
     const blocked: { path: string; reason: string }[] = [];
-    const projectRoot = path.resolve(projectPath);
 
     while ((match = fileRegex.exec(content)) !== null) {
-        const relativePath = match[1];
-        const fileContent = match[2];
-        const fullPath = path.resolve(projectRoot, relativePath);
-
-        // The path comes from LLM/bridge output — never let it escape the
-        // registered project directory (e.g. via "../" or an absolute path).
-        if (!fullPath.startsWith(projectRoot + path.sep)) {
-            blocked.push({ path: relativePath, reason: "resolves outside the project root" });
-            console.error(`Refused file edit outside project root: ${relativePath}`);
-            continue;
-        }
-
-        const verdict = evaluateEdit(relativePath, {
+        const result = writeGuardedFile(projectPath, match[1], match[2], {
             allowTestFiles: options.allowTestFiles,
             allowedPaths: options.allowedPaths,
         });
-        if (verdict.decision === "deny") {
-            blocked.push({ path: relativePath, reason: verdict.reason! });
-            continue;
-        }
-
-        try {
-            fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-            fs.writeFileSync(fullPath, fileContent, "utf8");
-            written.push(relativePath);
-        } catch (e) {
-            blocked.push({ path: relativePath, reason: e instanceof Error ? e.message : String(e) });
-            console.error(`Failed to write file ${relativePath}:`, e);
-        }
+        if (result.written) written.push(result.written);
+        if (result.blocked) blocked.push(result.blocked);
     }
 
     return { written, blocked };

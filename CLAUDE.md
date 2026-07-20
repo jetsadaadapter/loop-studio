@@ -75,6 +75,11 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         GET/POST .../tasks/[taskId]/worktree exposes the git state +
                                         rollback + integrateTask (leave-branch; open-pr/merge TBD).
                                         Step 1 of the Agent SDK plan — see docs/branch-per-task-checkpoint.md
+      loop-agent-tools.ts               Step 2 (guarded tools): editFile (writeGuardedFile → checkpoint)
+                                        + runVerification handler logic, kept SDK-free so the Agent SDK
+                                        adapter can wrap them with tool()/PreToolUse later. The shared
+                                        guard is evaluateEdit/writeGuardedFile in loop-file-guards.ts —
+                                        see docs/guarded-tools-pretooluse.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```
