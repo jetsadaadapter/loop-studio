@@ -69,8 +69,8 @@ export function WorktreePanel({ projectId, taskId }: WorktreePanelProps) {
             <div className="text-xs text-slate-500 font-sans leading-relaxed">
                 <p className="font-semibold text-slate-700">No task worktree</p>
                 <p className="mt-1">
-                    This project edits its working tree directly. Enable <span className="font-mono text-slate-600">useWorktree</span> on
-                    the project to isolate each task on its own <span className="font-mono text-slate-600">loop/task-*</span> branch with checkpoints.
+                    This project edits its working tree directly. Turn on <span className="font-medium text-slate-700">“Isolate tasks in a git worktree”</span> in
+                    the project&apos;s Edit dialog to give each task its own <span className="font-mono text-slate-600">loop/task-*</span> branch with checkpoints, then run the task again.
                 </p>
             </div>
         );

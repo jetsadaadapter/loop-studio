@@ -65,6 +65,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ projectId
             if (input.autoAgent) project.autoAgent = input.autoAgent;
             else delete project.autoAgent;
         }
+        if (input.useWorktree !== undefined) project.useWorktree = input.useWorktree;
 
         project.updatedAt = new Date().toISOString();
         saveProjects(projects);
