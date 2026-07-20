@@ -10,6 +10,8 @@ const {
     appendHistoryMock,
     updateStatusMock,
     getAgentsMock,
+    callAgentLLMMock,
+    applyFileEditsMock,
 } = vi.hoisted(() => ({
     getProjectsMock: vi.fn(),
     runProjectCommandMock: vi.fn(),
@@ -18,15 +20,17 @@ const {
     appendHistoryMock: vi.fn(),
     updateStatusMock: vi.fn(),
     getAgentsMock: vi.fn(),
+    callAgentLLMMock: vi.fn(),
+    applyFileEditsMock: vi.fn(),
 }));
 
 vi.mock("fs", () => ({ default: { appendFileSync: () => {} } }));
 
 vi.mock("@/core/services/loop-projects.service", () => ({
     getProjects: getProjectsMock,
-    applyFileEdits: vi.fn(),
+    applyFileEdits: applyFileEditsMock,
     runProjectCommand: runProjectCommandMock,
-    getGitInfo: vi.fn(),
+    getGitInfo: () => ({ branch: "main", commit: "abc1234", modifiedFiles: [] }),
 }));
 
 vi.mock("@/core/services/loop-worktree.service", () => ({
@@ -40,9 +44,9 @@ vi.mock("@/core/services/loop-knowledge.service", () => ({ knowledgeForPrompt: (
 // Only appendHistoryMessage/updateTaskStatus are exercised by the delegation
 // branch; the rest are stubbed so the module's named imports still resolve.
 vi.mock("@/core/services/loop-collaboration.helpers", () => ({
-    callAgentLLM: vi.fn(),
+    callAgentLLM: callAgentLLMMock,
     logBlockedEdits: vi.fn(),
-    executeGitDiff: vi.fn(),
+    executeGitDiff: vi.fn().mockResolvedValue(""),
     appendHistoryMessage: appendHistoryMock,
     updateTaskStatus: updateStatusMock,
     MAX_FIX_ATTEMPTS: 2,
@@ -72,6 +76,32 @@ beforeEach(() => {
     resolveTaskCwdMock.mockResolvedValue("/wt");
     runAgentSdkMock.mockResolvedValue({ summary: "did the thing", editedFiles: ["src/a.ts"] });
     runProjectCommandMock.mockResolvedValue(0);
+    callAgentLLMMock.mockResolvedValue({ text: "ok", input: 0, output: 0, cost: 0 });
+    applyFileEditsMock.mockReturnValue({ written: [], blocked: [] });
+});
+
+const CORE_AGENTS = [
+    { id: "agent-somchai", systemPrompt: "architect" },
+    { id: "agent-somsri", systemPrompt: "developer" },
+    { id: "agent-wichai", systemPrompt: "qa" },
+    { id: "agent-preecha", systemPrompt: "auditor" },
+];
+
+describe("runCollaborationLoop — Developer step output contract", () => {
+    it("tells the Developer to reply with <file_edit> blocks scoped to the task's targetFiles", async () => {
+        getProjectsMock.mockReturnValue([
+            { id: "p1", tasks: [{ id: "t1", targetFiles: ["src/App.tsx"] }] },
+        ]);
+        getAgentsMock.mockReturnValue(CORE_AGENTS);
+
+        await runCollaborationLoop("p1", "t1", "/repo", llm, "build the app");
+
+        // STEP 2 (Developer) is the 2nd callAgentLLM call; its system prompt (arg 1)
+        // must state the <file_edit> output contract, or the maker writes nothing.
+        const devPrompt = callAgentLLMMock.mock.calls[1][1] as string;
+        expect(devPrompt).toContain("<file_edit path=");
+        expect(devPrompt).toContain("src/App.tsx");
+    });
 });
 
 describe("runCollaborationLoop — Agent SDK delegation branch", () => {
