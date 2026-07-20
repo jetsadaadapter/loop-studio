@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { subscribeToLogs } from "@/core/services/loop-projects.service";
+import { subscribeToLogs, taskLogPath } from "@/core/services/loop-projects.service";
 import fs from "fs";
-import path from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +10,9 @@ export async function GET(
 ) {
     try {
         const { taskId } = await context.params;
-        const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
+        // taskLogPath runs taskId through assertSafeStoreId — a crafted id can't
+        // traverse out of .antigravity to read an arbitrary file.
+        const logFilePath = taskLogPath(taskId);
 
         const encoder = new TextEncoder();
         const stream = new ReadableStream({

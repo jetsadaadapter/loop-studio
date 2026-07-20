@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand, isHostProject, allocatePreviewPort } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject, allocatePreviewPort, taskLogPath } from "@/core/services/loop-projects.service";
 import type { LoopProject, ProjectTemplate } from "@/core/interfaces/loop-projects.interface";
 import { RegisterProjectSchema, BootstrapProjectSchema } from "@/core/validators/loop-projects.validator";
 import fs from "fs";
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
             let logBuffer = `[Bootstrap] Starting project generation in ${parentDir}...\n`;
             logBuffer += `[Bootstrap] Command: ${bootstrapCmd} ${args.join(" ")}\n\n`;
 
-            const logFilePath = path.join(process.cwd(), ".antigravity", `log-${tempProjectId}.txt`);
+            const logFilePath = taskLogPath(tempProjectId);
             fs.writeFileSync(logFilePath, logBuffer, "utf8");
 
             // Execute command in parentDir so create CLI can make folderName

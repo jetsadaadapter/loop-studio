@@ -182,10 +182,10 @@ export function getSafetyNets(tier: RiskTier): string[] {
     }
 }
 
-// Commands run through a shell (shell: true), so proc.pid is the shell — killing
-// it alone leaves the actual command (vitest, next dev, …) running. Spawning
-// detached puts the shell and its children in their own process group, which
-// can then be killed as a unit via the negative-pid form.
+// A command (npm/npx/git) may itself fork children (vitest, next dev, …), so
+// killing proc.pid alone can leave them running. Spawning detached puts the
+// command and its children in their own process group, which can then be killed
+// as a unit via the negative-pid form.
 function killProcessTree(proc: ChildProcess): void {
     if (proc.pid) {
         try {
@@ -222,8 +222,13 @@ export function runProjectCommand(
         const childEnv = { ...process.env, ...extraEnv };
         delete (childEnv as Record<string, string | undefined>).NODE_ENV;
 
-        // detached: own process group, so killProcessTree can take out shell + children
-        const proc = spawn(command, args, { cwd: projectPath, shell: true, env: childEnv, detached: true });
+        // shell:false — the command (npm/npx/git/…) is executed directly via PATH
+        // lookup with args passed as a discrete argv, so a value that ever reaches
+        // `args` can never be interpreted as shell syntax (command injection).
+        // Node resolves the bare binary against PATH without a shell here; the other
+        // spawners in this codebase (bridge worker, git service) run the same way.
+        // detached: own process group, so killProcessTree can take out the whole tree.
+        const proc = spawn(command, args, { cwd: projectPath, shell: false, env: childEnv, detached: true });
         ACTIVE_PROCESSES.set(taskId, proc);
 
         const handleData = (chunk: Buffer) => {

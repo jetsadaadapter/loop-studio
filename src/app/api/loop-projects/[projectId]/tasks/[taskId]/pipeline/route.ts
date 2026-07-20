@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjects, saveProjects, runProjectCommand, isHostProject, kanbanColumnForStatus } from "@/core/services/loop-projects.service";
+import { getProjects, saveProjects, runProjectCommand, isHostProject, kanbanColumnForStatus, taskLogPath } from "@/core/services/loop-projects.service";
 import { getApiChecks, runApiChecks } from "@/core/services/loop-preview.service";
 import fs from "fs";
 import path from "path";
@@ -29,7 +29,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         task.updatedAt = new Date().toISOString();
         saveProjects(projects);
 
-        const logFilePath = path.join(process.cwd(), ".antigravity", `log-${taskId}.txt`);
+        const logFilePath = taskLogPath(taskId);
         fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
         fs.writeFileSync(logFilePath, `\n--- Auto-Pipeline: Verify + Automate ---\n\n`, "utf8");
 
