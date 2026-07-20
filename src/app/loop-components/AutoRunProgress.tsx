@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, Square, CheckCircle2, AlertCircle, PauseCircle } from "lucide-react";
+import { Bot, Loader2, Square, CheckCircle2, AlertCircle, PauseCircle, Cable } from "lucide-react";
 import type { AutoRunState, AutoRunOutcome } from "@/core/services/loop-autorun.service";
 
 interface AutoRunProgressProps {
@@ -14,6 +14,7 @@ const OUTCOME_META: Record<AutoRunOutcome, { icon: React.ReactNode; className: s
     done: { icon: <CheckCircle2 className="size-3.5" />, className: "text-emerald-700", label: "Done" },
     awaiting_approval: { icon: <PauseCircle className="size-3.5" />, className: "text-amber-700", label: "Awaiting approval" },
     failed: { icon: <AlertCircle className="size-3.5" />, className: "text-red-700", label: "Failed" },
+    bridged: { icon: <Cable className="size-3.5" />, className: "text-indigo-700", label: "Handed off to IDE bridge" },
 };
 
 // Polls the auto-run status while a run is active and renders a compact

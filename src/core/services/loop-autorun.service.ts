@@ -11,7 +11,7 @@ import type { LoopTask } from "@/core/interfaces/loop-projects.interface";
 //   ORANGE/RED (or any failed check)  → stays at OBSERVE awaiting human approval
 // Push is never automatic — the user publishes after reviewing the summary.
 
-export type AutoRunOutcome = "done" | "awaiting_approval" | "failed";
+export type AutoRunOutcome = "done" | "awaiting_approval" | "failed" | "bridged";
 
 export interface AutoRunTaskResult {
     taskId: string;
@@ -156,6 +156,16 @@ async function runQueue(projectId: string, projectPath: string, llm: ResolvedLlm
             ` Respect the safety nets: ${(task.safetyNets ?? []).join("; ") || "standard verification"}.`;
 
         const result = await runCollaborationLoop(projectId, taskId, projectPath, llm, instructions);
+
+        // Capacity limit → the run was handed off to the IDE bridge (keyless). It's
+        // neither a failure nor auto-closable here: the bridge finishes it on its
+        // own and finalizeBridgeReply marks the task. Record it and move on without
+        // a false "pipeline failed" learning or a premature commit.
+        if (result.bridged) {
+            state.results.push({ taskId, name: task.name, outcome: "bridged", detail: "LLM capacity limit — handed off to the IDE bridge." });
+            persistState(projectId, state);
+            continue;
+        }
 
         if (!result.success) {
             mutateTask(projectId, taskId, (t) => { t.kanbanColumn = "todo"; });

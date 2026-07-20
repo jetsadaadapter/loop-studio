@@ -1,5 +1,6 @@
 import fs from "fs";
-import { getProjects, applyFileEdits, runProjectCommand, getGitInfo } from "@/core/services/loop-projects.service";
+import { getProjects, applyFileEdits, runProjectCommand, getGitInfo, writeBridgeRequest } from "@/core/services/loop-projects.service";
+import { isLlmCapacityError } from "@/core/services/loop-llm.service";
 import { resolveTaskCwd, checkpoint } from "@/core/services/loop-worktree.service";
 import { taskLogPath } from "@/core/services/loop-logs.service";
 import { getAgents } from "@/core/services/loop-agents.service";
@@ -237,6 +238,24 @@ export async function runCollaborationLoop(
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         writeLog(`\n[Collaboration] ERROR: ${message}`);
+        // A capacity limit (rate limit / overload / quota) isn't a task failure —
+        // the same work can be finished by the keyless IDE bridge, which doesn't
+        // touch the exhausted key. Hand off instead of failing: write a bridge
+        // request and let a connected agent / the project's auto-fulfill adapter
+        // (or a human) take it. Only for capacity errors — real bugs still fail.
+        if (isLlmCapacityError(e)) {
+            try {
+                const bridgeId = writeBridgeRequest({ taskId, projectId, requestType: "collaborate", prompt: instructions });
+                writeLog(`[Collaboration] LLM capacity limit — handed off to the IDE bridge (${bridgeId}).`);
+                const { autoFulfillBridge } = await import("@/core/services/loop-bridge-worker.service");
+                void autoFulfillBridge(taskId, bridgeId).catch(() => { /* worker logs its own errors */ });
+                updateTaskStatus(projectId, taskId, "running", "BUILD");
+                return { success: false, bridged: true, error: message, testsPassed, typecheckPassed };
+            } catch (handoffErr) {
+                writeLog(`[Collaboration] Bridge handoff failed: ${handoffErr instanceof Error ? handoffErr.message : String(handoffErr)}`);
+                // fall through to a normal failure below
+            }
+        }
         updateTaskStatus(projectId, taskId, "failed", "PLAN");
         return { success: false, error: message, testsPassed, typecheckPassed };
     }

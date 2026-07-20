@@ -11,6 +11,9 @@ export type ResolvedLlm = { provider: LlmProvider; apiKey: string; model: string
 export interface CollaborationResult {
     success: boolean;
     error?: string;
+    /** The LLM hit a capacity limit and the run was handed off to the IDE bridge
+     *  (keyless) to finish — not a task failure. */
+    bridged?: boolean;
     /** Vitest run exit code was 0 (after at most one fix loop). */
     testsPassed: boolean;
     /** `tsc --noEmit` exit code was 0. */
