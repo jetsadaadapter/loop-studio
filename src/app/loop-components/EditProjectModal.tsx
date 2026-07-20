@@ -8,6 +8,7 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui
 import { RegisterProjectSchema, zodFieldErrors } from "@/core/validators/loop-projects.validator";
 import { FolderPicker } from "./FolderPicker";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
     Select,
     SelectContent,
@@ -52,6 +53,7 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
     // "off" is a UI sentinel (Radix Select forbids an empty-string value); it maps
     // to "" in the PATCH body, which clears project.autoAgent.
     const [autoAgent, setAutoAgent] = useState<string>(project.autoAgent ?? "off");
+    const [useWorktree, setUseWorktree] = useState<boolean>(project.useWorktree ?? false);
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
@@ -76,7 +78,7 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
             const res = await fetch(`/api/loop-projects/${project.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, path, template, previewUrl, autoAgent: autoAgent === "off" ? "" : autoAgent }),
+                body: JSON.stringify({ name, path, template, previewUrl, autoAgent: autoAgent === "off" ? "" : autoAgent, useWorktree }),
             });
             const data = await res.json();
             if (data.success) {
@@ -186,6 +188,23 @@ function EditProjectForm({ project, onClose, onSuccess }: EditProjectModalProps 
                         <FieldDescription>
                             When set, keyless chat/collaborate is auto-fulfilled by this local agent (read-only) instead of waiting for a human. Overrides the server default.
                         </FieldDescription>
+                    </Field>
+
+                    <Field>
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1">
+                                <FieldLabel htmlFor="edit-proj-worktree">Isolate tasks in a git worktree</FieldLabel>
+                                <FieldDescription>
+                                    Each task runs on its own <span className="font-mono text-slate-600">loop/task-*</span> branch with checkpoints (rollback points), keeping the working tree pristine. Requires a git repo; off = edit the working tree directly.
+                                </FieldDescription>
+                            </div>
+                            <Switch
+                                id="edit-proj-worktree"
+                                checked={useWorktree}
+                                onCheckedChange={setUseWorktree}
+                                className="mt-0.5 shrink-0"
+                            />
+                        </div>
                     </Field>
 
                     {error && <FieldError>{error}</FieldError>}

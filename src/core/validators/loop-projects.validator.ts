@@ -85,6 +85,8 @@ export const UpdateProjectSchema = z
         previewUrl: previewUrlField,
         // "" clears the setting (off); "claude"/"gemini"/"claude-sdk" select an auto-fulfill agent.
         autoAgent: z.enum(["claude", "gemini", "claude-sdk", ""]).optional(),
+        // Isolate each task in its own git worktree + loop/task-* branch (checkpoints).
+        useWorktree: z.boolean().optional(),
     })
     .refine((data) => Object.values(data).some((v) => v !== undefined), { message: "No fields to update." });
 

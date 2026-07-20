@@ -49,3 +49,15 @@ describe("UpdateProjectSchema autoAgent", () => {
         expect(UpdateProjectSchema.safeParse({ autoAgent: "rogue-cli" }).success).toBe(false);
     });
 });
+
+describe("UpdateProjectSchema useWorktree", () => {
+    it.each([true, false])("accepts a boolean useWorktree (%s)", (value) => {
+        const r = UpdateProjectSchema.safeParse({ useWorktree: value });
+        expect(r.success).toBe(true);
+        if (r.success) expect(r.data.useWorktree).toBe(value);
+    });
+
+    it("rejects a non-boolean useWorktree", () => {
+        expect(UpdateProjectSchema.safeParse({ useWorktree: "yes" }).success).toBe(false);
+    });
+});
