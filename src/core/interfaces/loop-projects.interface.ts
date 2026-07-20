@@ -191,12 +191,15 @@ export interface ProjectSchedule {
     lastResult?: string;
 }
 
-// Local agent CLIs that can auto-fulfill the IDE bridge (read-only). Kept as a
-// const list so UI option menus and the worker's allow-list stay in sync.
-export type AutoAgent = "claude" | "gemini";
+// Local agents that can auto-fulfill the IDE bridge. `claude`/`gemini` spawn a
+// read-only CLI; `claude-sdk` runs an in-process Agent SDK agentic loop that edits
+// inside the task worktree under the guards. Kept as a const list so UI option
+// menus and the worker's allow-list stay in sync.
+export type AutoAgent = "claude" | "gemini" | "claude-sdk";
 export const AUTO_AGENTS: { value: AutoAgent; label: string }[] = [
-    { value: "claude", label: "Claude Code" },
-    { value: "gemini", label: "Gemini CLI" },
+    { value: "claude", label: "Claude Code (read-only)" },
+    { value: "gemini", label: "Gemini CLI (read-only)" },
+    { value: "claude-sdk", label: "Claude Agent SDK (agentic, worktree)" },
 ];
 
 export interface LoopProject {
