@@ -107,6 +107,7 @@ pnpm-debug.log*
 .claude/cache/
 .claude/history/
 .claude/logs/
+.claude/launch.json
 
 # -------------------------------------------------------
 # Antigravity
