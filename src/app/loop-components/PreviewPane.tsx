@@ -28,6 +28,10 @@ interface PreviewPaneProps {
     targetFiles?: string[];
     deviceMode?: "desktop" | "mobile";
     onDeviceModeChange?: (mode: "desktop" | "mobile") => void;
+    // True when this project is the host app (Loop Studio itself) — the live
+    // App/API preview is disabled for it to avoid embedding the app in its own
+    // iframe on its own port.
+    isHost?: boolean;
 }
 
 export function PreviewPane({
@@ -42,7 +46,8 @@ export function PreviewPane({
     onPublished,
     targetFiles = [],
     deviceMode = "desktop",
-    onDeviceModeChange
+    onDeviceModeChange,
+    isHost = false,
 }: PreviewPaneProps) {
     const p = usePreviewPane({ initialUrl, projectId, projectTemplate, taskId, verifyStatus, buildStatus, targetFiles });
 
@@ -81,6 +86,7 @@ export function PreviewPane({
                     onSelectApi={p.selectApi}
                     deviceMode={deviceMode}
                     projectId={projectId}
+                    isHost={isHost}
                 />
             ) : p.tab === "code" ? (
                 <PreviewCodeView
