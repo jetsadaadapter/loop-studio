@@ -52,7 +52,10 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         projects; backs the /agents dashboard + GET .../summary
       loop-llm.service.ts               Anthropic/Gemini calls for chat
       loop-planner.service.ts           goal → task decomposition (auto-tags, overlap-safe groups)
-      loop-collaboration.service.ts     the 5-step AI-team pipeline for one task
+      loop-collaboration.service.ts     the 5-step AI-team pipeline for one task; when the project's
+                                        autoAgent is "claude-sdk" it delegates the implement+verify phase
+                                        to the SDK agentic loop (runAgentSdk) instead — early-returns
+                                        before the 5 LLM steps, then typechecks the worktree
       loop-autorun.service.ts           backlog orchestrator + risk-gated auto-close; state
                                         mirrored to disk, interrupted runs detected on read
       loop-scheduler.service.ts         heartbeat: a server-side tick fires auto-run on each

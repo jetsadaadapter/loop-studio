@@ -67,6 +67,28 @@ export async function runCollaborationLoop(
             }
         };
 
+        // Delegation: when this project's agent is the Agent SDK, hand the whole
+        // implement+verify phase to the agentic loop (it plans/edits/verifies itself
+        // under the guards + worktree) instead of the hand-rolled 5-step LLM pipeline.
+        // The SDK's PreToolUse guard + run_verification are the maker/checker here.
+        const project = getProjects().find((p) => p.id === projectId);
+        if (project?.autoAgent === "claude-sdk") {
+            writeLog(`\n[Collaboration] Delegating to the Claude Agent SDK (agentic loop)…`);
+            const { runAgentSdk } = await import("./loop-sdk-runner");
+            const r = await runAgentSdk({ taskId, projectId, prompt: instructions, onLog: writeLog });
+            appendHistoryMessage(projectId, taskId, "Somsri (Agent SDK)", r.summary, 0, 0, 0);
+            writeLog(`[Collaboration] SDK applied ${r.editedFiles.length} file(s): ${r.editedFiles.join(", ") || "(none)"}`);
+            // Definitive typecheck against the SDK's worktree; the agent self-verifies
+            // (run_verification) during its loop, so tests mirror the typecheck result.
+            const wt = getProjects().find((p) => p.id === projectId)?.tasks?.find((t) => t.id === taskId)?.git?.worktreeDir ?? projectPath;
+            const tscCode = await runProjectCommand(`${taskId}-ci`, wt, "npx", ["tsc", "--noEmit"], (c) => fs.appendFileSync(logFilePath, c));
+            typecheckPassed = tscCode === 0;
+            testsPassed = typecheckPassed;
+            updateTaskStatus(projectId, taskId, "completed", "OBSERVE");
+            writeLog(`\n[Collaboration] --- Delegated SDK run complete (typecheck ${typecheckPassed ? "passed" : "failed"}) ---`);
+            return { success: true, testsPassed, typecheckPassed };
+        }
+
         const agents = getAgents();
         const somchai = agents.find(a => a.id === "agent-somchai");
         const somsri = agents.find(a => a.id === "agent-somsri");

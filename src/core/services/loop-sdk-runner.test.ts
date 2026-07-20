@@ -14,7 +14,8 @@ vi.mock("./loop-sdk-bindings", () => ({
 }));
 vi.mock("./loop-worktree.service", () => ({ ensureTaskWorktree: ensureMock }));
 vi.mock("./loop-projects.service", () => ({ getProjects: getProjectsMock, executeGitCommand: gitMock }));
-vi.mock("./loop-sdk-runs", () => ({ writeRunMeta: vi.fn(), clearRunMeta: vi.fn() }));
+const { writeRunMetaMock, clearRunMetaMock } = vi.hoisted(() => ({ writeRunMetaMock: vi.fn(), clearRunMetaMock: vi.fn() }));
+vi.mock("./loop-sdk-runs", () => ({ writeRunMeta: writeRunMetaMock, clearRunMeta: clearRunMetaMock }));
 
 import { runAgentSdk } from "./loop-sdk-runner";
 
@@ -75,5 +76,14 @@ describe("runAgentSdk", () => {
     it("forces a worktree (ensureTaskWorktree) before running", async () => {
         await runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "x", onLog: () => {} });
         expect(ensureMock).toHaveBeenCalledWith("t1");
+    });
+
+    it("writes a run marker only for bridge-driven runs, not delegation", async () => {
+        writeRunMetaMock.mockClear();
+        await runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "x", onLog: () => {} });
+        expect(writeRunMetaMock).toHaveBeenCalledTimes(1);
+        writeRunMetaMock.mockClear();
+        await runAgentSdk({ taskId: "t1", projectId: "p1", prompt: "x", onLog: () => {} }); // no bridgeId
+        expect(writeRunMetaMock).not.toHaveBeenCalled();
     });
 });
