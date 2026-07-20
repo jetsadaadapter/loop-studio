@@ -91,6 +91,20 @@ describe("finalizeBridgeReply", () => {
         expect(res).toMatchObject({ ok: false, status: 404 });
     });
 
+    it("records pre-applied files without re-applying (SDK path)", () => {
+        // If applyFileEdits were called its result would leak in — it must not be.
+        applyResult = { written: ["SHOULD-NOT-APPEAR"], blocked: [] };
+        const res = finalizeBridgeReply("p1", "t1", "b1", {
+            reply: "Summary of the agentic run",
+            senderName: "Agent (SDK)",
+            preAppliedFiles: ["server.js"],
+        });
+        expect(res.ok).toBe(true);
+        if (res.ok) expect(res.editedFiles).toEqual(["server.js"]);
+        expect(projectsFixture[0].tasks[0].chatHistory[0].content).toBe("Summary of the agentic run");
+        expect(markConsumed).toHaveBeenCalledWith("t1", "b1");
+    });
+
     it("surfaces blocked edits", () => {
         applyResult = { written: [], blocked: [{ path: "package.json", reason: "config locked" }] };
         const res = finalizeBridgeReply("p1", "t1", "b1");

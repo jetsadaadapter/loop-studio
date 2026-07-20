@@ -20,6 +20,12 @@ vi.mock("./loop-logs.service", () => ({ publishTaskLog: vi.fn() }));
 let projectsFixture: Array<{ id: string; path: string; autoAgent?: string }> = [];
 vi.mock("./loop-projects.service", () => ({ getProjects: () => projectsFixture }));
 
+// SDK adapters finalize through the shared apply path; mock it to assert wiring.
+const finalizeMock = vi.fn();
+vi.mock("./loop-bridge-apply.service", () => ({
+    finalizeBridgeReply: (...a: unknown[]) => finalizeMock(...a),
+}));
+
 // Direct-spawn path is exercised for autoFulfillBridge (tmux off); the tmux
 // service is stubbed with fixtures the recovery tests drive.
 let tmuxRunDirs: string[] = [];
@@ -58,7 +64,7 @@ const lastProc = (): FakeProc => {
 };
 const spawnedBin = (): string => (spawnMock.mock.calls.at(-1) as unknown as [string])[0];
 
-import { autoFulfillBridge, bridgeAutoAgent, recoverTmuxBridges } from "./loop-bridge-worker.service";
+import { autoFulfillBridge, bridgeAutoAgent, recoverTmuxBridges, runSdkAdapter } from "./loop-bridge-worker.service";
 
 const pendingBridge = (): BridgeRequest => ({
     status: "pending",
@@ -222,5 +228,36 @@ describe("recoverTmuxBridges", () => {
         recoverTmuxBridges();
         expect(writeResponses).toHaveLength(0);
         expect(cleanupTmuxMock).toHaveBeenCalledWith("t1");
+    });
+});
+
+describe("runSdkAdapter", () => {
+    beforeEach(() => {
+        writeResponses.length = 0;
+        finalizeMock.mockClear();
+    });
+
+    it("finalizes with the summary + pre-applied files on success", async () => {
+        const adapter = {
+            kind: "sdk" as const,
+            run: vi.fn(async () => ({ summary: "did the thing", editedFiles: ["server.js"] })),
+        };
+        await runSdkAdapter(adapter, { taskId: "t1", bridgeId: "b1", projectId: "p1", prompt: "go", onLog: () => {} });
+        expect(adapter.run).toHaveBeenCalledOnce();
+        expect(finalizeMock).toHaveBeenCalledWith("p1", "t1", "b1", {
+            reply: "did the thing",
+            senderName: "Agent (SDK)",
+            preAppliedFiles: ["server.js"],
+        });
+    });
+
+    it("writes an error response (no finalize) when the run throws", async () => {
+        const adapter = {
+            kind: "sdk" as const,
+            run: vi.fn(async () => { throw new Error("boom"); }),
+        };
+        await runSdkAdapter(adapter, { taskId: "t1", bridgeId: "b1", projectId: "p1", prompt: "go", onLog: () => {} });
+        expect(finalizeMock).not.toHaveBeenCalled();
+        expect(writeResponses.at(-1)).toMatchObject({ taskId: "t1", id: "b1", result: { status: "error" } });
     });
 });
