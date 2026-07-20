@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { readBridgeRequest, writeBridgeResponse } from "./loop-bridge.service";
+import { finalizeBridgeReply } from "./loop-bridge-apply.service";
 import { publishTaskLog } from "./loop-logs.service";
 import { getProjects } from "./loop-projects.service";
 import { runAgentInTmux, tmuxAvailable, pollTmuxRun, listTmuxRunDirs, readTmuxMeta, readTmuxOutcome, tmuxSessionAlive, cleanupTmuxRun } from "./loop-tmux.service";
@@ -55,7 +56,9 @@ const WORKER_SYSTEM =
     '<file_edit path="relative/path">...</file_edit> blocks. Do NOT edit files or run ' +
     "commands yourself — the host application applies your <file_edit> blocks.";
 
-interface AgentAdapter {
+// A read-only CLI spawned per bridge; returns <file_edit> blocks the app applies.
+interface SpawnAdapter {
+    kind: "spawn";
     bin: string;
     /** argv for a headless, read-only run. `system` is the read-only contract. */
     buildArgs: (prompt: string, system: string) => string[];
@@ -63,12 +66,31 @@ interface AgentAdapter {
     parse: (stdout: string) => string;
 }
 
+/** What an SDK adapter's agentic run returns — its edits are ALREADY applied +
+ *  checkpointed in the task worktree (see docs/sdk-adapter-wiring.md), so the
+ *  reply is a summary + the list of files it touched. */
+export interface SdkRunResult {
+    summary: string;
+    editedFiles: string[];
+    testsPassed?: boolean;
+}
+
+// An in-process agentic loop (Agent SDK) that applies its own edits through the
+// guarded tools. The concrete `claude-sdk` adapter is registered in Step 3.4.
+interface SdkAdapter {
+    kind: "sdk";
+    run: (args: { taskId: string; projectId: string; prompt: string; onLog: (s: string) => void }) => Promise<SdkRunResult>;
+}
+
+type AgentAdapter = SpawnAdapter | SdkAdapter;
+
 // Registered adapters. The allow-list is exactly Object.keys(ADAPTERS) — env or a
 // per-project setting names one of these; anything else is rejected.
 const ADAPTERS: Record<string, AgentAdapter> = {
     // claude v2.1.210. No --bare: use the machine's Claude Code login (keyless).
     // dontAsk + read-only allowedTools aborts (never prompts/hangs) on any write.
     claude: {
+        kind: "spawn",
         bin: "claude",
         buildArgs: (prompt, system) => [
             "-p", prompt,
@@ -97,6 +119,7 @@ const ADAPTERS: Record<string, AgentAdapter> = {
     // folder-trust gate for this run. No --append-system-prompt flag, so the
     // read-only contract is prepended to the prompt. Uses GEMINI_API_KEY.
     gemini: {
+        kind: "spawn",
         bin: "gemini",
         buildArgs: (prompt, system) => [
             "-p", `${system}\n\n${prompt}`,
@@ -160,8 +183,16 @@ export async function autoFulfillBridge(taskId: string, bridgeId: string): Promi
     }
 
     const prompt = buildPrompt(bridge.prompt, bridge.history);
-    const args = adapter.buildArgs(prompt, WORKER_SYSTEM);
     const onLog = (s: string) => publishTaskLog(taskId, s);
+
+    // SDK adapters run an in-process agentic loop and apply edits themselves.
+    if (adapter.kind === "sdk") {
+        await runSdkAdapter(adapter, { taskId, bridgeId, projectId: project.id, prompt, onLog });
+        return;
+    }
+
+    // Spawn adapters: run a read-only CLI, then apply its <file_edit> reply.
+    const args = adapter.buildArgs(prompt, WORKER_SYSTEM);
     const useTmux = tmuxModeEnabled();
     publishTaskLog(taskId, `\n[auto-bridge] ${adapter.bin} (read-only${useTmux ? ", tmux" : ""}) fulfilling ${bridge.requestType} request…\n`);
 
@@ -172,9 +203,32 @@ export async function autoFulfillBridge(taskId: string, bridgeId: string): Promi
     finalizeAgentRun(taskId, bridgeId, adapter, result);
 }
 
+/** Run an SDK adapter's agentic loop and finalize its reply. The adapter applies +
+ *  checkpoints its edits in the task worktree itself, so we record the summary +
+ *  the pre-applied files (finalizeBridgeReply does NOT re-apply). Exported for tests. */
+export async function runSdkAdapter(
+    adapter: SdkAdapter,
+    args: { taskId: string; bridgeId: string; projectId: string; prompt: string; onLog: (s: string) => void },
+): Promise<void> {
+    const { taskId, bridgeId, projectId, prompt, onLog } = args;
+    onLog(`\n[auto-bridge] SDK agent fulfilling request…\n`);
+    try {
+        const result = await adapter.run({ taskId, projectId, prompt, onLog });
+        finalizeBridgeReply(projectId, taskId, bridgeId, {
+            reply: result.summary,
+            senderName: "Agent (SDK)",
+            preAppliedFiles: result.editedFiles,
+        });
+        onLog(`[auto-bridge] done — ${result.editedFiles.length} file(s) applied in the worktree.\n`);
+    } catch (e) {
+        writeBridgeResponse(taskId, bridgeId, { status: "error", error: errMsg(e) });
+        onLog(`[auto-bridge] SDK run failed: ${errMsg(e)}\n`);
+    }
+}
+
 /** Turn a runner result into a bridge response — shared by fresh runs and by
  *  post-restart recovery. id-guarded write, so a stale/superseded run can't clobber. */
-function finalizeAgentRun(taskId: string, bridgeId: string, adapter: AgentAdapter, result: RunResult): void {
+function finalizeAgentRun(taskId: string, bridgeId: string, adapter: SpawnAdapter, result: RunResult): void {
     if (result.timedOut) {
         writeBridgeResponse(taskId, bridgeId, { status: "error", error: "Auto-bridge timed out." });
         return;
@@ -214,8 +268,10 @@ export function recoverTmuxBridges(): void {
             continue;
         }
         const adapter = ADAPTERS[agent];
-        if (!adapter) {
-            writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Auto-bridge agent "${agent}" is no longer registered.` });
+        if (!adapter || adapter.kind !== "spawn") {
+            // tmux recovery only applies to spawn adapters; sdk runs recover via
+            // their own session (Step 3.5), not tmux run dirs.
+            writeBridgeResponse(taskId, bridgeId, { status: "error", error: `Auto-bridge agent "${agent}" is not a recoverable spawn adapter.` });
             cleanupTmuxRun(taskId);
             continue;
         }

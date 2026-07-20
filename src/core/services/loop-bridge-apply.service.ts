@@ -16,6 +16,12 @@ interface FinalizeOpts {
     reply?: string;
     /** Sender label for the recorded assistant message. */
     senderName?: string;
+    /**
+     * SDK adapters apply + checkpoint their edits inside the task worktree during
+     * the agentic loop, so their reply is a summary, not `<file_edit>` blocks. When
+     * set, record these as the edited files and DO NOT re-apply anything.
+     */
+    preAppliedFiles?: string[];
 }
 
 type FinalizeResult =
@@ -51,10 +57,13 @@ export function finalizeBridgeReply(
     }
 
     const responseText = bridge.response || "";
-    // Apply edits only if the reply returned <file_edit> blocks (no-op otherwise).
-    // Bridge replies are reviewed in chat, so test files are allowed; verifier/build
-    // config stays protected.
-    const { written: editedFiles, blocked } = applyFileEdits(project.path, responseText, { allowTestFiles: true, allowedPaths: task.targetFiles });
+    // SDK adapters already applied + checkpointed their edits in the task worktree,
+    // so record those pre-applied files and don't re-apply. Every other reply
+    // (spawn/human/MCP) carries <file_edit> blocks the guarded path applies here —
+    // test files allowed (reviewed in chat), verifier/build config stays protected.
+    const { written: editedFiles, blocked } = opts.preAppliedFiles
+        ? { written: opts.preAppliedFiles, blocked: [] as { path: string; reason: string }[] }
+        : applyFileEdits(project.path, responseText, { allowTestFiles: true, allowedPaths: task.targetFiles });
 
     const message: ChatMessage = {
         id: `msg-bridge-${Date.now()}`,
