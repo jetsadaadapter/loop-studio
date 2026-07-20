@@ -1,19 +1,23 @@
 "use client";
 
-import React from "react";
-import { Lock, GitBranch } from "lucide-react";
+import React, { useState } from "react";
+import { Lock, GitBranch, Plug } from "lucide-react";
 import type { LoopProject, LoopAgent } from "@/core/interfaces/loop-projects.interface";
 import { AgentAvatar } from "@/app/agents/components/AgentAvatar";
 import { Badge } from "@/components/ui/badge";
 import { ViewTabs, type WorkspaceViewTab } from "./ViewTabs";
+import { ConnectGitModal } from "./ConnectGitModal";
 
 interface WorkspaceHeaderProps {
+    projectId: string;
     project: LoopProject | null;
     gitInfo: { branch: string; commit: string; modifiedFiles: string[] };
     totalCost: number;
     agents?: LoopAgent[];
     viewTab: WorkspaceViewTab;
     onViewTabChange: (tab: WorkspaceViewTab) => void;
+    /** Refetch git info after the project is connected to git. */
+    onConnected: () => void;
 }
 
 // Warm mesh-style gradient for the header banner (purple → magenta → coral → peach).
@@ -50,7 +54,7 @@ function TeamStack({ agents }: { agents: LoopAgent[] }) {
 // Compact full-width gradient banner for the project board — breadcrumb + title +
 // status on the left, labelled meta columns on the right, view tabs flush along
 // the bottom (no bottom padding). All text is white.
-export function WorkspaceHeader({ project, gitInfo, totalCost, agents = [], viewTab, onViewTabChange }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ projectId, project, gitInfo, totalCost, agents = [], viewTab, onViewTabChange, onConnected }: WorkspaceHeaderProps) {
     const tasks = project?.tasks ?? [];
     const taskCount = tasks.length;
     const doneCount = tasks.filter((t) => t.status === "completed").length;
@@ -59,7 +63,13 @@ export function WorkspaceHeader({ project, gitInfo, totalCost, agents = [], view
             ? "No tasks yet — create one to get moving."
             : `${taskCount} task${taskCount === 1 ? "" : "s"} · ${doneCount} done · $${totalCost.toFixed(3)} spent`;
 
+    // "unknown" branch = the project folder isn't its own git repo yet. The host
+    // app is always a repo, so it never shows the connect affordance.
+    const notUnderGit = gitInfo.branch === "unknown" && !project?.isHost;
+    const [connectOpen, setConnectOpen] = useState(false);
+
     return (
+        <>
         <div
             style={{ backgroundImage: HEADER_GRADIENT }}
             className="flex w-full flex-col gap-3 rounded-sm px-3 pt-4 pb-0 shadow-[0_12px_34px_-14px_rgba(124,92,230,0.55)]"
@@ -87,9 +97,23 @@ export function WorkspaceHeader({ project, gitInfo, totalCost, agents = [], view
                         <span className="font-medium">Private</span>
                     </MetaColumn>
                     <MetaColumn label="Branch">
-                        <GitBranch className="size-3.5 text-white/80" />
-                        <span className="font-medium">{gitInfo.branch}</span>
-                        <span className="text-white/60">({gitInfo.commit})</span>
+                        {notUnderGit ? (
+                            <button
+                                type="button"
+                                onClick={() => setConnectOpen(true)}
+                                title="Initialize a git repository for this project"
+                                className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30 cursor-pointer"
+                            >
+                                <Plug className="size-3.5" />
+                                Connect Git
+                            </button>
+                        ) : (
+                            <>
+                                <GitBranch className="size-3.5 text-white/80" />
+                                <span className="font-medium">{gitInfo.branch}</span>
+                                <span className="text-white/60">({gitInfo.commit})</span>
+                            </>
+                        )}
                     </MetaColumn>
                     {agents.length > 0 && (
                         <MetaColumn label="Team">
@@ -105,5 +129,12 @@ export function WorkspaceHeader({ project, gitInfo, totalCost, agents = [], view
                 <ViewTabs viewTab={viewTab} onChange={onViewTabChange} variant="onGradient" />
             </div>
         </div>
+        <ConnectGitModal
+            projectId={projectId}
+            open={connectOpen}
+            onClose={() => setConnectOpen(false)}
+            onConnected={onConnected}
+        />
+        </>
     );
 }
