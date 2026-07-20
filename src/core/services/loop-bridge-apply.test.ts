@@ -25,6 +25,8 @@ vi.mock("./loop-projects.service", () => ({
     getProjects: () => projectsFixture,
     saveProjects: vi.fn(),
     applyFileEdits: () => applyResult,
+    kanbanColumnForStatus: (s: string) =>
+        s === "completed" ? "done" : s === "running" ? "in_progress" : s === "failed" ? "todo" : "backlog",
 }));
 
 import { finalizeBridgeReply } from "./loop-bridge-apply.service";
@@ -110,5 +112,29 @@ describe("finalizeBridgeReply", () => {
         const res = finalizeBridgeReply("p1", "t1", "b1");
         expect(res.ok).toBe(true);
         if (res.ok) expect(res.blocked).toEqual([{ path: "package.json", reason: "config locked" }]);
+    });
+
+    it("clears a prior failed status when the apply lands edits (no stale FAILED)", () => {
+        const task = projectsFixture[0].tasks[0] as unknown as { status: string; currentStage: string; kanbanColumn?: string };
+        task.status = "failed";
+        task.currentStage = "PLAN";
+        applyResult = { written: ["src/App.tsx"], blocked: [] };
+
+        const res = finalizeBridgeReply("p1", "t1", "b1");
+
+        expect(res.ok).toBe(true);
+        expect(task.status).toBe("completed");
+        expect(task.currentStage).toBe("OBSERVE");
+        expect(task.kanbanColumn).toBe("done");
+    });
+
+    it("leaves task status untouched when the reply applies no edits", () => {
+        const task = projectsFixture[0].tasks[0] as unknown as { status: string };
+        task.status = "failed";
+        applyResult = { written: [], blocked: [] };
+
+        finalizeBridgeReply("p1", "t1", "b1");
+
+        expect(task.status).toBe("failed"); // nothing landed, so status is not changed
     });
 });

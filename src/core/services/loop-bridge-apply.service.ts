@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getProjects, saveProjects, applyFileEdits } from "./loop-projects.service";
+import { getProjects, saveProjects, applyFileEdits, kanbanColumnForStatus } from "./loop-projects.service";
 import { readBridgeRequest, writeBridgeResponse, markBridgeConsumed } from "./loop-bridge.service";
 import { taskLogPath } from "./loop-logs.service";
 import type { ChatMessage } from "@/core/interfaces/loop-projects.interface";
@@ -83,6 +83,15 @@ export function finalizeBridgeReply(
         message: editedFiles.length > 0 ? `IDE bridge modified: ${editedFiles.join(", ")}` : "IDE bridge replied",
         timestamp: new Date().toISOString(),
     });
+    // A successful apply is a completion event, the same as a direct collaborate/SDK
+    // run finishing — so move the task to completed/OBSERVE. Without this a task that
+    // errored earlier (e.g. the LLM hit a rate limit) stays "failed" on the board
+    // even though the bridge just landed its edits.
+    if (editedFiles.length > 0) {
+        task.status = "completed";
+        task.currentStage = "OBSERVE";
+        task.kanbanColumn = kanbanColumnForStatus("completed");
+    }
     task.updatedAt = new Date().toISOString();
     saveProjects(projects);
 
