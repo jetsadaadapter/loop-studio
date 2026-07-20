@@ -80,6 +80,11 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         adapter can wrap them with tool()/PreToolUse later. The shared
                                         guard is evaluateEdit/writeGuardedFile in loop-file-guards.ts —
                                         see docs/guarded-tools-pretooluse.md
+      loop-pretooluse-guard.ts          Step 2 choke point: evaluateToolCall(toolName, input, ctx) →
+                                        allow/deny/ask — the pure PreToolUse decision (reuses evaluateEdit
+                                        for edits, allowlists run_command, routes RED/ORANGE to human
+                                        review). SDK-free; the adapter maps it to the hook's
+                                        permissionDecision and fails `ask` closed when headless.
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```
