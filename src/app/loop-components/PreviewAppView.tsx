@@ -1,4 +1,4 @@
-import { Monitor, RotateCw, ExternalLink, ArrowRight, Server } from "lucide-react";
+import { Monitor, RotateCw, ExternalLink, ArrowRight, Server, Square } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PreviewOfflineState } from "./PreviewOfflineState";
 import { PreviewHostAppState } from "./PreviewHostAppState";
@@ -11,6 +11,7 @@ interface PreviewAppViewProps {
     onLoadUrl: (e: React.FormEvent) => void;
     onReload: () => void;
     onRetry: () => Promise<void>;
+    onStopServer: () => void;
     reloadKey: number;
     reachable: boolean | null;
     apiCapable: boolean;
@@ -35,6 +36,7 @@ export function PreviewAppView({
     onLoadUrl,
     onReload,
     onRetry,
+    onStopServer,
     reloadKey,
     reachable,
     apiCapable,
@@ -90,6 +92,17 @@ export function PreviewAppView({
                 >
                     <RotateCw className="size-3.5" />
                 </button>
+                {reachable === true && (
+                    <button
+                        type="button"
+                        onClick={onStopServer}
+                        aria-label="Stop dev server"
+                        title="Stop dev server"
+                        className="flex size-7 items-center justify-center rounded-sm border border-slate-200 text-slate-500 bg-white transition-colors hover:bg-red-50 hover:text-red-650 hover:border-red-200 cursor-pointer"
+                    >
+                        <Square className="size-3 fill-current" />
+                    </button>
+                )}
                 <a
                     href={url}
                     target="_blank"

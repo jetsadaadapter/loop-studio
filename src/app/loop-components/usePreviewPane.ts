@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Monitor, Code2, GitCompare } from "lucide-react";
 import type { CheckState } from "./PreviewStatusBadge";
+import { usePreviewSource } from "./usePreviewSource";
 
 export type PreviewTab = "preview" | "code" | "diff";
 
@@ -134,21 +135,8 @@ export function usePreviewPane({ initialUrl, projectId, projectTemplate, taskId,
     const apiCapable = projectTemplate === "nodejs" || projectTemplate === "generic" || previewKind === "api";
     const bodyKind: "app" | "api" = apiCapable ? previewKind : "app";
 
-    // Code viewing states
-    const [selectedFile, setSelectedFile] = useState(targetFiles[0] || "");
-    const [codeContent, setCodeContent] = useState("");
-    const [loadingCode, setLoadingCode] = useState(false);
-    const [codeError, setCodeError] = useState("");
-
-    // Diff viewing states
-    const [diffContent, setDiffContent] = useState("");
-    const [loadingDiff, setLoadingDiff] = useState(false);
-    const [diffError, setDiffError] = useState("");
-
-    // Derive the file to display: keep user's selection if still valid, else fall back to first file.
-    const effectiveSelectedFile = targetFiles.includes(selectedFile)
-        ? selectedFile
-        : (targetFiles[0] ?? "");
+    // Code + diff viewing state and fetches live in their own hook (file-size cap).
+    const source = usePreviewSource(projectId, taskId, tab, targetFiles);
 
     // Determine which tabs have data to show
     const hasCodeFiles = targetFiles.length > 0;
@@ -170,58 +158,6 @@ export function usePreviewPane({ initialUrl, projectId, projectTemplate, taskId,
         checkFallback();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hasCodeFiles, hasDiffData]);
-
-    // Fetch code content
-    useEffect(() => {
-        if (tab !== "code" || !effectiveSelectedFile) return;
-
-        const beginFetch = () => {
-            setLoadingCode(true);
-            setCodeError("");
-            fetch(`/api/loop-projects/${projectId}/files?file=${encodeURIComponent(effectiveSelectedFile)}`)
-                .then((res) => res.json())
-                .then((json) => {
-                    if (json.success) {
-                        setCodeContent(json.data);
-                    } else {
-                        setCodeError(json.error || "Failed to load file content.");
-                    }
-                })
-                .catch(() => {
-                    setCodeError("Network error: failed to load file content.");
-                })
-                .finally(() => {
-                    setLoadingCode(false);
-                });
-        };
-        beginFetch();
-    }, [tab, effectiveSelectedFile, projectId]);
-
-    // Fetch git diff
-    useEffect(() => {
-        if (tab !== "diff") return;
-
-        const beginFetch = () => {
-            setLoadingDiff(true);
-            setDiffError("");
-            fetch(`/api/loop-projects/${projectId}/tasks/${taskId}/diff`)
-                .then((res) => res.json())
-                .then((json) => {
-                    if (json.success) {
-                        setDiffContent(json.data);
-                    } else {
-                        setDiffError(json.error || "Failed to load git diff.");
-                    }
-                })
-                .catch(() => {
-                    setDiffError("Network error: failed to load git diff.");
-                })
-                .finally(() => {
-                    setLoadingDiff(false);
-                });
-        };
-        beginFetch();
-    }, [tab, taskId, projectId]);
 
     const loadUrl = (e: React.FormEvent) => {
         e.preventDefault();
@@ -247,6 +183,19 @@ export function usePreviewPane({ initialUrl, projectId, projectTemplate, taskId,
         setReachable(ok);
     };
 
+    // Stop the project's Loop-managed dev server, then re-probe so the offline
+    // empty-state swaps in once the port stops answering.
+    const stopServer = async () => {
+        try {
+            await fetch(`/api/loop-projects/${projectId}/run`, { method: "DELETE" });
+        } catch {
+            // Best-effort — re-probe below reflects the real state regardless.
+        }
+        const ok = await checkReachability();
+        wasUnreachableRef.current = !ok;
+        setReachable(ok);
+    };
+
     const selectApp = () => { manualKindRef.current = true; setPreviewKind("app"); };
     const selectApi = () => { manualKindRef.current = true; setPreviewKind("api"); };
 
@@ -259,6 +208,7 @@ export function usePreviewPane({ initialUrl, projectId, projectTemplate, taskId,
         reachable,
         reload,
         retry,
+        stopServer,
         tab,
         setTab,
         visibleTabs,
@@ -267,14 +217,6 @@ export function usePreviewPane({ initialUrl, projectId, projectTemplate, taskId,
         bodyKind,
         selectApp,
         selectApi,
-        selectedFile,
-        setSelectedFile,
-        effectiveSelectedFile,
-        codeContent,
-        loadingCode,
-        codeError,
-        diffContent,
-        loadingDiff,
-        diffError,
+        ...source,
     };
 }
