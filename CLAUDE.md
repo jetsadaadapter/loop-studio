@@ -85,6 +85,12 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         for edits, allowlists run_command, routes RED/ORANGE to human
                                         review). SDK-free; the adapter maps it to the hook's
                                         permissionDecision and fails `ask` closed when headless.
+      loop-sdk-bindings.ts              Step 3.3: the thin @anthropic-ai/claude-agent-sdk glue —
+                                        createLoopToolServer wraps editFile/runVerification as tool()s on
+                                        an in-process createSdkMcpServer; createPreToolUseHook maps
+                                        evaluateToolCall onto the SDK PreToolUse hook. Keep SDK imports
+                                        confined here (next.config serverExternalPackages excludes the
+                                        native-binary package from the bundle). See docs/sdk-adapter-wiring.md
   → src/core/validators/ (Zod)          boundary validation
     src/core/interfaces/                shared types + constants (models, skills, pricing)
 ```
