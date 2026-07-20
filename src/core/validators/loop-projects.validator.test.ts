@@ -4,6 +4,7 @@ import {
     RegisterProjectSchema,
     CreateTaskSchema,
     CreateAgentSchema,
+    UpdateProjectSchema,
 } from "./loop-projects.validator";
 
 describe("zodFieldErrors", () => {
@@ -33,5 +34,18 @@ describe("zodFieldErrors", () => {
         expect(errors.role).toBeTruthy();
         expect(errors.name).toBeUndefined();
         expect(errors.systemPrompt).toBeUndefined();
+    });
+});
+
+describe("UpdateProjectSchema autoAgent", () => {
+    // AUTO_AGENTS / the AutoAgent type and the Edit Project modal all offer
+    // "claude-sdk"; the update validator must accept it too or saving that choice
+    // fails at the API boundary.
+    it.each(["claude", "gemini", "claude-sdk", ""])("accepts autoAgent %j", (value) => {
+        expect(UpdateProjectSchema.safeParse({ autoAgent: value }).success).toBe(true);
+    });
+
+    it("rejects an unknown autoAgent value", () => {
+        expect(UpdateProjectSchema.safeParse({ autoAgent: "rogue-cli" }).success).toBe(false);
     });
 });
