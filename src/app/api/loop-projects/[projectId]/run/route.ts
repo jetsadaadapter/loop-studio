@@ -13,6 +13,30 @@ const COMMAND_MAP: Record<RunType, { cmd: string; args: string[] }> = {
     dev: { cmd: "npm", args: ["run", "dev"] },
 };
 
+// Dev servers whose CLI accepts `--port`. Vite in particular ignores the PORT
+// env var entirely, so pinning via env alone leaves it on the default 5173 and
+// the preview pane (pointed at the project's previewUrl port) reads as offline.
+const PORT_FLAG_TEMPLATES = new Set(["vite-react", "nextjs-app", "nextjs-pages"]);
+
+/**
+ * Launch options for a `dev` run pinned to the project's previewUrl port.
+ * Port-flag templates (Vite/Next) also get `-- --port <n>` on the CLI — Vite
+ * honors only that, Next honors both; nodejs/generic fall back to $PORT alone.
+ * Returns the base args unchanged when the previewUrl has no explicit port.
+ */
+export function devLaunchArgs(
+    template: string,
+    baseArgs: string[],
+    previewUrl?: string,
+): { args: string[]; extraEnv?: Record<string, string> } {
+    const port = extractPreviewPort(previewUrl);
+    if (!port) return { args: baseArgs };
+    const args = PORT_FLAG_TEMPLATES.has(template)
+        ? [...baseArgs, "--", "--port", String(port)]
+        : baseArgs;
+    return { args, extraEnv: { PORT: String(port) } };
+}
+
 export async function POST(
     req: Request,
     context: { params: Promise<{ projectId: string }> }
@@ -42,7 +66,13 @@ export async function POST(
             );
         }
 
-        const { cmd, args } = mapping;
+        const cmd = mapping.cmd;
+        // For `dev`, pin the project's previewUrl port (via --port for Vite/Next,
+        // $PORT for the rest) so two projects' dev servers never collide and the
+        // preview pane can actually reach the server.
+        const { args, extraEnv } = type === "dev"
+            ? devLaunchArgs(project.template, mapping.args, project.previewUrl)
+            : { args: mapping.args, extraEnv: undefined as Record<string, string> | undefined };
         const processKey = `run-${projectId}`;
 
         // Setup log path
@@ -55,16 +85,6 @@ export async function POST(
             `\n--- Live Run: ${type} ---\nDirectory: ${project.path}\nCommand: ${cmd} ${args.join(" ")}\n\n`,
             "utf8"
         );
-
-        // Pin `dev` to the port this project's own previewUrl claims (e.g.
-        // "http://localhost:3001" → PORT=3001) — `next dev`/most dev servers
-        // fall back to PORT when no explicit --port/-p flag is set in the
-        // project's own script, so this is what actually keeps two projects'
-        // dev servers from both binding the same default port and colliding.
-        const extraEnv = type === "dev" ? (() => {
-            const port = extractPreviewPort(project.previewUrl);
-            return port ? { PORT: String(port) } : undefined;
-        })() : undefined;
 
         // Run async (fire-and-forget). Streams live output into the log file.
         void runProjectCommand(processKey, project.path, cmd, args, (chunk) => {
