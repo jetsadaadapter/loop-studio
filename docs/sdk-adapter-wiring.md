@@ -8,6 +8,18 @@
 > [guarded tools + PreToolUse hook](./guarded-tools-pretooluse.md) as the choke
 > point. **Do not build this until steps 1–2 are solid.** Concept only.
 
+## 0. Verified (2026-07-20 install + smoke test)
+
+Steps 1–2 are done. Before wiring, a throwaway `npm install` + a minimal `query()`
+smoke test settled the open dependency/auth questions with ground truth:
+
+- **Package:** `@anthropic-ai/claude-agent-sdk@0.3.215` (npm-confirmed), Node ≥18. Install is **light** — ~8 packages, ~16s; the platform binary ships as an optional dep (NOT the ~150 MB some sources claimed).
+- **Auth: KEYLESS WORKS.** Ran `query()` with `ANTHROPIC_API_KEY` explicitly unset → succeeded via the machine's Claude login, exactly like the `claude` CLI adapter. (A web source claiming "API key only" was wrong — the smoke test is authoritative.) So the `claude-sdk` adapter stays **keyless**, unchanged from Loop Studio's current model; `ANTHROPIC_API_KEY` still works as a fallback.
+- **Result shape confirmed:** the `result` message carries `session_id`, `total_cost_usd`, `usage` — as §2/§10 assume.
+- **💰 Cost baseline:** a single trivial 1-turn run cost **~$0.25** (≈42k cache-creation tokens for the SDK's default context). Per-run baseline is real → `maxTurns`/`maxBudgetUsd` caps are a **must**, not optional.
+
+No blockers found — cleared to build 3.3+.
+
 ## 1. Goal
 
 Add a `claude-sdk` adapter to the existing registry (`loop-bridge-worker.service.ts`)
