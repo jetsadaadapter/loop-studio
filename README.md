@@ -74,6 +74,11 @@ npm run dev                  # dev server on :3000
 
 Then open <http://localhost:3000>, register a local project, and create a task.
 
+> **Preview config (`.claude/launch.json`)** — machine-local settings for the
+> Browser-pane preview tool (its `next-dev` / `next-start` server entries). It is
+> git-ignored and auto-regenerated on the first preview run, so there is nothing
+> to commit or copy between machines — no setup step required.
+
 ### Scripts
 
 ```bash
