@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { isAllowedHost, isCrossSite } from "./proxy-guards";
 
 // Static asset patterns — skip middleware entirely
 const STATIC_PATTERN =
@@ -58,50 +59,32 @@ function buildCsp(nonce: string): string {
 }
 
 // ─── Cross-site request protection ───────────────────────────────────────────
-// Loop Studio has no auth, and its API runs real commands and writes files on
-// this machine. Without these checks, any website open in the same browser
-// could fire requests at localhost:3000 (CSRF) or reach it via DNS rebinding.
-
-// Hostnames this app may be addressed by. Extend via LOOP_ALLOWED_HOSTS
-// (comma-separated, e.g. "192.168.1.20,mymac.local") for LAN access.
-const ALLOWED_HOSTNAMES = new Set([
-    "localhost",
-    "127.0.0.1",
-    "[::1]",
-    ...(process.env.LOOP_ALLOWED_HOSTS?.split(",").map((h) => h.trim().toLowerCase()).filter(Boolean) ?? []),
-]);
-
-const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+// Loop Studio has no auth, and its API runs real commands and returns data on
+// this machine. Without these checks, any website open in the same browser could
+// fire requests at localhost:3000 (CSRF) or reach it via DNS rebinding. The pure
+// guards live in ./proxy-guards (unit-tested there).
 
 /**
  * Reject requests that don't come from this app's own origin.
  * - Host allowlist defeats DNS rebinding (attacker's domain resolving to 127.0.0.1
  *   still arrives with the attacker's hostname in the Host header).
- * - Origin check on state-changing methods defeats classic cross-site POSTs.
+ * - Cross-site check runs on EVERY method, not just state-changing ones: the
+ *   no-auth API returns data (task logs, file contents, directory listings) as
+ *   well as running commands, so a cross-site READ is as harmful as a write.
+ *   SOP/CORS already stops a browser reading these responses cross-origin; this
+ *   rejects the request outright as defense-in-depth.
  * Same-origin requests from the app itself always pass both checks.
  */
 function rejectCrossSiteRequest(req: NextRequest): NextResponse | null {
     const host = req.headers.get("host") ?? "";
-    const hostname = host.replace(/:\d+$/, "").toLowerCase();
-    if (!ALLOWED_HOSTNAMES.has(hostname)) {
+    if (!isAllowedHost(host)) {
         return new NextResponse(`Blocked: host "${host}" is not allowed. Set LOOP_ALLOWED_HOSTS to permit it.`, {
             status: 403,
         });
     }
 
-    if (!SAFE_METHODS.has(req.method)) {
-        const origin = req.headers.get("origin");
-        if (origin) {
-            let originHost: string | null = null;
-            try {
-                originHost = new URL(origin).host;
-            } catch {
-                originHost = null; // includes Origin: null (sandboxed iframes, some redirects)
-            }
-            if (originHost !== host) {
-                return new NextResponse("Blocked: cross-origin request.", { status: 403 });
-            }
-        }
+    if (isCrossSite(host, req.headers.get("origin"), req.headers.get("sec-fetch-site"))) {
+        return new NextResponse("Blocked: cross-site request.", { status: 403 });
     }
 
     return null;
