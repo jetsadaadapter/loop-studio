@@ -14,6 +14,7 @@ vi.mock("./loop-sdk-bindings", () => ({
 }));
 vi.mock("./loop-worktree.service", () => ({ ensureTaskWorktree: ensureMock }));
 vi.mock("./loop-projects.service", () => ({ getProjects: getProjectsMock, executeGitCommand: gitMock }));
+vi.mock("./loop-sdk-runs", () => ({ writeRunMeta: vi.fn(), clearRunMeta: vi.fn() }));
 
 import { runAgentSdk } from "./loop-sdk-runner";
 
@@ -39,7 +40,7 @@ beforeEach(() => {
 describe("runAgentSdk", () => {
     it("runs in the worktree with the guarded options and returns summary + diffed files", async () => {
         const logs: string[] = [];
-        const r = await runAgentSdk({ taskId: "t1", projectId: "p1", prompt: "add /health", onLog: (s) => logs.push(s) });
+        const r = await runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "add /health", onLog: (s) => logs.push(s) });
 
         expect(r.summary).toBe("added /health endpoint");
         expect(r.editedFiles).toEqual(["server.js", "src/a.ts"]);
@@ -62,17 +63,17 @@ describe("runAgentSdk", () => {
             capturedOptions = arg.options;
             return gen([{ type: "result", subtype: "error_max_turns", num_turns: 30, total_cost_usd: 1 }]);
         });
-        const r = await runAgentSdk({ taskId: "t1", projectId: "p1", prompt: "x", onLog: () => {} });
+        const r = await runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "x", onLog: () => {} });
         expect(r.summary).toContain("error_max_turns");
     });
 
     it("throws when the task is not found", async () => {
         getProjectsMock.mockReturnValue([]);
-        await expect(runAgentSdk({ taskId: "t1", projectId: "p1", prompt: "x", onLog: () => {} })).rejects.toThrow(/Task not found/);
+        await expect(runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "x", onLog: () => {} })).rejects.toThrow(/Task not found/);
     });
 
     it("forces a worktree (ensureTaskWorktree) before running", async () => {
-        await runAgentSdk({ taskId: "t1", projectId: "p1", prompt: "x", onLog: () => {} });
+        await runAgentSdk({ taskId: "t1", projectId: "p1", bridgeId: "b1", prompt: "x", onLog: () => {} });
         expect(ensureMock).toHaveBeenCalledWith("t1");
     });
 });

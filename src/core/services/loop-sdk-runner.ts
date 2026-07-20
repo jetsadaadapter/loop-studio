@@ -2,6 +2,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { createLoopToolServer, createPreToolUseHook } from "./loop-sdk-bindings";
 import { ensureTaskWorktree } from "./loop-worktree.service";
 import { getProjects, executeGitCommand } from "./loop-projects.service";
+import { writeRunMeta, clearRunMeta } from "./loop-sdk-runs";
 import type { SdkRunResult } from "./loop-bridge-worker.service";
 
 // Step 3.4: the agentic loop. Runs the Agent SDK `query()` inside the task's
@@ -21,10 +22,11 @@ function assistantText(message: unknown): string {
 export async function runAgentSdk(args: {
     taskId: string;
     projectId: string;
+    bridgeId: string;
     prompt: string;
     onLog: (s: string) => void;
 }): Promise<SdkRunResult> {
-    const { taskId, projectId, prompt, onLog } = args;
+    const { taskId, projectId, bridgeId, prompt, onLog } = args;
 
     const task = getProjects().find((p) => p.id === projectId)?.tasks?.find((t) => t.id === taskId);
     if (!task) throw new Error(`Task not found: ${taskId}`);
@@ -34,6 +36,11 @@ export async function runAgentSdk(args: {
     const git = await ensureTaskWorktree(taskId);
     const cwd = git.worktreeDir;
     const targetFiles = task.targetFiles ?? [];
+
+    // Drop a durability marker so a restart mid-run can unstick the bridge
+    // (recoverSdkRuns); cleared in the finally below on any exit.
+    writeRunMeta({ taskId, projectId, bridgeId, worktreeDir: cwd, startedAt: new Date().toISOString() });
+    try {
 
     // One agent both implements and tests here, so allow test files; config stays
     // locked and edits stay confined to targetFiles (evaluateEdit enforces both).
@@ -73,9 +80,12 @@ export async function runAgentSdk(args: {
         }
     }
 
-    // Authoritative changed-file list: diff the task branch against its base.
-    const diff = await executeGitCommand(cwd, ["diff", "--name-only", git.baseSha]).catch(() => "");
-    const editedFiles = diff.split("\n").map((s) => s.trim()).filter(Boolean);
+        // Authoritative changed-file list: diff the task branch against its base.
+        const diff = await executeGitCommand(cwd, ["diff", "--name-only", git.baseSha]).catch(() => "");
+        const editedFiles = diff.split("\n").map((s) => s.trim()).filter(Boolean);
 
-    return { summary: summary || "(no summary)", editedFiles };
+        return { summary: summary || "(no summary)", editedFiles };
+    } finally {
+        clearRunMeta(taskId);
+    }
 }

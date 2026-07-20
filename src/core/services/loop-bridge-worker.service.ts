@@ -79,7 +79,7 @@ export interface SdkRunResult {
 // guarded tools. The concrete `claude-sdk` adapter is registered in Step 3.4.
 interface SdkAdapter {
     kind: "sdk";
-    run: (args: { taskId: string; projectId: string; prompt: string; onLog: (s: string) => void }) => Promise<SdkRunResult>;
+    run: (args: { taskId: string; projectId: string; bridgeId: string; prompt: string; onLog: (s: string) => void }) => Promise<SdkRunResult>;
 }
 
 type AgentAdapter = SpawnAdapter | SdkAdapter;
@@ -219,7 +219,7 @@ export async function runSdkAdapter(
     const { taskId, bridgeId, projectId, prompt, onLog } = args;
     onLog(`\n[auto-bridge] SDK agent fulfilling request…\n`);
     try {
-        const result = await adapter.run({ taskId, projectId, prompt, onLog });
+        const result = await adapter.run({ taskId, projectId, bridgeId, prompt, onLog });
         finalizeBridgeReply(projectId, taskId, bridgeId, {
             reply: result.summary,
             senderName: "Agent (SDK)",
