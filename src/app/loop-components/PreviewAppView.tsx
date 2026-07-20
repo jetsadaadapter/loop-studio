@@ -1,6 +1,7 @@
 import { Monitor, RotateCw, ExternalLink, ArrowRight, Server } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PreviewOfflineState } from "./PreviewOfflineState";
+import { PreviewHostAppState } from "./PreviewHostAppState";
 import { ApiConsole } from "./ApiConsole";
 
 interface PreviewAppViewProps {
@@ -19,6 +20,11 @@ interface PreviewAppViewProps {
     onSelectApi: () => void;
     deviceMode: "desktop" | "mobile";
     projectId: string;
+    // The host app is Loop Studio itself, served on this very port. Rendering its
+    // live preview would embed the app inside its own iframe (recursive) and point
+    // at the port the server is already using — so the App/API preview is disabled
+    // for it, mirroring how build/dev are. Code and Diff tabs still work.
+    isHost?: boolean;
 }
 
 /** The "Preview" tab: URL bar, App/API toggle, and the iframe / API console body. */
@@ -38,7 +44,12 @@ export function PreviewAppView({
     onSelectApi,
     deviceMode,
     projectId,
+    isHost = false,
 }: PreviewAppViewProps) {
+    if (isHost) {
+        return <PreviewHostAppState />;
+    }
+
     const body = bodyKind === "api" ? null : reachable === false ? (
         <PreviewOfflineState url={url} projectId={projectId} onRetry={onRetry} />
     ) : (

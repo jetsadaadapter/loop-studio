@@ -59,6 +59,7 @@ export function TaskRightPanel({
             <div className="flex-1 min-h-0 overflow-hidden border-b border-slate-200">
                 <PreviewPane
                     initialUrl={project?.previewUrl || "/"}
+                    isHost={project?.isHost}
                     verifyStatus={verify}
                     buildStatus={build}
                     riskTier={task.riskTier}
