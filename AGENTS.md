@@ -59,8 +59,10 @@ it's leftover — flag it for removal rather than building on it.
   a plain `src/app/components/`.
 - No auth system — every route is public to the local user. `src/proxy.ts` sets
   CSP/security headers (per-request nonce) and rejects cross-site requests
-  (Host allowlist + same-origin check on state-changing methods; extend hosts
-  via `LOOP_ALLOWED_HOSTS`). It does not authenticate anyone. The
+  (Host allowlist + a cross-site check on every method via Origin + Sec-Fetch-Site
+  — the no-auth API leaks data on reads too, not just writes; the pure guards
+  live in `src/proxy-guards.ts`; extend hosts via `LOOP_ALLOWED_HOSTS`). It does
+  not authenticate anyone. The
   Register/Bootstrap folder picker (`/api/loop-projects/browse`) browses the
   local filesystem by design; it can be confined to one subtree with
   `LOOP_BROWSE_ROOT` (unset = anywhere under the user's account).
