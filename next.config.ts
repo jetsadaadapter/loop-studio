@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: version,
   },
+  // The Agent SDK ships a platform-native binary and must not be bundled by
+  // Turbopack — keep it external so it's required at runtime from node_modules.
+  serverExternalPackages: ["@anthropic-ai/claude-agent-sdk"],
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
     return [
