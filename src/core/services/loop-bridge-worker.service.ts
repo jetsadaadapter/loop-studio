@@ -133,6 +133,12 @@ const ADAPTERS: Record<string, AgentAdapter> = {
             return data.response;
         },
     },
+    // In-process agentic loop via the Agent SDK. Lazy-imported so the SDK's native
+    // binary only loads when this adapter is actually used (not on every boot).
+    "claude-sdk": {
+        kind: "sdk",
+        run: (args) => import("./loop-sdk-runner").then((m) => m.runAgentSdk(args)),
+    },
 };
 
 /** The env-level default auto-fulfill agent name, or null when unset. */
