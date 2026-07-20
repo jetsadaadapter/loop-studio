@@ -117,7 +117,15 @@ export async function runCollaborationLoop(
 
         // --- STEP 2: Somsri (Developer) Writes Code ---
         writeLog(`\n[Step 2/5] Somsri (Developer) is writing code...`);
-        const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}`;
+        // The edits are extracted from the reply by applyFileEdits, which only
+        // recognizes <file_edit path="…">…</file_edit> blocks. The agent's stored
+        // system prompt doesn't mandate that shape, and models that don't infer it
+        // (e.g. Gemini) then "suggest code" that writes nothing — so state the
+        // output contract explicitly here, the same way the QA step does below.
+        const scopeHint = allowedPaths.length
+            ? ` Only create or modify these files: ${allowedPaths.join(", ")} (edits outside this scope are ignored).`
+            : "";
+        const somsriPrompt = `${somsri.systemPrompt}${knowledgeBlock}\n\nPlan details: ${somchaiRes.text}\nInstructions: ${instructions}\n\nOUTPUT FORMAT (required): return every file you create or change as a <file_edit path="relative/path">FULL FILE CONTENTS</file_edit> block — the complete file body inside each block, not a diff and no "…" placeholders.${scopeHint} A reply with no <file_edit> block writes nothing.`;
         const somsriRes = await callAgentLLM(llm, somsriPrompt, [{ role: "user", content: "Implement the required files." }]);
         // Implementer role: cannot write test or verifier-config files (default policy).
         const devEdit = applyFileEdits(cwd, somsriRes.text, { allowedPaths });
