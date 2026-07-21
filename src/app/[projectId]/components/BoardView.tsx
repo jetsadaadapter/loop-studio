@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MessageSquare, Activity, Flag, Plus, FileCode2, GripVertical } from "lucide-react";
+import { MessageSquare, Activity, Flag, Plus, FileCode2, GripVertical, Lock } from "lucide-react";
 import type { LoopTask, KanbanColumn } from "@/core/interfaces/loop-projects.interface";
 
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -52,23 +52,42 @@ function TaskCard({ projectId, task, dragging, onDragStart, onDragEnd }: {
     const activities = task.activities?.length ?? 0;
     const status = statusChip(task);
     const priority = task.priority ?? "medium";
+    // A task whose pipeline is actively running must not be dragged: moving it
+    // rewrites its status (see the reorder route), which would desync the run
+    // that's mid-flight. Only the grip is a drag source, so clicking the card
+    // still opens it (no accidental navigation while dragging).
+    const isRunning = task.status === "running";
 
     return (
         <Link
             href={`/${projectId}/tasks/${task.id}`}
-            draggable
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            className={`group block rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-slate-300/70 cursor-grab active:cursor-grabbing ${
-                dragging ? "opacity-40" : ""
-            }`}
+            draggable={false}
+            className={`group block rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+                isRunning ? "border-blue-300/60" : "border-slate-200/60 hover:border-slate-300/70"
+            } ${dragging ? "opacity-40" : ""}`}
         >
             <div className="mb-1.5 flex items-center justify-between gap-2">
                 <Badge variant={status.variant} className={task.status === "running" ? "animate-pulse" : ""}>
                     <span className="size-1.5 rounded-full bg-current" />
                     {status.label}
                 </Badge>
-                <GripVertical className="size-3.5 shrink-0 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span
+                    draggable={!isRunning}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onDragStart={(e) => { e.stopPropagation(); onDragStart(e); }}
+                    onDragEnd={onDragEnd}
+                    title={isRunning ? "Task is running — stop or let it finish before moving" : "Drag to move"}
+                    aria-label={isRunning ? "Locked while running" : "Drag to move"}
+                    className={`-m-1 shrink-0 rounded p-1 ${
+                        isRunning
+                            ? "cursor-not-allowed text-slate-300"
+                            : "cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                    }`}
+                >
+                    {isRunning
+                        ? <Lock className="size-3.5" />
+                        : <GripVertical className="size-3.5 opacity-60 transition-opacity group-hover:opacity-100" />}
+                </span>
             </div>
 
             <p className="mt-2 text-sm font-semibold text-slate-800 group-hover:text-brand transition-colors">{task.name}</p>
@@ -115,6 +134,9 @@ export function BoardView({ projectId, tasks, onAddTask, onRefresh }: BoardViewP
         if (!taskId) return;
         const task = tasks.find((t) => t.id === taskId);
         if (!task || columnOf(task) === col) return;
+        // Defensive: never move a task whose pipeline is running (the grip is
+        // already non-draggable for it, but a drop must not slip through).
+        if (task.status === "running") return;
         await moveTaskToColumn(projectId, taskId, col);
         onRefresh?.();
     };
