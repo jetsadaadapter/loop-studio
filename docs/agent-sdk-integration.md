@@ -1,11 +1,14 @@
 # Agent SDK Integration — Design Concept
 
-> **Status:** Draft / Concept (pre-implementation) · **Date:** 2026-07-19 · **Owner:** jetsada
+> **Status:** Implemented · **Concept dated:** 2026-07-19 · **Implemented by:** commit `2d8b931` (2026-07-21), verified 2026-07-25 · **Owner:** jetsada
 >
-> This is a concept design. No code has been written yet. It captures the target
-> architecture, the **verified** Claude Agent SDK facts it depends on, the guard
-> model, and the build sequence — so the team (and AI agents) can execute from a
-> single spec.
+> Originally a concept design — **the architecture below is now implemented in code.**
+> It still captures the target architecture, the **verified** Claude Agent SDK facts
+> it depends on, the guard model, and the build sequence, and remains the canonical
+> spec + rationale for the `claude-sdk` adapter. The implementation lives in
+> `src/core/services/`: `loop-sdk-runner.ts`, `loop-sdk-bindings.ts`,
+> `loop-sdk-runs.ts`, `loop-pretooluse-guard.ts`, `loop-agent-tools.ts`, and
+> `loop-file-guards.ts` — all with colocated tests.
 
 ## 1. Goal
 
