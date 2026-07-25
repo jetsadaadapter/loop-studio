@@ -150,3 +150,6 @@ testsprite_tests/tmp/
 # Bootstrapped workspace projects (each is its own repo) — visible (not hidden),
 # still git-ignored so they don't pollute this repo.
 projects/
+
+# Obsidian vault config (created if this folder is opened in Obsidian)
+.obsidian/
