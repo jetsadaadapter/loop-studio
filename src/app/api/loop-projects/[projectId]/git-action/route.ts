@@ -49,7 +49,7 @@ export async function POST(req: Request, context: { params: Promise<{ projectId:
         }
 
         // A project without its own git root resolves git commands against a
-        // PARENT repo (e.g. a git-less folder under the host's .projects/) —
+        // PARENT repo (e.g. a git-less folder under the host's projects/) —
         // committing/pushing there would hit the wrong repository.
         if (!(await isOwnGitRepo(project.path))) {
             return NextResponse.json(

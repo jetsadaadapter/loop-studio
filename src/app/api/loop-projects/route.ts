@@ -62,7 +62,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
             }
 
-            // Blank path → create under the app's .projects/ workspace folder,
+            // Blank path → create under the app's projects/ workspace folder,
             // named after the project (kebab-case). Keeps bootstrapped projects
             // in one predictable, gitignored place.
             const slug = String(name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "new-project";
