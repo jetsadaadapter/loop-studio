@@ -11,7 +11,12 @@
 Give the SDK agent a real toolset (read / edit / run tests / iterate) while forcing
 **every mutating action through one guard** — reusing the guards that already exist
 in [`loop-file-guards.ts`](../src/core/services/loop-file-guards.ts) (config lock,
-test-file policy, task scope, path traversal) plus the risk tier
+test-file policy, task scope, path traversal, a new-directory-depth cap that
+refuses to auto-create a deep phantom tree from an agent path
+(`LOOP_MAX_NEW_DIR_LEVELS`, default 1), and a per-project docs-location standard
+that confines a new markdown doc to the project `docs/` dir (`LOOP_DOCS_DIR`,
+default `docs`) — both enforced at write time since they need fs)
+plus the risk tier
 (`calculateRiskTier`). No new guard logic — the same rules, moved to the tool-call
 boundary.
 
@@ -42,7 +47,7 @@ Defined via `tool(name, desc, zodSchema, handler)` + `createSdkMcpServer({ name:
 
 | Tool | Input (zod) | Handler does | Guarded by |
 |---|---|---|---|
-| `edit_file` | `{ path, content }` | write **inside the task worktree** via `applyFileEdits`, then `checkpoint()` | config lock · test policy · scope · traversal |
+| `edit_file` | `{ path, content }` | write **inside the task worktree** via `applyFileEdits`, then `checkpoint()` | config lock · test policy · scope · traversal · new-dir cap · docs-location |
 | `run_verification` | `{ kind: "vitest"\|"tsc"\|"build", target? }` | run in the worktree via `runProjectCommand`; return `{passed, output tail}` to the agent | none (read-only signal) |
 | `run_command` *(opt-in)* | `{ cmd, args }` | run an **allowlisted** command in the worktree | command allowlist + risk tier |
 

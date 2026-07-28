@@ -132,12 +132,69 @@ export function evaluateEdit(relativePath: string, options: EditPolicyOptions = 
     return { decision: "allow", kind };
 }
 
+// Cap how many *new* directory levels a single agent-supplied edit may
+// materialize. Without this, mkdirSync(recursive) auto-creates an arbitrarily
+// deep tree from an LLM/bridge path — that is how a phantom
+// "loop-studio/projects/<name>/docs/…" layout once got conjured inside a target
+// project. Editing an existing directory (0 new levels), or adding a file in one
+// new directory (1 new level), is fine; conjuring a multi-level tree is refused
+// so agent output paths stay standard. Override with LOOP_MAX_NEW_DIR_LEVELS.
+const MAX_NEW_DIR_LEVELS: number = (() => {
+    const raw = Number(process.env.LOOP_MAX_NEW_DIR_LEVELS);
+    return Number.isFinite(raw) && raw >= 0 ? raw : 1;
+})();
+
+/**
+ * Count how many directory levels between the target file's directory and the
+ * project root do not yet exist — i.e. exactly how many directories mkdirSync
+ * would have to create. Walks up until it hits an existing directory or the root.
+ */
+function countNewDirLevels(projectRoot: string, targetDir: string): number {
+    let levels = 0;
+    let dir = targetDir;
+    while (dir !== projectRoot && dir.startsWith(projectRoot + path.sep)) {
+        if (fs.existsSync(dir)) break;
+        levels++;
+        dir = path.dirname(dir);
+    }
+    return levels;
+}
+
+// Per-project docs standardization: a NEW markdown doc an agent creates must live
+// under the project's docs dir (default "docs/") so each project's generated
+// documentation collects in one predictable place instead of scattering across
+// the tree. Only bites new nested markdown an agent invents on its own — editing
+// an existing doc anywhere, a root-level convention file (README.md, …), a file
+// the task explicitly scoped (targetFiles), and anything under .github/ all pass.
+// Set LOOP_DOCS_DIR to change the dir, or to "" to disable the guard.
+const DOCS_DIR: string = (process.env.LOOP_DOCS_DIR ?? "docs").trim();
+
+function isMarkdown(rel: string): boolean {
+    return /\.mdx?$/i.test(rel);
+}
+
+/**
+ * If a NEW markdown doc is misplaced under the per-project docs standard, return
+ * the reason to refuse it; otherwise null. `exists` = the file already exists on
+ * disk (edits are never relocated).
+ */
+function misplacedDocReason(rel: string, exists: boolean, allowedPaths?: string[]): string | null {
+    if (!DOCS_DIR || exists || !isMarkdown(rel)) return null;
+    const segments = normalizeRel(rel).split("/").filter(Boolean);
+    if (segments.length <= 1) return null; // root-level (README.md, …) is fine
+    if (segments.includes(DOCS_DIR)) return null; // already under docs/
+    if (segments[0] === ".github") return null; // CI/community docs
+    if (allowedPaths?.map(normalizeRel).includes(normalizeRel(rel))) return null; // human-scoped
+    return `project docs must be written under "${DOCS_DIR}/" (e.g. ${DOCS_DIR}/${segments[segments.length - 1]}), not a scattered nested path`;
+}
+
 // File Edits Parser for Claude Chat Responses.
 /**
  * Write ONE project-relative file through the full guard: path-traversal check,
- * then the shared evaluateEdit policy (config/test/scope), then the write. The
- * single guarded-write primitive — used both by applyFileEdits (for `<file_edit>`
- * blocks) and by the Agent SDK `edit_file` tool.
+ * the shared evaluateEdit policy (config/test/scope), the per-project docs-
+ * location standard, then a new-directory-depth cap (no auto-creating a deep
+ * phantom tree), then the write. The single guarded-write primitive — used both
+ * by applyFileEdits (for `<file_edit>` blocks) and by the Agent SDK `edit_file`.
  */
 export function writeGuardedFile(
     projectPath: string,
@@ -160,8 +217,27 @@ export function writeGuardedFile(
         return { blocked: { path: relativePath, reason: verdict.reason! } };
     }
 
+    // Per-project docs standard: a new markdown doc goes under the docs dir.
+    const docReason = misplacedDocReason(relativePath, fs.existsSync(fullPath), options.allowedPaths);
+    if (docReason) {
+        return { blocked: { path: relativePath, reason: docReason } };
+    }
+
+    // Standard-path guard: refuse to auto-create a deep new directory tree from
+    // an agent-supplied path (the phantom-nesting bug). One new dir is fine.
+    const targetDir = path.dirname(fullPath);
+    const newDirLevels = countNewDirLevels(projectRoot, targetDir);
+    if (newDirLevels > MAX_NEW_DIR_LEVELS) {
+        return {
+            blocked: {
+                path: relativePath,
+                reason: `would auto-create ${newDirLevels} new directory levels (max ${MAX_NEW_DIR_LEVELS}) — write into an existing directory instead of a new nested path`,
+            },
+        };
+    }
+
     try {
-        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.mkdirSync(targetDir, { recursive: true });
         fs.writeFileSync(fullPath, content, "utf8");
         return { written: relativePath };
     } catch (e) {
