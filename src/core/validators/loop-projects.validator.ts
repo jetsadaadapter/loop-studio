@@ -52,7 +52,7 @@ export const BootstrapProjectSchema = z.object({
         .trim()
         .min(2, "Project name must be at least 2 characters.")
         .max(60, "Project name must be 60 characters or fewer."),
-    // Blank = the server creates the folder under its .projects/ workspace root.
+    // Blank = the server creates the folder under its projects/ workspace root.
     path: z
         .string()
         .trim()

@@ -249,7 +249,7 @@ async function autoCloseTask(projectId: string, taskId: string, projectPath: str
 
     try {
         // Never `git add -A` against a parent repo: a project without its own
-        // git root (e.g. a git-less folder nested in the host's .projects/)
+        // git root (e.g. a git-less folder nested in the host's projects/)
         // would stage the surrounding repository's files instead.
         if (!(await isOwnGitRepo(projectPath))) return false;
         await executeGitCommand(projectPath, ["add", "-A"]);

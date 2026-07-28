@@ -18,7 +18,6 @@ const eslintConfig = defineConfig([
     // checkouts; linting them double-counts (and breaks) the whole tree.
     ".claude/**",
     // Bootstrapped/registered projects live in their own repos — never lint them here.
-    ".projects/**",
     "projects/**",
   ]),
 ]);

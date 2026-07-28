@@ -20,11 +20,11 @@ export async function GET(req: Request, context: { params: Promise<{ projectId: 
 
         if (fileParam) {
             // Resolve and verify traversal bounds.
-            // If fileParam is relative to .projects/ (e.g. crm-thai-oil/src/app/page.tsx), 
-            // we should try to resolve it from the .projects folder as well.
+            // If fileParam is relative to projects/ (e.g. crm-thai-oil/src/app/page.tsx),
+            // we should try to resolve it from the projects folder as well.
             let resolvedPath = path.resolve(project.path, fileParam);
-            
-            // If it doesn't exist, try resolving relative to .projects/
+
+            // If it doesn't exist, try resolving relative to projects/
             if (!fs.existsSync(resolvedPath)) {
                 const altPath = path.resolve(projectsDir, fileParam);
                 if (altPath.startsWith(projectsDir + path.sep)) {

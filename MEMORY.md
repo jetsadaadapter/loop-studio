@@ -472,3 +472,9 @@ How: `misplacedDocReason()` in `writeGuardedFile` (`loop-file-guards.ts`) refuse
 Verified: 6 new tests in loop-file-guards.test.ts (real fs); full suite 420 → 426 green; lint/tsc/build clean.
 Docs: CLAUDE.md, AGENTS.md §7, docs/guarded-tools-pretooluse.md.
 Note: complements the new-dir cap — a deep path ending in docs/ (the old phantom `loop-studio/projects/x/docs/y.md`) is caught by the new-dir cap; a shallow scattered doc (src/notes.md) by this docs-location guard.
+
+## 2026-07-28 — Chore: cleanup stale `.projects/` references (closes prior follow-up)
+Agent/tool: Claude Code (Opus 4.8), main session. Closes the open follow-up from the 2026-07-27 standard-path guard entry.
+What: The `.projects → projects` rename (2026-07-14) left the runtime code correct (all folder creation uses `process.cwd()/projects`) but 6 stale `.projects/` comments across 5 files, a test fixture path, and 1 dead `.projects/**` eslint-ignore line still referenced the old dotted layout — misleading, and a likely cue for an agent to recreate a dotted path.
+Fixed (comment/config/test only, zero logic change): comments in route.ts, files/route.ts (×3), git-action/route.ts, loop-projects.validator.ts, loop-git.service.ts, loop-autorun.service.ts; the `.projects/child` fixture in loop-projects.test.ts → `projects/child`; removed the redundant `".projects/**"` eslint ignore (the real `"projects/**"` line stays).
+Verified: no `.projects` left in src/ or eslint.config.mjs (the crm-thai-oil registered-project path and historical MEMORY.md entries excluded); suite 426 green, lint/tsc/build clean.

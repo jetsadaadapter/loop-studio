@@ -71,7 +71,7 @@ describe("isHostProject", () => {
 
     it("is false for any other project directory", () => {
         expect(isHostProject("/tmp/some-other-project")).toBe(false);
-        expect(isHostProject(process.cwd() + "/.projects/child")).toBe(false);
+        expect(isHostProject(process.cwd() + "/projects/child")).toBe(false);
     });
 });
 

@@ -38,7 +38,7 @@ export async function executeGhCommand(projectPath: string, args: string[]): Pro
 /**
  * True only when the project directory is the ROOT of its own git repo.
  * A project nested inside another repo (e.g. a git-less folder under the
- * host's .projects/) resolves git commands against the PARENT repo — acting
+ * host's projects/) resolves git commands against the PARENT repo — acting
  * on it would read/commit the wrong repository, so callers must check this
  * before any git write.
  */
