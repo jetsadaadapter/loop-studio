@@ -29,6 +29,16 @@ export const AVAILABLE_MODELS = [
  */
 export const LOOP_LLM_MODEL = "claude-opus-4-8";
 
+/**
+ * Default Gemini model sent to the Google API when a Gemini key is in use
+ * (override with the LOOP_GEMINI_MODEL env var). Kept in the same 3.5 Flash
+ * family as the Google entries in AVAILABLE_MODELS so the roster and the actual
+ * API call never drift — the service previously hardcoded gemini-2.5-flash while
+ * the roster offered only 3.5/3.1. The roster's -low/-medium/-high suffix is a
+ * reasoning-level label; the API model id itself is the bare family name.
+ */
+export const LOOP_GEMINI_MODEL_DEFAULT = "gemini-3-5-flash";
+
 /** Approximate Sonnet-class pricing (USD per 1M tokens) used for cost display. */
 export const LOOP_LLM_PRICING = { inputPerM: 3, outputPerM: 15 } as const;
 

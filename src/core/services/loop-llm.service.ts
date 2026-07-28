@@ -1,4 +1,4 @@
-import { LOOP_LLM_MODEL } from "@/core/interfaces/loop-projects.interface";
+import { LOOP_LLM_MODEL, LOOP_GEMINI_MODEL_DEFAULT } from "@/core/interfaces/loop-projects.interface";
 
 // Multi-provider LLM layer for the Loop Studio chat/collaborate flows.
 // Supports Anthropic (Claude) and Google AI Studio (Gemini). The provider is
@@ -38,10 +38,10 @@ export interface LlmResult {
     provider: LlmProvider;
 }
 
-// Default Gemini model (override with LOOP_GEMINI_MODEL). gemini-2.5-flash is
-// current and available on the AI Studio free tier via v1beta:generateContent.
-// (gemini-1.5-* are retired for newly-issued keys.)
-const GEMINI_MODEL = process.env.LOOP_GEMINI_MODEL || "gemini-2.5-flash";
+// Default Gemini model, from the shared source of truth so it stays in sync with
+// the AVAILABLE_MODELS roster (Gemini 3.5 Flash family). Override per-deploy with
+// the LOOP_GEMINI_MODEL env var.
+const GEMINI_MODEL = process.env.LOOP_GEMINI_MODEL || LOOP_GEMINI_MODEL_DEFAULT;
 
 // Approximate pricing (USD per 1M tokens) for the cost readout in the UI.
 const PRICING: Record<LlmProvider, { input: number; output: number }> = {
