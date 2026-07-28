@@ -84,7 +84,15 @@ src/app/**/page.tsx + components        UI (client components for interactivity)
                                         + runVerification handler logic, kept SDK-free so the Agent SDK
                                         adapter can wrap them with tool()/PreToolUse later. The shared
                                         guard is evaluateEdit/writeGuardedFile in loop-file-guards.ts —
-                                        see docs/guarded-tools-pretooluse.md
+                                        writeGuardedFile also (a) caps how many NEW directory levels one
+                                        edit may auto-create (LOOP_MAX_NEW_DIR_LEVELS, default 1) so an
+                                        agent path can't conjure a deep phantom tree (e.g. a nested
+                                        loop-studio/projects/… layout) inside the target, and (b) confines
+                                        a NEW markdown doc to the per-project docs dir (LOOP_DOCS_DIR,
+                                        default "docs") so generated docs collect per-project instead of
+                                        scattering — root-level convention files (README.md, …), existing
+                                        docs, .github/, and task-scoped paths are exempt — see
+                                        docs/guarded-tools-pretooluse.md
       loop-pretooluse-guard.ts          Step 2 choke point: evaluateToolCall(toolName, input, ctx) →
                                         allow/deny/ask — the pure PreToolUse decision (reuses evaluateEdit
                                         for edits, allowlists run_command, routes RED/ORANGE to human

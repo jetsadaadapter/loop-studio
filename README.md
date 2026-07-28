@@ -99,7 +99,7 @@ All optional — Loop Studio runs with none set. See `.env.example`.
 - `LOOP_BRIDGE_AUTO` — `claude` | `gemini`: default agent that auto-fulfills bridged requests (per-project setting overrides it).
 - `LOOP_ALLOWED_HOSTS` — extra hostnames allowed to reach the app (localhost always works).
 - `LOOP_BROWSE_ROOT` — confine the Register/Bootstrap folder picker to one subtree (unset = browse anywhere under your account).
-- `LOOP_GEMINI_MODEL` — override the Gemini model.
+- `LOOP_GEMINI_MODEL` — override the Gemini model (default `gemini-3-5-flash`, matching the roster in `AVAILABLE_MODELS`).
 
 ## Architecture
 

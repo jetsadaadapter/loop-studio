@@ -60,6 +60,14 @@ export async function runAgentSdk(args: {
         options: {
             cwd,
             model: "opus",
+            // Keep the coding preset, but teach the per-project docs convention so
+            // the agent writes docs to docs/ up front (the guard enforces it too).
+            systemPrompt: {
+                type: "preset",
+                preset: "claude_code",
+                append:
+                    'When creating project documentation (Markdown), write it under the "docs/" directory at the project root (e.g. docs/<name>.md) — do not scatter docs in nested folders.',
+            },
             mcpServers: { loop: toolServer },
             allowedTools: ["Read", "Grep", "Glob", "mcp__loop__edit_file", "mcp__loop__run_verification"],
             disallowedTools: ["Write", "Bash", "Edit"],
