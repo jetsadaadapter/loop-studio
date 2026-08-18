@@ -1,0 +1,79 @@
+name: verify
+
+# The full gate set — lint, typecheck, unit tests, production build — on EVERY
+# pull request, with no path filter.
+#
+# Why this exists: cn-button-guard.yml only runs its unit + visual jobs when a PR
+# touches guarded UI paths. That is the right call for the expensive visual job,
+# but it left a hole — a dependency bump, a config change, or anything outside
+# those paths merged with zero CI verification, on the honour system that whoever
+# opened the PR ran the gates locally. PRs #54 and #55 both showed `skipping`.
+#
+# The unit job here overlaps with the guard workflow's on guarded PRs (~1 extra
+# minute). That is deliberate: cn-button-guard's `guard` job is a required check
+# and restructuring it to dedupe risks a required-check deadlock for no real gain.
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: lint · typecheck · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Matches cn-button-guard.yml: >=22 because several @scalar/* deps
+          # declare Node 22, and package-lock.json is resolved under Node 22.
+          node-version: "22.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Ordered cheapest-first so an obvious failure reports in seconds
+      # rather than after a full production build.
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      # No secrets are passed on purpose. This proves the app compiles; deploy.yml
+      # is what proves it compiles with real configuration. Fork PRs cannot read
+      # secrets anyway, so depending on them here would make this check unreliable.
+      - name: Production build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  # Aggregate so branch protection can require one stable context name even if
+  # the job list changes later.
+  verified:
+    name: verified
+    needs: verify
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result
+        run: |
+          if [ "${{ needs.verify.result }}" != "success" ]; then
+            echo "verify did not succeed: ${{ needs.verify.result }}"
+            exit 1
+          fi
+          echo "all gates passed"
